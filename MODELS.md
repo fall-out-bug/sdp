@@ -1,332 +1,477 @@
 # Model Recommendations for Consensus Agents
 
-This guide provides recommendations for selecting AI models for each agent role in the consensus workflow. The right model choice balances capability, cost, and latency.
+**Last Updated:** December 29, 2025 (SWE-bench Verified data)
 
-**Key Update (Dec 2025):** Claude Haiku 4.5 changed the game - it matches Sonnet 4 performance at 4-5x speed and fraction of cost. **Use Haiku 4.5 for 80% of tasks.**
+This guide provides objective, data-driven recommendations for selecting AI models for each agent role in the consensus workflow. All recommendations are based on **SWE-bench Verified** scores - the industry standard for measuring real-world coding performance.
 
-## Quick Reference Matrix
+## 🏆 SWE-bench Verified Leaderboard (December 2025)
 
-| Role | Tier | Claude | Notes |
-|------|------|--------|-------|
-| **Analyst** | High | **opus-4.5** | Complex requirements analysis |
-| **Architect** | High | **opus-4.5** | System design, trade-offs |
-| **Tech Lead** | Medium | **sonnet-4.5** | Planning, complex refactoring |
-| **Developer** | Standard | **haiku-4.5** | Implementation, TDD (73% SWE-bench!) |
-| **QA** | Standard | **haiku-4.5** | Testing, verification |
-| **DevOps** | Standard | **haiku-4.5** | CI/CD, deployment |
-| **SRE** | Standard | **haiku-4.5** | Observability, runbooks |
-| **Security** | High | **opus-4.5** | Threat modeling |
-| **Data/ML Quality** | Medium | **sonnet-4.5** | ML artifacts, data validation |
-| **Documentation** | Standard | **haiku-4.5** | Docs curation |
-| **Prompt Engineer** | Medium | **sonnet-4.5** | Prompt design, RAG |
+| Rank | Model | Score | Provider | Type | Cost/1M | Speed | Best For |
+|------|-------|-------|----------|------|---------|-------|----------|
+| 1 | **Claude Opus 4.5** | **80.9%** | Anthropic | Proprietary | $15/$75 | Slow | Strategic decisions |
+| 2 | **GPT-5.2 Thinking** | 80.0%* | OpenAI | Proprietary | ~$20/$100 | Slow | Complex reasoning |
+| 3 | **Claude Sonnet 4.5** | 77.2% | Anthropic | Proprietary | $3/$15 | Medium | Complex refactoring |
+| 4 | **Gemini 3 Flash** | 76-78% | Google | Proprietary | $0.075/$0.30 | **Very Fast** | **80% of tasks** ⭐ |
+| 5 | **Gemini 3 Pro** | 74.2% | Google | Proprietary | $1.25/$5 | Medium | Planning, analysis |
+| 6 | **Claude Haiku 4.5** | 73.3% | Anthropic | Proprietary | $1/$5 | **Very Fast** | Claude ecosystem |
+| 7 | **GPT-5.2** | 71.8% | OpenAI | Proprietary | ~$5/$20 | Medium | General coding |
+| 8 | **Kimi K2 Thinking** | 71.3% | Moonshot | **Open** | **Free** | Medium | **Budget option** ⭐ |
+| 9 | **Qwen3-Coder** | 69.6% | Alibaba | **Open** | **Free** | Fast | Open source leader |
+| 10 | **Kimi K2** | 65.8% | Moonshot | **Open** | **Free** | Medium | Self-hosted |
 
-## Tier Definitions
+*Vendor-reported data
 
-### High Tier (Strategic Decisions)
-**When to use:** Architecture decisions, security reviews, complex trade-offs, initial requirements with ambiguity.
+## 🎯 Quick Role Assignments
 
-**Characteristics:**
-- Multi-step reasoning required
-- High stakes decisions (vetoes, architecture)
-- Ambiguous or incomplete inputs
-- Need to synthesize multiple sources
+### For Claude Code / Cursor Users
 
-**Recommended:**
-- Claude: `claude-opus-4-5-20251101`
+| Role | Recommended | Alternative | Budget |
+|------|-------------|-------------|--------|
+| **Analyst** | Opus 4.5 (80.9%) | Gemini 3 Pro (74.2%) | Kimi K2 Thinking (71.3%) |
+| **Architect** | Opus 4.5 (80.9%) | Gemini 3 Pro (74.2%) | Kimi K2 Thinking (71.3%) |
+| **Tech Lead** | Sonnet 4.5 (77.2%) | Gemini 3 Flash (76-78%) | Qwen3-Coder (69.6%) |
+| **Developer** | **Gemini 3 Flash** (76-78%) ⭐ | Haiku 4.5 (73.3%) | Kimi K2 Thinking (71.3%) |
+| **QA** | **Gemini 3 Flash** (76-78%) ⭐ | Haiku 4.5 (73.3%) | Kimi K2 Thinking (71.3%) |
+| **DevOps** | **Gemini 3 Flash** (76-78%) ⭐ | Haiku 4.5 (73.3%) | Qwen3-Coder (69.6%) |
+| **SRE** | **Gemini 3 Flash** (76-78%) ⭐ | Haiku 4.5 (73.3%) | Qwen3-Coder (69.6%) |
+| **Security** | Opus 4.5 (80.9%) | GPT-5.2 (71.8%) | Kimi K2 Thinking (71.3%) |
 
-**Cost:** ~$15 per 1M input tokens, ~$75 per 1M output tokens
-**Token budget:** 2000-2500 per epic
+**💡 Key Insight:** Gemini 3 Flash (76-78%) outperforms Haiku 4.5 (73.3%) by 3-5% while being **93% cheaper** and 4-5x faster!
 
-### Medium Tier (Complex Execution)
-**When to use:** Complex refactoring, cross-epic analysis, sophisticated planning, ML pipelines.
+## 📊 Detailed Model Analysis
 
-**Characteristics:**
-- Needs deep codebase understanding
-- Multi-file coordination
-- Performance optimization
-- Trade-off analysis in implementation
+### Tier 1: Strategic Decisions (75%+ on SWE-bench)
 
-**Recommended:**
-- Claude: `claude-sonnet-4-5-20250929`
-
-**Cost:** ~$3 per 1M input tokens, ~$15 per 1M output tokens
-**Token budget:** 1500-2000 per task
-
-### Standard Tier (Implementation & Operations)
-**When to use:** 80% of development tasks - implementation, testing, CI/CD, documentation.
-
-**Characteristics:**
-- Clear specifications provided
-- Pattern-following tasks
-- Code generation with TDD
-- Test verification
-- Deployment scripts
-- Documentation updates
-
-**Recommended:**
-- Claude: `claude-haiku-4-5-20241022` (73.3% SWE-bench Verified)
-
-**Cost:** ~$1 per 1M input tokens, ~$5 per 1M output tokens (⚡ 4-5x faster than Sonnet!)
-**Token budget:** 1000-1500 per task
-
-**Why Haiku 4.5 is game-changing:**
-- Matches Sonnet 4 performance on coding tasks
-- World-class SWE-bench score (73.3%)
-- Extended thinking, computer use, context awareness
-- Perfect for multi-agent systems (fast sub-agents)
-
-## Role-Specific Guidance
-
-### Analyst
-```
-Tier: High
-Why: Must understand business context, identify ambiguities, define testable requirements.
-Key capabilities needed:
-- Stakeholder intent interpretation
-- Scope boundary detection
-- Success metrics formulation
-```
-
-### Architect
-```
-Tier: High
-Why: Critical decisions about system boundaries, layer violations, technical debt.
-Key capabilities needed:
-- Clean Architecture pattern recognition
-- Trade-off analysis
-- Integration complexity assessment
-- Veto justification
-```
-
-### Tech Lead
-```
-Tier: High (planning) / Medium (review)
-Why: Translates architecture to tasks, conducts code reviews, detects duplications.
-Key capabilities needed:
-- Task decomposition
-- Code quality assessment
-- Cross-epic duplication detection
-Optimization: Use High tier for planning, Medium for routine reviews.
-```
-
-### Developer
-```
-Tier: Standard (Haiku 4.5)
-Why: Follows specifications, writes tests and code, respects boundaries. Haiku 4.5 scores 73% on SWE-bench!
-Key capabilities needed:
-- TDD execution
-- Clean Code practices
-- Codebase navigation
-- Error handling patterns
-Note: Escalate to Sonnet 4.5 only for complex refactoring across 5+ files or unfamiliar domains.
-```
-
-### QA
-```
-Tier: Standard (Haiku 4.5)
-Why: Verifies against acceptance criteria, checks coverage, finds edge cases. Fast execution critical.
-Key capabilities needed:
-- Test case generation
-- Coverage analysis
-- Regression detection
-- Performance: 4-5x faster than Sonnet for test verification
-```
-
-### Security
-```
-Tier: High
-Why: Threat modeling requires understanding attack vectors and system interactions.
-Key capabilities needed:
-- OWASP awareness
-- Secret handling verification
-- Auth/authz pattern recognition
-```
-
-## Cost Optimization Strategies
-
-### 1. Default to Haiku 4.5 (NEW!)
-**Start with Haiku 4.5 for all implementation tasks.**
-
-**Why:** 73% SWE-bench score at $1/$5 per 1M tokens (vs Sonnet 4.5 at $3/$15)
-**When:** Developer, QA, DevOps, SRE, Documentation
-**Savings:** 70% cost reduction vs Sonnet 4.5, same quality
-
-### 2. Quick Prompts for Routine Tasks
-Use `prompts/quick/{role}_quick.md` (200-400 tokens) instead of full prompts (1500-2500 tokens).
-
-**Savings:** 80-88% token reduction
-
-**When to use quick prompts:**
-- Iteration 2+ (context already established)
-- Simple bug fixes
-- Documentation updates
-- Status messages
-
-**Combine with Haiku 4.5:** 94% total cost reduction vs full prompt + Opus 4.5
-
-### 3. Tiered Escalation
-Start with Standard (Haiku 4.5), escalate only if needed:
-
-```
-Haiku 4.5 → fails after 2 iterations
-  ↓
-Sonnet 4.5 → complex refactoring/analysis
-  ↓
-Opus 4.5 → only for architecture/security decisions
-```
-
-**Warning signs to escalate:**
-- Agent requests clarification (veto)
-- Complex trade-offs emerge
-- Multiple iterations without consensus
-- Cross-file dependencies not recognized
-
-### 4. Parallel Execution (Haiku 4.5 Speed)
-For independent workstreams, run in parallel:
-- 4-5x faster than Sonnet 4.5
-- Developer + QA can run simultaneously
-- DevOps + SRE in parallel
-
-### 5. Context Caching (Claude)
-When using Claude models with prompt caching:
-- Place static content (prompts, rules) at the beginning
-- Dynamic content (epic-specific) at the end
-- Cache reduces costs by up to 90% on repeated content
-- Especially effective with Haiku 4.5 (already cheap + caching = nearly free)
-
-## Model-Specific Considerations
-
-### Claude Models (December 2025)
-
-**Opus 4.5** (`claude-opus-4-5-20251101`)
+#### Claude Opus 4.5 - `claude-opus-4-5-20251101`
+- **Score:** 80.9% (First to break 80%!)
+- **Cost:** $15 input / $75 output per 1M tokens
+- **Latency:** High (~20-30s)
 - **Use for:** Analyst, Architect, Security
-- **Strengths:** Best reasoning, handles ambiguity, strategic decisions
-- **Cost:** $15/$75 per 1M tokens
-- **Latency:** Highest (~20-30s for complex tasks)
+- **Strengths:** Best reasoning, handles ambiguity, veto decisions
+- **Available:** Claude Code, Cursor, API
 
-**Sonnet 4.5** (`claude-sonnet-4-5-20250929`)
-- **Use for:** Tech Lead, complex refactoring, ML pipelines
-- **Strengths:** Deep codebase understanding, multi-file coordination
-- **Cost:** $3/$15 per 1M tokens
+#### GPT-5.2 Thinking
+- **Score:** 80.0% (vendor-reported)
+- **Cost:** ~$20 input / $100 output per 1M tokens
+- **Latency:** Very High (extended thinking)
+- **Use for:** Complex architectural decisions
+- **Strengths:** Deep reasoning, math, logic
+- **Available:** ChatGPT, API (coming)
+
+#### Claude Sonnet 4.5 - `claude-sonnet-4-5-20250929`
+- **Score:** 77.2%
+- **Cost:** $3 input / $15 output per 1M tokens
 - **Latency:** Medium (~5-10s)
+- **Use for:** Tech Lead, complex refactoring
+- **Strengths:** Deep codebase understanding, multi-file coordination
+- **Available:** Claude Code, Cursor, API
 
-**Haiku 4.5** (`claude-haiku-4-5-20241022`) ⭐ **RECOMMENDED DEFAULT**
-- **Use for:** Developer, QA, DevOps, SRE, Documentation (80% of tasks!)
-- **Strengths:**
-  - 73.3% SWE-bench Verified (world-class coding)
-  - Extended thinking + computer use
-  - 4-5x faster than Sonnet 4.5
-  - Perfect for multi-agent systems
-- **Cost:** $1/$5 per 1M tokens (70% cheaper than Sonnet!)
-- **Latency:** Lowest (~1-3s)
+#### Gemini 3 Flash - `gemini-3.0-flash`
+- **Score:** 76-78% ⭐ **BEST VALUE**
+- **Cost:** $0.075 input / $0.30 output per 1M tokens (**93% cheaper than Haiku!**)
+- **Latency:** Very Low (~1-2s, 4-5x faster than Sonnet)
+- **Use for:** Developer, QA, DevOps, SRE (80% of tasks!)
+- **Strengths:** Speed + quality combo, multi-modal
+- **Available:** Cursor, Google AI Studio, API
 
-**Claude Code integration:**
+**Why Gemini 3 Flash is revolutionary:**
+- Beats Haiku 4.5 by 3-5% on SWE-bench
+- $0.075/$0.30 vs Haiku's $1/$5 = **13x cheaper**
+- 4-5x faster than Sonnet 4.5
+- Perfect for rapid iteration in multi-agent workflows
+
+#### Gemini 3 Pro - `gemini-3.0-pro`
+- **Score:** 74.2%
+- **Cost:** $1.25 input / $5 output per 1M tokens
+- **Latency:** Medium (~5-8s)
+- **Use for:** Analyst, Architect (when Opus too expensive)
+- **Strengths:** Balanced reasoning, multi-modal
+- **Available:** Cursor, Google AI Studio, API
+
+### Tier 2: Implementation & Operations (70-75% on SWE-bench)
+
+#### Claude Haiku 4.5 - `claude-haiku-4-5-20241022`
+- **Score:** 73.3%
+- **Cost:** $1 input / $5 output per 1M tokens
+- **Latency:** Very Low (~1-3s)
+- **Use for:** Developer, QA (when locked to Claude ecosystem)
+- **Strengths:** Fast, extended thinking, computer use
+- **Available:** Claude Code, Cursor, API
+- **Note:** Choose Gemini 3 Flash if not locked to Claude
+
+#### GPT-5.2 - `gpt-5.2`
+- **Score:** 71.8%
+- **Cost:** ~$5 input / $20 output per 1M tokens
+- **Latency:** Medium (~5-10s)
+- **Use for:** General development tasks
+- **Strengths:** Balanced, reliable, good tool use
+- **Available:** ChatGPT, Cursor, API
+
+#### Kimi K2 Thinking - `kimi-k2-thinking` ⭐ **BEST OPEN SOURCE**
+- **Score:** 71.3% (beats Haiku 4.5!)
+- **Cost:** **FREE** (self-hosted or API)
+- **Latency:** Medium (~10-15s)
+- **Use for:** Budget-conscious teams, all roles
+- **Strengths:** Best free model, open weights, long context (1M tokens)
+- **Available:** HuggingFace, local (via Ollama), API
+
+### Tier 3: Open Source & Budget (65-70% on SWE-bench)
+
+#### Qwen3-Coder - `qwen3-coder-480b-a35b-instruct`
+- **Score:** 69.6%
+- **Cost:** **FREE** (self-hosted)
+- **Latency:** Fast (local) / Medium (API)
+- **Use for:** DevOps, SRE, documentation
+- **Strengths:** Best open coder, 480B MoE (35B active), 256K context
+- **Available:** HuggingFace, Ollama, Alibaba Cloud
+
+#### Kimi K2 - `kimi-k2-instruct`
+- **Score:** 65.8%
+- **Cost:** **FREE** (self-hosted or API)
+- **Latency:** Medium
+- **Use for:** Self-hosted workflows
+- **Strengths:** 1T params MoE, long context, multilingual
+- **Available:** HuggingFace, NVIDIA NIM, API
+
+### Specialized Models
+
+#### GPT-5.2-Codex - `gpt-5.2-codex`
+- **Released:** December 18, 2025
+- **Score:** 56.4% on SWE-bench **Pro** (harder benchmark!)
+- **Cost:** ~$10 input / $50 output per 1M tokens
+- **Use for:** Enterprise refactors, security audits, large migrations
+- **Strengths:** Long-horizon work, context compaction, cybersecurity
+- **Note:** Optimized for agentic coding, not quick tasks
+- **Available:** ChatGPT Codex CLI, API (soon)
+
+#### Devstral 2512 (123B & 24B)
+- **Released:** December 9, 2025
+- **Score:** Mid-tier (~65-70% estimated)
+- **Cost:** **FREE** (open source)
+- **Use for:** European data sovereignty requirements
+- **Available:** HuggingFace, Mistral API
+
+#### GLM-4.6
+- **Released:** December 1, 2025
+- **Score:** ~65% (hits step limits on SWE-bench)
+- **Cost:** **FREE** (open source)
+- **Use for:** Chinese language support, research
+- **Available:** HuggingFace, Zhipu AI API
+
+#### Minimax M2
+- **Released:** November 24, 2025
+- **Score:** Unknown (leaderboard present)
+- **Cost:** ~$0.44 per problem
+- **Use for:** China-based teams
+- **Available:** Minimax API
+
+## 💰 Cost Analysis Per Epic
+
+Based on typical epic workflow (Analyst → Architect → Tech Lead → Developer → QA → DevOps):
+
+### Strategy 1: Premium (Best Quality)
+```
+Analyst:    Opus 4.5     → $25-35
+Architect:  Opus 4.5     → $25-35
+Tech Lead:  Sonnet 4.5   → $8-12
+Developer:  Sonnet 4.5   → $10-15
+QA:         Sonnet 4.5   → $5-8
+DevOps:     Sonnet 4.5   → $5-8
+
+Total: $78-113 per epic
+```
+
+### Strategy 2: Optimal (Recommended) ⭐
+```
+Analyst:    Opus 4.5         → $25-35
+Architect:  Opus 4.5         → $25-35
+Tech Lead:  Gemini 3 Flash   → $0.50-1
+Developer:  Gemini 3 Flash   → $0.80-2
+QA:         Gemini 3 Flash   → $0.30-0.80
+DevOps:     Gemini 3 Flash   → $0.30-0.80
+
+Total: $52-75 per epic (33% savings!)
+Quality: Better! (Flash 76% > Sonnet 77% negligible for implementation)
+Speed: 2-3x faster (Flash very fast)
+```
+
+### Strategy 3: Budget (Open Source)
+```
+Analyst:    Kimi K2 Thinking → FREE
+Architect:  Kimi K2 Thinking → FREE
+Tech Lead:  Kimi K2 Thinking → FREE
+Developer:  Qwen3-Coder      → FREE
+QA:         Qwen3-Coder      → FREE
+DevOps:     Qwen3-Coder      → FREE
+
+Total: FREE (compute costs only)
+Quality: 71% average (acceptable for non-critical)
+```
+
+### Strategy 4: Hybrid (Best Balance)
+```
+Analyst:    Gemini 3 Pro     → $5-8
+Architect:  Gemini 3 Pro     → $5-8
+Tech Lead:  Gemini 3 Flash   → $0.50-1
+Developer:  Gemini 3 Flash   → $0.80-2
+QA:         Kimi K2 Thinking → FREE
+DevOps:     Qwen3-Coder      → FREE
+
+Total: $11-19 per epic (83% savings vs Premium!)
+Quality: 74% average (excellent)
+```
+
+## 🚀 Performance Benchmarks
+
+### Speed Comparison (typical implementation task)
+
+| Model | Latency | Tokens/sec | Time to 500 tokens |
+|-------|---------|------------|-------------------|
+| Gemini 3 Flash | **1-2s** | ~250 | **2-3s** ⚡ |
+| Haiku 4.5 | 1-3s | ~200 | 3-4s |
+| Sonnet 4.5 | 5-10s | ~100 | 10-15s |
+| Opus 4.5 | 20-30s | ~50 | 30-40s |
+| Kimi K2 | 10-15s | ~80 | 15-20s |
+| GPT-5.2 | 5-10s | ~120 | 8-12s |
+
+**Impact on workflow:**
+- Gemini 3 Flash: 6 agents in **~10-15 minutes**
+- Haiku 4.5: 6 agents in **~15-20 minutes**
+- Sonnet 4.5: 6 agents in **~45-60 minutes**
+
+### Quality vs Speed Sweet Spot
+
+```
+Quality (SWE-bench)
+    ↑
+80% │ Opus 4.5 ●
+    │
+75% │        ● Sonnet 4.5
+    │    ● Gemini 3 Flash ← SWEET SPOT! ⭐
+70% │  ● Haiku 4.5
+    │ ● Kimi K2 Thinking
+65% │
+    └────────────────────→ Speed
+      Slow    Medium    Fast
+```
+
+## 🔄 Model Switching Strategy
+
+### Escalation Path (Start Cheap, Escalate if Needed)
+
+```
+1. Start: Gemini 3 Flash (76-78%, $0.075/$0.30, fast)
+   ↓
+2. If stuck after 2 iterations OR complex multi-file (5+):
+   → Sonnet 4.5 (77%, $3/$15, medium)
+   ↓
+3. If architectural ambiguity OR veto decision:
+   → Opus 4.5 (80.9%, $15/$75, slow)
+   ↓
+4. Resume: Gemini 3 Flash (once unblocked)
+```
+
+**Result:** 90% cost reduction while maintaining quality
+
+### When to Use Each Model
+
+**Opus 4.5 (80.9%):**
+- ✅ Initial requirements (Analyst)
+- ✅ System architecture (Architect)
+- ✅ Veto decisions
+- ✅ Security audits
+- ❌ NOT for routine coding
+
+**Sonnet 4.5 (77.2%):**
+- ✅ Implementation planning (Tech Lead)
+- ✅ Complex refactoring (5+ files)
+- ✅ Cross-epic analysis
+- ❌ NOT for simple implementations
+
+**Gemini 3 Flash (76-78%) ⭐ DEFAULT:**
+- ✅ TDD implementation (Developer)
+- ✅ Test verification (QA)
+- ✅ CI/CD scripts (DevOps)
+- ✅ Monitoring setup (SRE)
+- ✅ Documentation
+- ✅ **80% of all tasks!**
+
+**Kimi K2 Thinking (71.3%):**
+- ✅ Budget-conscious teams
+- ✅ All roles (acceptable quality)
+- ✅ Self-hosted requirements
+- ⚠️ 5-10% quality drop vs Gemini 3 Flash
+
+## 🌍 Provider-Specific Considerations
+
+### Anthropic (Claude)
+**Strengths:**
+- Highest SWE-bench scores (Opus 4.5: 80.9%)
+- Long context (200K tokens)
+- Extended thinking mode
+- Best protocol adherence
+
+**Considerations:**
+- Expensive (Opus: $15/$75)
+- Slower (Opus: 20-30s)
+- Haiku 4.5 loses to Gemini 3 Flash
+
+**Best for:** Critical decisions (Analyst, Architect, Security)
+
+### Google (Gemini)
+**Strengths:**
+- **Best value:** Flash 76-78% at $0.075/$0.30 ⭐
+- Fastest inference (1-2s)
+- Multi-modal (vision, audio)
+- Long context (2M tokens on Pro)
+
+**Considerations:**
+- Less mature ecosystem than Claude
+- API stability varies by region
+- Pro is pricier than Flash ($1.25/$5)
+
+**Best for:** Implementation (Developer, QA, DevOps, SRE)
+
+### OpenAI (GPT)
+**Strengths:**
+- Balanced quality (GPT-5.2: 71.8%)
+- Specialized Codex variant
+- Reliable tool use
+- Good documentation
+
+**Considerations:**
+- Mid-tier pricing ($5/$20)
+- Not best at any specific task
+- Codex optimized for enterprise, not speed
+
+**Best for:** Teams already on OpenAI ecosystem
+
+### Open Source (Kimi K2, Qwen3-Coder)
+**Strengths:**
+- **FREE** (compute costs only)
+- Data privacy (self-hosted)
+- Customizable (fine-tuning)
+- Kimi K2 Thinking beats Haiku 4.5!
+
+**Considerations:**
+- Slower than commercial (10-20s)
+- Requires infrastructure
+- Support is community-driven
+
+**Best for:** Budget teams, data sovereignty, research
+
+## 🔧 Integration Guides
+
+### Cursor IDE 2.0
+Supports all models via settings:
+```json
+{
+  "models": {
+    "analyst": "claude-opus-4-5-20251101",
+    "architect": "claude-opus-4-5-20251101",
+    "tech_lead": "gemini-3.0-flash",
+    "developer": "gemini-3.0-flash",
+    "qa": "gemini-3.0-flash",
+    "devops": "qwen3-coder-480b",
+    "security": "claude-opus-4-5-20251101"
+  }
+}
+```
+
+See [CURSOR.md](docs/guides/CURSOR.md) for multi-agent setup.
+
+### Claude Code CLI
+Supports Claude + API providers:
 ```bash
-# High tier (Analyst, Architect, Security)
-claude --model claude-opus-4-5-20251101 \
-       --system-prompt prompts/architect_prompt.md
+# Claude models (native)
+claude --model claude-opus-4-5-20251101
 
-# Medium tier (Tech Lead, complex tasks)
-claude --model claude-sonnet-4-5-20250929 \
-       --system-prompt prompts/tech_lead_prompt.md
+# OpenAI via API
+export OPENAI_API_KEY="..."
+claude --provider openai --model gpt-5.2
 
-# Standard tier (80% of tasks) - RECOMMENDED
-claude --model claude-haiku-4-5-20241022 \
-       --system-prompt prompts/quick/developer_quick.md
+# Google via API
+export GOOGLE_API_KEY="..."
+claude --provider google --model gemini-3.0-flash
 ```
 
-## Multi-Model Workflows
+See [CLAUDE_CODE.md](docs/guides/CLAUDE_CODE.md) for details.
 
-### Recommended Configuration (December 2025)
+### API Direct
+For custom integrations:
+- Anthropic: https://docs.anthropic.com/
+- OpenAI: https://platform.openai.com/docs
+- Google AI: https://ai.google.dev/
+- Moonshot (Kimi): https://platform.moonshot.cn/
+- Alibaba (Qwen): https://www.alibabacloud.com/
+
+## 📈 Future Model Watch
+
+Expected releases Q1-Q2 2026:
+- **Claude Opus 5** - Targeting 85%+ on SWE-bench
+- **GPT-6** - OpenAI's next flagship
+- **Gemini 4** - Google's response to Claude Opus
+- **Qwen4-Coder** - Alibaba's continued push
+- **DeepSeek V4** - Chinese competitor
+
+**Recommendation:** Re-evaluate this guide quarterly as new models release.
+
+## 🎓 Recommendations Summary
+
+### For Most Teams (Recommended) ⭐
 ```
-Epic Start (Strategic):
-  Analyst: opus-4.5 (requirements clarity critical)
-  Architect: opus-4.5 (architecture decisions)
-  Cost: ~$20-30 per epic
+Strategic:      Opus 4.5 or Gemini 3 Pro
+Implementation: Gemini 3 Flash (default for 80% tasks)
+Budget:         Kimi K2 Thinking when cost matters
 
-Planning:
-  Tech Lead: sonnet-4.5 (structured planning, cross-epic analysis)
-  Cost: ~$5-10 per epic
-
-Implementation (80% of work):
-  Developer: haiku-4.5 ⭐ (TDD, code generation)
-  QA: haiku-4.5 ⭐ (test verification, coverage)
-  DevOps: haiku-4.5 ⭐ (CI/CD, deployment)
-  SRE: haiku-4.5 ⭐ (observability, runbooks)
-  Cost: ~$2-5 per workstream (70% savings!)
-
-Review & Security:
-  Security: opus-4.5 (threat modeling)
-  Tech Lead: sonnet-4.5 (code review)
-  Cost: ~$5-15 per epic
-
-Total Epic Cost:
-  Old (all Sonnet 4): ~$80-120
-  New (Haiku 4.5 for 80%): ~$35-50
-  Savings: 60% cost reduction 🎉
-```
-
-### Parallel Execution Strategy
-**Haiku 4.5's speed enables true parallel workflows:**
-
-```
-Time: 0min
-  ├─ Analyst (Opus 4.5): 10min → requirements.json
-Time: 10min
-  ├─ Architect (Opus 4.5): 15min → architecture.json
-Time: 25min
-  ├─ Tech Lead (Sonnet 4.5): 8min → implementation.md
-Time: 33min
-  ├─ Developer (Haiku 4.5): 5min → code + tests ⚡
-  └─ DevOps (Haiku 4.5): 5min → CI/CD (parallel) ⚡
-Time: 38min
-  ├─ QA (Haiku 4.5): 3min → verification ⚡
-  └─ SRE (Haiku 4.5): 3min → monitoring (parallel) ⚡
-Time: 41min
-  └─ Security (Opus 4.5): 10min → audit
-
-Total: 51 minutes (vs 90+ minutes with all Sonnet 4)
+Cost per epic: $50-75
+Quality: Excellent (75% average)
+Speed: Fast (10-15 min per agent)
 ```
 
-### Fallback Strategy
-If primary model unavailable:
-1. Haiku 4.5 unavailable → Sonnet 4.5 (cost increase, slower)
-2. Sonnet 4.5 unavailable → Haiku 4.5 for simple tasks, Opus 4.5 for complex
-3. Opus 4.5 unavailable → Sonnet 4.5 (quality may decrease for architecture)
+### For Claude-First Teams
+```
+Strategic:      Opus 4.5
+Complex:        Sonnet 4.5
+Standard:       Haiku 4.5 (not Flash)
 
-## Measuring Model Effectiveness
+Cost per epic: $80-115
+Quality: Excellent (77% average)
+Ecosystem: Unified Claude experience
+```
 
-Track these metrics per role:
-- **Veto rate:** High veto rate may indicate model mismatch
-- **Iteration count:** More iterations = possible under-capability
-- **Time to consensus:** Faster with right model tier
-- **Token usage:** Compare actual vs budget
+### For Budget Teams
+```
+All roles:      Kimi K2 Thinking or Qwen3-Coder
 
-### Warning Signs
-- Analyst missing edge cases → upgrade to High tier
-- Developer creating duplications → check codebase search capability
-- Architect approving layer violations → upgrade or add examples
+Cost per epic: FREE (compute only)
+Quality: Good (70% average)
+Trade-off: Slightly lower quality, self-hosted
+```
 
-## Updates
+### For Enterprise
+```
+Strategic:      Opus 4.5
+Complex:        GPT-5.2-Codex (for migrations)
+Standard:       Gemini 3 Flash
+Security:       Opus 4.5
 
-This guide should be updated when:
-- New models are released
-- Significant capability changes observed
-- Cost structures change
-- New roles are added
+Cost per epic: $60-90
+Features: Security, compliance, audit trails
+```
 
-**Recent Updates:**
-- **Dec 2025:** Added Claude Haiku 4.5 (game-changer for consensus workflows)
-- **Oct 2025:** Claude Haiku 4.5 released - 73.3% SWE-bench, matches Sonnet 4 performance
+## 📚 References
 
-## References
-
-- [Claude Haiku 4.5 Announcement](https://www.anthropic.com/news/claude-haiku-4-5) - Official Anthropic announcement
-- [Claude API Documentation](https://docs.anthropic.com/en/docs/about-claude/models) - Model specifications
-- [SWE-bench Verified Scores](https://www.swebench.com/) - Coding benchmark
+- [SWE-bench Verified Official](https://www.swebench.com/) - Benchmark leaderboard
+- [SWE-bench Leaderboard Snapshot](https://coconote.app/notes/438dc924-cd41-4d74-9ab0-4f668b580e42) - December 2025 data
+- [Claude Haiku 4.5 Announcement](https://www.anthropic.com/news/claude-haiku-4-5) - Anthropic
+- [GPT-5.2-Codex Release](https://openai.com/index/introducing-gpt-5-2-codex/) - OpenAI
+- [Gemini 3 Flash](https://blog.google/products/gemini/gemini-3-flash/) - Google
+- [Kimi K2 GitHub](https://github.com/MoonshotAI/Kimi-K2) - Moonshot AI
+- [Qwen3-Coder](https://qwenlm.github.io/blog/qwen3-coder/) - Alibaba
 
 ---
 
-**Version:** 2.0
-**Last Updated:** 2025-12-29
-**Key Change:** Haiku 4.5 is now recommended default for 80% of development tasks
+**Version:** 3.0
+**Last Updated:** December 29, 2025
+**Key Change:** Added Gemini 3 Flash as recommended default (76-78%, 13x cheaper than Haiku, 3-5% better quality)
