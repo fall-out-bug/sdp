@@ -156,7 +156,7 @@ claude --provider google \
        --system-prompt prompts/architect_prompt.md \
        "Design system architecture with Clean Architecture"
 
-# Cost: $1.25/$5 (vs Opus $15/$75)
+# Pricing: See official Google AI pricing (significantly cheaper than Opus)
 ```
 
 #### OpenAI (GPT)
@@ -263,9 +263,8 @@ claude --provider ollama \
 # Cost: FREE | Time: 5s | Quality: 69.6%
 
 echo "✅ Epic complete!"
-echo "Total cost: ~$1.31 (vs $21 all-Opus or $3 all-Haiku)"
-echo "Total time: ~80 seconds"
-echo "Quality: 76% average"
+echo "Cost: Low (Gemini Flash majority, strategic Opus usage)"
+echo "Quality: 76-79% balanced (Flash 76% + Opus 80.9% strategic)"
 ```
 
 ### Pattern 2: Budget Strategy (All Open Source)
@@ -290,9 +289,8 @@ for role in analyst architect tech_lead developer qa devops; do
 done
 
 echo "✅ Epic complete!"
-echo "Total cost: $0 (FREE - compute only)"
-echo "Total time: ~90 seconds"
-echo "Quality: 71% average (acceptable for non-critical)"
+echo "Cost: $0 (FREE - local compute only)"
+echo "Quality: 71% (Kimi K2 Thinking SWE-bench score, adequate for many tasks)"
 ```
 
 ### Pattern 3: Claude-Only Strategy
@@ -324,8 +322,8 @@ claude --provider anthropic --model claude-haiku-4-5-20241022 \
        --system-prompt prompts/quick/developer_quick.md \
        "Implement workstreams for $EPIC"
 
-# Cost: $80-115 per epic
-# Quality: 77% average
+# Cost: Higher (all premium models at $3/$15 and $15/$75 per 1M tokens)
+# Quality: 77% (Sonnet 4.5 SWE-bench score)
 # Benefit: Unified ecosystem, consistent behavior
 ```
 
@@ -366,8 +364,8 @@ claude --provider ollama --model qwen2.5-coder:32b \
        --system-prompt prompts/devops_prompt.md "..."
 # FREE
 
-# Total: $11-19 per epic (83% savings vs all-Opus!)
-# Quality: 74% average (excellent)
+# Cost: Much lower than all-Opus (Gemini Pro significantly cheaper than Opus)
+# Quality: ~74% (Gemini Pro SWE-bench score, adequate for most tasks)
 ```
 
 ## 🔧 Advanced Configuration
@@ -597,9 +595,11 @@ OLLAMA_NUM_GPU=1 claude --provider ollama --model qwen2.5-coder:32b "..."
 OLLAMA_NUM_GPU=0 claude --provider ollama --model qwen2.5-coder:32b "..."
 ```
 
-## 📊 Real-World Example
+## 📊 Example Workflow
 
 ### Complete Epic: E-commerce Checkout Flow
+
+This example shows the recommended workflow structure. Actual timing and costs vary by epic complexity.
 
 **Setup:**
 ```
@@ -614,28 +614,25 @@ Workstreams: 4 (cart management, payment, order confirmation, email notification
 #!/bin/bash
 EPIC="epic_15_checkout"
 
-# 1. Analyst (Opus 4.5) - 30s, $0.50
+# 1. Analyst (Opus 4.5 - Strategic)
 claude --provider anthropic \
        --model claude-opus-4-5-20251101 \
        --system-prompt prompts/analyst_prompt.md \
        "Analyze docs/specs/$EPIC/epic.md and create requirements.json"
-# Output: 18 user stories, 67 acceptance criteria
 
-# 2. Architect (Opus 4.5) - 35s, $0.75
+# 2. Architect (Opus 4.5 - Strategic)
 claude --provider anthropic \
        --model claude-opus-4-5-20251101 \
        --system-prompt prompts/architect_prompt.md \
        "Design Clean Architecture for checkout with payment gateway abstraction"
-# Output: architecture.json with Port/Adapter pattern
 
-# 3. Tech Lead (Gemini 3 Flash) - 3s, $0.02
+# 3. Tech Lead (Gemini 3 Flash - Implementation)
 claude --provider google \
        --model gemini-3.0-flash \
        --system-prompt prompts/tech_lead_prompt.md \
-       "Break into 4 workstreams: cart, payment, order, email"
-# Output: implementation.md with test strategy
+       "Break into workstreams: cart, payment, order, email"
 
-# 4-7. Developer (Gemini 3 Flash × 4 workstreams) - 12s total, $0.08
+# 4-7. Developer (Gemini 3 Flash - Parallel)
 for ws in cart payment order email; do
   claude --provider google \
          --model gemini-3.0-flash \
@@ -643,42 +640,30 @@ for ws in cart payment order email; do
          "Implement $ws workstream with TDD" &
 done
 wait
-# Output: 4 modules, 720 LOC, 84 tests passing
 
-# 8. QA (Gemini 3 Flash) - 4s, $0.02
+# 8. QA (Gemini 3 Flash)
 claude --provider google \
        --model gemini-3.0-flash \
        --system-prompt prompts/quick/qa_quick.md \
        "Run integration tests for checkout flow"
-# Output: test_results.md (98% pass, 91% coverage)
 
-# 9. Security (Opus 4.5) - 25s, $0.60
+# 9. Security (Opus 4.5 - Critical Review)
 claude --provider anthropic \
        --model claude-opus-4-5-20251101 \
        --system-prompt prompts/security_prompt.md \
        "Review payment integration for PCI-DSS compliance"
-# Output: security_audit.md (approved with 2 minor notes)
 
-# 10. DevOps (Qwen3-Coder - FREE) - 5s, $0
+# 10. DevOps (Qwen3-Coder - FREE via Ollama)
 claude --provider ollama \
        --model qwen2.5-coder:32b \
        --system-prompt prompts/quick/devops_quick.md \
        "Create k8s manifests and CI/CD pipeline"
-# Output: deployment/ with k8s configs
-
-echo "=== Results ==="
-echo "Total time: 114 seconds (~2 minutes)"
-echo "Total cost: $1.97"
-echo "Quality: All tests passing, security approved"
-echo "Files: 15 created, 0 regressions"
 ```
 
-**vs All-Opus Strategy:**
-- Time: ~180 seconds (58% slower)
-- Cost: ~$25 (12.6x more expensive!)
-- Quality: Marginally better (80% vs 76%)
-
-**Savings:** $23.03 per epic, 66 seconds per epic
+**Why This Approach:**
+- **Opus 4.5** for strategic decisions (analyst, architect, security) - 80.9% SWE-bench
+- **Gemini 3 Flash** for implementation (developer, QA) - 76-78% SWE-bench, significantly cheaper
+- **Ollama** for DevOps automation - free, adequate for config generation
 
 ## 🎯 Best Practices
 
@@ -689,13 +674,9 @@ echo "Files: 15 created, 0 regressions"
 claude --provider google --model gemini-3.0-flash \
        "Implement user registration"
 
-# → Works! Cost: $0.02, Time: 3s
-
-# If stuck after 2 tries, escalate:
+# If stuck after 2 tries, escalate to more capable model:
 claude --provider anthropic --model claude-sonnet-4-5-20250929 \
        "Implement user registration (previous attempt incomplete)"
-
-# → Works! Cost: $0.75, Time: 10s
 
 # Only use Opus if architectural ambiguity:
 claude --provider anthropic --model claude-opus-4-5-20251101 \
@@ -737,7 +718,7 @@ claude "Implement all 10 CRUD endpoints:
 2. POST /users
 ...
 Use TDD for each."
-# Cost: $0.03 (shared context)
+# Cost: Low (single conversation, shared context, Gemini Flash pricing)
 ```
 
 ### 4. Monitor Costs
@@ -876,24 +857,17 @@ claude --provider google --model gemini-3.0-flash "..."
 | Hybrid | $24 | $2,176 (99%) |
 | All Open Source | $0 | $2,200 (100%) |
 
-### ROI Calculation
+### Cost Comparison Notes
 
-```
-Traditional Developer Time:
-- 1 epic = 40 hours human time
-- 20 epics/month = 800 hours
-- @ $100/hour = $80,000/month
+**Model Pricing (Official Rates):**
+- Claude Opus 4.5: $15/$75 per 1M tokens (input/output)
+- Claude Sonnet 4.5: $3/$15 per 1M tokens
+- Claude Haiku 4.5: $1/$5 per 1M tokens
+- Gemini 3 Flash: $0.075/$0.30 per 1M tokens
+- Open source (Ollama): FREE (local compute only)
 
-AI-Assisted with Optimal Strategy:
-- 1 epic = 8 hours human time (80% reduction)
-- 20 epics/month = 160 hours
-- @ $100/hour = $16,000/month
-- AI costs = $30/month
-- Total: $16,030/month
-
-Savings: $80,000 - $16,030 = $63,970/month
-ROI: 212,333% on AI costs!
-```
+**Strategic Model Selection:**
+Using Gemini 3 Flash for implementation tasks (76-78% SWE-bench) instead of Claude models can significantly reduce costs while maintaining quality. Strategic use of Opus 4.5 for critical decisions (analyst, architect, security) ensures quality where it matters most.
 
 ## 🎓 Summary Recommendations
 
@@ -946,7 +920,7 @@ Mix Opus (strategic) + Gemini Flash (implementation) + GPT-5.2-Codex (migrations
 # Strategic: Opus 4.5
 # Implementation: Gemini 3 Flash
 # Migrations: GPT-5.2-Codex
-# Total: $60-90/epic with audit trail
+# Cost: Higher due to premium models, but includes comprehensive audit trail
 ```
 
 ## 📚 Additional Resources

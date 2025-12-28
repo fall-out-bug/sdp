@@ -207,8 +207,8 @@ Workstreams:
    - Merge selected solutions
 
 **⚡ Time Savings:**
-- Sequential: 6 agents × 5 min = 30 minutes
-- Parallel (Cursor 2.0): ~8-10 minutes total!
+- Sequential: Agents run one at a time with context switching overhead
+- Parallel (Cursor 2.0): Multiple agents work simultaneously on independent workstreams
 
 ### Method 2: Sequential Agent Windows
 
@@ -556,43 +556,38 @@ Developer agent:
 
 **Epic Workflow (6 agents):**
 ```
-Strategy 1: All Gemini 3 Flash
-- Total time: 18-24 seconds
-- Total cost: $0.12
-- Quality: 76% average ⭐ RECOMMENDED
+Strategy 1: All Gemini 3 Flash ⭐ RECOMMENDED
+- Speed: Very fast (Flash latency: 1-3s per agent)
+- Cost: Very low ($0.075/$0.30 per 1M tokens)
+- Quality: 76-78% (SWE-bench verified)
 
 Strategy 2: Mixed (Opus strategic, Flash implementation)
-- Total time: 60-90 seconds
-- Total cost: $7.50
-- Quality: 78% average
+- Speed: Medium (Opus: 25-35s, Flash: 1-3s)
+- Cost: Medium (strategic premium model usage)
+- Quality: 79% balanced
 
 Strategy 3: All Opus 4.5
-- Total time: 168-228 seconds
-- Total cost: $21
-- Quality: 80% average (diminishing returns)
+- Speed: Slow (Opus latency: 25-35s per agent)
+- Cost: High ($15/$75 per 1M tokens)
+- Quality: 80.9% (diminishing returns)
 ```
 
 ### Parallel Execution Speedup
 
 **Sequential (traditional):**
 ```
-Analyst:    30s
-Architect:  35s
-Tech Lead:  4s
-Developer:  3s (×3 workstreams = 9s)
-QA:         4s
-DevOps:     3s
-
-Total: 85 seconds
+Analyst    → Architect → Tech Lead → Developer (×3) → QA → DevOps
+Each agent waits for previous to complete
+High context switching overhead
 ```
 
 **Parallel (Cursor 2.0 multi-agent):**
 ```
-Phase 1: Analyst + Architect (parallel)     → 35s
-Phase 2: Tech Lead                          → 4s
-Phase 3: Developer×3 + QA + DevOps (parallel) → 9s
+Phase 1: Analyst + Architect (parallel, independent)
+Phase 2: Tech Lead (depends on Phase 1)
+Phase 3: Developer×3 + QA + DevOps (parallel workstreams)
 
-Total: 48 seconds (44% faster!)
+Significantly faster through parallel execution
 ```
 
 ## 💰 Cost Optimization Strategies
@@ -808,8 +803,8 @@ Developer → QA handoff:
 In Developer chat:
 "Create message for QA's inbox:
 - Workstream 1 complete
-- 15 tests passing
-- Coverage: 92%
+- Tests passing
+- Coverage verified
 - File: src/auth/login.ts
 
 Verify message format:
@@ -1012,22 +1007,24 @@ cat .cursor/settings.json | jq '.chat.defaultModel'
 }
 ```
 
-**Result:** $100/month → $15/month (85% reduction)
+**Result:** Significant cost reduction through strategic model selection
 
-## 📊 Real-World Example
+## 📊 Example Workflow
 
 ### Complete Epic: User Authentication API
 
-**Setup:**
+This example shows the recommended workflow structure. Actual timing and costs vary by epic complexity.
+
+**Epic Setup:**
 ```
-Epic: docs/specs/epic_12_auth_api/epic.md
+docs/specs/epic_12_auth_api/epic.md
 Goal: Implement OAuth2 + JWT authentication
 Workstreams: 4 (login, register, refresh, logout)
 ```
 
-**Execution (Multi-Agent Mode):**
+**Recommended Agent Sequence:**
 
-1. **Analyst (Opus 4.5) - 30s, $0.50:**
+1. **Analyst (Opus 4.5):**
    ```
    Model: claude-opus-4-5-20251101
    @prompts/analyst_prompt.md
@@ -1035,9 +1032,8 @@ Workstreams: 4 (login, register, refresh, logout)
 
    Analyze and create requirements.json
    ```
-   **Output:** 12 user stories, 45 acceptance criteria
 
-2. **Architect (Opus 4.5) - 35s, $0.75:**
+2. **Architect (Opus 4.5):**
    ```
    Model: claude-opus-4-5-20251101
    @prompts/architect_prompt.md
@@ -1045,21 +1041,19 @@ Workstreams: 4 (login, register, refresh, logout)
 
    Design Clean Architecture with Port/Adapter pattern
    ```
-   **Output:** architecture.json, layer diagrams
 
-3. **Tech Lead (Gemini 3 Flash) - 3s, $0.02:**
+3. **Tech Lead (Gemini 3 Flash):**
    ```
    Model: gemini-3.0-flash
    @prompts/tech_lead_prompt.md
    @architecture.json
 
-   Break into 4 workstreams, define test strategy
+   Break into workstreams, define test strategy
    ```
-   **Output:** implementation.md with 4 workstreams
 
-4. **Developer Multi-Agent (Gemini 3 Flash×4) - 12s total, $0.08:**
+4. **Developer (Gemini 3 Flash - Multi-Agent Mode):**
    ```
-   Cursor Multi-Agent Mode (4 parallel agents)
+   Cursor Multi-Agent Mode (parallel agents)
    Model: gemini-3.0-flash
 
    Agent 1: Implement login endpoint with JWT
@@ -1067,36 +1061,27 @@ Workstreams: 4 (login, register, refresh, logout)
    Agent 3: Implement refresh token rotation
    Agent 4: Implement logout with token invalidation
    ```
-   **Output:** 4 files, 520 LOC, 48 tests, all passing
 
-5. **QA (Gemini 3 Flash) - 4s, $0.02:**
+5. **QA (Gemini 3 Flash):**
    ```
    Model: gemini-3.0-flash
    @prompts/qa_prompt.md
 
    Run integration tests, verify coverage
    ```
-   **Output:** test_results.md (100% pass, 94% coverage)
 
-6. **DevOps (Qwen3-Coder local) - 5s, FREE:**
+6. **DevOps (Qwen3-Coder via Ollama - FREE):**
    ```
-   Model: qwen3-coder-480b (via Ollama)
+   Model: qwen3-coder-480b
    @prompts/devops_prompt.md
 
    Create Dockerfile + GitHub Actions CI/CD
    ```
-   **Output:** Dockerfile, .github/workflows/ci.yml
 
-**Results:**
-- **Total Time:** 89 seconds (~1.5 minutes!)
-- **Total Cost:** $1.37
-- **Quality:** All tests passing, 94% coverage, architecture validated
-- **Files Changed:** 12 files created, 0 regressions
-
-**vs Traditional Sequential:**
-- Time: ~30 minutes (agent switches, human coordination)
-- Cost: $15-25 (using Sonnet/Opus for everything)
-- Quality: Similar, but much slower iteration
+**Benefits of Multi-Agent Parallel Execution:**
+- Faster iteration (parallel vs sequential)
+- Lower cost (Gemini 3 Flash for implementation vs premium models)
+- Consistent quality (structured prompts ensure quality gates)
 
 ## 🎓 Summary Recommendations
 

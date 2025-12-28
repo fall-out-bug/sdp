@@ -165,79 +165,89 @@ This guide provides objective, data-driven recommendations for selecting AI mode
 - **Use for:** China-based teams
 - **Available:** Minimax API
 
-## 💰 Cost Analysis Per Epic
+## 💰 Cost Strategy Comparison
 
-Based on typical epic workflow (Analyst → Architect → Tech Lead → Developer → QA → DevOps):
+Based on typical epic workflow (Analyst → Architect → Tech Lead → Developer → QA → DevOps).
+
+**Note:** Actual costs depend on epic complexity, conversation length, and token usage. Strategies below use official API pricing.
 
 ### Strategy 1: Premium (Best Quality)
 ```
-Analyst:    Opus 4.5     → $25-35
-Architect:  Opus 4.5     → $25-35
-Tech Lead:  Sonnet 4.5   → $8-12
-Developer:  Sonnet 4.5   → $10-15
-QA:         Sonnet 4.5   → $5-8
-DevOps:     Sonnet 4.5   → $5-8
+Analyst:    Opus 4.5     → $15/$75 per 1M tokens
+Architect:  Opus 4.5     → $15/$75 per 1M tokens
+Tech Lead:  Sonnet 4.5   → $3/$15 per 1M tokens
+Developer:  Sonnet 4.5   → $3/$15 per 1M tokens
+QA:         Sonnet 4.5   → $3/$15 per 1M tokens
+DevOps:     Sonnet 4.5   → $3/$15 per 1M tokens
 
-Total: $78-113 per epic
+Cost: Highest (all premium/medium tier)
+Quality: 77.2-80.9% (Sonnet/Opus SWE-bench)
 ```
 
 ### Strategy 2: Optimal (Recommended) ⭐
 ```
-Analyst:    Opus 4.5         → $25-35
-Architect:  Opus 4.5         → $25-35
-Tech Lead:  Gemini 3 Flash   → $0.50-1
-Developer:  Gemini 3 Flash   → $0.80-2
-QA:         Gemini 3 Flash   → $0.30-0.80
-DevOps:     Gemini 3 Flash   → $0.30-0.80
+Analyst:    Opus 4.5         → $15/$75 per 1M tokens (strategic)
+Architect:  Opus 4.5         → $15/$75 per 1M tokens (strategic)
+Tech Lead:  Gemini 3 Flash   → $0.075/$0.30 per 1M tokens
+Developer:  Gemini 3 Flash   → $0.075/$0.30 per 1M tokens
+QA:         Gemini 3 Flash   → $0.075/$0.30 per 1M tokens
+DevOps:     Gemini 3 Flash   → $0.075/$0.30 per 1M tokens
 
-Total: $52-75 per epic (33% savings!)
-Quality: Better! (Flash 76% > Sonnet 77% negligible for implementation)
-Speed: 2-3x faster (Flash very fast)
+Cost: Low (strategic premium, mostly Flash - 93% cheaper than Claude)
+Quality: 76-80.9% (Flash 76-78%, strategic Opus 80.9%)
+Speed: Fastest (Flash very low latency)
 ```
+
+**Why Flash for implementation:**
+- Similar SWE-bench score (76-78% vs Sonnet 77.2%)
+- 93% cheaper ($0.075 vs $1 input per 1M tokens)
+- Significantly faster response time
 
 ### Strategy 3: Budget (Open Source)
 ```
-Analyst:    Kimi K2 Thinking → FREE
-Architect:  Kimi K2 Thinking → FREE
-Tech Lead:  Kimi K2 Thinking → FREE
-Developer:  Qwen3-Coder      → FREE
-QA:         Qwen3-Coder      → FREE
-DevOps:     Qwen3-Coder      → FREE
+Analyst:    Kimi K2 Thinking → FREE (local compute)
+Architect:  Kimi K2 Thinking → FREE (local compute)
+Tech Lead:  Kimi K2 Thinking → FREE (local compute)
+Developer:  Qwen3-Coder      → FREE (local compute)
+QA:         Qwen3-Coder      → FREE (local compute)
+DevOps:     Qwen3-Coder      → FREE (local compute)
 
-Total: FREE (compute costs only)
-Quality: 71% average (acceptable for non-critical)
+Cost: FREE (local compute only)
+Quality: ~69-71% (Kimi K2 71.3%, Qwen3 69.6% SWE-bench)
 ```
 
 ### Strategy 4: Hybrid (Best Balance)
 ```
-Analyst:    Gemini 3 Pro     → $5-8
-Architect:  Gemini 3 Pro     → $5-8
-Tech Lead:  Gemini 3 Flash   → $0.50-1
-Developer:  Gemini 3 Flash   → $0.80-2
-QA:         Kimi K2 Thinking → FREE
-DevOps:     Qwen3-Coder      → FREE
+Analyst:    Gemini 3 Pro     → $1.25/$5 per 1M tokens
+Architect:  Gemini 3 Pro     → $1.25/$5 per 1M tokens
+Tech Lead:  Gemini 3 Flash   → $0.075/$0.30 per 1M tokens
+Developer:  Gemini 3 Flash   → $0.075/$0.30 per 1M tokens
+QA:         Kimi K2 Thinking → FREE (local compute)
+DevOps:     Qwen3-Coder      → FREE (local compute)
 
-Total: $11-19 per epic (83% savings vs Premium!)
-Quality: 74% average (excellent)
+Cost: Very low (Gemini + open source mix)
+Quality: ~74% (Gemini Pro 74.2%, Flash 76-78%, open source 69-71%)
 ```
 
 ## 🚀 Performance Benchmarks
 
-### Speed Comparison (typical implementation task)
+### Speed Comparison
 
-| Model | Latency | Tokens/sec | Time to 500 tokens |
-|-------|---------|------------|-------------------|
-| Gemini 3 Flash | **1-2s** | ~250 | **2-3s** ⚡ |
-| Haiku 4.5 | 1-3s | ~200 | 3-4s |
-| Sonnet 4.5 | 5-10s | ~100 | 10-15s |
-| Opus 4.5 | 20-30s | ~50 | 30-40s |
-| Kimi K2 | 10-15s | ~80 | 15-20s |
-| GPT-5.2 | 5-10s | ~120 | 8-12s |
+Based on general observations and user reports. Actual latency varies by request complexity and API load.
+
+| Model | Relative Speed | Notes |
+|-------|----------------|-------|
+| Gemini 3 Flash | **Very Fast** ⚡ | Consistently low latency |
+| Haiku 4.5 | Fast | Good response times |
+| Sonnet 4.5 | Medium | Moderate latency |
+| Opus 4.5 | Slow | High latency (complex reasoning) |
+| Kimi K2 | Medium | Depends on local hardware |
+| GPT-5.2 | Medium | Variable based on load |
 
 **Impact on workflow:**
-- Gemini 3 Flash: 6 agents in **~10-15 minutes**
-- Haiku 4.5: 6 agents in **~15-20 minutes**
-- Sonnet 4.5: 6 agents in **~45-60 minutes**
+- **Fast models** (Flash, Haiku): Rapid iteration, quick feedback
+- **Medium models** (Sonnet, GPT): Balanced speed/quality
+- **Slow models** (Opus): Use strategically for critical decisions
 
 ### Quality vs Speed Sweet Spot
 
@@ -424,9 +434,9 @@ Strategic:      Opus 4.5 or Gemini 3 Pro
 Implementation: Gemini 3 Flash (default for 80% tasks)
 Budget:         Kimi K2 Thinking when cost matters
 
-Cost per epic: $50-75
-Quality: Excellent (75% average)
-Speed: Fast (10-15 min per agent)
+Cost: Medium (strategic premium + mostly Flash)
+Quality: Excellent (76-80% range)
+Speed: Fast (Flash very low latency)
 ```
 
 ### For Claude-First Teams
@@ -435,8 +445,8 @@ Strategic:      Opus 4.5
 Complex:        Sonnet 4.5
 Standard:       Haiku 4.5 (not Flash)
 
-Cost per epic: $80-115
-Quality: Excellent (77% average)
+Cost: Higher (Claude-only at $1-$75 per 1M tokens)
+Quality: Excellent (73.3-80.9% range)
 Ecosystem: Unified Claude experience
 ```
 
@@ -444,9 +454,9 @@ Ecosystem: Unified Claude experience
 ```
 All roles:      Kimi K2 Thinking or Qwen3-Coder
 
-Cost per epic: FREE (compute only)
-Quality: Good (70% average)
-Trade-off: Slightly lower quality, self-hosted
+Cost: FREE (local compute only)
+Quality: Good (69.6-71.3% SWE-bench)
+Trade-off: Slightly lower quality, requires local setup
 ```
 
 ### For Enterprise
@@ -456,8 +466,8 @@ Complex:        GPT-5.2-Codex (for migrations)
 Standard:       Gemini 3 Flash
 Security:       Opus 4.5
 
-Cost per epic: $60-90
-Features: Security, compliance, audit trails
+Cost: Medium-High (strategic premium usage)
+Features: Security-focused, compliance, audit trails
 ```
 
 ## 📚 References
