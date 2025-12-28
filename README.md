@@ -94,6 +94,26 @@ cat prompts/meta_orchestrator_prompt.md
 - **Continuous Code Review** – Review after each workstream, not just at epic completion
 - **Veto Power** – Architecture violations and security issues cannot be overridden
 
+## Dogfooding
+
+**This repository is maintained using its own Consensus Workflow framework.**
+
+All significant updates follow the consensus protocol with AI agents:
+- **Analyst** defines requirements and scope
+- **Architect** validates design decisions and Clean Architecture compliance
+- **Tech Lead** creates implementation plans
+- **Developer** implements changes with documentation
+- **QA** verifies quality and consistency
+- **Documentation Steward** maintains accuracy across all docs
+
+### Models Used
+Per [MODELS.md](MODELS.md) recommendations:
+- **Strategic decisions** (scope, architecture, security): Claude Opus 4.5 (80.9% SWE-bench)
+- **Implementation** (code, docs, tests): Gemini 3 Flash (76-78% SWE-bench, 13x cheaper)
+- **DevOps & automation**: Qwen3-Coder (69.6% SWE-bench, open source)
+
+This approach ensures the framework benefits from the multi-agent collaboration it advocates, with a 60-83% cost reduction compared to using premium models for everything.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

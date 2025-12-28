@@ -78,12 +78,41 @@ To add a new agent role:
 - **No trailing whitespace**
 - **End files with newline**
 
+## Using Consensus for Contributions (Recommended)
+
+This repository itself is maintained using the Consensus Workflow with AI models. While not required, you're encouraged to use this approach for larger contributions:
+
+### For Small Changes (bug fixes, typos, minor updates)
+Regular PR workflow is perfectly fine - just submit your changes directly.
+
+### For Larger Changes (new features, major refactors)
+Consider using the consensus approach:
+
+1. **Define requirements** - Use `prompts/analyst_prompt.md` to clarify scope
+2. **Validate design** - Use `prompts/architect_prompt.md` for architectural decisions
+3. **Plan implementation** - Use `prompts/tech_lead_prompt.md` for task breakdown
+4. **Implement** - Use `prompts/developer_prompt.md` for coding with TDD
+5. **Verify quality** - Use `prompts/qa_prompt.md` for testing
+
+**Benefits:**
+- Clear documentation of design decisions
+- Better architecture consistency
+- Reduced back-and-forth during PR review
+- Can include consensus artifacts (`requirements.json`, `architecture.json`) in PR for transparency
+
+**Recommended tools:**
+- [Claude Code CLI](docs/guides/CLAUDE_CODE.md) - Multi-provider support (Gemini, Claude, OpenAI, Ollama)
+- [Cursor IDE](docs/guides/CURSOR.md) - Visual multi-agent mode with parallel execution
+
+See [MODELS.md](MODELS.md) for cost-effective model selection (Gemini 3 Flash recommended for most tasks).
+
 ## Pull Request Process
 
 1. **Update documentation** - If your change affects usage, update relevant docs
 2. **Write clear commit messages** - Describe what and why
 3. **One feature per PR** - Keep changes focused
 4. **Reference issues** - Link to related issues in PR description
+5. **(Optional) Include consensus artifacts** - If you used the workflow, attach artifacts for transparency
 
 ### PR Title Format
 

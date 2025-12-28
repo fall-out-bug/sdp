@@ -8,6 +8,8 @@ This is the **Consensus Workflow** - a file-based multi-agent coordination frame
 
 The framework also includes optional education roles (Lecture Assistant, Seminar Assistant) for preparing course materials.
 
+**Note:** This repository itself is maintained using the Consensus Workflow with AI models (Claude Opus 4.5 for strategic decisions, Gemini 3 Flash for implementation, Qwen3-Coder for automation). All significant updates follow the analyst → architect → tech lead → developer → qa cycle documented here.
+
 ## Core Architecture
 
 ### Consensus Protocol (v1.2)
@@ -89,13 +91,16 @@ Dependencies MUST point inward.
 
 ## Model Recommendations
 
-See [MODELS.md](MODELS.md) for detailed guidance:
+See [MODELS.md](MODELS.md) for detailed multi-provider guidance:
 
-| Role | Tier | Recommended |
-|------|------|-------------|
-| Analyst, Architect | High | claude-opus-4 |
-| Developer, QA | Medium | claude-sonnet-4 |
-| Documentation | Low | claude-haiku-3.5 |
+| Role | Recommended | Alternative | Budget |
+|------|-------------|-------------|--------|
+| Analyst, Architect, Security | Claude Opus 4.5 (80.9%) | Gemini 3 Pro (74.2%) | Kimi K2 Thinking (71.3%) |
+| Developer, QA | **Gemini 3 Flash (76-78%)** ⭐ | Claude Haiku 4.5 (73.3%) | Kimi K2 Thinking (71.3%) |
+| DevOps, SRE | Gemini 3 Flash (76-78%) | Claude Haiku 4.5 (73.3%) | Qwen3-Coder (69.6%) |
+| Documentation | Gemini 3 Flash (76-78%) | Claude Haiku 4.5 (73.3%) | Qwen3-Coder (69.6%) |
+
+**Key Insight:** Gemini 3 Flash outperforms Claude Haiku 4.5 by 3-5% while being 93% cheaper and 4-5x faster.
 
 ## Quick Start
 
