@@ -11,7 +11,6 @@ See [QUICKSTART.md](QUICKSTART.md) for a 10-minute tutorial.
 - [Claude Code Integration](docs/guides/CLAUDE_CODE.md)
 - [Cursor IDE Integration](docs/guides/CURSOR.md)
 - [Model Recommendations](MODELS.md)
-- [Metrics & Dashboard](docs/METRICS.md)
 
 ## Development Roles (Epic Workflow)
 
@@ -86,26 +85,6 @@ cat prompts/meta_orchestrator_prompt.md
 - [MODELS.md](MODELS.md) – Model selection guide
 - [CONTROL_PLAYBOOK.md](CONTROL_PLAYBOOK.md) – Recovery workflow for complex situations
 - [consensus_architecture.json](consensus_architecture.json) – Technical architecture specification
-
-## Metrics Dashboard
-
-Track AI agent performance with real-time metrics:
-
-```bash
-# Collect metrics and start dashboard
-./scripts/serve_dashboard.sh
-
-# Or visit live dashboard (if using GitHub Pages)
-# https://YOUR_USERNAME.github.io/consensus/
-```
-
-Metrics tracked:
-- **Latency** - Agent execution speed
-- **Cost** - Token usage and costs
-- **Quality** - Iterations and vetoes
-- **Efficiency** - Bottlenecks and idle time
-
-See [docs/METRICS.md](docs/METRICS.md) for details.
 
 ## Core Principles
 
