@@ -27,7 +27,6 @@ All notable changes to this project will be documented in this file.
   - Structured feature example (password reset)
   - Multi-Agent epic example (notification system)
 - **CONCEPTS.md** - Overview of core concepts
-- **Workstreams and Guardrails guide** (`docs/guides/WORKSTREAMS_AND_GUARDRAILS.md`)
 
 ### Changed
 - **README.md** - Complete rewrite with mode selection guide

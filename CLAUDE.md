@@ -105,7 +105,7 @@ See [MODELS.md](MODELS.md) for guidance. General principle:
 6. Run QA → `test_results.md`
 7. Run DevOps → deployment
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed tutorial.
+See [modes/](modes/) for workflow guides and [examples/](examples/) for tutorials.
 
 ## Integration
 
@@ -114,11 +114,11 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed tutorial.
 
 ## Key Files
 
-- `PROTOCOL.md` - Full consensus protocol v1.2
+- `PROTOCOL.md` - Full consensus protocol v2.0
 - `RULES_COMMON.md` - Shared rules for all agents
 - `MODELS.md` - Model selection guide
 - `prompts/` - Agent prompt templates
-- `docs/examples/sample_epic/` - Complete example
+- `docs/specs/epic_sample/` - Complete example
 
 ## Self-Verification Checklist
 

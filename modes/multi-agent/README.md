@@ -219,9 +219,8 @@ Use [Solo Mode](../solo/) or [Structured Mode](../structured/) instead.
 ## Protocol Reference
 
 For complete protocol specification:
-- [PROTOCOL.md](/PROTOCOL.md) - Full consensus protocol v1.2
+- [PROTOCOL.md](/PROTOCOL.md) - Full consensus protocol v2.0
 - [RULES_COMMON.md](/RULES_COMMON.md) - Shared rules for all agents
-- [USER_GUIDE.md](/USER_GUIDE.md) - Operational guide
 
 ## Tips
 
