@@ -1,0 +1,57 @@
+# CLAUDE.md Example for Solo Mode
+
+Copy this to your project root and customize.
+
+---
+
+# Project: [Your Project Name]
+
+## Tech Stack
+- Language: Python 3.11
+- Framework: FastAPI
+- Database: PostgreSQL
+- Testing: pytest
+
+## Commands
+```bash
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Start dev server
+uvicorn src.main:app --reload
+
+# Database migrations
+alembic upgrade head
+```
+
+## Project Structure
+```
+src/
+├── domain/        # Business entities, no dependencies
+├── application/   # Use cases, depends on domain
+├── infrastructure/# Database, external APIs
+└── presentation/  # API endpoints, controllers
+```
+
+## Rules
+- Dependencies point inward (Clean Architecture)
+- No `except: pass` - all errors must be explicit
+- New code needs tests (target: 80% coverage)
+- All comments and docs in English
+
+## Conventions
+- File naming: snake_case.py
+- Class naming: PascalCase
+- Function naming: snake_case
+- API routes: kebab-case (/user-profile)
+
+## Before Implementing
+- Check if similar code exists (avoid duplication)
+- Run existing tests to ensure baseline works
+
+## After Implementing
+- Run tests: `pytest`
+- Check for linting issues: `ruff check src/`

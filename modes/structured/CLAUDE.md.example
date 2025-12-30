@@ -1,0 +1,129 @@
+# CLAUDE.md Example for Structured Mode
+
+Copy this to your project root and customize.
+
+---
+
+# Project: [Your Project Name]
+
+## Tech Stack
+- Language: Python 3.11
+- Framework: FastAPI
+- Database: PostgreSQL
+- Testing: pytest
+- Documentation: Markdown
+
+## Commands
+```bash
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Start dev server
+uvicorn src.main:app --reload
+
+# Database migrations
+alembic upgrade head
+```
+
+## Project Structure
+```
+src/
+├── domain/           # Business entities
+├── application/      # Use cases
+├── infrastructure/   # External integrations
+└── presentation/     # API layer
+
+docs/
+├── specs/            # Feature specifications
+├── adr/              # Architecture Decision Records
+└── reviews/          # Code review reports
+```
+
+## Structured Development Phases
+
+### Phase 1: Analyze
+Create specification in `docs/specs/{feature}.md`:
+- Requirements (what the feature must do)
+- User stories (As a... I want... So that...)
+- Acceptance criteria (testable conditions)
+- Out of scope (what we're NOT doing)
+- Open questions (things to clarify)
+
+### Phase 2: Design
+Create design in `docs/specs/{feature}-design.md`:
+- Components involved
+- Data flow diagram (text-based)
+- API changes (endpoints, request/response)
+- Database changes (new tables, columns)
+- Dependencies (new libraries, services)
+
+Create ADR in `docs/adr/NNNN-{title}.md` for:
+- Technology choices
+- Pattern decisions
+- Trade-off decisions
+
+### Phase 3: Implement
+- Follow TDD: tests first
+- Work layer by layer (domain → application → infrastructure → presentation)
+- Commit after each component
+- Update docs if design changes
+
+### Phase 4: Review
+Verify against specification:
+- All acceptance criteria met
+- Design followed (or design doc updated)
+- Tests pass with ≥80% coverage
+- No security issues
+- No code smells
+
+## Rules
+- Dependencies point inward (Clean Architecture)
+- No `except: pass` - all errors must be explicit
+- New code needs tests
+- All comments and docs in English
+- ADR for any architectural decision
+
+## ADR Format
+```markdown
+# ADR-NNNN: [Title]
+
+## Status
+Proposed | Accepted | Deprecated | Superseded by ADR-XXXX
+
+## Context
+What is the issue we're seeing?
+
+## Decision
+What is the change we're making?
+
+## Consequences
+What becomes easier or harder?
+```
+
+## Specification Format
+```markdown
+# Feature: [Name]
+
+## Overview
+[1-2 sentence description]
+
+## Requirements
+- REQ-1: [requirement]
+- REQ-2: [requirement]
+
+## User Stories
+- As a [user], I want [action] so that [benefit]
+
+## Acceptance Criteria
+- [ ] [testable criterion]
+- [ ] [testable criterion]
+
+## Out of Scope
+- [what we're NOT doing]
+
+## Open Questions
+- [questions to clarify]
+```

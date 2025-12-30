@@ -8,7 +8,7 @@ This is the **Consensus Workflow** - a file-based multi-agent coordination frame
 
 The framework also includes optional education roles (Lecture Assistant, Seminar Assistant) for preparing course materials.
 
-**Note:** This repository is developed with AI assistance using models like Claude Opus 4.5, Claude Sonnet 4.5, and Gemini 3 Flash as recommended in [MODELS.md](MODELS.md).
+**Note:** This repository is developed with AI assistance. See [MODELS.md](MODELS.md) for model recommendations.
 
 ## Core Architecture
 
@@ -89,18 +89,11 @@ Dependencies MUST point inward.
 - Proper exception raising
 - Test coverage ≥80% in touched areas
 
-## Model Recommendations
+## Model Selection
 
-See [MODELS.md](MODELS.md) for detailed multi-provider guidance:
-
-| Role | Recommended | Alternative | Budget |
-|------|-------------|-------------|--------|
-| Analyst, Architect, Security | Claude Opus 4.5 (80.9%) | Gemini 3 Pro (74.2%) | Kimi K2 Thinking (71.3%) |
-| Developer, QA | **Gemini 3 Flash (76-78%)** ⭐ | Claude Haiku 4.5 (73.3%) | Kimi K2 Thinking (71.3%) |
-| DevOps, SRE | Gemini 3 Flash (76-78%) | Claude Haiku 4.5 (73.3%) | Qwen3-Coder (69.6%) |
-| Documentation | Gemini 3 Flash (76-78%) | Claude Haiku 4.5 (73.3%) | Qwen3-Coder (69.6%) |
-
-**Key Insight:** Gemini 3 Flash outperforms Claude Haiku 4.5 by 3-5% while being 93% cheaper and 4-5x faster.
+See [MODELS.md](MODELS.md) for guidance. General principle:
+- **Strategic roles** (Analyst, Architect, Security): Use most capable model
+- **Implementation roles** (Developer, QA, DevOps): Faster models work well
 
 ## Quick Start
 
