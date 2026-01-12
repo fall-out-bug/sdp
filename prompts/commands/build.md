@@ -17,29 +17,143 @@ You are an executor agent. Implement one workstream strictly following the plan.
 # 1. ALGORITHM (execute in order)
 
 ```
-1. PRE-BUILD HOOK (automatic):
-   hooks/pre-build.sh {WS-ID}
-   
-2. READ WS plan:
-   cat docs/workstreams/backlog/{WS-ID}-*.md
-   
-3. READ input files (from plan)
+1. CREATE TODO LIST (TodoWrite):
+   Track progress throughout WS execution
 
-4. EXECUTE steps using TDD:
+2. PRE-BUILD HOOK (automatic):
+   hooks/pre-build.sh {WS-ID}
+
+3. READ WS plan with @file references:
+   @docs/workstreams/backlog/{WS-ID}-*.md
+   @PROJECT_CONVENTIONS.md
+   @docs/workstreams/INDEX.md
+
+4. READ input files (from plan) with @file:
+   @path/to/existing/file.py
+   @path/to/config.yaml
+
+5. EXECUTE steps using TDD (use Composer for multi-file):
    For each step:
    a) Write test (Red — should fail)
    b) Implement code (Green — test passes)
    c) Refactor (if needed)
-   
-5. CHECK completion criteria (from plan)
+   UPDATE TODO: Mark step as completed
 
-6. SELF-CHECK (Section 6)
+6. CHECK completion criteria (from plan)
 
-7. POST-BUILD HOOK (automatic):
+7. SELF-CHECK (Section 6)
+
+8. POST-BUILD HOOK (automatic):
    hooks/post-build.sh {WS-ID}
-   
-8. APPEND Execution Report to WS file
+
+9. APPEND Execution Report to WS file
+
+10. FINALIZE TODO LIST: Mark all as completed
 ```
+
+===============================================================================
+# 1.5 TODO TRACKING WITH TodoWrite
+
+**IMPORTANT:** Use TodoWrite tool to track progress throughout WS execution. This provides visibility to users and helps organize complex multi-step workstreams.
+
+### When to Create Todo List
+
+**Always create** at the start of `/build` execution:
+
+```markdown
+TodoWrite([
+    {"content": "Pre-build validation", "status": "in_progress", "activeForm": "Validating WS structure"},
+    {"content": "Write failing test (Red)", "status": "pending", "activeForm": "Writing failing test"},
+    {"content": "Implement minimum code (Green)", "status": "pending", "activeForm": "Implementing code"},
+    {"content": "Refactor implementation", "status": "pending", "activeForm": "Refactoring code"},
+    {"content": "Verify Acceptance Criteria", "status": "pending", "activeForm": "Verifying AC"},
+    {"content": "Run quality gates (coverage, linters)", "status": "pending", "activeForm": "Running quality checks"},
+    {"content": "Append execution report", "status": "pending", "activeForm": "Writing execution report"},
+    {"content": "Git commit with metrics", "status": "pending", "activeForm": "Committing changes"}
+])
+```
+
+### When to Update Status
+
+**Mark in_progress** when starting each phase:
+```markdown
+# Before TDD Red phase
+TodoWrite([...previous_todos,
+    {"content": "Write failing test (Red)", "status": "in_progress", "activeForm": "Writing failing test"},
+    ...
+])
+```
+
+**Mark completed** immediately after finishing each phase:
+```markdown
+# After test passes
+TodoWrite([...previous_todos,
+    {"content": "Write failing test (Red)", "status": "completed", "activeForm": "Writing failing test"},
+    {"content": "Implement minimum code (Green)", "status": "in_progress", "activeForm": "Implementing code"},
+    ...
+])
+```
+
+### For Complex WS with Multiple Steps
+
+If WS has multiple implementation steps from plan, expand todos:
+
+```markdown
+TodoWrite([
+    {"content": "Pre-build validation", "status": "in_progress", "activeForm": "Validating WS structure"},
+    {"content": "Step 1: Create domain entity (TDD)", "status": "pending", "activeForm": "Creating domain entity"},
+    {"content": "Step 2: Add repository protocol (TDD)", "status": "pending", "activeForm": "Adding repository protocol"},
+    {"content": "Step 3: Implement service (TDD)", "status": "pending", "activeForm": "Implementing service"},
+    {"content": "Verify all Acceptance Criteria", "status": "pending", "activeForm": "Verifying AC"},
+    {"content": "Run quality gates", "status": "pending", "activeForm": "Running quality checks"},
+    {"content": "Append execution report", "status": "pending", "activeForm": "Writing execution report"},
+    {"content": "Git commit", "status": "pending", "activeForm": "Committing changes"}
+])
+```
+
+### Rules for TodoWrite in /build
+
+1. **Create list at start** — before any work begins
+2. **One task in_progress** — never more, never less
+3. **Update immediately** — mark completed right after finishing
+4. **All completed at end** — before outputting success message
+5. **Be specific** — match todos to actual WS steps from plan
+
+### Example Flow
+
+```
+User: /build WS-060-01
+
+Agent: Let me execute WS-060-01...
+→ TodoWrite([8 items])  # Create initial list
+
+→ Reading WS file...
+→ TodoWrite: Mark "Pre-build validation" as completed
+→ TodoWrite: Mark "Write failing test (Red)" as in_progress
+
+→ Writing test_user_entity.py...
+→ Running pytest... FAILED (expected)
+→ TodoWrite: Mark "Write failing test (Red)" as completed
+→ TodoWrite: Mark "Implement minimum code (Green)" as in_progress
+
+→ Creating src/domain/user.py...
+→ Running pytest... PASSED
+→ TodoWrite: Mark "Implement minimum code (Green)" as completed
+→ TodoWrite: Mark "Refactor implementation" as in_progress
+
+... (continue for all steps)
+
+→ All tasks completed
+→ TodoWrite: All items marked as completed
+→ Output success message
+```
+
+### Benefits
+
+- **User visibility** — see exactly what's happening
+- **Progress tracking** — know how far along execution is
+- **Context for errors** — if build fails, user sees which step failed
+- **Async transparency** — especially useful for long-running builds
 
 ===============================================================================
 # 2. PRE-BUILD CHECKS
@@ -103,6 +217,36 @@ pytest tests/unit/test_XXX.py::test_feature_works -v
 - Improve code while keeping tests green
 - Add type hints
 - Add docstrings
+
+### 3.4 Multi-file Editing with Composer
+
+**Use Cursor Composer for related files:**
+
+When implementing a feature that spans multiple files (domain + application + tests), use Composer to edit them simultaneously:
+
+```
+@src/domain/user.py @src/application/get_user.py @tests/test_get_user.py
+"Implement GetUser use case with TDD: write test first, then implementation following Clean Architecture"
+```
+
+**Benefits:**
+- Edit related files in one operation
+- Maintain consistency across layers
+- Faster iteration
+
+**When to use Composer:**
+- Domain entity + Application use case + Tests
+- Service + Repository + Tests
+- Multiple related refactorings
+- Cross-layer changes
+
+**Example workflow:**
+```
+1. Use Composer with @test_file @implementation_file
+2. Write test first (Red)
+3. Implement code (Green)
+4. Refactor if needed
+```
 
 ===============================================================================
 # 4. CODE RULES (STRICT)

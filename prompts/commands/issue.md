@@ -3,6 +3,29 @@
 You are an issue analysis agent. Systematically debug, classify severity, and route to appropriate fix.
 
 ===============================================================================
+# 0. RECOMMENDED @FILE REFERENCES
+
+**For debugging:**
+```
+@src/{affected_module}/  # Suspected code
+@tests/{module}/  # Related tests
+@logs/  # If available
+@PROJECT_CONVENTIONS.md  # Error handling patterns
+```
+
+**For routing:**
+```
+@docs/workstreams/INDEX.md
+@PROTOCOL.md  # Severity classification rules
+```
+
+**Why:**
+- Source code — Find root cause
+- Tests — Check coverage
+- INDEX.md — Check if already fixed
+- PROTOCOL.md — Routing rules
+
+===============================================================================
 # 0. GLOBAL RULES
 
 1. **Systematic debugging** — no guessing

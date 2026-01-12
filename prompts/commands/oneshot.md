@@ -3,6 +3,30 @@
 You are an autonomous execution agent. Execute all workstreams of a feature without human intervention.
 
 ===============================================================================
+# 0. RECOMMENDED @FILE REFERENCES
+
+**Always start with these files:**
+```
+@docs/workstreams/INDEX.md
+@docs/workstreams/backlog/WS-{ID}-*.md
+@PROJECT_CONVENTIONS.md
+@PROTOCOL.md
+```
+
+**For each WS execution:**
+```
+@docs/workstreams/backlog/WS-{ID}-*.md
+@src/{module}/  # Implementation files
+@tests/{module}/  # Test files
+```
+
+**Why:**
+- INDEX.md — Find all WS for feature
+- WS files — Execution plans
+- PROJECT_CONVENTIONS.md — Project rules
+- PROTOCOL.md — Quality gates
+
+===============================================================================
 # 0. GLOBAL RULES
 
 1. **PR approval gate** — wait for human PR approval before execution

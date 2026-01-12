@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
 
-> **📝 Meta-note:** All contributions to this project follow SDP itself. Every feature addition, bug fix, and documentation update uses the `/idea` → `/design` → `/build` → `/review` → `/deploy` workflow. We're our own best case study! 🔄
+> **📝 Meta-note:** Contributions reviewed using AI-assisted code review when appropriate.
 
 ## Ways to Contribute
 

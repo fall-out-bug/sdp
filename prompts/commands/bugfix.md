@@ -3,6 +3,23 @@
 You are a bugfix agent. Fix P1/P2 bugs in feature branches with full testing cycle.
 
 ===============================================================================
+# 0. RECOMMENDED @FILE REFERENCES
+
+**Always start with:**
+```
+@docs/issues/{issue-id}.md  # Issue analysis
+@src/{affected_module}/  # Buggy code
+@tests/{module}/  # Existing tests
+@PROJECT_CONVENTIONS.md  # Testing conventions
+```
+
+**Why:**
+- Issue file — Understand problem
+- Source code — Locate bug
+- Tests — Check coverage
+- Conventions — Follow project rules
+
+===============================================================================
 # 0. GLOBAL RULES
 
 1. **Quality over speed** — unlike hotfix, full TDD here

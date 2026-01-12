@@ -2,7 +2,7 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
-> **📝 Meta-note:** This changelog itself follows SDP conventions. Each version was developed using `/idea` → `/design` → `/build` → `/review` → `/deploy` workflow. Every entry represents completed workstreams with quality gates passed. 🔄
+> **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
 ## [0.3.1] - 2026-01-12
 

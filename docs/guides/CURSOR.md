@@ -184,13 +184,136 @@ Ensures:
 - No secrets
 - Conventional commits
 
+## Advanced Features
+
+### Composer (Multi-file Editing)
+
+**Use Composer for related files during `/build`:**
+
+When implementing features that span multiple files, use Composer to edit them simultaneously:
+
+```
+@src/domain/user.py @src/application/get_user.py @tests/test_get_user.py
+"Implement GetUser use case with TDD: write test first, then implementation"
+```
+
+**Benefits:**
+- Edit related files in one operation
+- Maintain consistency across layers
+- Faster iteration
+
+**When to use:**
+- Domain entity + Application use case + Tests
+- Service + Repository + Tests
+- Multiple related refactorings
+- Cross-layer changes
+
+### @file References
+
+**Always use @file references for context:**
+
+Each command has recommended @file references documented in `prompts/commands/{command}.md`.
+
+**Example for `/build`:**
+```
+@docs/workstreams/backlog/WS-001-01.md
+@PROJECT_CONVENTIONS.md
+@docs/workstreams/INDEX.md
+```
+
+**Benefits:**
+- Explicit file context
+- Better token management
+- Clearer AI understanding
+
+### Terminal Integration
+
+**Use Cursor's built-in terminal for validation:**
+
+Instead of external terminal, use Cursor's integrated terminal (`` Ctrl+` `` or View → Terminal):
+
+```bash
+# Pre-build validation
+hooks/pre-build.sh WS-001-01
+
+# Post-build validation
+hooks/post-build.sh WS-001-01 project.module
+
+# Run tests with coverage
+pytest tests/unit/test_module.py --cov=src/module --cov-report=term-missing
+
+# Check linting
+ruff check src/module/
+mypy src/module/ --strict
+```
+
+**Benefits:**
+- See results inline
+- Copy output easily
+- Run commands without leaving Cursor
+
+**Keyboard shortcuts:**
+- `` Ctrl+` `` — Toggle terminal
+- `Ctrl+Shift+` `` — Create new terminal
+- `Ctrl+Shift+K` — Clear terminal
+
+### Git UI Integration
+
+**Use Cursor's Git UI for visual workflow:**
+
+#### Visual Diff Before Commit
+
+1. Open Source Control panel (`Ctrl+Shift+G`)
+2. Review changes visually
+3. Check for:
+   - Clean Architecture violations (domain imports)
+   - Test coverage (new files have tests)
+   - File size (< 200 LOC)
+
+#### Branch Management
+
+1. Click branch name in status bar
+2. Create new branch: `feature/{slug}`
+3. Switch branches visually
+4. See branch history
+
+#### Staging Area
+
+1. Stage files selectively (checkboxes)
+2. Review staged changes
+3. Write commit message inline
+4. Commit with conventional format
+
+**Example commit workflow:**
+```
+1. Stage src/ files → Commit: "feat(auth): WS-001-01 - implement domain layer"
+2. Stage tests/ files → Commit: "test(auth): WS-001-01 - add unit tests"
+3. Stage docs/ files → Commit: "docs(auth): WS-001-01 - execution report"
+```
+
+#### Visual Diff for Review
+
+During `/review`, use Git UI to:
+- Compare changes visually
+- See line-by-line differences
+- Check Clean Architecture boundaries
+- Verify test coverage
+
+**Access:**
+- `Ctrl+Shift+G` — Source Control panel
+- Click file → View diff
+- Compare branches visually
+
 ## Tips
 
 1. **Use command autocomplete**: Type `/` to see all available commands
-2. **Keep context focused**: Only @-mention relevant files
-3. **Clear chat between features**: Fresh context for new work
-4. **Let hooks validate**: Don't bypass Git hooks
-5. **Follow conventional commits**: `feat(scope): WS-XXX-YY - description`
+2. **Use @file references**: Always include recommended files for context
+3. **Use Composer for multi-file**: Edit related files simultaneously
+4. **Use Terminal integration**: Run validation in Cursor terminal
+5. **Use Git UI**: Visual diff and branch management
+6. **Keep context focused**: Pin important files, clear between features
+7. **Let hooks validate**: Don't bypass Git hooks
+8. **Follow conventional commits**: `feat(scope): WS-XXX-YY - description`
 
 ## Troubleshooting
 

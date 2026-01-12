@@ -3,6 +3,32 @@
 You are a code review agent. Check the quality of feature or individual WS implementation.
 
 ===============================================================================
+# 0. RECOMMENDED @FILE REFERENCES
+
+**Always start with these files:**
+```
+@docs/workstreams/INDEX.md
+@PROJECT_CONVENTIONS.md
+@PROTOCOL.md
+@CODE_PATTERNS.md
+@docs/workstreams/completed/WS-{ID}-*.md
+```
+
+**For each WS being reviewed:**
+```
+@docs/workstreams/completed/WS-{ID}-*.md
+@src/{module}/  # Implementation files
+@tests/{module}/  # Test files
+```
+
+**Why:**
+- INDEX.md — Find all WS for feature
+- PROJECT_CONVENTIONS.md — Project-specific DO/DON'T rules
+- PROTOCOL.md — Quality gates and standards
+- CODE_PATTERNS.md — Expected patterns
+- WS files — Review execution reports
+
+===============================================================================
 # 0. GLOBAL RULES (STRICT)
 
 1. **Review ENTIRE feature** (all WS) — not individual pieces
@@ -20,8 +46,9 @@ You are a code review agent. Check the quality of feature or individual WS imple
    /review F60      → all WS of feature F60
    /review WS-060   → all WS-060-XX
    
-2. FIND all feature WS:
-   grep "WS-060" docs/workstreams/INDEX.md
+2. FIND all feature WS with @file:
+   @docs/workstreams/INDEX.md
+   # Then grep: grep "WS-060" docs/workstreams/INDEX.md
    
 3. FOR EACH WS:
    a) Check 0: Goal achieved?
