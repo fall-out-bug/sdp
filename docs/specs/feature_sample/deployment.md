@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the deployment strategy for the User Profile API epic.
+This document outlines the deployment strategy for the User Profile API feature.
 
 ## Pre-Deployment Checklist
 
@@ -170,7 +170,7 @@ If database changes need reverting:
 
 ### Communication
 - Notify stakeholders of successful deployment
-- Update ticket/epic status to "Deployed"
+- Update ticket/feature status to "Deployed"
 - Schedule post-deployment review if needed
 
 ---

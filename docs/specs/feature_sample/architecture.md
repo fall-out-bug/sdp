@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the architecture for the User Profile API epic, following Clean Architecture principles.
+This document describes the architecture for the User Profile API feature, following Clean Architecture principles.
 
 ## Layer Diagram
 

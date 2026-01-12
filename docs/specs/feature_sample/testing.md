@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines the testing strategy for the User Profile API epic.
+This document defines the testing strategy for the User Profile API feature.
 
 ## Test Pyramid
 

@@ -60,7 +60,7 @@ See PROTOCOL.md for full specification.
 
 ## Key Rules
 - ALL output must be in English
-- JSON messages use compact keys: d, st, r, epic, sm, nx, artifacts
+- JSON messages use compact keys: d, st, r, feature, sm, nx, artifacts
 - No silent fallbacks (except: pass forbidden)
 - Clean Architecture: dependencies point inward
 

@@ -87,7 +87,7 @@ Create `.cursorrules` in project root with key protocol rules:
 ALL output must be in English.
 
 ## Message Format
-JSON with compact keys: d, st, r, epic, sm, nx, artifacts
+JSON with compact keys: d, st, r, feature, sm, nx, artifacts
 
 ## Quality Gates
 - No silent fallbacks (except: pass forbidden)

@@ -22,7 +22,7 @@ docs/specs/epic-notifications/
 ### docs/specs/epic-notifications/epic.md
 
 ```markdown
-# Epic: User Notification System
+# Feature: User Notification System
 
 ## Business Need
 Users need to receive notifications about important events (order updates,

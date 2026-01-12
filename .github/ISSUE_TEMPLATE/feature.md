@@ -1,8 +1,8 @@
 ---
-name: Epic
-about: New epic for consensus workflow development
-title: 'Epic XX: [Title]'
-labels: epic
+name: Feature
+about: New feature for consensus workflow development
+title: 'Feature XX: [Title]'
+labels: feature
 assignees: ''
 ---
 

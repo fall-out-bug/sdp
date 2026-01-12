@@ -14,6 +14,6 @@
     "Identify any layer violation risks"
   ],
   "artifacts": [
-    "docs/examples/sample_epic/consensus/artifacts/requirements.json"
+    "docs/examples/sample_feature/consensus/artifacts/requirements.json"
   ]
 }

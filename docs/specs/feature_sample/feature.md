@@ -1,6 +1,6 @@
-# Sample Epic: User Profile API
+# Sample Feature: User Profile API
 
-This is a complete example of an epic that has gone through the full consensus workflow.
+This is a complete example of a feature that has gone through the full consensus workflow.
 
 ## Summary
 Add user profile endpoints to the REST API, allowing users to view and update their profile information.
@@ -64,5 +64,5 @@ Add user profile endpoints to the REST API, allowing users to view and update th
 - User database (existing)
 
 ## Timeline
-- Epic ID: EP-SAMPLE
+- Feature ID: F-SAMPLE
 - Iteration: 1

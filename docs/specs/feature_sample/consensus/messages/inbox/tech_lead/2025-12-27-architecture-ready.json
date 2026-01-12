@@ -15,7 +15,7 @@
     "Create testing.md and deployment.md"
   ],
   "artifacts": [
-    "docs/examples/sample_epic/architecture.md",
-    "docs/examples/sample_epic/consensus/artifacts/architecture.json"
+    "docs/examples/sample_feature/architecture.md",
+    "docs/examples/sample_feature/consensus/artifacts/architecture.json"
   ]
 }
