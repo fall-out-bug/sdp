@@ -30,8 +30,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 ```
 consensus/
 ├── prompts/
-│   ├── commands/       # Slash command prompts (/idea, /design, /build, etc.)
-│   └── structured/     # Phase-based workflow prompts
+│   └── commands/       # Slash command prompts (/idea, /design, /build, etc.)
 ├── docs/
 │   ├── guides/         # Integration guides (Claude Code, Cursor)
 │   ├── concepts/       # Core concepts (Clean Architecture, Artifacts, Roles)
@@ -39,7 +38,7 @@ consensus/
 │   └── specs/          # Feature specifications
 ├── .cursor/            # Cursor IDE slash commands
 ├── .cursorrules        # Cursor IDE rules
-├── .claude/        # Claude Code configuration
+├── .claude/            # Claude Code configuration (skills, agents)
 ├── hooks/              # Git hooks and validators
 ├── templates/          # Document templates
 ├── PROTOCOL.md         # SDP specification
@@ -74,10 +73,17 @@ When adding or modifying command prompts in `prompts/commands/`:
 To add a new slash command:
 
 1. Create `prompts/commands/{command}.md` (full prompt)
+   - Include RECOMMENDED @FILE REFERENCES section
+   - Document TodoWrite usage if applicable
+   - Add Composer examples if multi-file editing needed
 2. Create `.cursor/commands/{command}.md` (quick reference for Cursor IDE)
 3. Add skill to `.claude/skills/{command}/SKILL.md` (Claude Code integration)
-4. Update `README.md` with command description
+   - Document Task tool usage if autonomous execution
+   - Document AskUserQuestion if interactive
+   - Document EnterPlanMode if planning phase
+4. Update `README.md` and `README_RU.md` with command description
 5. Update `MODELS.md` with model recommendation
+6. Update `docs/guides/CURSOR.md` and `docs/guides/CLAUDE_CODE.md` if needed
 
 ### Code Style
 

@@ -1,12 +1,14 @@
-# Example: Structured Mode Feature
+# Example: Feature Development with SDP
 
-A complete example of using Structured mode to add a feature.
+A complete example of using SDP slash commands to add a feature.
+
+> **Note:** This example demonstrates the current SDP workflow using slash commands. The old "Phase 1-4" workflow has been deprecated.
 
 ## Scenario
 
 Add password reset functionality to an existing authentication system.
 
-## Phase 1: Analyze
+## Step 1: Gather Requirements (/idea)
 
 ### Prompt
 
@@ -59,16 +61,15 @@ Allow users to reset their password via email when they forget it.
 - Q2: Email template approval needed? → Use existing template style
 ```
 
-## Phase 2: Design
+## Step 2: Design Workstreams (/design)
 
-### Prompt
+### Command
 
 ```
-Read docs/specs/password-reset.md and create technical design.
-Consider security implications.
-Save to docs/specs/password-reset-design.md
-Create ADR if making significant decisions.
+/design idea-password-reset
 ```
+
+**Claude Code:** Uses EnterPlanMode for codebase exploration, AskUserQuestion for architecture decisions.
 
 ### Output: docs/specs/password-reset-design.md
 
@@ -183,17 +184,15 @@ Store only the hash; compare incoming tokens by hashing and matching.
 - Slight overhead for hashing (negligible)
 ```
 
-## Phase 3: Implement
+## Step 3: Implement Workstreams (/build)
 
-### Prompt
+### Command
 
 ```
-Implement password reset based on:
-- Spec: docs/specs/password-reset.md
-- Design: docs/specs/password-reset-design.md
-
-Start with domain layer, write tests first.
+/build WS-001-01  # Domain layer
 ```
+
+**Claude Code:** Uses TodoWrite for progress tracking, Composer for multi-file editing.
 
 ### Output (abbreviated)
 
@@ -258,17 +257,19 @@ def test_token_cannot_be_reused():
 
 **Application and Infrastructure layers follow...**
 
-## Phase 4: Review
+## Step 4: Review Quality (/review)
 
-### Prompt
+### Command
 
 ```
-Review password reset implementation:
-1. Check acceptance criteria from docs/specs/password-reset.md
-2. Verify design was followed
-3. Run tests, check coverage
-4. Look for security issues
+/review F01
 ```
+
+**Checks:**
+1. All acceptance criteria from WS files
+2. Design followed (Clean Architecture)
+3. Tests pass, coverage ≥80%
+4. Security issues (token hashing, etc.)
 
 ### Output
 
@@ -319,10 +320,30 @@ tests/
 └── presentation/test_password_reset_api.py
 ```
 
-## Time
+## Alternative: Autonomous Execution (/oneshot)
 
-~4 hours total:
-- Phase 1 (Analyze): 20 minutes
-- Phase 2 (Design): 40 minutes
-- Phase 3 (Implement): 2.5 hours
-- Phase 4 (Review): 30 minutes
+For complete hands-off execution:
+
+```
+/oneshot F01
+```
+
+**Claude Code:** Spawns Task orchestrator agent that:
+- Creates PR for approval
+- Executes all WS with TodoWrite tracking
+- Runs /review automatically
+- Generates UAT guide
+
+**Background execution:**
+```
+/oneshot F01 --background
+```
+
+**Resume from checkpoint:**
+```
+/oneshot F01 --resume {agent_id}
+```
+
+---
+
+**Note:** This example demonstrates the current SDP workflow. The old "Phase 1-4" terminology has been replaced with slash commands.

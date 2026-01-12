@@ -15,7 +15,9 @@ Use these for one-shot execution:
 /issue "{description}"           # Debug and route
 /hotfix "{description}"          # Emergency fix
 /bugfix "{description}"          # Quality fix
-/oneshot F{XX}                   # Autonomous execution
+/oneshot F{XX}                   # Autonomous execution (Task orchestrator)
+/oneshot F{XX} --background      # Background execution
+/oneshot F{XX} --resume {id}     # Resume from checkpoint
 ```
 
 See `prompts/commands/*.md` for full prompts.
@@ -32,7 +34,7 @@ See `prompts/commands/*.md` for full prompts.
 | Debug issue | `/issue` | Sonnet |
 | Emergency fix | `/hotfix` | Haiku |
 | Quality fix | `/bugfix` | Haiku |
-| Autonomous execution | `/oneshot` | Opus |
+| Autonomous execution (Task-based) | `/oneshot` | Opus |
 
 ## Guardrails and Quality Gates
 

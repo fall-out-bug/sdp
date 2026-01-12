@@ -9,16 +9,18 @@ Artifacts are the outputs that document decisions, enable collaboration, and pro
 - **Quality**: Formal outputs catch issues early
 - **Audit**: Track decisions and their rationale
 
-## Artifact Types by Mode
+## Artifact Types by Workflow
 
-| Artifact | Solo | Structured | Multi-Agent |
-|----------|------|------------|-------------|
-| CLAUDE.md | Required | Required | Required |
-| spec.md | Optional | Required | Required |
-| design.md | Optional | Required | Required |
-| ADRs | When needed | When needed | Required |
-| test-report.md | Optional | Optional | Required |
-| decision-log | No | No | Required |
+| Artifact | Slash Commands | Task Orchestrator |
+|----------|----------------|-------------------|
+| CLAUDE.md | Required | Required |
+| idea-{slug}.md | Required (from /idea) | Required |
+| WS-XXX-YY.md | Required (from /design) | Required |
+| Execution Report | Required (from /build) | Required |
+| Review Report | Required (from /review) | Required |
+| UAT Guide | Required (from /review) | Required |
+| ADRs | When needed | When needed |
+| Checkpoint JSON | No | Required (for /oneshot) |
 
 ## Core Artifacts
 

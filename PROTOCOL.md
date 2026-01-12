@@ -458,25 +458,40 @@ L4: Workstream  docs/workstreams/{status}/WS-XXX.md
 
 **Using /idea:**
 1. User describes feature
-2. AI reads L1 (`SYSTEM_OVERVIEW.md`) for context
-3. AI generates draft in `docs/drafts/idea-{slug}.md`
+2. AI uses AskUserQuestion for deep requirements gathering (Claude Code)
+3. AI reads L1 (`SYSTEM_OVERVIEW.md`) for context
+4. AI generates comprehensive draft in `docs/drafts/idea-{slug}.md`
 
 **Using /design:**
 1. AI reads idea draft
-2. AI reads L1/L2 for architecture context
-3. AI reads `docs/workstreams/INDEX.md` to avoid duplicates
-4. AI generates workstreams (L4) in `docs/workstreams/backlog/`
+2. AI enters Plan Mode (Claude Code: EnterPlanMode) for codebase exploration
+3. AI uses AskUserQuestion for architecture decisions
+4. AI reads L1/L2 for architecture context
+5. AI reads `docs/workstreams/INDEX.md` to avoid duplicates
+6. AI requests approval via ExitPlanMode (Claude Code)
+7. AI generates workstreams (L4) in `docs/workstreams/backlog/`
 
 **Using /build:**
-1. AI reads workstream file (L4)
-2. AI reads L1/L2/L3 for context
-3. AI executes workstream according to plan
-4. AI moves WS to `docs/workstreams/completed/`
+1. AI creates TodoWrite list for progress tracking
+2. AI reads workstream file (L4)
+3. AI reads L1/L2/L3 for context
+4. AI executes workstream according to plan (TDD: Red → Green → Refactor)
+5. AI updates TodoWrite throughout execution
+6. AI moves WS to `docs/workstreams/completed/`
 
 **Using /review:**
 1. AI reads all completed WS for feature
-2. AI checks quality gates
-3. AI generates review report
+2. AI checks quality gates (AI-Readiness, Clean Architecture, Coverage, etc.)
+3. AI generates review report with verdict: APPROVED or CHANGES REQUESTED
+
+**Using /oneshot:**
+1. Main AI spawns Task tool orchestrator agent
+2. Agent creates TodoWrite list for high-level tracking
+3. Agent waits for PR approval (gate)
+4. Agent executes each WS using /build (with internal TodoWrite)
+5. Agent runs /review after all WS complete
+6. Agent generates UAT guide
+7. Agent returns summary to main AI
 
 ### Product vs Architecture Hierarchy
 

@@ -58,21 +58,27 @@ See [CLAUDE.md](../../CLAUDE.md) for this project's configuration.
 
 | Skill | Purpose | Example |
 |-------|---------|---------|
-| `@idea` | Requirements gathering | `@idea "Add payment processing"` |
-| `@design` | Create workstreams | `@design idea-payments` |
-| `@build` | Execute workstream | `@build WS-001-01` |
+| `@idea` | **Interactive requirements** (AskUserQuestion) | `@idea "Add payment processing"` |
+| `@design` | **Interactive planning** (EnterPlanMode) | `@design idea-payments` |
+| `@build` | Execute workstream (TodoWrite tracking) | `@build WS-001-01` |
 | `@review` | Quality check | `@review F01` |
 | `@deploy` | Production deployment | `@deploy F01` |
 | `@issue` | Debug and route bugs | `@issue "Login fails on Firefox"` |
 | `@hotfix` | Emergency fix (P0) | `@hotfix "Critical API outage"` |
 | `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
-| `@oneshot` | Autonomous execution | `@oneshot F01` |
+| `@oneshot` | **Autonomous execution** (Task-based) | `@oneshot F01` or `@oneshot F01 --background` |
 
 Skills are defined in `.claude/skills/{name}/SKILL.md`
 
+**Claude Code Integration Highlights:**
+- `@idea` — Deep interviewing via AskUserQuestion (explores tradeoffs, no obvious questions)
+- `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
+- `@build` — TodoWrite real-time progress tracking through TDD cycle
+- `@oneshot` — Task tool spawns isolated orchestrator agent with background execution support
+
 ## Typical Workflow
 
-### 1. Gather Requirements
+### 1. Gather Requirements (Interactive)
 
 ```bash
 # Start Claude Code
@@ -82,13 +88,25 @@ claude
 > @idea "Users need password reset via email"
 ```
 
-**Output:** `docs/drafts/idea-password-reset.md`
+**Claude uses AskUserQuestion for deep interviewing:**
+- Technical approach (email service, token storage)
+- UI/UX (where in app, error messages)
+- Security (token expiry, rate limiting)
+- Concerns (complexity, failure modes)
 
-### 2. Design Workstreams
+**Output:** `docs/drafts/idea-password-reset.md` (comprehensive spec)
+
+### 2. Design Workstreams (Interactive Planning)
 
 ```
 > @design idea-password-reset
 ```
+
+**Claude enters Plan Mode:**
+- Explores codebase (existing auth, email infrastructure)
+- Asks architecture questions via AskUserQuestion (JWT vs sessions, etc.)
+- Designs WS decomposition
+- Requests approval via ExitPlanMode
 
 **Output:**
 - `docs/workstreams/backlog/WS-001-01-domain.md`
@@ -98,16 +116,30 @@ claude
 
 ### 3. Execute Workstreams
 
-**Option A: Manual execution**
+**Option A: Manual execution (with TodoWrite tracking)**
 ```
 > @build WS-001-01
+# Claude shows TodoWrite progress:
+#   [in_progress] Pre-build validation
+#   [pending] Write failing test (Red)
+#   [pending] Implement minimum code (Green)
+#   ... (updates in real-time)
+
 > @build WS-001-02
 > @build WS-001-03
 ```
 
-**Option B: Autonomous execution**
+**Option B: Autonomous execution via Task tool**
 ```
 > @oneshot F01
+# Spawns orchestrator agent with TodoWrite tracking
+# Executes all WS with PR approval gate
+
+> @oneshot F01 --background
+# Run in background for large features
+
+> @oneshot F01 --resume {agent_id}
+# Resume from checkpoint if interrupted
 ```
 
 ### 4. Review Quality
@@ -153,7 +185,7 @@ Switch models using `/model` command:
 | `@build` | Sonnet | Code implementation |
 | `@review` | Sonnet | Quality checks |
 | `@deploy` | Sonnet/Haiku | Config generation |
-| `@oneshot` | Opus | Autonomous orchestration |
+| `@oneshot` | Opus | Autonomous orchestration (Task tool) |
 
 See [MODELS.md](../../MODELS.md) for detailed recommendations.
 
@@ -209,7 +241,61 @@ hooks/pre-commit.sh
 
 See [CURSOR.md](CURSOR.md) for hook details.
 
-## Advanced: Multi-Agent Mode
+## Advanced Features
+
+### Task Tool Integration (@oneshot)
+
+`@oneshot` uses Claude Code's Task tool to spawn an isolated orchestrator agent:
+
+**How it works:**
+1. Main Claude spawns Task agent with orchestrator instructions
+2. Agent executes all WS autonomously
+3. Real-time progress via TodoWrite
+4. PR approval gate before execution
+5. Checkpoint/resume capability
+
+**Background execution:**
+```bash
+> @oneshot F01 --background
+# Agent runs in background
+# Check progress: Read("/tmp/agent_{id}.log")
+# Notification when complete
+```
+
+**Resume from interruption:**
+```bash
+> @oneshot F01 --resume {agent_id}
+# Agent continues from last checkpoint
+```
+
+### AskUserQuestion Integration (@idea, @design)
+
+**@idea** uses AskUserQuestion for deep requirements gathering:
+- No obvious questions
+- Explores tradeoffs
+- Uncovers hidden requirements
+- Technical and business concerns
+
+**@design** uses EnterPlanMode + AskUserQuestion:
+- Codebase exploration in Plan Mode
+- Architecture decisions via AskUserQuestion
+- Approval workflow via ExitPlanMode
+
+### TodoWrite Progress Tracking (@build, @oneshot)
+
+**@build** shows real-time progress:
+- Pre-build validation
+- TDD cycle (Red → Green → Refactor)
+- Quality gates
+- Execution report
+
+**@oneshot** tracks high-level progress:
+- PR approval
+- Each WS execution
+- Final review
+- UAT guide generation
+
+### Multi-Agent Mode (Legacy)
 
 For complex features, use multi-agent orchestration:
 
@@ -223,6 +309,8 @@ Agents defined in `.claude/agents/`:
 - `reviewer.md` — Quality checks
 - `deployer.md` — Production deployment
 - `orchestrator.md` — Coordinates workflow
+
+**Note:** `@oneshot` is preferred for autonomous execution (uses Task tool).
 
 ## Tips
 
