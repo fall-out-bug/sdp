@@ -190,6 +190,7 @@ def copy_templates(project_root: Path, sdp_root: Path) -> None:
         ('hooks/', 'hooks/'),
         ('templates/PROJECT_CONVENTIONS.md', 'PROJECT_CONVENTIONS.md'),
         ('templates/workstream.md', 'templates/workstream.md'),
+        ('templates/.vscode/settings.json', '.vscode/settings.json'),
     ]
     
     for src, dst in files_to_copy:
@@ -290,7 +291,11 @@ def print_next_steps(project_root: Path, ide: str, conventions: dict) -> None:
     print(f"   {Color.YELLOW}PROTOCOL.md{Color.END} - Full specification")
     print(f"   {Color.YELLOW}docs/PRINCIPLES.md{Color.END} - Core principles\n")
     
-    print("5. Install Git hooks (if skipped):")
+    print("5. Configure workspace settings (optional):")
+    print(f"   {Color.YELLOW}cp templates/.vscode/settings.json .vscode/settings.json{Color.END}")
+    print("   → Adjust Python settings, model preferences\n")
+    
+    print("6. Install Git hooks (if skipped):")
     print(f"   {Color.YELLOW}python scripts/init.py --install-hooks{Color.END}\n")
     
     print_info("📚 RESOURCES:\n")

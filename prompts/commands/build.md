@@ -340,6 +340,12 @@ ruff check src/module/
 mypy src/module/ --ignore-missing-imports
 # Expected: no errors
 
+# If errors found, use Cursor Code Actions:
+# - Open file with error
+# - Press Ctrl+. (Code Actions)
+# - Select "Fix all auto-fixable problems"
+# - Re-run linter check
+
 # 5. No TODO/FIXME
 grep -rn "TODO\|FIXME" src/module/
 # Expected: empty

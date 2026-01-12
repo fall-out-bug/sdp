@@ -304,6 +304,237 @@ During `/review`, use Git UI to:
 - Click file → View diff
 - Compare branches visually
 
+**Advanced diff features:**
+- **Inline diff view**: Click file in Source Control → see changes inline
+- **Compare with previous version**: Right-click file → "Compare with..."
+- **Diff between branches**: `Ctrl+Shift+P` → "Git: Compare References"
+- **Unified diff view**: See all changes in one view
+- **Side-by-side diff**: Split view for easier comparison
+
+**During `/build` workflow:**
+1. After implementing code, open Git UI
+2. Review diff before committing
+3. Check for:
+   - Type hints added
+   - Tests included
+   - No `except: pass`
+   - File size < 200 LOC
+4. Stage and commit if all checks pass
+
+### Code Actions (Quick Fixes)
+
+**Use Code Actions to auto-fix linting errors:**
+
+Cursor provides quick fixes for common issues. Use them during quality gates:
+
+**How to use:**
+1. Open file with linting errors
+2. Hover over error (yellow/red squiggle)
+3. Click lightbulb icon 💡 or press `Ctrl+.`
+4. Select "Fix all auto-fixable problems"
+
+**Common fixes:**
+- **Import organization**: Auto-sort imports (stdlib → third-party → local)
+- **Type hints**: Add missing type hints
+- **Unused imports**: Remove unused imports
+- **Formatting**: Auto-format code
+- **Missing docstrings**: Add docstring templates
+
+**Integration with SDP:**
+
+During `/build` post-build validation:
+```bash
+# Run linter
+ruff check src/module/
+
+# If errors found:
+# 1. Open file in Cursor
+# 2. Use Code Actions (Ctrl+.)
+# 3. Fix all auto-fixable
+# 4. Re-run validation
+```
+
+**Keyboard shortcuts:**
+- `Ctrl+.` — Show Code Actions
+- `Ctrl+Shift+.` — Quick Fix (next error)
+- `F8` — Go to next error
+- `Shift+F8` — Go to previous error
+
+**Best practices:**
+- Fix linting errors immediately during `/build`
+- Use Code Actions before manual fixes
+- Verify fixes don't break tests
+- Commit fixes separately: `fix({scope}): WS-XXX-YY - fix linting errors`
+
+### Chat Context Management
+
+**Strategically manage chat context for better AI performance:**
+
+#### Pin Important Files
+
+**Always pin these files:**
+- `PROJECT_CONVENTIONS.md` — Project-specific rules (always pinned)
+- `docs/workstreams/INDEX.md` — For `/design` and `/build`
+- `PROTOCOL.md` — For reference during any command
+
+**How to pin:**
+1. @-mention file in chat
+2. Click pin icon 📌 next to file name
+3. File stays in context across messages
+
+**Command-specific pins:**
+
+**For `/idea`:**
+- `PROTOCOL.md`
+- `templates/idea-draft.md`
+
+**For `/design`:**
+- `docs/PROJECT_MAP.md` (architecture decisions)
+- `docs/workstreams/INDEX.md` (check duplicates)
+- `PROJECT_CONVENTIONS.md`
+
+**For `/build`:**
+- `docs/workstreams/backlog/WS-{ID}-*.md` (WS plan)
+- `PROJECT_CONVENTIONS.md`
+- `CODE_PATTERNS.md`
+
+**For `/review`:**
+- `docs/workstreams/INDEX.md`
+- `PROJECT_CONVENTIONS.md`
+- `CODE_PATTERNS.md`
+
+#### Clear Context Strategically
+
+**When to clear chat:**
+- ✅ Between different features
+- ✅ After completing `/review`
+- ✅ When switching commands (e.g., `/build` → `/review`)
+- ✅ When context becomes too long (> 50 messages)
+
+**When NOT to clear:**
+- ❌ During single `/build` execution
+- ❌ When debugging related issues
+- ❌ During `/oneshot` autonomous execution
+
+**How to clear:**
+- Click "Clear Chat" button
+- Or start new chat: `Ctrl+Shift+N`
+
+#### Context Budget Management
+
+**Monitor token usage:**
+- Large files consume more tokens
+- Use @file selectively
+- Pin only essential files
+- Clear old context regularly
+
+**Tips:**
+- Use file paths instead of full content when possible
+- Reference specific sections: `@file.md#section`
+- Clear context between major phases
+
+### Workspace Settings
+
+**Configure Cursor for optimal SDP workflow:**
+
+Create `.vscode/settings.json` in your project:
+
+```json
+{
+  // Python settings
+  "python.linting.enabled": true,
+  "python.linting.ruffEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.formatting.provider": "ruff",
+  "python.analysis.typeCheckingMode": "strict",
+  
+  // File size limits (SDP requirement)
+  "files.maxMemoryForLargeFilesMB": 50,
+  
+  // Exclude patterns for indexing
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/node_modules": true
+  },
+  
+  // Search exclude patterns
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/venv": true,
+    "**/.venv": true
+  },
+  
+  // Editor settings
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  },
+  
+  // File associations
+  "files.associations": {
+    "*.md": "markdown",
+    "*.mdc": "markdown"
+  },
+  
+  // Git settings
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": true,
+  
+  // Terminal settings
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  
+  // Cursor-specific
+  "cursor.chat.maxContextLength": 50000,
+  "cursor.chat.model": "claude-sonnet-4.5"
+}
+```
+
+**SDP-specific settings:**
+
+```json
+{
+  // Enforce file size limits
+  "[python]": {
+    "editor.rulers": [200],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 200
+  },
+  
+  // Test discovery
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests",
+    "--cov=src",
+    "--cov-report=term-missing"
+  ],
+  
+  // Type checking
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.diagnosticMode": "workspace"
+}
+```
+
+**Installation:**
+1. Copy settings to `.vscode/settings.json`
+2. Cursor will auto-load settings
+3. Adjust model preference in Cursor Settings → Models
+
+**Benefits:**
+- Auto-format on save
+- Auto-fix linting errors
+- Type checking enabled
+- Test discovery configured
+- File size warnings
+
 ## Tips
 
 1. **Use command autocomplete**: Type `/` to see all available commands
@@ -311,9 +542,12 @@ During `/review`, use Git UI to:
 3. **Use Composer for multi-file**: Edit related files simultaneously
 4. **Use Terminal integration**: Run validation in Cursor terminal
 5. **Use Git UI**: Visual diff and branch management
-6. **Keep context focused**: Pin important files, clear between features
-7. **Let hooks validate**: Don't bypass Git hooks
-8. **Follow conventional commits**: `feat(scope): WS-XXX-YY - description`
+6. **Use Code Actions**: Auto-fix linting errors (`Ctrl+.`)
+7. **Pin important files**: PROJECT_CONVENTIONS.md, INDEX.md always pinned
+8. **Clear context strategically**: Between features, after `/review`
+9. **Configure workspace settings**: Use `.vscode/settings.json` template
+10. **Let hooks validate**: Don't bypass Git hooks
+11. **Follow conventional commits**: `feat(scope): WS-XXX-YY - description`
 
 ## Troubleshooting
 

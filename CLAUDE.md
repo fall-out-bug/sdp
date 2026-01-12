@@ -63,6 +63,13 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 # 3. Execute each workstream
 @build WS-001-01
+# Claude will show progress tracking:
+#   [in_progress] Pre-build validation
+#   [pending] Write failing test (Red)
+#   [pending] Implement minimum code (Green)
+#   [pending] Refactor implementation
+#   ... (updates in real-time)
+
 @build WS-001-02
 # ... or use autonomous mode:
 @oneshot F01
@@ -73,6 +80,46 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 # 5. Deploy to production
 @deploy F01
 ```
+
+### Progress Tracking
+
+When using `@build`, Claude Code automatically tracks progress using TodoWrite:
+
+```markdown
+User: @build WS-060-01
+
+Claude:
+→ Creating todo list...
+  ✓ [in_progress] Pre-build validation
+  • [pending] Write failing test (Red)
+  • [pending] Implement minimum code (Green)
+  • [pending] Refactor implementation
+  • [pending] Verify Acceptance Criteria
+  • [pending] Run quality gates
+  • [pending] Append execution report
+  • [pending] Git commit
+
+→ Reading WS file...
+  ✓ [completed] Pre-build validation
+  ✓ [in_progress] Write failing test (Red)
+  • [pending] Implement minimum code (Green)
+  ...
+
+→ Test created, running pytest... FAILED (expected)
+  ✓ [completed] Write failing test (Red)
+  ✓ [in_progress] Implement minimum code (Green)
+  ...
+
+→ Implementation done, running pytest... PASSED
+  ✓ [completed] Implement minimum code (Green)
+  ✓ [in_progress] Refactor implementation
+  ...
+
+[All steps complete]
+  ✓ All tasks completed
+```
+
+This provides real-time visibility into WS execution progress.
 
 ### File Structure Reference
 
