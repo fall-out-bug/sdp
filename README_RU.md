@@ -196,7 +196,7 @@ python scripts/init.py
 ```bash
 cp -r prompts/ your-project/
 cp -r schema/ your-project/
-cp -r .claudecode/ your-project/
+cp -r .claude/ your-project/
 cp CLAUDE.md your-project/
 ```
 

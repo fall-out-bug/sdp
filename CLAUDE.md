@@ -28,7 +28,7 @@ Use **skills** to execute SDP commands:
 | `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
 | `@oneshot` | Autonomous execution | `@oneshot F01` |
 
-Skills are defined in `.claudecode/skills/{name}/SKILL.md`
+Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 ## Quick Reference
 
@@ -84,7 +84,7 @@ project/
 │   │   └── completed/    # @build finalizes here
 │   └── specs/            # Feature specifications
 ├── prompts/commands/     # Skill instructions
-├── .claudecode/
+├── .claude/
 │   ├── skills/           # Skill definitions
 │   ├── agents/           # Multi-agent mode (advanced)
 │   └── settings.json     # Claude Code settings
@@ -145,7 +145,7 @@ python scripts/validate.py docs/workstreams/backlog/
 ## Troubleshooting
 
 ### Skill not found
-Check `.claudecode/skills/{name}/SKILL.md` exists
+Check `.claude/skills/{name}/SKILL.md` exists
 
 ### Validation fails
 Run `hooks/pre-build.sh {WS-ID}` to see specific issues
@@ -164,7 +164,7 @@ For complex features, use multi-agent orchestration:
 @orchestrator F01  # Coordinates all agents
 ```
 
-Agents defined in `.claudecode/agents/`:
+Agents defined in `.claude/agents/`:
 - `planner.md` — Breaks features into workstreams
 - `builder.md` — Executes workstreams
 - `reviewer.md` — Quality checks
@@ -173,7 +173,7 @@ Agents defined in `.claudecode/agents/`:
 
 ## Configuration
 
-See `.claudecode/settings.json` for:
+See `.claude/settings.json` for:
 - Custom Git hooks
 - Validation scripts
 - Tool integrations

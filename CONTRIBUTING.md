@@ -37,7 +37,7 @@ consensus/
 │   └── specs/          # Feature specifications
 ├── .cursor/            # Cursor IDE slash commands
 ├── .cursorrules        # Cursor IDE rules
-├── .claudecode/        # Claude Code configuration
+├── .claude/        # Claude Code configuration
 ├── hooks/              # Git hooks and validators
 ├── templates/          # Document templates
 ├── PROTOCOL.md         # SDP specification
@@ -73,7 +73,7 @@ To add a new slash command:
 
 1. Create `prompts/commands/{command}.md` (full prompt)
 2. Create `.cursor/commands/{command}.md` (quick reference for Cursor IDE)
-3. Add skill to `.claudecode/skills/{command}/SKILL.md` (Claude Code integration)
+3. Add skill to `.claude/skills/{command}/SKILL.md` (Claude Code integration)
 4. Update `README.md` with command description
 5. Update `MODELS.md` with model recommendation
 
