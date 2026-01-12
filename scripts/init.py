@@ -94,7 +94,7 @@ def check_existing_files(project_root: Path) -> dict[str, bool]:
     checks = {
         '.cursorrules': project_root / '.cursorrules',
         '.cursor/': project_root / '.cursor',
-        '.claudecode/': project_root / '.claudecode',
+        '.claude/': project_root / '.claude',
         'CLAUDE.md': project_root / 'CLAUDE.md',
         'prompts/': project_root / 'prompts',
         'schema/': project_root / 'schema',
@@ -165,8 +165,8 @@ def create_directories(project_root: Path, ide: str) -> None:
     
     if ide in ('claude', 'both'):
         dirs_to_create.extend([
-            '.claudecode/skills',
-            '.claudecode/agents',
+            '.claude/skills',
+            '.claude/agents',
         ])
     
     for dir_path in dirs_to_create:
