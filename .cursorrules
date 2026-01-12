@@ -1,0 +1,233 @@
+# SDP (Spec-Driven Protocol) Project Rules
+
+This project uses **Spec-Driven Protocol (SDP)** — a workstream-driven development methodology for AI agents.
+
+## Core Concepts
+
+- **Workstream (WS)**: Atomic task executed in one shot by AI
+- **Feature**: Large capability composed of 5-30 workstreams
+- **Release**: Product milestone containing 10-30 features
+
+## Workflow Commands
+
+Use slash commands for streamlined execution:
+
+```bash
+/idea "description"     # Requirements gathering → docs/drafts/
+/design idea-slug       # Create workstreams → docs/workstreams/backlog/
+/build WS-XXX-YY        # Implement workstream
+/review F-XXX           # Quality review
+/deploy F-XXX           # Production deployment
+/oneshot F-XXX          # Autonomous execution
+/issue "description"    # Debug and route
+/hotfix "description"   # Emergency fix (P0)
+/bugfix "description"   # Quality fix (P1/P2)
+```
+
+See detailed instructions in `prompts/commands/{command}.md`
+
+## Quality Gates (Non-Negotiable)
+
+1. **AI-Readiness**: Files < 200 LOC, CC < 10, full type hints
+2. **Clean Architecture**: No layer violations (Domain ← App ← Infra ← Presentation)
+3. **Error Handling**: No silent failures (`except: pass` forbidden)
+4. **Test Coverage**: ≥80% mandatory
+5. **No TODOs**: All tasks completed or deferred to new WS
+
+## Core Principles
+
+All work follows:
+- **SOLID**: SRP, OCP, LSP, ISP, DIP
+- **DRY**: Don't Repeat Yourself
+- **KISS**: Keep It Simple, Stupid
+- **YAGNI**: You Ain't Gonna Need It
+- **TDD**: Tests first (Red → Green → Refactor)
+- **Clean Code**: Readable names, small functions
+- **Clean Architecture**: Dependencies point inward
+
+See [docs/PRINCIPLES.md](docs/PRINCIPLES.md) for details.
+
+## Automatic Checks
+
+### Pre-build Validation
+```bash
+hooks/pre-build.sh {WS-ID}
+```
+
+Checks:
+- Workstream exists and is READY
+- Dependencies satisfied
+- Previous WS completed
+
+### Post-build Validation
+```bash
+hooks/post-build.sh {WS-ID} {module}
+```
+
+Checks:
+- Tests pass (coverage ≥80%)
+- No TODO/FIXME
+- Type hints complete
+- Files < 200 LOC
+- Clean Architecture compliance
+
+### Pre-commit Checks
+```bash
+hooks/pre-commit.sh
+```
+
+Ensures:
+- Linting passes
+- Tests pass
+- No hardcoded secrets
+- Conventional commit format
+
+## Git Workflow
+
+### Branch Naming
+```
+feature/{slug}     # New features
+fix/{slug}         # Bug fixes
+hotfix/{slug}      # Emergency fixes
+```
+
+### Conventional Commits
+```
+feat(scope): WS-XXX-YY - description
+test(scope): WS-XXX-YY - add tests
+docs(scope): WS-XXX-YY - execution report
+fix(scope): description
+refactor(scope): description
+chore(scope): description
+```
+
+### GitFlow
+```
+develop    ← feature branches
+main       ← releases + hotfixes
+```
+
+## Clean Architecture Rules
+
+```
+Domain          → DOES NOT import infrastructure/presentation
+Application     → DOES NOT import infrastructure directly
+Infrastructure  → Implements ports from application
+Presentation    → Uses only application layer
+```
+
+**Example violations (FORBIDDEN):**
+```python
+# ❌ Domain importing Infrastructure
+from project.infrastructure.database import Repository
+
+# ❌ Application importing Presentation
+from project.presentation.api import request_context
+
+# ✅ Correct: Application defines port, Infrastructure implements
+from project.application.ports import TaskRepository
+```
+
+## File Size Limits
+
+| LOC     | Status | Action           |
+|---------|--------|------------------|
+| < 150   | 🟢 OK  | Continue         |
+| 150-200 | 🟡 Warning | Consider split |
+| > 200   | 🔴 Error | Must split       |
+
+## Type Hints (Python 3.10+)
+
+**Required:**
+```python
+# ✅ Correct
+def process_data(items: list[str], count: int = 0) -> dict[str, int]:
+    ...
+
+def void_operation() -> None:
+    ...
+
+# ❌ Wrong
+def process_data(items):  # Missing type hints
+    ...
+
+def void_operation():  # Missing -> None
+    ...
+```
+
+## Forbidden Patterns
+
+❌ `except: pass` or bare exception handling
+❌ Default values hiding errors
+❌ Time-based estimates ("2 hours", "3 days")
+❌ Layer violations (Domain depending on Infrastructure)
+❌ Files > 200 LOC without splitting
+❌ TODO/FIXME without followup WS
+❌ Creating WS without Goal + Acceptance Criteria
+❌ Test coverage < 80%
+
+## Required Patterns
+
+✅ Type hints everywhere (mypy --strict)
+✅ Tests first (TDD)
+✅ Explicit error handling
+✅ Clear architecture boundaries
+✅ Small, focused functions/files
+✅ Conventional commits
+✅ Coverage reports
+
+## Workstream ID Format
+
+```
+WS-{PARENT}-{SEQ}
+
+PARENT = 3 digits (001, 002, 060)
+SEQ    = 2 digits (01, 02, 10)
+
+✅ WS-001-01, WS-060-02, WS-123-10
+❌ WS-1-01, WS-060-1, WS-060-A
+```
+
+## Documentation Structure
+
+```
+docs/
+├── drafts/              # Requirements from /idea
+│   └── idea-*.md
+├── workstreams/
+│   ├── backlog/         # READY workstreams
+│   ├── in_progress/     # EXECUTING workstreams
+│   ├── completed/       # DONE workstreams
+│   └── INDEX.md         # All workstreams
+├── specs/
+│   └── feature_sample/  # Feature specifications
+└── concepts/            # Architecture documentation
+```
+
+## Key Files
+
+- `PROTOCOL.md` — Full SDP specification
+- `CLAUDE.md` — Claude Code integration guide
+- `RULES_COMMON.md` — Common rules for all work
+- `CODE_PATTERNS.md` — Implementation patterns
+- `docs/PRINCIPLES.md` — Core software principles
+- `prompts/commands/` — Command instructions
+
+## Before You Code
+
+1. Read `RULES_COMMON.md` — Shared rules
+2. Read `PROTOCOL.md` — Protocol details
+3. Read the command prompt — Understand task
+4. Run pre-build validation — Ensure readiness
+
+## Integration
+
+This `.cursorrules` file is auto-detected by Cursor IDE.
+
+For custom slash commands, see `.cursor/commands/{command}.md`
+
+---
+
+**SDP Version:** 0.3.0  
+**Status:** Active  
+**Mode:** Workstream-driven, one-shot execution

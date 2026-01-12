@@ -35,8 +35,9 @@ consensus/
 │   ├── concepts/       # Core concepts (Clean Architecture, Artifacts, Roles)
 │   ├── adr/            # Architecture decision records
 │   └── specs/          # Feature specifications
-├── .cursor_sdp/        # Cursor IDE configuration
-├── .claude_sdp/        # Claude Code configuration
+├── .cursor/            # Cursor IDE slash commands
+├── .cursorrules        # Cursor IDE rules
+├── .claudecode/        # Claude Code configuration
 ├── hooks/              # Git hooks and validators
 ├── templates/          # Document templates
 ├── PROTOCOL.md         # SDP specification
@@ -71,8 +72,8 @@ When adding or modifying command prompts in `prompts/commands/`:
 To add a new slash command:
 
 1. Create `prompts/commands/{command}.md` (full prompt)
-2. Create `.cursor_sdp/commands/{command}.md` (quick reference)
-3. Add skill to `.claude_sdp/skills/{command}/SKILL.md` (Claude Code integration)
+2. Create `.cursor/commands/{command}.md` (quick reference for Cursor IDE)
+3. Add skill to `.claudecode/skills/{command}/SKILL.md` (Claude Code integration)
 4. Update `README.md` with command description
 5. Update `MODELS.md` with model recommendation
 

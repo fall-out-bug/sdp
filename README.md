@@ -178,7 +178,7 @@ sdp/
 ```bash
 cp -r prompts/ your-project/
 cp -r schema/ your-project/
-cp -r .claude_sdp/ your-project/
+cp -r .claudecode/ your-project/
 cp CLAUDE.md your-project/
 ```
 
@@ -190,7 +190,8 @@ cp CLAUDE.md your-project/
 ```bash
 cp -r prompts/ your-project/
 cp -r schema/ your-project/
-cp -r .cursor_sdp/ your-project/
+cp -r .cursor/ your-project/
+cp .cursorrules your-project/
 ```
 
 2. Use slash commands: `/idea`, `/design`, `/build`, etc.
