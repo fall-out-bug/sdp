@@ -81,10 +81,12 @@ Use slash commands for streamlined execution:
 # ... etc
 ```
 
-Or use autonomous execution:
+Or use autonomous execution via Task tool:
 
 ```bash
-/oneshot F01  # Executes all WS automatically
+/oneshot F01              # Executes all WS with TodoWrite tracking
+/oneshot F01 --background # Run in background for large features
+/oneshot F01 --resume {id} # Resume from checkpoint
 ```
 
 ### 4. Review Quality
@@ -123,7 +125,7 @@ Generates:
 | `/issue` | Debug and route | Analyze bugs |
 | `/hotfix` | Emergency fix | P0 production issue |
 | `/bugfix` | Quality fix | P1/P2 bugs |
-| `/oneshot` | Autonomous execution | Execute all WS hands-free |
+| `/oneshot` | Autonomous execution | Execute all WS via Task orchestrator |
 
 ## Quality Gates
 

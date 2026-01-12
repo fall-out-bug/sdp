@@ -20,17 +20,23 @@ Use **skills** to execute SDP commands:
 
 | Skill | Purpose | Example |
 |-------|---------|---------|
-| `@idea` | Requirements gathering | `@idea "Add payment processing"` |
-| `@design` | Create workstreams | `@design idea-payments` |
-| `@build` | Execute workstream | `@build WS-001-01` |
+| `@idea` | **Interactive requirements** (AskUserQuestion) | `@idea "Add payment processing"` |
+| `@design` | **Interactive planning** (EnterPlanMode) | `@design idea-payments` |
+| `@build` | Execute workstream (TodoWrite tracking) | `@build WS-001-01` |
 | `@review` | Quality check | `@review F01` |
 | `@deploy` | Production deployment | `@deploy F01` |
 | `@issue` | Debug and route bugs | `@issue "Login fails on Firefox"` |
 | `@hotfix` | Emergency fix (P0) | `@hotfix "Critical API outage"` |
 | `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
-| `@oneshot` | Autonomous execution | `@oneshot F01` |
+| `@oneshot` | **Autonomous execution** (Task-based) | `@oneshot F01` or `@oneshot F01 --background` |
 
 Skills are defined in `.claude/skills/{name}/SKILL.md`
+
+**Claude Code Integration Highlights:**
+- `@idea` — Deep interviewing via AskUserQuestion (no obvious questions, explores tradeoffs)
+- `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
+- `@build` — TodoWrite real-time progress tracking through TDD cycle
+- `@oneshot` — Task tool spawns isolated orchestrator agent with background execution support
 
 ## Quick Reference
 
@@ -55,15 +61,27 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 ### Typical Workflow
 
 ```bash
-# 1. Gather requirements
+# 1. Gather requirements (Interactive interviewing)
 @idea "User can reset password via email"
+# Claude asks deep questions via AskUserQuestion:
+# - Technical approach (email service, token storage)
+# - UI/UX (where in app, error messages)
+# - Security (token expiry, rate limiting)
+# - Concerns (complexity, failure modes)
+# Result: comprehensive spec in docs/drafts/
 
-# 2. Design workstreams (creates WS-XXX-01, WS-XXX-02, etc.)
+# 2. Design workstreams (Interactive planning)
 @design idea-password-reset
+# Claude enters Plan Mode:
+# - Explores codebase (existing auth, email infrastructure)
+# - Asks architecture questions (JWT vs sessions, etc.)
+# - Designs WS decomposition
+# - Requests approval via ExitPlanMode
+# Result: WS-XXX-01, WS-XXX-02, etc. in docs/workstreams/backlog/
 
 # 3. Execute each workstream
 @build WS-001-01
-# Claude will show progress tracking:
+# Claude shows TodoWrite progress tracking:
 #   [in_progress] Pre-build validation
 #   [pending] Write failing test (Red)
 #   [pending] Implement minimum code (Green)
@@ -120,6 +138,107 @@ Claude:
 ```
 
 This provides real-time visibility into WS execution progress.
+
+### Autonomous Execution with @oneshot
+
+For features with multiple workstreams, use `@oneshot` for autonomous execution:
+
+```markdown
+User: @oneshot F01
+
+Claude Code:
+→ Spawning orchestrator agent via Task tool...
+→ Agent ID: abc123xyz (save for resume)
+
+Orchestrator Agent:
+→ Reading feature specification and workstreams...
+→ Found 4 workstreams to execute
+
+→ Creating todo list...
+  ✓ [in_progress] Wait for PR approval
+  • [pending] Execute WS-001-01: Domain entities
+  • [pending] Execute WS-001-02: Application services
+  • [pending] Execute WS-001-03: Infrastructure layer
+  • [pending] Execute WS-001-04: API endpoints
+  • [pending] Run final review
+  • [pending] Generate UAT guide
+
+→ Creating PR for approval...
+→ Waiting for approval...
+
+[User approves PR in GitHub]
+
+→ PR approved!
+  ✓ [completed] Wait for PR approval
+  ✓ [in_progress] Execute WS-001-01: Domain entities
+
+→ Executing WS-001-01...
+  (internal @build TodoWrite tracking for this WS)
+→ WS-001-01 complete (45m, 85% coverage)
+  ✓ [completed] Execute WS-001-01: Domain entities
+  ✓ [in_progress] Execute WS-001-02: Application services
+
+→ Executing WS-001-02...
+→ WS-001-02 complete (1h 10m, 82% coverage)
+  ✓ [completed] Execute WS-001-02: Application services
+  ✓ [in_progress] Execute WS-001-03: Infrastructure layer
+
+... (continues for all WS)
+
+→ All workstreams complete
+  ✓ [in_progress] Run final review
+
+→ Running /review F01...
+→ Review verdict: APPROVED
+  ✓ [completed] Run final review
+  ✓ [in_progress] Generate UAT guide
+
+→ Generating UAT guide...
+  ✓ [completed] Generate UAT guide
+
+→ All tasks completed! ✅
+
+Main Claude:
+## ✅ Feature F01 Execution Complete
+
+**Agent ID:** abc123xyz (for resume)
+**Duration:** 3h 45m
+**Workstreams:** 4/4 completed
+**Coverage:** avg 86%
+
+### Next Steps
+1. Human UAT (5-10 min)
+2. `@deploy F01` if UAT passes
+```
+
+**Background execution** for large features:
+
+```bash
+User: @oneshot F01 --background
+
+Claude Code:
+→ Starting orchestrator agent in background...
+→ Task ID: xyz789
+→ Output file: /tmp/agent_xyz789.log
+
+You can continue working. I'll notify when complete.
+Check progress: Read("/tmp/agent_xyz789.log")
+
+[5 minutes later]
+✅ Background task xyz789 completed!
+Feature F01 is done and ready for UAT.
+```
+
+**Resume** from interruption:
+
+```bash
+# If execution interrupted
+User: @oneshot F01 --resume abc123xyz
+
+Claude Code:
+→ Resuming agent abc123xyz...
+→ Agent continues from last checkpoint (WS-001-03)
+```
 
 ### File Structure Reference
 

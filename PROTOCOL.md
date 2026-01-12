@@ -21,7 +21,7 @@ Deploy to production                  →  /deploy or @deploy
 Fix bugs                              →  /bugfix or @bugfix
 Emergency fix (P0)                    →  /hotfix or @hotfix
 Debug and route issues                →  /issue or @issue
-Autonomous execution                  →  /oneshot or @oneshot
+Autonomous execution (Task-based)     →  /oneshot or @oneshot
 See code patterns                     →  CODE_PATTERNS.md
 Check the rules                       →  Guardrails (below)
 Understand principles                 →  docs/PRINCIPLES.md
@@ -50,7 +50,11 @@ Project-specific rules                →  PROJECT_CONVENTIONS.md
 - `/deploy` — Production deployment → Docker, CI/CD, release notes
 
 **Alternative:**
-- `/oneshot` — Autonomous execution of entire feature (executes all workstreams)
+- `/oneshot` — Autonomous execution of entire feature via Task tool orchestrator
+  - Spawns isolated agent with TodoWrite progress tracking
+  - Supports background execution (`--background`)
+  - Resume capability via agent_id (`--resume {id}`)
+  - Executes all workstreams with PR approval gate
 
 ---
 

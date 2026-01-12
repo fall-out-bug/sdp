@@ -8,7 +8,7 @@ This document outlines the implementation plan created by Tech Lead, following t
 
 ### Workstream 1: Domain Layer
 **Owner**: Developer
-**Estimated complexity**: Low
+**Complexity**: Low
 
 **Tasks:**
 1. Create `UserProfile` entity with fields: id, email, name, bio, created_at, updated_at
@@ -25,7 +25,7 @@ This document outlines the implementation plan created by Tech Lead, following t
 
 ### Workstream 2: Application Layer (Ports & Use Cases)
 **Owner**: Developer
-**Estimated complexity**: Medium
+**Complexity**: Medium
 
 **Tasks:**
 1. Define `ProfileRepositoryPort` interface
@@ -48,7 +48,7 @@ This document outlines the implementation plan created by Tech Lead, following t
 
 ### Workstream 3: Infrastructure Layer (Adapters)
 **Owner**: Developer
-**Estimated complexity**: Medium
+**Complexity**: Medium
 
 **Tasks:**
 1. Implement `ProfileRepositoryAdapter`:
@@ -69,7 +69,7 @@ This document outlines the implementation plan created by Tech Lead, following t
 
 ### Workstream 4: Presentation Layer
 **Owner**: Developer
-**Estimated complexity**: Low
+**Complexity**: Low
 
 **Tasks:**
 1. Create `ProfileController`:
@@ -87,7 +87,7 @@ This document outlines the implementation plan created by Tech Lead, following t
 
 ### Workstream 5: Integration & Final Review
 **Owner**: Developer + Tech Lead
-**Estimated complexity**: Low
+**Complexity**: Low
 
 **Tasks:**
 1. End-to-end integration testing
