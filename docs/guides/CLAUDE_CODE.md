@@ -1,16 +1,28 @@
 # Claude Code Integration
 
-This guide explains how to use Consensus Workflow with [Claude Code](https://claude.ai/code).
+Guide for using Spec-Driven Protocol (SDP) with [Claude Code](https://claude.ai/code).
+
+## Quick Start
+
+Use **skills** (@ commands) for SDP workflow:
+
+```
+@idea "Add user authentication"
+@design idea-user-auth
+@build WS-001-01
+@review F01
+@deploy F01
+```
 
 ## What is Claude Code?
 
-Claude Code is Anthropic's official CLI for Claude. It provides:
-- Interactive terminal-based AI coding assistant
+Claude Code is Anthropic's official AI coding assistant:
+- Interactive terminal-based interface
 - Automatic codebase understanding
-- File editing and command execution capabilities
+- File editing and command execution
 - Project context via CLAUDE.md files
 
-**Important**: Claude Code works **only with Claude models** (Anthropic). It does not support other providers like Google AI, OpenAI, or local models.
+**Important:** Claude Code works **only with Claude models** (Anthropic).
 
 ## Setup
 
@@ -36,51 +48,93 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 
 ## CLAUDE.md File
 
-Claude Code automatically reads `CLAUDE.md` from your project root for context and instructions.
+Claude Code automatically reads `CLAUDE.md` from project root.
 
-### Best Practices (from official docs)
+See [CLAUDE.md](../../CLAUDE.md) for this project's configuration.
 
-- **Keep it short**: 60-300 lines recommended
-- **Focus on universal rules**: Instructions should apply to most tasks
-- **Use clear headings**: Structure with # and ## for organization
-- **Include**:
-  - Code style guidelines
-  - Testing instructions
-  - Repository conventions
-  - Common commands
+## Available Skills
 
-### Example CLAUDE.md for Consensus Workflow
+| Skill | Purpose | Example |
+|-------|---------|---------|
+| `@idea` | Requirements gathering | `@idea "Add payment processing"` |
+| `@design` | Create workstreams | `@design idea-payments` |
+| `@build` | Execute workstream | `@build WS-001-01` |
+| `@review` | Quality check | `@review F01` |
+| `@deploy` | Production deployment | `@deploy F01` |
+| `@issue` | Debug and route bugs | `@issue "Login fails on Firefox"` |
+| `@hotfix` | Emergency fix (P0) | `@hotfix "Critical API outage"` |
+| `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
+| `@oneshot` | Autonomous execution | `@oneshot F01` |
 
-```markdown
-# Project Instructions
+Skills are defined in `.claudecode/skills/{name}/SKILL.md`
 
-## Consensus Protocol
-This project uses Consensus Workflow for multi-agent coordination.
-See PROTOCOL.md for full specification.
+## Typical Workflow
 
-## Key Rules
-- ALL output must be in English
-- JSON messages use compact keys: d, st, r, feature, sm, nx, artifacts
-- No silent fallbacks (except: pass forbidden)
-- Clean Architecture: dependencies point inward
+### 1. Gather Requirements
 
-## Artifacts Location
-- docs/specs/{epic}/consensus/artifacts/
-- docs/specs/{epic}/consensus/messages/inbox/{agent}/
-- docs/specs/{epic}/consensus/decision_log/
+```bash
+# Start Claude Code
+claude
 
-## Testing
-Run: pytest tests/ --cov=src
-Target: ≥80% coverage in touched areas
-
-## Agent Prompts
-Full prompts: prompts/{role}_prompt.md
-Quick prompts: prompts/quick/{role}_quick.md
+# In session:
+> @idea "Users need password reset via email"
 ```
+
+**Output:** `docs/drafts/idea-password-reset.md`
+
+### 2. Design Workstreams
+
+```
+> @design idea-password-reset
+```
+
+**Output:**
+- `docs/workstreams/backlog/WS-001-01-domain.md`
+- `docs/workstreams/backlog/WS-001-02-service.md`
+- `docs/workstreams/backlog/WS-001-03-api.md`
+- etc.
+
+### 3. Execute Workstreams
+
+**Option A: Manual execution**
+```
+> @build WS-001-01
+> @build WS-001-02
+> @build WS-001-03
+```
+
+**Option B: Autonomous execution**
+```
+> @oneshot F01
+```
+
+### 4. Review Quality
+
+```
+> @review F01
+```
+
+Checks:
+- ✅ All acceptance criteria met
+- ✅ Coverage ≥80%
+- ✅ No TODO/FIXME
+- ✅ Clean Architecture followed
+
+### 5. Deploy
+
+```
+> @deploy F01
+```
+
+Generates:
+- Docker configs
+- CI/CD pipelines
+- Release notes
+- Deployment plan
 
 ## Model Selection
 
-Switch models using the `/model` command in Claude Code:
+Switch models using `/model` command:
 
 ```
 /model opus    # Claude Opus 4.5 - best reasoning
@@ -88,96 +142,120 @@ Switch models using the `/model` command in Claude Code:
 /model haiku   # Claude Haiku 4.5 - fastest
 ```
 
-### Recommended for Consensus Roles
+### Recommended by Skill
 
-| Role | Recommended Model | Why |
-|------|-------------------|-----|
-| Analyst | Opus | Complex requirements analysis |
-| Architect | Opus | Architecture decisions, veto logic |
-| Tech Lead | Sonnet | Implementation planning |
-| Developer | Sonnet or Haiku | Code implementation |
-| QA | Sonnet or Haiku | Test verification |
-| DevOps | Haiku | Configuration generation |
+| Skill | Model | Why |
+|-------|-------|-----|
+| `@idea` | Opus | Requirements analysis |
+| `@design` | Opus | Workstream decomposition |
+| `@build` | Sonnet | Code implementation |
+| `@review` | Sonnet | Quality checks |
+| `@deploy` | Sonnet/Haiku | Config generation |
+| `@oneshot` | Opus | Autonomous orchestration |
 
-## Workflow
+See [MODELS.md](../../MODELS.md) for detailed recommendations.
 
-### Using Agent Prompts
+## File Structure
 
-```bash
-# Start Claude Code in your project
-claude
-
-# In Claude Code session:
-> Read prompts/analyst_prompt.md and analyze docs/specs/epic_XX/epic.md
-> Create requirements.json following the protocol
-
-> Now read prompts/architect_prompt.md
-> Review requirements.json and create architecture.json
-> Veto if Clean Architecture is violated
+```
+project/
+├── CLAUDE.md             # Claude Code config (auto-loaded)
+├── .claudecode/
+│   ├── skills/           # Skill definitions
+│   ├── agents/           # Multi-agent mode (advanced)
+│   └── settings.json     # Settings
+├── docs/
+│   ├── drafts/           # @idea outputs
+│   ├── workstreams/
+│   │   ├── backlog/      # @design outputs
+│   │   ├── in_progress/  # @build working
+│   │   └── completed/    # @build done
+│   └── specs/            # Feature specs
+├── prompts/commands/     # Full skill instructions
+├── hooks/                # Git hooks (validation)
+└── schema/               # JSON validation
 ```
 
-### Sequential Agent Approach
+## Quality Gates (Enforced)
 
-Run each agent role, switching context:
+| Gate | Requirement |
+|------|-------------|
+| **AI-Readiness** | Files < 200 LOC, CC < 10, type hints |
+| **Clean Architecture** | No layer violations |
+| **Error Handling** | No `except: pass` |
+| **Test Coverage** | ≥80% |
+| **No TODOs** | All tasks done or new WS |
 
-1. **Analyst** (use /model opus)
-   ```
-   Read prompts/analyst_prompt.md
-   Analyze epic.md, create requirements.json
-   ```
+## Git Hooks
 
-2. **Architect** (use /model opus)
-   ```
-   Read prompts/architect_prompt.md
-   Review requirements, create architecture.json
-   VETO if layer violations detected
-   ```
+Automatic validation via Git hooks:
 
-3. **Tech Lead** (use /model sonnet)
-   ```
-   Read prompts/tech_lead_prompt.md
-   Create implementation.md with workstreams
-   ```
+### Pre-build
+```bash
+hooks/pre-build.sh WS-001-01
+```
 
-4. **Developer** (use /model sonnet)
-   ```
-   Read prompts/developer_prompt.md
-   Implement workstream with TDD
-   ```
+### Post-build
+```bash
+hooks/post-build.sh WS-001-01 project.module
+```
 
-5. **QA** (use /model haiku)
-   ```
-   Read prompts/qa_prompt.md
-   Run tests, verify coverage
-   ```
+### Pre-commit
+```bash
+hooks/pre-commit.sh
+```
 
-6. **DevOps** (use /model haiku)
-   ```
-   Read prompts/devops_prompt.md
-   Create deployment configuration
-   ```
+See [CURSOR.md](CURSOR.md) for hook details.
+
+## Advanced: Multi-Agent Mode
+
+For complex features, use multi-agent orchestration:
+
+```
+> @orchestrator F01
+```
+
+Agents defined in `.claudecode/agents/`:
+- `planner.md` — Breaks features into workstreams
+- `builder.md` — Executes workstreams
+- `reviewer.md` — Quality checks
+- `deployer.md` — Production deployment
+- `orchestrator.md` — Coordinates workflow
 
 ## Tips
 
-1. **Keep CLAUDE.md short**: Long instructions may be ignored
-2. **Use /model command**: Switch to appropriate model for each role
-3. **Clear context**: Use `/clear` between major agent switches
-4. **Verify JSON format**: Ask Claude to show JSON before saving
-5. **Use quick prompts**: For routine tasks, reference prompts/quick/
+1. **Keep CLAUDE.md concise**: 60-300 lines recommended
+2. **Use /model command**: Switch for appropriate complexity
+3. **Clear context**: Use `/clear` between major features
+4. **Verify before saving**: Ask to show outputs before writing
+5. **Follow skill instructions**: Each skill has specific requirements
 
-## Limitations
+## Troubleshooting
 
-- **Single provider**: Only Claude models (no Gemini, GPT, etc.)
-- **No parallel agents**: Run agents sequentially
-- **Context limits**: Very long conversations may lose context
+### Skill not found
+Check `.claudecode/skills/{name}/SKILL.md` exists
+
+### Validation fails
+Run `hooks/pre-build.sh {WS-ID}` to see issues
+
+### Workstream blocked
+Check dependencies in `docs/workstreams/backlog/{WS-ID}.md`
+
+### Coverage too low
+Run `pytest --cov --cov-report=term-missing`
 
 ## Resources
 
-- [Claude Code Documentation](https://docs.anthropic.com/claude/docs/claude-code)
-- [PROTOCOL.md](../../PROTOCOL.md) - Consensus protocol specification
-- [RULES_COMMON.md](../../RULES_COMMON.md) - Shared agent rules
-- [prompts/](../../prompts/) - Agent prompt templates
+| Resource | Purpose |
+|----------|---------|
+| [Claude Code Docs](https://docs.anthropic.com/claude/docs/claude-code) | Official documentation |
+| [PROTOCOL.md](../../PROTOCOL.md) | Full SDP specification |
+| [CLAUDE.md](../../CLAUDE.md) | Project configuration |
+| [docs/PRINCIPLES.md](../../docs/PRINCIPLES.md) | Core principles |
+| [MODELS.md](../../MODELS.md) | Model recommendations |
 
 ---
 
-**Note**: Claude Code features may change. Check official Anthropic documentation for current capabilities.
+**Version:** SDP 0.3.0  
+**Claude Code Compatibility:** 0.3+  
+**Mode:** Skill-based, one-shot execution

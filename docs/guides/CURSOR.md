@@ -1,118 +1,221 @@
 # Cursor IDE Integration
 
-This guide explains how to use Consensus Workflow with [Cursor](https://cursor.com).
+Guide for using Spec-Driven Protocol (SDP) with [Cursor IDE](https://cursor.com).
 
-## Basic Setup
+## Quick Start
 
-1. Open your project in Cursor
-2. Cursor will automatically read `.cursorrules` or `CLAUDE.md` for context
+Cursor automatically reads `.cursorrules` for project-specific rules and context.
 
-## Using Agent Prompts
-
-Copy prompts from `prompts/` directory into Cursor chat:
+Use **slash commands** for SDP workflow:
 
 ```
-# In Cursor Chat (Cmd/Ctrl + L):
-
-@prompts/analyst_prompt.md
-@docs/specs/epic_XX/epic.md
-
-Analyze this epic and create requirements.json
+/idea "Add user authentication"
+/design idea-user-auth
+/build WS-001-01
+/review F01
+/deploy F01
 ```
 
-## Recommended Workflow
+## Setup
 
-### Sequential Agent Approach
+1. **Open project in Cursor**
+2. **Cursor auto-loads** `.cursorrules` from project root
+3. **Commands auto-complete** from `.cursor/commands/*.md`
 
-Run each agent role in separate chat sessions:
+## Available Slash Commands
 
-1. **Analyst**: Create requirements
-   ```
-   @prompts/analyst_prompt.md
-   @epic.md
-   Create requirements.json
-   ```
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `/idea` | Requirements gathering | `/idea "Add payment processing"` |
+| `/design` | Create workstreams | `/design idea-payments` |
+| `/build` | Execute workstream | `/build WS-001-01` |
+| `/review` | Quality check | `/review F01` |
+| `/deploy` | Production deployment | `/deploy F01` |
+| `/issue` | Debug and route bugs | `/issue "Login fails on Firefox"` |
+| `/hotfix` | Emergency fix (P0) | `/hotfix "Critical API outage"` |
+| `/bugfix` | Quality fix (P1/P2) | `/bugfix "Incorrect totals"` |
+| `/oneshot` | Autonomous execution | `/oneshot F01` |
 
-2. **Architect**: Design architecture
-   ```
-   @prompts/architect_prompt.md
-   @requirements.json
-   Create architecture.json, veto if Clean Architecture violated
-   ```
+Commands are defined in `.cursor/commands/{command}.md`
 
-3. **Tech Lead**: Plan implementation
-   ```
-   @prompts/tech_lead_prompt.md
-   @architecture.json
-   Create implementation.md with workstreams
-   ```
+## Typical Workflow
 
-4. **Developer**: Implement with TDD
-   ```
-   @prompts/developer_prompt.md
-   @implementation.md
-   Implement workstream 1 with tests
-   ```
+### 1. Gather Requirements
 
-5. **QA**: Verify quality
-   ```
-   @prompts/qa_prompt.md
-   Run tests, verify coverage
-   ```
+```
+/idea "Users need password reset via email"
+```
 
-6. **DevOps**: Create deployment
-   ```
-   @prompts/devops_prompt.md
-   Create deployment configuration
-   ```
+**Output:** `docs/drafts/idea-password-reset.md`
+
+### 2. Design Workstreams
+
+```
+/design idea-password-reset
+```
+
+**Output:**
+- `docs/workstreams/backlog/WS-001-01-domain.md`
+- `docs/workstreams/backlog/WS-001-02-service.md`
+- `docs/workstreams/backlog/WS-001-03-api.md`
+- etc.
+
+### 3. Execute Workstreams
+
+**Option A: Manual execution**
+```
+/build WS-001-01
+/build WS-001-02
+/build WS-001-03
+```
+
+**Option B: Autonomous execution**
+```
+/oneshot F01
+```
+
+### 4. Review Quality
+
+```
+/review F01
+```
+
+Checks:
+- ✅ All acceptance criteria met
+- ✅ Coverage ≥80%
+- ✅ No TODO/FIXME
+- ✅ Clean Architecture followed
+
+### 5. Deploy
+
+```
+/deploy F01
+```
+
+Generates:
+- Docker configs
+- CI/CD pipelines
+- Release notes
+- Deployment plan
 
 ## Model Selection
 
-Cursor allows selecting different models in Settings → Models.
+Cursor supports multiple AI models. Use Settings → Models to switch.
 
-For Consensus Workflow, consider:
-- **Strategic roles** (Analyst, Architect): Use more capable models
-- **Implementation roles** (Developer, QA): Faster models work well
+### Recommended by Command
 
-Check Cursor's current model offerings in their settings.
+| Command | Recommended Model | Why |
+|---------|------------------|-----|
+| `/idea` | Claude Opus/Sonnet | Requirements analysis |
+| `/design` | Claude Opus/Sonnet | Workstream decomposition |
+| `/build` | Claude Sonnet | Code implementation |
+| `/review` | Claude Sonnet | Quality checks |
+| `/deploy` | Claude Sonnet/Haiku | Config generation |
+| `/oneshot` | Claude Opus | Autonomous orchestration |
 
-## .cursorrules File
+See [MODELS.md](../../MODELS.md) for detailed recommendations.
 
-Create `.cursorrules` in project root with key protocol rules:
+## File Structure
 
 ```
-# Consensus Workflow Rules
-
-## Language
-ALL output must be in English.
-
-## Message Format
-JSON with compact keys: d, st, r, feature, sm, nx, artifacts
-
-## Quality Gates
-- No silent fallbacks (except: pass forbidden)
-- Dependencies point inward (Clean Architecture)
-- Test coverage ≥80% in touched areas
-
-## Artifacts Location
-- Artifacts: docs/specs/{epic}/consensus/artifacts/
-- Messages: docs/specs/{epic}/consensus/messages/inbox/{agent}/
-- Decision logs: docs/specs/{epic}/consensus/decision_log/
+project/
+├── .cursorrules          # Project rules (auto-loaded)
+├── .cursor/
+│   ├── commands/         # Slash command definitions
+│   └── worktrees.json    # Git worktree config
+├── docs/
+│   ├── drafts/           # /idea outputs
+│   ├── workstreams/
+│   │   ├── backlog/      # /design outputs
+│   │   ├── in_progress/  # /build working
+│   │   └── completed/    # /build done
+│   └── specs/            # Feature specs
+├── prompts/commands/     # Full command instructions
+├── hooks/                # Git hooks (validation)
+└── schema/               # JSON validation
 ```
+
+## Quality Gates (Enforced)
+
+| Gate | Requirement |
+|------|-------------|
+| **AI-Readiness** | Files < 200 LOC, CC < 10, type hints |
+| **Clean Architecture** | No layer violations |
+| **Error Handling** | No `except: pass` |
+| **Test Coverage** | ≥80% |
+| **No TODOs** | All tasks done or new WS |
+
+## Git Hooks
+
+Automatic validation via Git hooks:
+
+### Pre-build
+```bash
+hooks/pre-build.sh WS-001-01
+```
+
+Checks:
+- Workstream exists and READY
+- Dependencies satisfied
+- Previous WS completed
+
+### Post-build
+```bash
+hooks/post-build.sh WS-001-01 project.module
+```
+
+Checks:
+- Tests pass (coverage ≥80%)
+- No TODO/FIXME
+- Type hints complete
+- Files < 200 LOC
+- Clean Architecture compliance
+
+### Pre-commit
+```bash
+hooks/pre-commit.sh
+```
+
+Ensures:
+- Linting passes
+- Tests pass
+- No secrets
+- Conventional commits
 
 ## Tips
 
-1. **Keep context focused**: Only @-mention files relevant to current agent role
-2. **Use quick prompts**: For routine tasks, use `prompts/quick/` (shorter, saves tokens)
-3. **Verify format**: Ask agent to show JSON before saving to catch format errors
-4. **Clear chat**: Start fresh chat for each agent to avoid context confusion
+1. **Use command autocomplete**: Type `/` to see all available commands
+2. **Keep context focused**: Only @-mention relevant files
+3. **Clear chat between features**: Fresh context for new work
+4. **Let hooks validate**: Don't bypass Git hooks
+5. **Follow conventional commits**: `feat(scope): WS-XXX-YY - description`
+
+## Troubleshooting
+
+### Command not found
+Ensure `.cursor/commands/{command}.md` exists
+
+### Validation fails
+Run `hooks/pre-build.sh {WS-ID}` to see specific issues
+
+### Workstream blocked
+Check dependencies in `docs/workstreams/backlog/{WS-ID}.md`
+
+### Coverage too low
+Run `pytest --cov --cov-report=term-missing`
 
 ## Resources
 
-- [PROTOCOL.md](../../PROTOCOL.md) - Full consensus protocol
-- [RULES_COMMON.md](../../RULES_COMMON.md) - Shared agent rules
-- [prompts/](../../prompts/) - All agent prompts
+| Resource | Purpose |
+|----------|---------|
+| [PROTOCOL.md](../../PROTOCOL.md) | Full SDP specification |
+| [docs/PRINCIPLES.md](../../docs/PRINCIPLES.md) | Core principles |
+| [CODE_PATTERNS.md](../../CODE_PATTERNS.md) | Code patterns |
+| [MODELS.md](../../MODELS.md) | Model recommendations |
+| [.cursorrules](../../.cursorrules) | Project rules |
 
 ---
 
-**Note**: This guide covers basic integration. Cursor features change frequently - check [cursor.com/changelog](https://cursor.com/changelog) for current capabilities.
+**Version:** SDP 0.3.0  
+**Cursor Compatibility:** Latest  
+**Mode:** Slash commands, one-shot execution
