@@ -93,5 +93,5 @@ At feature completion, preserve context for next epic:
 
 **Reference this file in prompts:**
 ```json
-"common_rules": "See docs/roles/RULES_COMMON.md"
+"common_rules": "See RULES_COMMON.md"
 ```
