@@ -1,5 +1,6 @@
 ---
-ws_id: WS-410-06
+ws_id: 00-410-06
+project_id: 00
 feature: F410
 status: backlog
 size: MEDIUM
@@ -12,7 +13,7 @@ ws_version: "2.0"
 capability_tier: T1
 ---
 
-## WS-410-06: Model Selection Optimization
+## 00-410-06: Model Selection Optimization
 
 ### 🎯 Цель (Goal)
 

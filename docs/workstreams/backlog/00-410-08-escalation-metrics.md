@@ -1,5 +1,6 @@
 ---
-ws_id: WS-410-08
+ws_id: 00-410-08
+project_id: 00
 feature: F410
 status: backlog
 size: SMALL
@@ -12,7 +13,7 @@ ws_version: "2.0"
 capability_tier: T2
 ---
 
-## WS-410-08: Escalation Metrics & Monitoring
+## 00-410-08: Escalation Metrics & Monitoring
 
 ### 🎯 Цель (Goal)
 

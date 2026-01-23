@@ -1,5 +1,6 @@
 ---
-ws_id: WS-410-07
+ws_id: 00-410-07
+project_id: 00
 feature: F410
 status: backlog
 size: MEDIUM
@@ -12,7 +13,7 @@ ws_version: "2.0"
 capability_tier: T1
 ---
 
-## WS-410-07: Tier Auto-Promotion System
+## 00-410-07: Tier Auto-Promotion System
 
 ### 🎯 Цель (Goal)
 

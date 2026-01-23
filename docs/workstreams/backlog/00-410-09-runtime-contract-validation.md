@@ -1,5 +1,6 @@
 ---
-ws_id: WS-410-09
+ws_id: 00-410-09
+project_id: 00
 feature: F410
 status: backlog
 size: SMALL
@@ -12,7 +13,7 @@ ws_version: "2.0"
 capability_tier: T2
 ---
 
-## WS-410-09: Runtime Contract Validation
+## 00-410-09: Runtime Contract Validation
 
 ### 🎯 Цель (Goal)
 
