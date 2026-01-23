@@ -16,7 +16,7 @@ echo "🔍 Pre-build checks for $WS_ID"
 echo "================================"
 
 # Find WS file
-WS_DIR="docs/workstreams"
+WS_DIR="tools/hw_checker/docs/workstreams"
 WS_FILE=$(find "$WS_DIR" -name "${WS_ID}-*.md" 2>/dev/null | head -1)
 
 if [ -z "$WS_FILE" ]; then

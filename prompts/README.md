@@ -1,41 +1,25 @@
 # Prompts
 
-Command-based workflow for SDP.
+4 фазы — это всё что нужно.
 
-## Slash Commands
-
-Use these for one-shot execution:
+## Использование
 
 ```
-/idea "{description}"           # Requirements gathering
-/design idea-{slug}              # Workstream planning
-/build WS-XXX-XX                 # Execute workstream
-/review F{XX}                    # Quality review
-/deploy F{XX}                    # Deployment
-/issue "{description}"           # Debug and route
-/hotfix "{description}"          # Emergency fix
-/bugfix "{description}"          # Quality fix
-/oneshot F{XX}                   # Autonomous execution (Task orchestrator)
-/oneshot F{XX} --background      # Background execution
-/oneshot F{XX} --resume {id}     # Resume from checkpoint
+@sdp/prompts/structured/phase-1-analyze.md   # Сформировать карту WS
+@sdp/prompts/structured/phase-2-design.md    # Спланировать один WS
+@sdp/prompts/structured/phase-3-implement.md # Выполнить WS (Auto модель)
+@sdp/prompts/structured/phase-4-review.md    # Проверить результат
 ```
 
-See `prompts/commands/*.md` for full prompts.
+## Когда какой
 
-## When to Use Which Command
+| Задача | Фаза | Модель |
+|--------|------|--------|
+| Понять что делать из спек | 1 | Sonnet |
+| Детализировать WS для исполнения | 2 | Sonnet |
+| Выполнить план | 3 | Auto/Haiku |
+| Проверить качество | 4 | Sonnet |
 
-| Task | Command | Model |
-|------|---------|-------|
-| Start new feature | `/idea` | Sonnet |
-| Plan workstreams | `/design` | Opus |
-| Implement workstream | `/build` | Haiku |
-| Review feature | `/review` | Opus |
-| Deploy to production | `/deploy` | Haiku |
-| Debug issue | `/issue` | Sonnet |
-| Emergency fix | `/hotfix` | Haiku |
-| Quality fix | `/bugfix` | Haiku |
-| Autonomous execution (Task-based) | `/oneshot` | Opus |
+## Guardrails и Quality Gates
 
-## Guardrails and Quality Gates
-
-See `PROTOCOL.md` — everything in one place.
+См. `@sdp/PROTOCOL.md` — там всё в одном месте.

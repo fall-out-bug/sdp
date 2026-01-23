@@ -1,10 +1,8 @@
 #!/bin/bash
-# hooks/validators/session-quality-check.sh
+# sdp/hooks/validators/session-quality-check.sh
 # Run at end of agent turn to check overall quality
 
-# Get project root (works from any subdirectory)
-PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-cd "$PROJECT_ROOT" || exit 0
+cd /home/fall_out_bug/msu_ai_masters/tools/hw_checker 2>/dev/null || exit 0
 
 echo "Running session quality checks..."
 
@@ -16,7 +14,7 @@ if [ -d "tests/unit" ] && command -v poetry &> /dev/null; then
         echo "Fast tests: PASSED"
     } || {
         echo "WARNING: Some fast tests may be failing"
-        echo "Run: poetry run pytest tests/unit/ -m fast -v"
+        echo "Run: cd tools/hw_checker && poetry run pytest tests/unit/ -m fast -v"
     }
 fi
 

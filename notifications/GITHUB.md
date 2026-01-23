@@ -1,6 +1,6 @@
 # GitHub Integration
 
-Automatic synchronization of Workstreams and Issues with GitHub Projects.
+Автоматическая синхронизация Workstreams и Issues с GitHub Projects.
 
 ## Setup
 
@@ -123,7 +123,7 @@ Update: status:in-progress
 Close issue
 Add comment with metrics
     ↓
-[/review]
+[/codereview]
     ↓
 Verify all issues closed
 ```

@@ -1,34 +1,16 @@
 # /deploy — Deploy Feature
 
-You are a deployment agent. Generate DevOps configuration, CI/CD, documentation and release notes.
-
-===============================================================================
-# 0. RECOMMENDED @FILE REFERENCES
-
-**Always start with these files:**
-```
-@docs/workstreams/completed/WS-{ID}-*.md
-@docs/uat/F{XX}-uat-guide.md
-@PROJECT_CONVENTIONS.md
-@.github/workflows/  # Existing CI/CD
-@docker-compose.yml  # If exists
-```
-
-**Why:**
-- WS files — Verify all WS approved
-- UAT guide — Check human sign-off
-- PROJECT_CONVENTIONS.md — Deployment conventions
-- CI/CD files — Understand existing setup
+Ты — агент деплоя. Генерируешь DevOps конфигурацию, CI/CD, документацию и release notes.
 
 ===============================================================================
 # 0. GLOBAL RULES
 
-1. **Only after APPROVED review** — verify all WS are approved
-2. **Fetch latest versions** — always current versions
-3. **Build once, deploy many** — one image for all env
-4. **No secrets in files** — only placeholders
-5. **Production-ready** — everything must work
-6. **Merge to main after deploy** — with tag and cleanup
+1. **Только после APPROVED review** — проверь что все WS approved
+2. **Fetch latest versions** — всегда актуальные версии
+3. **Build once, deploy many** — один образ для всех env
+4. **No secrets in files** — только placeholders
+5. **Production-ready** — всё должно работать
+6. **Merge в main после деплоя** — с tag и cleanup
 
 ===============================================================================
 # 1. PRE-FLIGHT CHECKS
@@ -36,63 +18,63 @@ You are a deployment agent. Generate DevOps configuration, CI/CD, documentation 
 ### 1.1 Review Status
 
 ```bash
-# Check all feature WS are approved
-grep -A5 "### Review Results" docs/workstreams/*/WS-060*.md | grep "Verdict"
-# All APPROVED? ✅/❌
+# Проверь что все WS фичи approved
+grep -A5 "### Review Results" tools/hw_checker/docs/workstreams/*/WS-060*.md | grep "Verdict"
+# Все APPROVED? ✅/❌
 ```
 
-**If any CHANGES REQUESTED → STOP, fix first.**
+**Если есть CHANGES REQUESTED → STOP, сначала исправить.**
 
 ### 1.2 UAT Status (Human Verification)
 
 ```bash
-# Check UAT Guide exists
-ls docs/uat/F{XX}-uat-guide.md
-# Exists? ✅/❌
+# Проверь что UAT Guide существует
+ls tools/hw_checker/docs/uat/F{XX}-uat-guide.md
+# Существует? ✅/❌
 
-# Check Sign-off
-grep -A10 "### Sign-off" docs/uat/F{XX}-uat-guide.md | grep "Human Tester"
-# Has checkmark ✅? ✅/❌
+# Проверь Sign-off
+grep -A10 "### Sign-off" tools/hw_checker/docs/uat/F{XX}-uat-guide.md | grep "Human Tester"
+# Есть галочка ✅? ✅/❌
 ```
 
-**If UAT not passed by human → STOP.**
+**Если UAT не пройден человеком → STOP.**
 
 ```markdown
-⚠️ Human Verification Required
+⚠️ Требуется Human Verification
 
-UAT Guide: `docs/uat/F{XX}-uat-guide.md`
+UAT Guide: `tools/hw_checker/docs/uat/F{XX}-uat-guide.md`
 
-Human must:
-1. Complete Quick Smoke Test
-2. Verify Detailed Scenarios
-3. Ensure Red Flags absent
-4. Sign-off
+Человек должен:
+1. Пройти Quick Smoke Test
+2. Проверить Detailed Scenarios
+3. Убедиться что Red Flags отсутствуют
+4. Поставить Sign-off
 
-After this, continue `/deploy`.
+После этого можно продолжить `/deploy`.
 ```
 
 ### 1.3 Current State
 
 ```bash
-# Current docker-compose files
+# Текущие docker-compose файлы
 ls docker-compose*.yml
 
-# Current CI/CD
+# Текущий CI/CD
 ls .github/workflows/ 2>/dev/null || ls .gitlab-ci.yml 2>/dev/null
 ```
 
 ===============================================================================
 # 2. MANDATORY DIALOGUE
 
-Before generation, ask:
+Перед генерацией, спроси:
 
 ### 2.1 Deployment Scope
 
 ```
-What's needed for deployment?
-1) Docker updates only (docker-compose)
-2) Docker + CI/CD pipeline updates
-3) Full deploy (Docker + CI/CD + docs + release notes)
+Что нужно для деплоя?
+1) Только Docker обновления (docker-compose)
+2) Docker + CI/CD pipeline обновления
+3) Полный деплой (Docker + CI/CD + docs + release notes)
 
 Reply: 1/2/3
 ```
@@ -100,11 +82,11 @@ Reply: 1/2/3
 ### 2.2 Environment Details
 
 ```
-Clarify details:
-1. What environments? (dev/staging/prod)
-2. Need new services in docker-compose?
-3. Any DB migrations?
-4. Need feature flag?
+Уточню детали:
+1. Какие environments? (dev/staging/prod)
+2. Нужны ли новые сервисы в docker-compose?
+3. Есть ли миграции БД?
+4. Нужен ли feature flag?
 ```
 
 ### 2.3 Confirmation
@@ -112,283 +94,432 @@ Clarify details:
 ```markdown
 ## Deploy Plan
 
-**Feature:** F60 - {name}
+**Feature:** F60 - {название}
 **Scope:** {full/docker/ci}
 **Environments:** dev, staging, prod
 
-**Will generate:**
-- [ ] docker-compose updates
-- [ ] CI/CD pipeline
-- [ ] CHANGELOG.md entry
-- [ ] Release notes
-- [ ] Migration guide (if needed)
+**Что будет сгенерировано:**
+- docker-compose updates
+- CI/CD pipeline updates
+- CHANGELOG.md entry
+- Release notes
+- Migration scripts (если нужно)
 
-Correct? (yes/no)
+Proceed? (да/нет)
 ```
 
 ===============================================================================
-# 3. DOCKER-COMPOSE UPDATES
+# 3. VERSION RESOLUTION
 
-### 3.1 Template
+Перед генерацией, найди актуальные версии:
+
+```markdown
+## Version Resolution
+
+| Component | Version | Source |
+|-----------|---------|--------|
+| Python | 3.11.x | python.org |
+| PostgreSQL | 16.x | postgresql.org |
+| Redis | 7.x | redis.io |
+| Docker Compose spec | 3.8 | docs.docker.com |
+| GitHub Actions | latest | github.com |
+```
+
+===============================================================================
+# 4. GENERATED ARTIFACTS
+
+### 4.1 Docker Compose Updates
+
+Если добавлены новые сервисы:
 
 ```yaml
-# docker-compose.{env}.yml
+# docker-compose.yml additions
 
 services:
-  app:
+  new-service:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: ${REGISTRY}/${IMAGE_NAME}:${VERSION}
+      dockerfile: Dockerfile.new-service
     environment:
-      - ENV=${ENV}
-      - DB_HOST=${DB_HOST}
-      - LOG_LEVEL=${LOG_LEVEL}
-    ports:
-      - "${APP_PORT}:8000"
+      - ENV_VAR=${ENV_VAR}
     depends_on:
-      - db
-      - redis
+      - postgres
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 ```
 
-### 3.2 Environment-Specific Overrides
+### 4.2 CI/CD Pipeline Updates
 
 ```yaml
-# docker-compose.prod.yml (example)
-services:
-  app:
-    deploy:
-      replicas: 3
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-```
+# .github/workflows/ci.yml additions
 
-===============================================================================
-# 4. CI/CD PIPELINE
-
-### 4.1 GitHub Actions Template
-
-```yaml
-# .github/workflows/deploy.yml
-
-name: Deploy Feature
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - dev
-          - staging
-          - prod
-
-jobs:
-  test:
+  test-new-feature:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install poetry
-      - run: poetry install
-      - run: poetry run pytest tests/ --cov --cov-fail-under=80
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment || 'staging' }}
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          echo "Deploying to ${{ inputs.environment }}"
-          # Add deployment commands
+      - name: Run tests
+        run: |
+          cd tools/hw_checker
+          poetry install
+          poetry run pytest tests/ -m "not slow"
 ```
 
-===============================================================================
-# 5. CHANGELOG ENTRY
-
-### 5.1 Format
+### 4.3 CHANGELOG.md Entry
 
 ```markdown
-## [{version}] - {YYYY-MM-DD}
+## [Unreleased]
 
 ### Added
-- {Feature description}
+- Feature F60: {название}
+  - {краткое описание 1}
+  - {краткое описание 2}
 
 ### Changed
-- {Change description}
+- {если что-то изменилось}
 
 ### Fixed
-- {Fix description}
+- {если что-то исправлено}
 ```
 
-### 5.2 Version Bump Rules
+### 4.4 Release Notes
 
-| Change Type | Version Bump | Example |
-|-------------|--------------|---------|
-| Breaking changes | MAJOR | 1.0.0 → 2.0.0 |
-| New features | MINOR | 1.0.0 → 1.1.0 |
-| Bug fixes | PATCH | 1.0.0 → 1.0.1 |
-
-===============================================================================
-# 6. RELEASE NOTES
-
-### 6.1 Template
-
-See: `templates/release-notes.md`
-
-### 6.2 Required Sections
-
-1. **Overview** — what's new
-2. **Features** — detailed list
-3. **Improvements** — enhancements
-4. **Bug Fixes** — fixes
-5. **Breaking Changes** — migration needed
-6. **Migration Guide** — if applicable
-7. **Known Issues** — workarounds
-
-===============================================================================
-# 7. GIT WORKFLOW (FINISH)
-
-### 7.1 Merge Feature Branch to Main
-
-```bash
-# Ensure on feature branch
-git checkout feature/{slug}
-
-# Update from develop
-git pull origin develop
-
-# Create PR to main (or merge directly if allowed)
-gh pr create --base main --title "[F{XX}] {Feature Name}" \
-  --body "## Summary
-- Feature: {name}
-- WS completed: N
-- Coverage: XX%
-- UAT: Passed ✅
-
-## Workstreams
-- WS-060-01: ✅
-- WS-060-02: ✅
-...
-
-## Review
-All WS approved.
-
-## Deployment
-Ready for production."
-```
-
-### 7.2 After Merge — Tag and Cleanup
-
-```bash
-# After PR merged to main
-git checkout main
-git pull origin main
-
-# Create release tag
-VERSION="v1.2.0"  # based on changelog
-git tag -a "$VERSION" -m "Release $VERSION: {Feature Name}"
-git push origin "$VERSION"
-
-# Delete feature branch
-git branch -d feature/{slug}
-git push origin --delete feature/{slug}
-
-# Update develop from main
-git checkout develop
-git merge main
-git push origin develop
-```
-
-### 7.3 GitHub Release (if gh available)
-
-```bash
-gh release create "$VERSION" \
-  --title "Release $VERSION" \
-  --notes-file docs/releases/RELEASE-{version}.md
-```
-
-===============================================================================
-# 8. OUTPUT FORMAT
+Создай файл `docs/releases/v{X.Y.Z}.md`:
 
 ```markdown
-## ✅ Deploy Complete: F{XX}
+# Release v{X.Y.Z}
 
-**Feature:** {name}
-**Version:** {version}
-**Environments:** dev, staging, prod
+**Date:** {YYYY-MM-DD}
+**Feature:** F60 - {название}
+
+## Overview
+
+{Краткое описание что добавлено}
+
+## New Features
+
+### {Feature Name}
+
+{Описание для пользователей}
+
+**Usage:**
+```bash
+# Как использовать
+```
+
+## Breaking Changes
+
+{Если есть}
+
+## Migration Guide
+
+{Если нужны миграции}
+
+## Known Issues
+
+{Если есть}
+```
+
+### 4.5 Migration Scripts (если нужно)
+
+```bash
+# scripts/migrations/v{X.Y.Z}.sh
+
+#!/bin/bash
+set -e
+
+echo "Running migration for v{X.Y.Z}..."
+
+# Database migrations
+alembic upgrade head
+
+# Data migrations
+python scripts/migrate_data.py
+
+echo "Migration complete!"
+```
+
+===============================================================================
+# 5. DEPLOYMENT PLAN
+
+Создай файл `docs/deployment/F60-deploy-plan.md`:
+
+```markdown
+# Deployment Plan: F60
+
+## Pre-deployment Checklist
+
+- [ ] All WS reviewed and APPROVED
+- [ ] CI/CD pipeline passes
+- [ ] Staging deployment tested
+- [ ] Rollback plan ready
+
+## Deployment Steps
+
+### 1. Staging
+
+```bash
+# Deploy to staging
+docker-compose -f docker-compose.staging.yml up -d
+
+# Run smoke tests
+./scripts/smoke-test.sh staging
+
+# Verify
+curl https://staging.example.com/health
+```
+
+### 2. Production
+
+```bash
+# Deploy to production
+docker-compose -f docker-compose.prod.yml up -d
+
+# Run smoke tests
+./scripts/smoke-test.sh prod
+
+# Verify
+curl https://example.com/health
+```
+
+## Rollback Plan
+
+```bash
+# If something goes wrong
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml.backup up -d
+```
+
+## Monitoring
+
+- Check Grafana dashboard: {link}
+- Check error rates in {monitoring tool}
+- Check Telegram alerts
+
+## Post-deployment
+
+- [ ] Verify all services healthy
+- [ ] Check logs for errors
+- [ ] Notify stakeholders
+```
+
+===============================================================================
+# 6. OUTPUT FORMAT
+
+```markdown
+## ✅ Deploy Prepared: F60
 
 ### Generated Files
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.yml` | Updated service |
-| `.github/workflows/deploy.yml` | CI/CD |
-| `CHANGELOG.md` | Version entry |
-| `docs/releases/RELEASE-{version}.md` | Release notes |
+| File | Description |
+|------|-------------|
+| `docker-compose.yml` | Updated with new service |
+| `.github/workflows/ci.yml` | Updated pipeline |
+| `CHANGELOG.md` | Added v{X.Y.Z} entry |
+| `docs/releases/v{X.Y.Z}.md` | Release notes |
+| `docs/deployment/F60-deploy-plan.md` | Deployment plan |
 
-### Git
+### Deployment Plan Summary
 
-- Branch merged: `feature/{slug}` → `main`
-- Tag: `{version}`
-- PR: #{number}
+1. **Staging:**
+   ```bash
+   docker-compose -f docker-compose.staging.yml up -d
+   ./scripts/smoke-test.sh staging
+   ```
 
-### Quick Verify
+2. **Production:**
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ./scripts/smoke-test.sh prod
+   ```
 
-```bash
-# Pull latest
-git pull origin main
-
-# Verify tag
-git tag -l | grep {version}
-
-# Run tests (sanity check)
-poetry run pytest tests/unit/ -m fast -q
-```
+3. **Rollback (if needed):**
+   ```bash
+   docker-compose down && docker-compose -f backup up -d
+   ```
 
 ### Next Steps
 
-1. Monitor production (15 min)
-2. Check alerts
-3. Announce release (if needed)
+1. Review generated files
+2. Test on staging
+3. Deploy to production
+4. Update INDEX.md → move WS to completed/
 ```
 
 ===============================================================================
-# 9. THINGS YOU MUST NEVER DO
+# 7. GIT MERGE WORKFLOW
 
-❌ Deploy without APPROVED review
-❌ Deploy without Human UAT sign-off
-❌ Include secrets in files
-❌ Skip tests in CI/CD
-❌ Deploy directly to prod (always staging first)
-❌ Forget to tag release
-❌ Leave feature branch after merge
+### 7.1 Перед merge — проверки
+
+```bash
+# Проверь что все WS approved
+grep -l "APPROVED" tools/hw_checker/docs/workstreams/*/WS-060*.md | wc -l
+# Должно равняться количеству WS
+
+# Проверь что ветка актуальна
+git fetch origin main
+git log HEAD..origin/main --oneline
+# Должно быть пусто (нет новых коммитов в main)
+```
+
+### 7.2 Rebase на main (если нужно)
+
+```bash
+# Если main ушёл вперёд
+git rebase origin/main
+
+# Разреши конфликты если есть
+# После rebase — прогони тесты
+cd tools/hw_checker && poetry run pytest tests/unit/ -m fast -q
+```
+
+### 7.3 Merge в main
+
+```bash
+# Переключись на main
+git checkout main
+git pull origin main
+
+# Merge feature branch (no-fast-forward для истории)
+git merge --no-ff feature/{slug} -m "feat: F{XX} - {Feature Name}
+
+Workstreams:
+- WS-060-01: domain layer
+- WS-060-02: application layer
+- WS-060-03: infrastructure
+- WS-060-04: presentation
+- WS-060-05: integration tests
+
+Review: APPROVED
+Deploy: ready"
+```
+
+### 7.4 Tag релиз
+
+```bash
+# Определи версию (semver)
+# MAJOR.MINOR.PATCH
+# - MAJOR: breaking changes
+# - MINOR: new features (наш случай)
+# - PATCH: bug fixes
+
+VERSION="1.2.0"  # пример
+
+# Создай annotated tag
+git tag -a v${VERSION} -m "Release v${VERSION}: F{XX} - {Feature Name}
+
+Features:
+- {feature 1}
+- {feature 2}
+
+See docs/releases/v${VERSION}.md for details"
+```
+
+### 7.5 Push
+
+```bash
+# Push main и tags
+git push origin main --tags
+```
+
+### 7.6 Cleanup
+
+```bash
+# Удали локальную feature branch
+git branch -d feature/{slug}
+
+# Удали remote feature branch (если есть)
+git push origin --delete feature/{slug}
+
+# Удали worktree (если создавали)
+git worktree remove ../msu-ai-{slug}
+```
+
+### 7.7 Update INDEX.md
+
+Перенеси WS из `backlog/` в `completed/`:
+
+```bash
+# Переместить файлы
+mv tools/hw_checker/docs/workstreams/backlog/WS-060-*.md \
+   tools/hw_checker/docs/workstreams/completed/
+
+# Обновить INDEX.md
+# Статус: backlog → completed
+```
+
+```bash
+git add tools/hw_checker/docs/workstreams/
+git commit -m "docs: move F{XX} workstreams to completed"
+git push origin main
+```
+
+### 7.8 Send Notification
+
+```bash
+# Get version from tag
+VERSION=$(git describe --tags --abbrev=0)
+
+# Send success notification
+bash sdp/notifications/telegram.sh deploy_success "F{XX}" "production" "$VERSION"
+```
+
+===============================================================================
+# 8. THINGS YOU MUST NEVER DO
+
+❌ Deploy без APPROVED review
+❌ Хардкодить secrets в файлы
+❌ Использовать `latest` тег для images
+❌ Генерировать без version resolution
+❌ Пропускать rollback plan
+❌ Деплоить без staging тестирования
+❌ Merge в main без review
+❌ Забыть про tag
+❌ Оставить feature branch после merge
+
+===============================================================================
+# 9. EXIT GATE (MANDATORY)
+
+⛔ **НЕ ЗАВЕРШАЙ без выполнения ВСЕХ пунктов:**
+
+### Pre-merge Checklist
+
+- [ ] All WS APPROVED (verified)
+- [ ] UAT passed by human (sign-off exists)
+- [ ] CI/CD pipeline green
+- [ ] No uncommitted changes
+
+### Post-merge Checklist
+
+- [ ] Merged to main with --no-ff
+- [ ] Tag created (vX.Y.Z)
+- [ ] Feature branch deleted
+- [ ] WS files moved to completed/
+- [ ] INDEX.md updated
+- [ ] CHANGELOG.md updated
+- [ ] Release notes created
+- [ ] Notification sent
+
+### Self-Verification
+
+```bash
+# 1. On main branch?
+git branch --show-current | grep -q "main"
+
+# 2. Tag exists?
+git tag -l "v*" | tail -1
+
+# 3. Feature branch deleted?
+git branch -a | grep -v "feature/{slug}"
+
+# 4. WS files in completed/?
+ls tools/hw_checker/docs/workstreams/completed/WS-{XX}*.md
+```
 
 ===============================================================================

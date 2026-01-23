@@ -54,7 +54,7 @@ Feature: \`$feature_id\`
 Elapsed (telemetry): $duration
 Status: All WS executed successfully
 
-Ready for review: \`/review $feature_id\`"
+Ready for review: \`/codereview $feature_id\`"
             ;;
         
         "oneshot_blocked")
@@ -93,7 +93,7 @@ Issues: $issues_count
 
 Status: CHANGES_REQUESTED
 
-Check: \`docs/workstreams/reports/$feature_id-review.md\`"
+Check: \`tools/hw_checker/docs/workstreams/reports/$feature_id-review.md\`"
             ;;
         
         "breaking_changes")

@@ -90,7 +90,7 @@ bash sdp/notifications/telegram.sh oneshot_blocked "F60" "WS-060-02" "Coverage <
 
 Notifications are automatically sent from:
 - `/oneshot` (start, complete, blocked)
-- `/review` (failed)
+- `/codereview` (failed)
 - `/deploy` (success)
 - `/hotfix` (deployed)
 
@@ -121,7 +121,7 @@ Feature: `F60`
 Elapsed (telemetry): 2h 15m
 Status: All WS executed successfully
 
-Ready for review: `/review F60`
+Ready for review: `/codereview F60`
 ```
 
 ### oneshot_blocked (CRITICAL)
@@ -146,7 +146,7 @@ Issues: 3
 
 Status: CHANGES_REQUESTED
 
-Check: `docs/workstreams/reports/F60-review.md`
+Check: `tools/hw_checker/docs/workstreams/reports/F60-review.md`
 ```
 
 ### breaking_changes

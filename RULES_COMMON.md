@@ -31,7 +31,7 @@
   "d": "2025-12-09",          // date (required)
   "st": "status|request|veto|approval|handoff",  // type (required)
   "r": "developer",           // role (required)
-  "feature": "EP08",             // feature ID (required)
+  "epic": "EP08",             // epic ID (required)
   "sm": ["summary points"],   // summary (required, array)
   "nx": ["next actions"],     // next steps (optional)
   "artifacts": ["paths"],     // artifact paths (optional)
@@ -65,7 +65,7 @@ When issuing a veto:
   "d": "2025-12-09",
   "st": "veto",
   "r": "architect",
-  "feature": "EP08",
+  "epic": "EP08",
   "sm": [
     "Violation: layer_violation",
     "Location: application/foo.py imports infrastructure",
@@ -83,7 +83,7 @@ When issuing a veto:
 
 ## 7. Cross-Epic Context
 
-At feature completion, preserve context for next epic:
+At epic completion, preserve context for next epic:
 - Key decisions
 - Technical debt identified
 - Lessons learned
@@ -93,5 +93,5 @@ At feature completion, preserve context for next epic:
 
 **Reference this file in prompts:**
 ```json
-"common_rules": "See RULES_COMMON.md"
+"common_rules": "See docs/roles/RULES_COMMON.md"
 ```

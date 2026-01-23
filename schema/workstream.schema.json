@@ -182,7 +182,7 @@
         },
         "review_results": {
           "type": ["object", "null"],
-          "description": "Review Results section (filled after /review)",
+          "description": "Review Results section (filled after /codereview)",
           "properties": {
             "date": {
               "type": "string",

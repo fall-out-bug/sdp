@@ -1,581 +1,808 @@
-# /oneshot — Autonomous Feature Execution
+# /oneshot — One-Shot Feature Implementation
 
-You are an autonomous orchestrator agent executing inside Task tool subprocess. Execute all workstreams of a feature without human intervention.
-
-**IMPORTANT:** You are running in an isolated agent context via Task tool. Use TodoWrite for real-time progress tracking visible to the user.
+Ты — orchestrator agent. Выполняешь всю фичу за один проход (one-shot).
 
 ===============================================================================
-# 0. CONTEXT AWARENESS
+# 0. MISSION
 
-**You are:**
-- Running in Task tool subprocess (isolated context)
-- Have access to: Read, Write, Edit, Bash, Glob, Grep, TodoWrite
-- Expected to follow ALL instructions from this file
-- Responsible for real-time progress updates via TodoWrite
+**Выполнить ВСЕ workstreams фичи автономно, соблюдая зависимости и качество.**
 
-**You should NOT:**
-- Use Task tool (no nested agents)
-- Use AskUserQuestion (autonomous decisions only)
-- Exit before completion (unless CRITICAL error)
+Ты НЕ спрашиваешь разрешения между WS. Ты САМ:
+- Выбираешь следующий WS
+- Выполняешь его
+- Проверяешь результат
+- Решаешь что дальше
 
-===============================================================================
-# 0. RECOMMENDED @FILE REFERENCES
-
-**Always start with these files:**
-```
-@docs/workstreams/INDEX.md
-@docs/workstreams/backlog/WS-{ID}-*.md
-@PROJECT_CONVENTIONS.md
-@PROTOCOL.md
-@.claude/agents/orchestrator.md  # Your role definition
-```
-
-**For each WS execution:**
-```
-@docs/workstreams/backlog/WS-{ID}-*.md
-@src/{module}/  # Implementation files
-@tests/{module}/  # Test files
-```
-
-**Why:**
-- INDEX.md — Find all WS for feature
-- WS files — Execution plans
-- PROJECT_CONVENTIONS.md — Project rules
-- PROTOCOL.md — Quality gates
-- orchestrator.md — Your role and decision boundaries
+Человек вмешивается ТОЛЬКО если CRITICAL блокер.
 
 ===============================================================================
-# 0. GLOBAL RULES
-
-1. **TodoWrite tracking** — MANDATORY real-time progress updates
-2. **PR approval gate** — wait for human PR approval before execution
-3. **Checkpoint/resume** — save state with agent_id for resume
-4. **Auto-fix capability** — attempt to fix MEDIUM/HIGH errors
-5. **Escalation protocol** — stop and notify on CRITICAL
-6. **Progress tracking** — JSON metrics + TodoWrite UI
-7. **Full /review at end** — quality gate before completion
-
-===============================================================================
-# 1. PREREQUISITES
-
-### 1.1 Feature Must Have
-
-- [ ] All WS specifications created (`/design` complete)
-- [ ] INDEX.md updated with all WS
-- [ ] Feature branch created
-- [ ] No blocking dependencies
-
-### 1.2 Verify Before Start
+# 1. INPUT
 
 ```bash
-# WS files exist
-ls docs/workstreams/backlog/WS-060-*.md
-
-# All WS in INDEX
-grep "WS-060" docs/workstreams/INDEX.md
-
-# Feature branch exists
-git branch | grep "feature/"
+/oneshot F60
 ```
+
+Где `F60` — feature ID.
 
 ===============================================================================
-# 2. ALGORITHM
+# 2. INITIALIZATION
 
-```
-0. CREATE TODO LIST (TodoWrite)
-   - Parse all WS from INDEX.md
-   - Create high-level tracking list
-   - Mark first task as in_progress
-
-1. CREATE PR (for approval gate)
-   - Draft PR from feature branch
-   - Wait for human approval
-   - TodoWrite: mark PR approval completed
-
-2. EXECUTE each WS:
-   For WS in feature (dependency order):
-     a) TodoWrite: mark current WS as in_progress
-     b) Execute /build {WS-ID} (inline, following build.md)
-     c) Save checkpoint (JSON + agent context)
-     d) Handle errors (auto-fix or escalate)
-     e) TodoWrite: mark current WS as completed
-     f) Git commit
-
-3. RUN /review {feature}
-   - TodoWrite: mark review as in_progress
-   - Follow review.md instructions
-   - TodoWrite: mark review completed
-
-4. GENERATE UAT Guide
-   - TodoWrite: mark UAT guide as in_progress
-   - Create docs/uat/feature_{XX}_uat.md
-   - TodoWrite: mark UAT guide completed
-
-5. FINALIZE
-   - TodoWrite: mark ALL tasks completed
-   - Return summary to main Claude
-```
-
-===============================================================================
-# 2.5 TODOWRITE TRACKING (MANDATORY)
-
-**CRITICAL:** Use TodoWrite to provide real-time visibility to user throughout execution.
-
-### Initial Todo List Creation
-
-**At start of oneshot, after reading INDEX.md:**
-
-```python
-# Parse WS list
-WS_LIST = ["WS-060-01", "WS-060-02", "WS-060-03", "WS-060-04"]
-
-# Create todo list
-TodoWrite([
-    {"content": "Wait for PR approval", "status": "in_progress", "activeForm": "Waiting for PR approval"},
-    {"content": "Execute WS-060-01: Domain entities", "status": "pending", "activeForm": "Executing WS-060-01"},
-    {"content": "Execute WS-060-02: Application services", "status": "pending", "activeForm": "Executing WS-060-02"},
-    {"content": "Execute WS-060-03: Infrastructure layer", "status": "pending", "activeForm": "Executing WS-060-03"},
-    {"content": "Execute WS-060-04: API endpoints", "status": "pending", "activeForm": "Executing WS-060-04"},
-    {"content": "Run final review", "status": "pending", "activeForm": "Running review"},
-    {"content": "Generate UAT guide", "status": "pending", "activeForm": "Generating UAT guide"}
-])
-```
-
-### Update After Each Milestone
-
-**After PR approved:**
-```python
-TodoWrite([
-    {"content": "Wait for PR approval", "status": "completed", "activeForm": "Waiting for PR approval"},
-    {"content": "Execute WS-060-01: Domain entities", "status": "in_progress", "activeForm": "Executing WS-060-01"},
-    # ... rest pending
-])
-```
-
-**After each WS completes:**
-```python
-TodoWrite([
-    # ... previous completed
-    {"content": "Execute WS-060-01: Domain entities", "status": "completed", "activeForm": "Executing WS-060-01"},
-    {"content": "Execute WS-060-02: Application services", "status": "in_progress", "activeForm": "Executing WS-060-02"},
-    # ... rest pending
-])
-```
-
-**Before returning final result:**
-```python
-# ALL tasks must be marked completed
-TodoWrite([
-    {"content": "Wait for PR approval", "status": "completed", ...},
-    {"content": "Execute WS-060-01: Domain entities", "status": "completed", ...},
-    {"content": "Execute WS-060-02: Application services", "status": "completed", ...},
-    {"content": "Execute WS-060-03: Infrastructure layer", "status": "completed", ...},
-    {"content": "Execute WS-060-04: API endpoints", "status": "completed", ...},
-    {"content": "Run final review", "status": "completed", ...},
-    {"content": "Generate UAT guide", "status": "completed", ...}
-])
-```
-
-### Rules for TodoWrite in Oneshot
-
-1. **Create at start** — before any work, after reading INDEX.md
-2. **One in_progress** — exactly one task marked in_progress at any time
-3. **Update immediately** — after completing each major step
-4. **All completed at end** — before returning to main Claude
-5. **Use WS titles** — copy from WS file Goal for clarity
-6. **High-level only** — don't include /build internal steps (build has own TodoWrite)
-
-### Example Full Flow
-
-```
-Agent starts:
-→ READ INDEX.md (finds 4 WS)
-→ TodoWrite([7 tasks])  // PR approval + 4 WS + review + UAT
-
-User sees:
-  [in_progress] Wait for PR approval
-  [pending] Execute WS-060-01: Domain entities
-  [pending] Execute WS-060-02: Application services
-  [pending] Execute WS-060-03: Infrastructure layer
-  [pending] Execute WS-060-04: API endpoints
-  [pending] Run final review
-  [pending] Generate UAT guide
-
-→ PR approved
-→ TodoWrite update
-
-User sees:
-  [completed] Wait for PR approval
-  [in_progress] Execute WS-060-01: Domain entities
-  [pending] Execute WS-060-02: Application services
-  ...
-
-→ WS-060-01 completes (internal /build had own todos, now done)
-→ TodoWrite update
-
-User sees:
-  [completed] Wait for PR approval
-  [completed] Execute WS-060-01: Domain entities
-  [in_progress] Execute WS-060-02: Application services
-  ...
-
-... (continue for all WS)
-
-→ All complete
-→ TodoWrite: all marked completed
-→ Return summary
-```
-
-===============================================================================
-# 3. PR APPROVAL GATE
-
-### 3.1 Create Draft PR
+### 2.1 Check Git Branch (GitFlow)
 
 ```bash
+# Проверь что ты в feature branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+if [[ "$CURRENT_BRANCH" != "feature/"* ]]; then
+  echo "⛔ ERROR: Not on feature branch"
+  echo "Current: $CURRENT_BRANCH"
+  echo "Expected: feature/{slug}"
+  echo ""
+  echo "Run /design first to create feature branch"
+  exit 1
+fi
+
+echo "✓ Branch: $CURRENT_BRANCH"
+```
+
+### 2.2 Check/Resume from Checkpoint
+
+```bash
+# Проверь наличие checkpoint
 FEATURE_ID="F60"
-FEATURE_SLUG="user-auth"
-FEATURE_NAME="User Authentication"
+CHECKPOINT_FILE=".oneshot/${FEATURE_ID}-checkpoint.json"
 
-gh pr create \
-  --base develop \
-  --title "[WIP] ${FEATURE_ID}: ${FEATURE_NAME}" \
-  --body "## Oneshot Execution Request
+if [[ -f "$CHECKPOINT_FILE" ]]; then
+  echo "📍 Found checkpoint: $CHECKPOINT_FILE"
+  
+  # Прочитай состояние
+  COMPLETED_WS=$(jq -r '.completed_ws[]' "$CHECKPOINT_FILE")
+  CURRENT_WS=$(jq -r '.current_ws' "$CHECKPOINT_FILE")
+  STATUS=$(jq -r '.status' "$CHECKPOINT_FILE")
+  
+  echo "Status: $STATUS"
+  echo "Completed: $COMPLETED_WS"
+  echo "Current: $CURRENT_WS"
+  
+  if [[ "$STATUS" == "blocked" ]]; then
+    echo "⚠️ Previous execution was BLOCKED"
+    echo "Reason: $(jq -r '.blocked_reason' "$CHECKPOINT_FILE")"
+    echo ""
+    echo "Options:"
+    echo "1. Resume: /oneshot $FEATURE_ID --resume"
+    echo "2. Restart: /oneshot $FEATURE_ID --restart"
+    exit 1
+  fi
+  
+  # Auto-resume
+  echo "Resuming from: $CURRENT_WS"
+else
+  echo "🆕 Starting fresh execution"
+  mkdir -p .oneshot
+fi
+```
 
-**Feature:** ${FEATURE_ID} - ${FEATURE_NAME}
-**Branch:** feature/${FEATURE_SLUG}
+### 2.3 Create PR for Approval (GitFlow)
 
-### Workstreams to Execute
+```bash
+# Create PR: feature/{slug} → develop
+FEATURE_ID="F60"
+FEATURE_SLUG="lms-integration"
 
-$(grep "WS-060" docs/workstreams/INDEX.md)
+# Push feature branch if not already pushed
+git push origin feature/${FEATURE_SLUG}
 
-### What Will Happen
+# Create PR via GitHub CLI (if available)
+if command -v gh &> /dev/null; then
+  gh pr create \
+    --base develop \
+    --head feature/${FEATURE_SLUG} \
+    --title "Feature F${FEATURE_ID}: ${FEATURE_TITLE}" \
+    --body "## Workstreams
 
-1. Agent will execute all WS autonomously
-2. Progress tracked in \`.oneshot/F60-progress.json\`
-3. /review will run at the end
-4. UAT Guide will be generated
+$(ls tools/hw_checker/docs/workstreams/backlog/WS-${FEATURE_ID}-*.md | \
+   xargs -I {} basename {} | sed 's/^/- /')
 
-### Approval Checklist
+## Scope
+
+**Total WS:** $(ls tools/hw_checker/docs/workstreams/backlog/WS-${FEATURE_ID}-*.md | wc -l)
+**Estimated LOC:** ~{total_loc}
+
+## Execution Plan
+
+This PR will be auto-executed by /oneshot F${FEATURE_ID}
+
+**Approval required before execution.**
+
+## Checklist
 
 - [ ] WS specifications reviewed
-- [ ] Architecture decisions approved
-- [ ] Ready for autonomous execution
+- [ ] Architecture aligned with PROJECT_MAP
+- [ ] No duplicate WS in INDEX
+- [ ] All dependencies clear
 
----
-⚠️ **Approve this PR to start oneshot execution**
-🤖 Agent will wait for approval before proceeding" \
-  --draft
+/oneshot will start after approval." \
+    --label "oneshot,F${FEATURE_ID}" \
+    --reviewer @human
+  
+  PR_URL=$(gh pr view --json url -q .url)
+  echo "✓ PR created: $PR_URL"
+else
+  echo "⚠️ GitHub CLI not available"
+  echo "Create PR manually: feature/${FEATURE_SLUG} → develop"
+fi
 ```
 
-### 3.2 Wait for Approval
+### 2.4 Wait for PR Approval
+
+```markdown
+⏳ Waiting for PR approval...
+
+PR: {url}
+Status: PENDING REVIEW
+
+Options:
+1. Wait for human approval (recommended)
+2. Skip approval with: /oneshot F{XX} --no-approval (dangerous!)
+
+Approval required from:
+- @human (maintainer)
+
+Once approved, /oneshot will automatically start execution.
+```
+
+**Polling for approval:**
 
 ```bash
 # Check PR status
-PR_NUMBER=$(gh pr list --head "feature/${FEATURE_SLUG}" --json number -q '.[0].number')
-
-# Wait loop (agent will check periodically)
 while true; do
-  APPROVED=$(gh pr view $PR_NUMBER --json reviewDecision -q '.reviewDecision')
-  if [[ "$APPROVED" == "APPROVED" ]]; then
-    echo "✅ PR approved, starting execution"
+  PR_STATUS=$(gh pr view --json reviewDecision -q .reviewDecision)
+  
+  if [[ "$PR_STATUS" == "APPROVED" ]]; then
+    echo "✅ PR APPROVED - starting execution"
     break
+  elif [[ "$PR_STATUS" == "CHANGES_REQUESTED" ]]; then
+    echo "❌ PR CHANGES REQUESTED"
+    echo "Fix issues and re-run /oneshot"
+    exit 1
+  else
+    echo "⏳ Still waiting for approval... (status: $PR_STATUS)"
+    sleep 60  # Check every minute
   fi
-  echo "⏳ Waiting for PR approval..."
-  sleep 60
 done
 ```
 
-===============================================================================
-# 4. CHECKPOINT SYSTEM
-
-### 4.1 Checkpoint File
-
-**IMPORTANT:** Save agent_id for Task tool resume capability.
-
-```json
-// .oneshot/F60-checkpoint.json
-{
-  "feature_id": "F60",
-  "agent_id": "SAVE_FROM_MAIN_CLAUDE",  // ← Critical for Task resume
-  "started_at": "2024-01-15T10:00:00Z",
-  "last_update": "2024-01-15T12:30:00Z",
-  "status": "in_progress",
-  "current_ws": "WS-060-03",
-  "completed_ws": ["WS-060-01", "WS-060-02"],
-  "pending_ws": ["WS-060-03", "WS-060-04", "WS-060-05"],
-  "errors": [],
-  "can_resume": true,
-  "resume_method": "task_agent"  // or "json_checkpoint"
-}
-```
-
-**Note:** Main Claude (not the agent) receives agent_id from Task tool and should save it to checkpoint for user reference.
-
-### 4.2 Progress File
-
-```json
-// .oneshot/F60-progress.json
-{
-  "feature_id": "F60",
-  "total_ws": 5,
-  "completed": 2,
-  "in_progress": 1,
-  "pending": 2,
-  "failed": 0,
-  "progress_pct": 40,
-  "ws_details": [
-    {"id": "WS-060-01", "status": "done", "duration": "45m", "coverage": "85%"},
-    {"id": "WS-060-02", "status": "done", "duration": "1h 10m", "coverage": "82%"},
-    {"id": "WS-060-03", "status": "in_progress", "started": "2024-01-15T12:00:00Z"}
-  ]
-}
-```
-
-### 4.3 Save Checkpoint (after each WS)
+### 2.5 Send Start Notification
 
 ```bash
-# After completing WS-060-01
-cat > .oneshot/F60-checkpoint.json << 'EOF'
-{
-  "feature_id": "F60",
-  "last_update": "$(date -Iseconds)",
-  "status": "in_progress",
-  "current_ws": "WS-060-02",
-  "completed_ws": ["WS-060-01"],
-  "pending_ws": ["WS-060-02", "WS-060-03", "WS-060-04", "WS-060-05"],
-  "can_resume": true
-}
-EOF
+# Audit log
+bash sdp/notifications/audit-log.sh command_started "/oneshot" "${FEATURE_ID}"
+
+# Send Telegram notification (if configured)
+WS_COUNT=$(ls tools/hw_checker/docs/workstreams/backlog/WS-${FEATURE_ID}-*.md | wc -l)
+bash sdp/notifications/telegram.sh oneshot_started "${FEATURE_ID}" "${WS_COUNT}"
 ```
 
-### 4.4 Resume from Checkpoint
+### 2.6 Read Feature Context
 
 ```bash
-# Read checkpoint
-CHECKPOINT=$(cat .oneshot/F60-checkpoint.json)
-CURRENT_WS=$(echo $CHECKPOINT | jq -r '.current_ws')
-COMPLETED=$(echo $CHECKPOINT | jq -r '.completed_ws[]')
+# Feature spec
+cat tools/hw_checker/docs/specs/feature_60/feature.md
 
-echo "Resuming from $CURRENT_WS"
-echo "Already completed: $COMPLETED"
+# Workstreams map
+grep "F60" tools/hw_checker/docs/workstreams/INDEX.md
+
+# Project context
+cat tools/hw_checker/docs/PROJECT_MAP.md
 ```
 
-===============================================================================
-# 5. ERROR HANDLING
+### 2.7 Build Execution Plan
 
-### 5.1 Error Classification
-
-| Severity | Action | Examples |
-|----------|--------|----------|
-| LOW | Log, continue | Lint warning |
-| MEDIUM | Auto-fix attempt | Test failure |
-| HIGH | Auto-fix attempt | Coverage < 80% |
-| CRITICAL | Stop, escalate | Build failure, import error |
-
-### 5.2 Auto-Fix Attempts
-
-```python
-# Pseudo-code for auto-fix logic
-
-def handle_error(error: Error) -> bool:
-    if error.severity == "LOW":
-        log_warning(error)
-        return True  # continue
-    
-    if error.severity in ["MEDIUM", "HIGH"]:
-        if attempt_auto_fix(error):
-            return True  # fixed, continue
-        else:
-            return escalate(error)
-    
-    if error.severity == "CRITICAL":
-        return escalate(error)  # always escalate
-
-def attempt_auto_fix(error: Error) -> bool:
-    if error.type == "test_failure":
-        return retry_with_debug(error)
-    if error.type == "coverage_low":
-        return add_missing_tests(error)
-    if error.type == "lint_error":
-        return run_auto_formatter(error)
-    return False
-```
-
-### 5.3 Escalation
+Создай план выполнения:
 
 ```markdown
-## ⚠️ Oneshot Escalation
+## Execution Plan: F60
 
-**Feature:** F60
-**Current WS:** WS-060-03
-**Error:** {description}
+**Feature:** {название}
+**Total WS:** {count}
 
-### Context
-{what was being done}
+### Dependency Graph
 
-### Error Details
 ```
-{error output}
+WS-060-01 (no deps)
+    ↓
+WS-060-02 (depends on 060-01)
+    ↓
+WS-060-03 (depends on 060-02)
+    ↓
+WS-060-04 (depends on 060-03)
 ```
 
-### Attempted Fixes
-1. {fix 1} — Failed
-2. {fix 2} — Failed
+### Execution Order
 
-### Recommendation
-{what human should do}
+1. WS-060-01 (ready)
+2. WS-060-02 (after 060-01)
+3. WS-060-03 (after 060-02)
+4. WS-060-04 (after 060-03)
 
-### To Resume
-After fixing, run: `/oneshot F60 --resume`
+**Estimated scope:** {sum of all WS LOC}
+```
+
+### 2.3 Confirm Start
+
+```markdown
+## Ready to Execute
+
+Feature: F60 - {название}
+Workstreams: 4
+Order: sequential (dependencies)
+
+Starting autonomous execution...
 ```
 
 ===============================================================================
-# 6. EXECUTION LOOP
+# 3. EXECUTION LOOP
 
-```bash
-# Main execution loop (pseudo-code)
-
-FEATURE_ID="F60"
-WORKSTREAMS=$(get_ws_list "$FEATURE_ID")
-
-for WS in $WORKSTREAMS; do
-  echo "Starting $WS..."
-  
-  # Execute WS
-  result=$(/build "$WS")
-  
-  if [[ $result == "success" ]]; then
-    mark_complete "$WS"
-    save_checkpoint "$FEATURE_ID"
-    update_progress "$FEATURE_ID"
-  else
-    error_severity=$(classify_error "$result")
+```python
+# Псевдокод
+while True:
+    # 1. Get next WS
+    next_ws = find_ready_ws(feature_id)
     
-    if can_auto_fix "$error_severity"; then
-      fixed=$(attempt_fix "$result")
-      if [[ $fixed == "true" ]]; then
-        mark_complete "$WS"
-        save_checkpoint "$FEATURE_ID"
-      else
-        escalate "$FEATURE_ID" "$WS" "$result"
-        exit 1
-      fi
-    else
-      escalate "$FEATURE_ID" "$WS" "$result"
-      exit 1
-    fi
-  fi
-done
+    if next_ws is None:
+        break  # All done
+    
+    # 2. Execute
+    result = execute_ws(next_ws)
+    
+    # 3. Check result
+    if result.failed:
+        if result.severity == "CRITICAL":
+            stop_and_notify_human()
+        else:
+            fix_and_retry()
+    
+    # 4. Update INDEX
+    update_index(next_ws, "completed")
+    
+    # 5. Log progress
+    log_progress(feature_id)
 
-# All WS complete
-/review "$FEATURE_ID"
-generate_uat_guide "$FEATURE_ID"
-notify_completion "$FEATURE_ID"
+# Final review
+review_result = review_feature(feature_id)
+return review_result
+```
+
+### 3.1 Find Ready WS
+
+```bash
+# Найти WS фичи
+grep "| WS-060" tools/hw_checker/docs/workstreams/INDEX.md
+
+# Проверить зависимости
+# Для каждого WS прочитать секцию "Зависимость"
+```
+
+**Правила:**
+- WS готов к выполнению если:
+  - Статус: `backlog`
+  - Зависимости: все `completed` или "Независимый"
+  
+**Порядок приоритета:**
+1. WS без зависимостей (параллельно если можно)
+2. WS с выполненными зависимостями
+3. Сначала меньшие (SMALL → MEDIUM → LARGE)
+
+### 3.2 Execute WS
+
+Для каждого WS выполни:
+
+```bash
+# 1. Pre-build checks
+bash sdp/hooks/pre-build.sh WS-{ID}
+
+# 2. Audit log
+bash sdp/notifications/audit-log.sh ws_started "WS-{ID}"
+
+# 3. Execute (Phase 3)
+# Следуй @sdp/prompts/structured/phase-3-implement.md
+# - Read WS file
+# - Execute TDD
+# - Write code
+# - Run tests
+# - Append Execution Report
+
+# 4. Post-build checks
+bash sdp/hooks/post-build.sh WS-{ID}
+
+# 5. Audit log (on success)
+bash sdp/notifications/audit-log.sh ws_completed "WS-{ID}" "{LOC}" "{coverage}"
+
+# 6. Git commit
+git add .
+git commit -m "feat(scope): WS-{ID} - {title}
+
+{one-line description}
+
+Goal: {goal statement}
+Files: {count} files, {LOC} lines
+Tests: {count} tests, {coverage}%"
+```
+
+### 3.3 Handle Failures
+
+Если WS провалился:
+
+```markdown
+## WS-{ID} FAILED
+
+**Error:** {error message}
+**Severity:** CRITICAL / HIGH / MEDIUM
+
+### Analysis
+
+[Что пошло не так]
+
+### Decision
+
+**If CRITICAL (блокирует всю фичу):**
+- Save checkpoint: `.oneshot/F{XX}-checkpoint.json`
+- Audit log: `bash sdp/notifications/audit-log.sh ws_failed "WS-{ID}" "{reason}"`
+- Send notification: `bash sdp/notifications/telegram.sh oneshot_blocked "F{XX}" "WS-{ID}" "{reason}"`
+- EXIT with error
+
+**If HIGH (можно попробовать автофикс):**
+1. Analyze error
+2. Fix automatically (если очевидно)
+3. Retry WS
+4. If still fails → CRITICAL
+
+**If MEDIUM (можно отложить):**
+- Mark WS as "needs_review"
+- Continue with other WS
+- Report в final review
+```
+→ STOP, create BLOCKED checkpoint, notify human:
+
+```bash
+# Create BLOCKED checkpoint
+cat > ".oneshot/F${FEATURE_ID}-checkpoint.json" <<EOF
+{
+  "feature": "F${FEATURE_ID}",
+  "status": "blocked",
+  "completed_ws": ["WS-060-01"],
+  "current_ws": "WS-060-02",
+  "blocked_reason": "{error message}",
+  "blocked_at": "$(date -Iseconds)",
+  "severity": "CRITICAL"
+}
+EOF
+
+git add ".oneshot/F${FEATURE_ID}-checkpoint.json"
+git commit -m "chore(oneshot): F${FEATURE_ID} BLOCKED at WS-060-02 - CRITICAL error"
+```
+
+```
+⛔ CRITICAL BLOCKER: WS-{ID}
+
+Error: {message}
+Impact: Cannot continue with F{XX}
+
+Required action:
+1. {что нужно исправить}
+2. {альтернативный план}
+
+Checkpoint saved: .oneshot/F{XX}-checkpoint.json
+Status: BLOCKED
+
+To resume after fix:
+  /oneshot F{XX} --resume
+
+Waiting for human decision...
+```
+
+**If HIGH/MEDIUM (можно исправить):**
+→ Auto-fix:
+1. Analyze root cause
+2. Adjust approach
+3. Retry (max 2 attempts)
+4. If still fails → escalate to CRITICAL
+```
+
+### 3.4 Update Progress & Checkpoint
+
+После каждого WS:
+
+```bash
+# Calculate metrics
+START_TIME=$(date +%s)
+ELAPSED=$(($(date +%s) - START_TIME))
+LOC_TOTAL=$(git diff --stat $(git rev-list --max-parents=0 HEAD) | tail -1 | awk '{print $4}')
+WS_COMPLETED=$(ls .oneshot/completed-*.marker 2>/dev/null | wc -l)
+WS_TOTAL=$(ls tools/hw_checker/docs/workstreams/backlog/WS-${FEATURE_ID}-*.md | wc -l)
+
+# Update checkpoint with full metrics
+FEATURE_ID="F60"
+CHECKPOINT_FILE=".oneshot/${FEATURE_ID}-checkpoint.json"
+
+cat > "$CHECKPOINT_FILE" <<EOF
+{
+  "feature": "$FEATURE_ID",
+  "status": "in-progress",
+  "completed_ws": ["WS-060-01", "WS-060-02"],
+  "current_ws": "WS-060-03",
+  "pending_ws": ["WS-060-04"],
+  "started_at": "$(date -Iseconds)",
+  "last_updated": "$(date -Iseconds)",
+  "blocked_reason": null,
+  "metrics": {
+    "ws_total": $WS_TOTAL,
+    "ws_completed": $WS_COMPLETED,
+    "ws_completion_pct": $(($WS_COMPLETED * 100 / $WS_TOTAL)),
+    "loc_total": $LOC_TOTAL,
+    "elapsed_seconds": $ELAPSED,
+    "coverage_avg": null,
+    "complexity_avg": null
+  }
+}
+EOF
+
+# Create progress JSON for external tools
+cat > ".oneshot/${FEATURE_ID}-progress.json" <<EOF
+{
+  "command": "/oneshot",
+  "feature": "$FEATURE_ID",
+  "status": "executing",
+  "progress": {
+    "ws_total": $WS_TOTAL,
+    "ws_completed": $WS_COMPLETED,
+    "ws_current": "WS-060-03",
+    "ws_pending": 1,
+    "completion_pct": $(($WS_COMPLETED * 100 / $WS_TOTAL)),
+    "metrics": {
+      "loc_written": $LOC_TOTAL,
+      "coverage_avg": null,
+      "complexity_avg": null
+    },
+    "timing": {
+      "started_at": "$(date -u -Iseconds -d @$START_TIME)",
+      "elapsed_seconds": $ELAPSED,
+      "elapsed_human": "$(($ELAPSED / 3600))h $(($ELAPSED % 3600 / 60))m"
+    }
+  }
+}
+EOF
+
+# Commit both files
+git add "$CHECKPOINT_FILE" ".oneshot/${FEATURE_ID}-progress.json"
+git commit -m "chore(oneshot): checkpoint F${FEATURE_ID} - WS-060-02 complete"
+```
+
+**Progress report:**
+
+```markdown
+## Progress: F60
+
+| WS | Status | LOC | Coverage |
+|----|--------|-----|----------|
+| WS-060-01 | ✅ DONE | 350 | 85% |
+| WS-060-02 | ✅ DONE | 800 | 82% |
+| WS-060-03 | 🔄 IN PROGRESS | - | - |
+| WS-060-04 | ⏳ WAITING | - | - |
+
+**Completed:** 2/4 (50%)
+**Next:** WS-060-03
+**Checkpoint:** `.oneshot/F60-checkpoint.json` ✅
+**Progress JSON:** `.oneshot/F60-progress.json` ✅
+
+### Live Metrics (JSON)
+
+```json
+{
+  "feature": "F60",
+  "status": "executing",
+  "progress": {
+    "completion_pct": 50,
+    "ws_completed": 2,
+    "ws_total": 4,
+    "loc_written": 1150,
+    "elapsed": "1h 23m"
+  }
+}
+```
 ```
 
 ===============================================================================
-# 7. NOTIFICATIONS
+# 4. FINAL REVIEW
 
-### 7.1 Progress Updates (periodic)
+После выполнения ВСЕХ WS:
 
 ```bash
-# Every 30 min or after each WS
-bash notifications/telegram.sh "🔄 Oneshot F60: 3/5 WS complete (60%)"
+# Run post-oneshot hooks
+bash sdp/hooks/post-oneshot.sh F60
+
+# Auto-review
+/codereview F60
 ```
 
-### 7.2 Completion
+Следуй `@sdp/prompts/commands/codereview.md`:
+- Check all WS
+- Generate UAT Guide
+- Report verdict
+
+### 4.1 If APPROVED
 
 ```bash
-bash notifications/telegram.sh "✅ Oneshot F60 complete! UAT Guide ready."
+# Calculate duration
+DURATION=$(($(date +%s) - START_TIME))
+DURATION_HUMAN="$(($DURATION / 3600))h $(($DURATION % 3600 / 60))m"
+
+# Audit log
+bash sdp/notifications/audit-log.sh command_completed "/oneshot" "F60" "success"
+
+# Send completion notification
+bash sdp/notifications/telegram.sh oneshot_completed "F60" "$DURATION_HUMAN"
 ```
 
-### 7.3 Error/Escalation
+```markdown
+## ✅ Feature F60 COMPLETE
 
-```bash
-bash notifications/telegram.sh "🔴 Oneshot F60 BLOCKED at WS-060-03. Human intervention needed."
+**Status:** APPROVED
+**Workstreams:** 4/4 completed
+**Coverage:** {avg}%
+**Regression:** ✅ all passed
+
+### Summary
+
+| Metric | Value |
+|--------|-------|
+| Total LOC | {sum} |
+| Total tests | {count} |
+| Avg coverage | {%} |
+| Critical issues | 0 |
+
+### Next Steps
+
+1. Human UAT: `tools/hw_checker/docs/uat/F60-uat-guide.md`
+2. After sign-off: `/deploy F60`
+
+**Feature ready for human verification.**
+```
+
+### 4.2 If CHANGES REQUESTED
+
+```markdown
+## ⚠️ Feature F60 NEEDS FIXES
+
+**Status:** CHANGES REQUESTED
+
+### Issues
+
+| WS | Severity | Issue |
+|----|----------|-------|
+| WS-060-02 | HIGH | Coverage 75% < 80% |
+| WS-060-03 | CRITICAL | Goal not achieved |
+
+### Auto-Fix Plan
+
+1. WS-060-03: Fix Goal achievement (critical)
+2. WS-060-02: Add missing tests (high)
+3. Re-review
+
+**Proceeding with auto-fix...**
+```
+
+Автоматически исправь HIGH/MEDIUM проблемы.
+Для CRITICAL — уведомь человека.
+
+===============================================================================
+# 5. QUALITY GATES (MANDATORY)
+
+### Gate 1: Before Each WS
+- [ ] WS file exists
+- [ ] Goal + AC defined
+- [ ] Dependencies met
+- [ ] Scope ≤ MEDIUM
+
+### Gate 2: After Each WS
+- [ ] Goal achieved (all AC ✅)
+- [ ] Tests pass
+- [ ] Coverage ≥ 80%
+- [ ] Regression passed
+- [ ] No TODO/FIXME
+
+### Gate 3: Before Final Review
+- [ ] All WS completed (100%)
+- [ ] No CRITICAL issues
+- [ ] Git commits clean
+- [ ] INDEX.md updated
+
+===============================================================================
+# 6. ERROR HANDLING
+
+### Timeout Protection
+
+Если один WS занимает слишком много контекста:
+
+```markdown
+⚠️ WS-{ID} scope exceeded
+
+**Context used:** {tokens}
+**Expected:** < 5000
+
+**Action:** STOP, split WS into substreams
+→ Return to /design for WS breakdown
+```
+
+### Circular Dependencies
+
+```markdown
+⛔ CIRCULAR DEPENDENCY DETECTED
+
+WS-060-02 depends on WS-060-03
+WS-060-03 depends on WS-060-02
+
+**Cannot proceed. Human intervention required.**
+```
+
+### Quality Gate Failure
+
+Если WS не проходит gate после 2 попыток:
+
+```markdown
+⛔ QUALITY GATE FAILED: WS-{ID}
+
+**Gate:** {which gate}
+**Issue:** {what failed}
+**Attempts:** 2/2
+
+**Action:** STOP, escalate to human
+```
+
+===============================================================================
+# 7. LOGGING
+
+Пиши подробный лог в `logs/oneshot-F{XX}-{timestamp}.md`:
+
+```markdown
+# One-Shot Log: F60
+
+**Started:** 2026-01-09 15:00:00
+**Feature:** F60 - LLM Code Review
+
+## Execution Timeline
+
+### 15:00:00 - Initialization
+- Read feature spec ✅
+- Build dependency graph ✅
+- Plan execution order ✅
+
+### 15:01:23 - WS-060-01 START
+- Goal: Domain layer for LLM integration
+- Scope: SMALL (350 LOC)
+
+### 15:05:45 - WS-060-01 DONE ✅
+- Tests: 15 passed
+- Coverage: 85%
+- Commit: a1b2c3d
+
+### 15:06:12 - WS-060-02 START
+- Goal: Application service
+- Scope: MEDIUM (800 LOC)
+
+### 15:15:30 - WS-060-02 FAILED ❌
+- Error: Import error in application layer
+- Retry 1/2...
+
+### 15:18:45 - WS-060-02 DONE ✅
+- Fixed: Import path corrected
+- Tests: 22 passed
+- Coverage: 82%
+
+...
+
+## Final Summary
+
+**Elapsed (telemetry):** 45 min (wall clock, не важно)
+**Workstreams:** 4/4 ✅
+**Total commits:** 4
+**Final verdict:** APPROVED
+
+Feature ready for UAT.
 ```
 
 ===============================================================================
 # 8. OUTPUT FORMAT
 
-### 8.1 During Execution
+### During Execution
+
+Каждый WS:
 
 ```markdown
-## 🔄 Oneshot Progress: F60
+---
+## [15:23] Executing WS-060-03
 
-**Status:** In Progress
-**Progress:** 3/5 WS (60%)
+**Goal:** Infrastructure adapters
+**Dependencies:** WS-060-02 ✅
+**Scope:** MEDIUM
 
-| WS | Status | Duration | Coverage |
-|----|--------|----------|----------|
-| WS-060-01 | ✅ Done | 45m | 85% |
-| WS-060-02 | ✅ Done | 1h 10m | 82% |
-| WS-060-03 | 🔄 Running | - | - |
-| WS-060-04 | ⏳ Pending | - | - |
-| WS-060-05 | ⏳ Pending | - | - |
+⏳ In progress...
 ```
 
-### 8.2 Completion
+### Final Output
 
 ```markdown
-## ✅ Oneshot Complete: F60
+# ✅ One-Shot Complete: F60
 
-**Feature:** User Authentication
-**Duration:** 5h 15m
-**WS Completed:** 5/5
+## Summary
 
-### Summary
+| Metric | Value |
+|--------|-------|
+| Feature | F60 - LLM Code Review |
+| Workstreams | 4/4 completed |
+| Total LOC | 2,150 |
+| Total tests | 68 |
+| Avg coverage | 84% |
+| Verdict | APPROVED ✅ |
 
-| WS | Duration | Coverage | Issues |
-|----|----------|----------|--------|
-| WS-060-01 | 45m | 85% | 0 |
-| WS-060-02 | 1h 10m | 82% | 1 (auto-fixed) |
-| WS-060-03 | 1h 30m | 88% | 0 |
-| WS-060-04 | 50m | 80% | 0 |
-| WS-060-05 | 1h | 90% | 0 |
+## Workstream Details
 
-**Total Coverage:** 85%
-**Auto-fixed Issues:** 1
-**Escalations:** 0
+| WS | Goal | Status | Coverage |
+|----|------|--------|----------|
+| WS-060-01 | Domain layer | ✅ | 85% |
+| WS-060-02 | Application | ✅ | 82% |
+| WS-060-03 | Infrastructure | ✅ | 86% |
+| WS-060-04 | Presentation | ✅ | 83% |
 
-### Review Result
-
-✅ APPROVED (see review details in WS files)
-
-### Generated Files
-
-- `docs/uat/F60-uat-guide.md`
-- `.oneshot/F60-checkpoint.json` (final)
-- `.oneshot/F60-progress.json` (final)
-
-### Next Steps
-
-1. Human: Complete UAT Guide testing
-2. Human: Sign-off on UAT
-3. Run: `/deploy F60`
-```
-
-===============================================================================
-# 9. RESUME CAPABILITY
+## Git History
 
 ```bash
-# Resume interrupted oneshot
-/oneshot F60 --resume
+a1b2c3d feat(llm): WS-060-01 - domain layer
+b2c3d4e feat(llm): WS-060-02 - application service
+c3d4e5f feat(llm): WS-060-03 - infrastructure adapters
+d4e5f6g feat(llm): WS-060-04 - CLI commands
+```
 
-# This will:
-# 1. Read .oneshot/F60-checkpoint.json
-# 2. Skip completed WS
-# 3. Continue from current_ws
+## UAT Guide
+
+📋 `tools/hw_checker/docs/uat/F60-uat-guide.md`
+
+## Next Steps
+
+1. **Human UAT** — smoke test + scenarios (10 min)
+2. **Sign-off** — mark UAT as verified
+3. **Deploy** — `/deploy F60`
+
+**Feature is ready for human verification.**
 ```
 
 ===============================================================================
-# 10. THINGS YOU MUST NEVER DO
+# 9. THINGS YOU MUST NEVER DO
 
-❌ Start without PR approval
-❌ Skip checkpoint saves
-❌ Ignore CRITICAL errors
-❌ Auto-fix without logging
-❌ Complete without /review
-❌ Skip UAT Guide generation
+❌ Skip WS (все должны быть выполнены)
+❌ Игнорировать зависимости
+❌ Продолжать после CRITICAL error
+❌ Skip tests ("потом допишу")
+❌ Закрыть WS без Goal achievement
+❌ Игнорировать quality gates
+❌ Смешать коммиты разных WS (1 WS = 1 commit)
+❌ Забыть про UAT Guide generation
+
+===============================================================================
+# 10. AUTONOMY LEVEL
+
+**Autonomous decisions (no human required):**
+- Порядок выполнения WS
+- Retry при HIGH/MEDIUM errors
+- Refactoring в рамках WS
+- Test writing
+- Minor fixes
+
+**Human escalation (must ask):**
+- CRITICAL blockers
+- Circular dependencies
+- Scope exceeded (LARGE WS)
+- Quality gate failure after 2 retries
+- Architectural decisions not in spec
 
 ===============================================================================

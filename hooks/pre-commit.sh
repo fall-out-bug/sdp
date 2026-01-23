@@ -1,163 +1,241 @@
 #!/bin/bash
-# hooks/pre-commit.sh
-# Pre-commit hook for SDP projects
+# sdp/hooks/pre-commit.sh
+# Git pre-commit hook for quality checks
+# Install: ln -sf ../../sdp/hooks/pre-commit.sh .git/hooks/pre-commit
 
 set -e
 
-echo "Running pre-commit checks..."
+echo "🔍 Pre-commit checks"
+echo "===================="
 
-# Get git root
-GIT_ROOT=$(git rev-parse --show-toplevel)
-cd "$GIT_ROOT"
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
 
-#######################################
-# 1. Check for TODO/FIXME in staged files
-#######################################
-echo ""
-echo "=== Checking for TODO/FIXME ==="
-
-STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep "\.py$" || true)
-
-if [ -n "$STAGED_PY" ]; then
-    TODO_FOUND=false
-    for FILE in $STAGED_PY; do
-        if grep -n "TODO\|FIXME\|HACK\|XXX" "$FILE" 2>/dev/null; then
-            echo "WARNING: TODO/FIXME found in $FILE"
-            TODO_FOUND=true
-        fi
-    done
-    
-    if [ "$TODO_FOUND" = true ]; then
-        echo ""
-        echo "⚠️  TODO/FIXME markers found in staged files."
-        echo "   Remove them or create separate WS for tracking."
-        # Not blocking, just warning
-    else
-        echo "✓ No TODO/FIXME in staged files"
-    fi
+if [ -z "$STAGED_FILES" ]; then
+    echo "No staged files, skipping checks"
+    exit 0
 fi
 
-#######################################
-# 2. Check file sizes
-#######################################
+# Check 0: Not committing to main directly
 echo ""
-echo "=== Checking file sizes ==="
+echo "Check 0: Branch check"
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    echo "⚠️ Warning: Committing directly to $CURRENT_BRANCH"
+    echo "  Consider using a feature branch: git checkout -b feature/{slug}"
+fi
+echo "✓ Branch: $CURRENT_BRANCH"
 
-if [ -n "$STAGED_PY" ]; then
-    LARGE_FILES=false
-    for FILE in $STAGED_PY; do
-        if [ -f "$FILE" ]; then
-            LINES=$(wc -l < "$FILE")
-            if [ "$LINES" -gt 200 ]; then
-                echo "WARNING: $FILE has $LINES lines (limit: 200)"
-                LARGE_FILES=true
-            fi
+# Check 1: No time estimates in WS files
+echo ""
+echo "Check 1: No time estimates in WS files"
+WS_FILES=$(echo "$STAGED_FILES" | grep "workstreams/.*\.md$" || true)
+
+    if [ -n "$WS_FILES" ]; then
+        TIME_ESTIMATES=$(git diff --cached -- $WS_FILES | grep -E "дн[яей]|час[ов]|недел|day|hour|week" | grep -vEi "^-|elapsed|duration|sla|telemetry" || true)
+        if [ -n "$TIME_ESTIMATES" ]; then
+            echo "❌ Time estimates found in WS files:"
+            echo "$TIME_ESTIMATES"
+            echo ""
+            echo "Remove time-based estimates (days/hours/weeks)."
+            echo "Or label as telemetry: 'Elapsed (telemetry): ...' or 'SLA target: ...'"
+            echo "Use scope metrics instead (LOC, tokens)."
+            exit 1
         fi
-    done
-    
-    if [ "$LARGE_FILES" = true ]; then
-        echo ""
-        echo "⚠️  Large files detected. Consider splitting."
-        # Not blocking, just warning
+        echo "✓ No time estimates"
     else
-        echo "✓ All Python files under 200 lines"
-    fi
+    echo "  No WS files staged"
 fi
 
-#######################################
-# 3. Check type hints (basic)
-#######################################
+# Check 1b: Workstreams layout (WS-only)
 echo ""
-echo "=== Checking type hints ==="
-
-if [ -n "$STAGED_PY" ]; then
-    MISSING_HINTS=false
-    for FILE in $STAGED_PY; do
-        if [ -f "$FILE" ]; then
-            # Check for functions without return type hints
-            NO_RETURN=$(grep -n "def.*):$" "$FILE" 2>/dev/null || true)
-            if [ -n "$NO_RETURN" ]; then
-                echo "WARNING: Functions without return type in $FILE:"
-                echo "$NO_RETURN"
-                MISSING_HINTS=true
-            fi
-        fi
-    done
-    
-    if [ "$MISSING_HINTS" = true ]; then
-        echo ""
-        echo "⚠️  Some functions missing return type hints."
-        # Not blocking, just warning
-    else
-        echo "✓ Return type hints present"
+echo "Check 1b: Workstreams layout"
+if echo "$STAGED_FILES" | grep -q "workstreams/"; then
+    if ! python3 sdp/scripts/check_workstreams_layout.py; then
+        exit 1
     fi
+else
+    echo "  No workstreams files staged"
 fi
 
-#######################################
-# 4. Check Clean Architecture (domain imports)
-#######################################
+# Check 2: No tech debt markers
 echo ""
-echo "=== Checking Clean Architecture ==="
+echo "Check 2: No tech debt markers"
+# Check only code files, exclude shell scripts (which may have "tech debt" in error messages)
+CODE_FILES=$(echo "$STAGED_FILES" | grep -E "\.(py|md|yml|yaml|json)$" | grep -v "\.sh$" || true)
+if [ -n "$CODE_FILES" ]; then
+    # Exclude lines that mention "No Tech Debt" as a rule (headers, documentation)
+    # Also exclude: tables (|), assertions, zero/0 indicators, rule explanations
+    TECH_DEBT=$(git diff --cached -- $CODE_FILES | \
+        grep -iE "tech.?debt|сделаем.?потом|временн.*решени|later.*fix" | \
+        grep -v "^-" | \
+        grep -viE "no.?tech.?debt|⛔|запрещено|forbidden|не.*допуск|не.*потом|grep.*потом|потому.что" | \
+        grep -viE "zero.tech|tech.debt.*0|assert.*tech|blocks.completion|cannot.be.marked|\|.*tech.*debt.*\||# (no|found)" || true)
+else
+    TECH_DEBT=""
+fi
 
-DOMAIN_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "domain/.*\.py$" || true)
+if [ -n "$TECH_DEBT" ]; then
+    echo "❌ Tech debt markers found:"
+    echo "$TECH_DEBT"
+    echo ""
+    echo "Fix the issue now, don't defer it."
+    exit 1
+fi
+echo "✓ No tech debt markers"
+
+# Check 3: Python files - basic checks
+echo ""
+echo "Check 3: Python code quality"
+PY_FILES=$(echo "$STAGED_FILES" | grep "\.py$" || true)
+
+if [ -n "$PY_FILES" ]; then
+    # Check for bare except
+    BARE_EXCEPT=$(git diff --cached -- $PY_FILES | grep -E "^\+.*except:" | grep -v "except.*:" || true)
+    if [ -n "$BARE_EXCEPT" ]; then
+        echo "❌ Bare except found:"
+        echo "$BARE_EXCEPT"
+        echo ""
+        echo "Use specific exception types."
+        exit 1
+    fi
+    
+    # Check for pass in except
+    EXCEPT_PASS=$(git diff --cached -- $PY_FILES | grep -A1 "^\+.*except" | grep "^\+.*pass$" || true)
+    if [ -n "$EXCEPT_PASS" ]; then
+        echo "⚠️ Warning: except: pass found"
+        echo "Consider logging the exception."
+    fi
+    
+    echo "✓ Python checks passed"
+else
+    echo "  No Python files staged"
+fi
+
+# Check 4: Clean Architecture (domain imports)
+echo ""
+echo "Check 4: Clean Architecture"
+DOMAIN_FILES=$(echo "$STAGED_FILES" | grep "domain/.*\.py$" || true)
 
 if [ -n "$DOMAIN_FILES" ]; then
-    BAD_IMPORTS=$(git diff --cached -- $DOMAIN_FILES | grep -E "^\+.*from .*(infrastructure|presentation)" || true)
-    
+    BAD_IMPORTS=$(git diff --cached -- $DOMAIN_FILES | grep -E "^\+.*from hw_checker\.(infrastructure|presentation)" || true)
     if [ -n "$BAD_IMPORTS" ]; then
-        echo "BLOCKED: Domain layer importing infrastructure/presentation"
-        echo ""
-        echo "Offending imports:"
+        echo "❌ Domain layer importing from infrastructure/presentation:"
         echo "$BAD_IMPORTS"
         echo ""
-        echo "Domain layer must NOT import from:"
-        echo "  - infrastructure/*"
-        echo "  - presentation/*"
+        echo "Domain layer should not depend on outer layers."
         exit 1
-    else
-        echo "✓ Clean Architecture: domain layer clean"
     fi
+    echo "✓ Clean Architecture respected"
+else
+    echo "  No domain files staged"
 fi
 
-#######################################
-# 5. Run linters (if available)
-#######################################
+# Check 5: WS file format (if creating new WS)
 echo ""
-echo "=== Running linters ==="
+echo "Check 5: WS file format"
+NEW_WS_FILES=$(echo "$STAGED_FILES" | grep "workstreams/backlog/WS-.*\.md$" || true)
 
-if command -v poetry &> /dev/null && [ -f "pyproject.toml" ]; then
-    # Ruff check (fast)
-    if poetry run ruff check --quiet $STAGED_PY 2>/dev/null; then
-        echo "✓ Ruff check passed"
+if [ -n "$NEW_WS_FILES" ]; then
+    for WS_FILE in $NEW_WS_FILES; do
+        # Check Goal section exists
+        if ! git show ":$WS_FILE" | grep -q "### 🎯"; then
+            echo "❌ Missing Goal section in $WS_FILE"
+            echo "Add '### 🎯 Цель (Goal)' section."
+            exit 1
+        fi
+        
+        # Check Acceptance Criteria exists
+        if ! git show ":$WS_FILE" | grep -q "Acceptance Criteria"; then
+            echo "❌ Missing Acceptance Criteria in $WS_FILE"
+            exit 1
+        fi
+        
+        # Check substream format (if applicable)
+        WS_ID=$(basename "$WS_FILE" | grep -oE "WS-[0-9]{3}-[0-9]{2}" || true)
+        if [ -n "$WS_ID" ]; then
+            # Valid substream format
+            echo "✓ $WS_FILE (substream format OK)"
+        else
+            WS_ID=$(basename "$WS_FILE" | grep -oE "WS-[0-9]{3}" || true)
+            if [ -n "$WS_ID" ]; then
+                echo "✓ $WS_FILE (main WS format OK)"
+            else
+                echo "⚠️ Warning: Unusual WS ID format in $WS_FILE"
+            fi
+        fi
+    done
+    echo "✓ WS format checks passed"
+else
+    echo "  No new WS files staged"
+fi
+
+echo ""
+echo "===================="
+echo "✅ Pre-commit checks PASSED"
+
+# Check 6: Breaking changes detection
+echo ""
+echo "Check 6: Breaking changes"
+if [ -f "tools/hw_checker/scripts/detect_breaking_changes.py" ]; then
+    cd tools/hw_checker
+    if python3 scripts/detect_breaking_changes.py --staged; then
+        echo "✓ No breaking changes"
+        cd - > /dev/null
     else
-        echo "⚠️  Ruff found issues (not blocking)"
+        # Breaking changes detected
+        CHANGES_COUNT=$(grep -c "category=" BREAKING_CHANGES.md 2>/dev/null || echo "unknown")
+        cd - > /dev/null
+        
+        # Send notification
+        bash sdp/notifications/telegram.sh breaking_changes "$CHANGES_COUNT"
+        
+        echo ""
+        echo "⚠️ Breaking changes detected!"
+        echo "Review and commit:"
+        echo "  - BREAKING_CHANGES.md"
+        echo "  - MIGRATION_GUIDE.md"
+        exit 1
     fi
 else
-    echo "⏭️  Skipping linters (poetry not available)"
+    echo "  Breaking changes detection script not found (skipping)"
 fi
 
-#######################################
-# 6. Run fast tests (if available)
-#######################################
+# Check 7: Test quality
 echo ""
-echo "=== Running fast tests ==="
+echo "Check 7: Test quality"
+TEST_FILES=$(echo "$STAGED_FILES" | grep -E "tests/.*test_.*\.py$|test_.*\.py$" || true)
 
-if command -v poetry &> /dev/null && [ -d "tests/unit" ]; then
-    if poetry run pytest tests/unit/ -m fast -q --tb=no 2>/dev/null; then
-        echo "✓ Fast tests passed"
+if [ -n "$TEST_FILES" ]; then
+    cd tools/hw_checker
+    # Convert to absolute paths for check_test_quality.py
+    ABS_TEST_FILES=""
+    for f in $TEST_FILES; do
+        if [ -f "$f" ]; then
+            ABS_TEST_FILES="$ABS_TEST_FILES $(realpath "$f" 2>/dev/null || echo "$f")"
+        elif [ -f "tools/hw_checker/$f" ]; then
+            ABS_TEST_FILES="$ABS_TEST_FILES $(realpath "tools/hw_checker/$f" 2>/dev/null || echo "tools/hw_checker/$f")"
+        fi
+    done
+    
+    if [ -n "$ABS_TEST_FILES" ]; then
+        if ! poetry run python scripts/check_test_quality.py --strict $ABS_TEST_FILES 2>&1; then
+            cd - > /dev/null
+            echo ""
+            echo "❌ Test quality checks failed"
+            echo "Fix violations before committing."
+            echo "See: docs/test-quality-audit-report.md for details."
+            exit 1
+        fi
+        echo "✓ Test quality checks passed"
     else
-        echo "⚠️  Some fast tests failed (check before push)"
+        echo "  No valid test files found in staged files"
     fi
+    cd - > /dev/null
 else
-    echo "⏭️  Skipping tests (poetry or tests not available)"
+    echo "  No test files staged"
 fi
 
-#######################################
-# Summary
-#######################################
 echo ""
-echo "================================"
-echo "Pre-commit checks complete"
-echo "================================"
-
-exit 0
+echo "===================="
+echo "✅ All pre-commit checks PASSED"

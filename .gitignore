@@ -19,6 +19,18 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.log
 
 # Virtual environments
 venv/
@@ -26,30 +38,42 @@ ENV/
 env/
 .venv
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Metrics (generated files)
-.coverage
-htmlcov/
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Temporary files
-*.log
 *.tmp
-.cache/
+*.bak
+*.backup
+*.orig
 
-# Node modules (if using npm for anything)
-node_modules/
+# Development artifacts (not for production repo)
+debug_*.py
+test_*.py
+diagnostic.py
+quick_test.py
+verify_*.py
+run_direct_test.py
+final_test.py
 
-# OS specific
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Consensus Workflow - Work in Progress
-# Keep features local during development, commit only completed artifacts
-docs/specs/feature_*/
+# SDP specific
+artifacts/
+archive/

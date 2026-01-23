@@ -1,274 +1,138 @@
 # /build — Execute Workstream
 
-You are an executor agent. Implement one workstream strictly following the plan.
+Ты — агент-исполнитель. Реализуешь один workstream строго по плану.
 
 ===============================================================================
 # 0. GLOBAL RULES (STRICT)
 
-1. **Follow plan literally** — don't add, don't improve
-2. **Goal must be achieved** — all AC ✅
-3. **TDD is mandatory** — Red → Green → Refactor
-4. **Coverage ≥ 80%** — for modified files
-5. **Zero TODO/FIXME** — do everything now
-6. **Hooks run automatically** — pre-build and post-build
-7. **Commit after WS completion** — conventional commits format
+1. **Следуй плану буквально** — не добавляй, не улучшай
+2. **Goal должна быть достигнута** — все AC ✅
+3. **TDD обязателен** — Red → Green → Refactor
+4. **Coverage ≥ 80%** — для изменённых файлов
+5. **Zero TODO/FIXME** — всё делаем сейчас
+6. **Hooks запускаются автоматически** — pre-build и post-build
+7. **Commit после завершения WS** — conventional commits format
 
 ===============================================================================
-# 1. ALGORITHM (execute in order)
+# 1. ALGORITHM (выполняй по порядку)
 
 ```
-1. CREATE TODO LIST (TodoWrite):
-   Track progress throughout WS execution
+1. PRE-BUILD HOOK (автоматически):
+   sdp/hooks/pre-build.sh {WS-ID}
+   
+2. ПРОЧИТАЙ план WS:
+   cat tools/hw_checker/docs/workstreams/backlog/{WS-ID}-*.md
+   
+3. ПРОЧИТАЙ входные файлы (из плана)
 
-2. PRE-BUILD HOOK (automatic):
-   hooks/pre-build.sh {WS-ID}
+4. ВЫПОЛНЯЙ шаги по TDD:
+   Для каждого шага:
+   a) Напиши тест (Red — должен упасть)
+   b) Реализуй код (Green — тест проходит)
+   c) Рефактор (если нужно)
+   
+5. ПРОВЕРЬ критерии завершения (из плана)
 
-3. READ WS plan with @file references:
-   @docs/workstreams/backlog/{WS-ID}-*.md
-   @PROJECT_CONVENTIONS.md
-   @docs/workstreams/INDEX.md
+6. SELF-CHECK (Section 6)
 
-4. READ input files (from plan) with @file:
-   @path/to/existing/file.py
-   @path/to/config.yaml
+7. POST-BUILD HOOK (автоматически):
+   sdp/hooks/post-build.sh {WS-ID}
+   
+8. APPEND Execution Report в WS файл
 
-5. EXECUTE steps using TDD (use Composer for multi-file):
-   For each step:
-   a) Write test (Red — should fail)
-   b) Implement code (Green — test passes)
-   c) Refactor (if needed)
-   UPDATE TODO: Mark step as completed
-
-6. CHECK completion criteria (from plan)
-
-7. SELF-CHECK (Section 6)
-
-8. POST-BUILD HOOK (automatic):
-   hooks/post-build.sh {WS-ID}
-
-9. APPEND Execution Report to WS file
-
-10. FINALIZE TODO LIST: Mark all as completed
+9. GIT COMMIT (MANDATORY):
+   git add .
+   git commit -m "feat({feature}): {WS-ID} - {title}"
+   
+10. GITHUB SYNC (if GITHUB_TOKEN set):
+    - Update issue status
+    - Post commit comment
 ```
-
-===============================================================================
-# 1.5 TODO TRACKING WITH TodoWrite
-
-**IMPORTANT:** Use TodoWrite tool to track progress throughout WS execution. This provides visibility to users and helps organize complex multi-step workstreams.
-
-### When to Create Todo List
-
-**Always create** at the start of `/build` execution:
-
-```markdown
-TodoWrite([
-    {"content": "Pre-build validation", "status": "in_progress", "activeForm": "Validating WS structure"},
-    {"content": "Write failing test (Red)", "status": "pending", "activeForm": "Writing failing test"},
-    {"content": "Implement minimum code (Green)", "status": "pending", "activeForm": "Implementing code"},
-    {"content": "Refactor implementation", "status": "pending", "activeForm": "Refactoring code"},
-    {"content": "Verify Acceptance Criteria", "status": "pending", "activeForm": "Verifying AC"},
-    {"content": "Run quality gates (coverage, linters)", "status": "pending", "activeForm": "Running quality checks"},
-    {"content": "Append execution report", "status": "pending", "activeForm": "Writing execution report"},
-    {"content": "Git commit with metrics", "status": "pending", "activeForm": "Committing changes"}
-])
-```
-
-### When to Update Status
-
-**Mark in_progress** when starting each phase:
-```markdown
-# Before TDD Red phase
-TodoWrite([...previous_todos,
-    {"content": "Write failing test (Red)", "status": "in_progress", "activeForm": "Writing failing test"},
-    ...
-])
-```
-
-**Mark completed** immediately after finishing each phase:
-```markdown
-# After test passes
-TodoWrite([...previous_todos,
-    {"content": "Write failing test (Red)", "status": "completed", "activeForm": "Writing failing test"},
-    {"content": "Implement minimum code (Green)", "status": "in_progress", "activeForm": "Implementing code"},
-    ...
-])
-```
-
-### For Complex WS with Multiple Steps
-
-If WS has multiple implementation steps from plan, expand todos:
-
-```markdown
-TodoWrite([
-    {"content": "Pre-build validation", "status": "in_progress", "activeForm": "Validating WS structure"},
-    {"content": "Step 1: Create domain entity (TDD)", "status": "pending", "activeForm": "Creating domain entity"},
-    {"content": "Step 2: Add repository protocol (TDD)", "status": "pending", "activeForm": "Adding repository protocol"},
-    {"content": "Step 3: Implement service (TDD)", "status": "pending", "activeForm": "Implementing service"},
-    {"content": "Verify all Acceptance Criteria", "status": "pending", "activeForm": "Verifying AC"},
-    {"content": "Run quality gates", "status": "pending", "activeForm": "Running quality checks"},
-    {"content": "Append execution report", "status": "pending", "activeForm": "Writing execution report"},
-    {"content": "Git commit", "status": "pending", "activeForm": "Committing changes"}
-])
-```
-
-### Rules for TodoWrite in /build
-
-1. **Create list at start** — before any work begins
-2. **One task in_progress** — never more, never less
-3. **Update immediately** — mark completed right after finishing
-4. **All completed at end** — before outputting success message
-5. **Be specific** — match todos to actual WS steps from plan
-
-### Example Flow
-
-```
-User: /build WS-060-01
-
-Agent: Let me execute WS-060-01...
-→ TodoWrite([8 items])  # Create initial list
-
-→ Reading WS file...
-→ TodoWrite: Mark "Pre-build validation" as completed
-→ TodoWrite: Mark "Write failing test (Red)" as in_progress
-
-→ Writing test_user_entity.py...
-→ Running pytest... FAILED (expected)
-→ TodoWrite: Mark "Write failing test (Red)" as completed
-→ TodoWrite: Mark "Implement minimum code (Green)" as in_progress
-
-→ Creating src/domain/user.py...
-→ Running pytest... PASSED
-→ TodoWrite: Mark "Implement minimum code (Green)" as completed
-→ TodoWrite: Mark "Refactor implementation" as in_progress
-
-... (continue for all steps)
-
-→ All tasks completed
-→ TodoWrite: All items marked as completed
-→ Output success message
-```
-
-### Benefits
-
-- **User visibility** — see exactly what's happening
-- **Progress tracking** — know how far along execution is
-- **Context for errors** — if build fails, user sees which step failed
-- **Async transparency** — especially useful for long-running builds
 
 ===============================================================================
 # 2. PRE-BUILD CHECKS
 
-Before starting, verify:
+Перед началом работы проверяется:
 
 ```bash
-# WS file exists
-ls docs/workstreams/backlog/WS-{ID}-*.md
+# WS файл существует
+ls tools/hw_checker/docs/workstreams/backlog/WS-{ID}-*.md
 
-# Goal defined
-grep "### 🎯 Goal" WS-{ID}-*.md
+# Goal определена
+grep "### 🎯 Цель" WS-{ID}-*.md
 
-# Acceptance Criteria exist
+# Acceptance Criteria есть
 grep "Acceptance Criteria" WS-{ID}-*.md
 
-# Scope not LARGE
+# Scope не LARGE
 grep -v "LARGE" WS-{ID}-*.md
 
-# Dependencies completed (check INDEX)
+# Зависимости завершены (проверка по INDEX)
 ```
 
-**If pre-build fails → STOP, fix the issue.**
+**Если pre-build fail → STOP, исправь проблему.**
 
 ===============================================================================
 # 3. TDD WORKFLOW (STRICT)
 
-For EACH step from the plan:
+Для КАЖДОГО шага из плана:
 
-### 3.1 Red (test fails)
+### 3.1 Red (тест падает)
 
 ```python
-# First write test
+# Сначала напиши тест
 def test_feature_works():
     result = new_feature()
     assert result == expected
 ```
 
 ```bash
-# Run — should FAIL
+# Запусти — должен УПАСТЬ
 pytest tests/unit/test_XXX.py::test_feature_works -v
 # Expected: FAILED
 ```
 
-### 3.2 Green (test passes)
+### 3.2 Green (тест проходит)
 
 ```python
-# Minimal implementation
+# Минимальная реализация
 def new_feature():
     return expected
 ```
 
 ```bash
-# Run — should PASS
+# Запусти — должен ПРОЙТИ
 pytest tests/unit/test_XXX.py::test_feature_works -v
 # Expected: PASSED
 ```
 
-### 3.3 Refactor (if needed)
+### 3.3 Refactor (если нужно)
 
-- Improve code while keeping tests green
-- Add type hints
-- Add docstrings
-
-### 3.4 Multi-file Editing with Composer
-
-**Use Cursor Composer for related files:**
-
-When implementing a feature that spans multiple files (domain + application + tests), use Composer to edit them simultaneously:
-
-```
-@src/domain/user.py @src/application/get_user.py @tests/test_get_user.py
-"Implement GetUser use case with TDD: write test first, then implementation following Clean Architecture"
-```
-
-**Benefits:**
-- Edit related files in one operation
-- Maintain consistency across layers
-- Faster iteration
-
-**When to use Composer:**
-- Domain entity + Application use case + Tests
-- Service + Repository + Tests
-- Multiple related refactorings
-- Cross-layer changes
-
-**Example workflow:**
-```
-1. Use Composer with @test_file @implementation_file
-2. Write test first (Red)
-3. Implement code (Green)
-4. Refactor if needed
-```
+- Улучши код, сохраняя тесты зелёными
+- Добавь type hints
+- Добавь docstrings
 
 ===============================================================================
 # 4. CODE RULES (STRICT)
 
 ### 4.1 Clean Architecture
 
-**Domain NEVER contains:**
-- imports from `infrastructure/`
-- imports from `presentation/`
+**Domain НИКОГДА не содержит:**
+- импортов из `infrastructure/`
+- импортов из `presentation/`
 - SQLAlchemy, Redis, Docker, HTTP
 
-**Application NEVER contains:**
-- direct infrastructure imports
-- UI logic
+**Application НИКОГДА не содержит:**
+- прямых импортов инфраструктуры
+- UI логики
 
 ### 4.2 File Limits
 
-| Zone | LOC | Action |
-|------|-----|--------|
+| Зона | LOC | Действие |
+|------|-----|----------|
 | 🟢 | < 150 | OK |
-| 🟡 | 150-200 | Consider split |
-| 🔴 | > 200 | STOP, split |
+| 🟡 | 150-200 | Рассмотри split |
+| 🔴 | > 200 | STOP, разбить |
 
 ### 4.3 Type Hints (STRICT)
 
@@ -300,8 +164,8 @@ import structlog
 from pydantic import BaseModel
 
 # 3. local
-from project.domain import Entity
-from project.application import UseCase
+from hw_checker.domain import Entity
+from hw_checker.application import UseCase
 ```
 
 ===============================================================================
@@ -310,25 +174,25 @@ from project.application import UseCase
 ❌ `# TODO: ...`
 ❌ `# FIXME: ...`
 ❌ `# HACK: ...`
-❌ "Will do later"
-❌ "Temporary solution"
+❌ "Сделаю потом"
+❌ "Временное решение"
 ❌ "Tech debt"
 ❌ `except: pass`
-❌ `Any` without justification
+❌ `Any` без обоснования
 ❌ Partial completion
 
-**If can't complete → STOP, return to /design.**
+**Если не можешь завершить → STOP, вернуться к /design.**
 
 ===============================================================================
-# 6. SELF-CHECK (before completion)
+# 6. SELF-CHECK (перед завершением)
 
 ```bash
-# 1. Tests pass
+# 1. Тесты проходят
 pytest tests/unit/test_XXX.py -v
 # Expected: all passed
 
 # 2. Coverage ≥ 80%
-pytest tests/unit/test_XXX.py --cov=src/module --cov-fail-under=80
+pytest tests/unit/test_XXX.py --cov=hw_checker/module --cov-fail-under=80
 # Expected: coverage ≥ 80%
 
 # 3. Regression (fast tests)
@@ -336,33 +200,27 @@ pytest tests/unit/ -m fast -q
 # Expected: all passed
 
 # 4. Linters
-ruff check src/module/
-mypy src/module/ --ignore-missing-imports
+ruff check src/hw_checker/module/
+mypy src/hw_checker/module/ --ignore-missing-imports
 # Expected: no errors
 
-# If errors found, use Cursor Code Actions:
-# - Open file with error
-# - Press Ctrl+. (Code Actions)
-# - Select "Fix all auto-fixable problems"
-# - Re-run linter check
-
 # 5. No TODO/FIXME
-grep -rn "TODO\|FIXME" src/module/
+grep -rn "TODO\|FIXME" src/hw_checker/module/
 # Expected: empty
 
 # 6. File sizes
-wc -l src/module/*.py | awk '$1 > 200 {print "🔴 " $2}'
+wc -l src/hw_checker/module/*.py | awk '$1 > 200 {print "🔴 " $2}'
 # Expected: empty
 
 # 7. Import check
-python -c "from project.module import NewClass"
+python -c "from hw_checker.module import NewClass"
 # Expected: no errors
 ```
 
 ===============================================================================
 # 7. EXECUTION REPORT FORMAT
 
-**APPEND to end of WS file:**
+**APPEND в конец WS файла:**
 
 ```markdown
 ---
@@ -380,18 +238,18 @@ python -c "from project.module import NewClass"
 
 **Goal Achieved:** ✅ YES
 
-#### Modified Files
+#### Изменённые файлы
 
-| File | Action | LOC |
-|------|--------|-----|
-| `src/module/service.py` | created | 120 |
-| `tests/unit/test_service.py` | created | 80 |
+| Файл | Действие | LOC |
+|------|----------|-----|
+| `src/hw_checker/module/service.py` | создан | 120 |
+| `tests/unit/test_service.py` | создан | 80 |
 
-#### Completed Steps
+#### Выполненные шаги
 
-- [x] Step 1: Create dataclass
-- [x] Step 2: Implement service
-- [x] Step 3: Write tests
+- [x] Шаг 1: Создать dataclass
+- [x] Шаг 2: Реализовать service
+- [x] Шаг 3: Написать тесты
 
 #### Self-Check Results
 
@@ -399,62 +257,62 @@ python -c "from project.module import NewClass"
 $ pytest tests/unit/test_service.py -v
 ===== 15 passed in 0.5s =====
 
-$ pytest --cov=src/module --cov-fail-under=80
+$ pytest --cov=hw_checker/module --cov-fail-under=80
 ===== Coverage: 85% =====
 
 $ pytest tests/unit/ -m fast -q
 ===== 150 passed in 2.5s =====
 
-$ ruff check src/module/
+$ ruff check src/hw_checker/module/
 All checks passed!
 
-$ grep -rn "TODO\|FIXME" src/module/
+$ grep -rn "TODO\|FIXME" src/hw_checker/module/
 (empty - OK)
 ```
 
-#### Issues
+#### Проблемы
 
-[None / Description and how resolved]
+[Нет / Описание и как решены]
 ```
 
 ===============================================================================
 # 8. GIT WORKFLOW
 
-### 8.1 Check Branch Before Starting
+### 8.1 Проверь ветку перед началом
 
 ```bash
-# Ensure you're in feature branch
+# Убедись что ты в feature branch
 git branch --show-current
-# Should be: feature/{slug}
+# Должно быть: feature/{slug}
 
-# If not — switch
+# Если нет — переключись
 git checkout feature/{slug}
 ```
 
-### 8.2 Commit After WS Completion
+### 8.2 Commit после завершения WS
 
 **Conventional Commits Format:**
 
-| Type | When to use |
-|------|-------------|
-| `feat({feature})` | New functionality |
-| `test({feature})` | Adding/changing tests |
-| `docs({feature})` | Documentation, Execution Report |
-| `fix({feature})` | Bug fixes |
-| `refactor({feature})` | Refactoring without behavior change |
+| Тип | Когда использовать |
+|-----|-------------------|
+| `feat({feature})` | Новая функциональность |
+| `test({feature})` | Добавление/изменение тестов |
+| `docs({feature})` | Документация, Execution Report |
+| `fix({feature})` | Исправления багов |
+| `refactor({feature})` | Рефакторинг без изменения поведения |
 
-**Commit sequence for WS:**
+**Последовательность коммитов для WS:**
 
 ```bash
-# 1. Commit code (after Green)
-git add src/
+# 1. Commit кода (после Green)
+git add src/hw_checker/
 git commit -m "feat({feature}): WS-060-01 - implement domain layer
 
 - Add Entity dataclass
 - Add Repository protocol
 - Add Service class"
 
-# 2. Commit tests
+# 2. Commit тестов
 git add tests/
 git commit -m "test({feature}): WS-060-01 - add unit tests
 
@@ -463,24 +321,24 @@ git commit -m "test({feature}): WS-060-01 - add unit tests
 - Coverage: 85%"
 
 # 3. Commit Execution Report
-git add docs/workstreams/
+git add tools/hw_checker/docs/workstreams/
 git commit -m "docs({feature}): WS-060-01 - execution report
 
 Goal achieved: YES
 All AC passed"
 ```
 
-### 8.3 Alternative: Single Squash Commit
+### 8.3 Альтернатива: один squash commit
 
-If you prefer one commit:
+Если предпочитаешь один коммит:
 
 ```bash
 git add .
 git commit -m "feat({feature}): WS-060-01 - {title}
 
 Implementation:
-- {what done 1}
-- {what done 2}
+- {что сделано 1}
+- {что сделано 2}
 
 Tests: X passed, coverage XX%
 Goal: achieved"
@@ -501,7 +359,7 @@ Goal: achieved"
 - Coverage: XX%
 
 **Files:**
-- `src/module/service.py` (created)
+- `src/hw_checker/module/service.py` (created)
 - `tests/unit/test_service.py` (created)
 
 **Self-Check:** ✅ All passed
@@ -513,38 +371,72 @@ Goal: achieved"
   - `test({feature}): WS-060-01 - add tests`
 
 **Next Steps:**
-1. `/build {next-WS-ID}` (if any)
-2. After all WS: `/review {feature}`
+1. `/build {next-WS-ID}` (если есть)
+2. После всех WS: `/codereview {feature}`
 ```
 
 ===============================================================================
-# 10. WHEN TO STOP
+# 9. WHEN TO STOP
 
-**STOP and return to /design if:**
+**STOP и вернись к /design если:**
 
-- Plan contradicts existing code
-- Need to modify file not in list
-- Step requires architecture decision
-- Criterion doesn't pass after 2 attempts
-- Scope exceeded (> MEDIUM)
-- Goal not achievable
+- План противоречит существующему коду
+- Нужно изменить файл не из списка
+- Шаг требует архитектурного решения
+- Критерий не проходит после 2 попыток
+- Scope превышен (> MEDIUM)
+- Goal не достижима
 
-**Request format:**
+**Формат запроса:**
 
 ```markdown
 ## ⚠️ Build Blocked: {WS-ID}
 
-### Problem
-[What's not working]
+### Проблема
+[Что не получается]
 
-### Context
-[What found in code]
+### Контекст
+[Что увидел в коде]
 
-### Question
-[What needs to be decided]
+### Вопрос
+[Что нужно решить]
 
-### Recommendation
-[If have a suggestion]
+### Рекомендация
+[Если есть предложение]
 ```
+
+===============================================================================
+# 10. EXIT GATE (MANDATORY)
+
+⛔ **НЕ ЗАВЕРШАЙ без выполнения ВСЕХ пунктов:**
+
+### Checklist
+
+- [ ] Execution Report appended to WS file
+- [ ] Git commit created with WS-ID in message
+- [ ] GitHub issue updated (if GITHUB_TOKEN set)
+- [ ] No uncommitted changes
+
+### Self-Verification
+
+```bash
+# 1. Commit exists with WS-ID?
+git log -1 --oneline | grep "{WS-ID}"
+# Expected: commit hash with WS-ID
+
+# 2. Execution Report in WS file?
+grep -q "Execution Report" {WS-FILE}
+# Expected: exit 0
+
+# 3. Clean git state?
+test -z "$(git status --porcelain)"
+# Expected: exit 0
+
+# 4. GitHub issue updated? (if configured)
+gh issue view {ISSUE_NUMBER} --json state,labels
+# Expected: state=open, labels include "status/in-progress"
+```
+
+⛔ **Если ЛЮБОЙ пункт не выполнен — выполни СЕЙЧАС, не "потом".**
 
 ===============================================================================
