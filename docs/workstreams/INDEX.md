@@ -9,7 +9,7 @@ SDP (Spec-Driven Protocol) workstreams for project_id: 00.
 | F003 | Two-Stage Review | 0 | 5 | 5 | ✅ 100% complete |
 | F004 | Platform Adapters | 0 | 4 | 4 | ✅ 100% complete |
 | F005 | Extension System | 0 | 3 | 3 | ✅ 100% complete |
-| F006 | Core SDP | 1 | 5 | 6 | 🔄 83% complete |
+| F006 | Core SDP | 0 | 6 | 6 | ✅ 100% complete |
 | F007 | Oneshot & Hooks | 3 | 7 | 10 | 🔄 70% complete |
 | F008 | Contract-Driven WS Tiers | 8 | 1 | 9 | 🔄 11% complete |
 | F010 | SDP Infrastructure | 0 | 5 | 5 | ✅ 100% complete |
@@ -18,22 +18,22 @@ SDP (Spec-Driven Protocol) workstreams for project_id: 00.
 ## Summary
 
 - **Total:** 48 workstreams (SDP-specific only)
-- **Backlog:** 19 workstreams (40%)
-- **Completed:** 29 workstreams (60%)
+- **Backlog:** 18 workstreams (38%)
+- **Completed:** 30 workstreams (62%)
 
 **Removed:** F001, F002, F009 (37 hw_checker-specific workstreams)
 
 ## Implementation Status
 
-### ✅ Complete Features (4)
+### ✅ Complete Features (5)
 - **F003** Two-Stage Review (5/5 WS)
 - **F004** Platform Adapters (4/4 WS)
 - **F005** Extension System (3/3 WS)
+- **F006** Core SDP (6/6 WS)
 - **F010** SDP Infrastructure (5/5 WS)
 
-### 🔄 Mostly Complete Features (2)
+### 🔄 Mostly Complete Features (1)
 - **F007** Oneshot & Hooks (7/10 WS, 70%)
-- **F006** Core SDP (5/6 WS, 83%)
 
 ### ⏳ In Progress Features (1)
 - **F008** Contract-Driven WS Tiers (1/9 WS, 11%)
@@ -43,17 +43,16 @@ SDP (Spec-Driven Protocol) workstreams for project_id: 00.
 
 ## Workstreams by Status
 
-### Backlog (19)
+### Backlog (18)
 
-**F006 (1):** 00-006-06
 **F007 (3):** 00-007-08 to 00-007-10
 **F008 (8):** 00-008-01, 00-008-03 to 00-008-09
 **F011 (6):** 00-011-01 to 00-011-06
 
-### Completed (29)
+### Completed (30)
 
 **F003 (5):** 00-003-01, 00-003-02, 00-003-05, 00-003-07, 00-003-08
-**F006 (5):** 00-006-01, 00-006-02, 00-006-03, 00-006-04, 00-006-05
+**F006 (6):** 00-006-01, 00-006-02, 00-006-03, 00-006-04, 00-006-05, 00-006-06
 **F004 (4):** 00-004-01 to 00-004-04
 **F005 (3):** 00-005-01 to 00-005-03
 **F007 (7):** 00-007-01 to 00-007-06, 00-007-11
