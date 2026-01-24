@@ -620,19 +620,13 @@ bash sdp/notifications/telegram.sh oneshot_completed "F60" "$DURATION_HUMAN"
 ===============================================================================
 # 6. ERROR HANDLING
 
-### Timeout Protection
+**CRITICAL:** /oneshot uses the most capable model (opus/sonnet) WITHOUT token limits.
+Execute ALL workstreams in the feature. Feature is complete ONLY when 100% of workstreams are done.
 
-Если один WS занимает слишком много контекста:
-
-```markdown
-⚠️ WS-{ID} scope exceeded
-
-**Context used:** {tokens}
-**Expected:** < 5000
-
-**Action:** STOP, split WS into substreams
-→ Return to /design for WS breakdown
-```
+**Feature Completion Rule:**
+- Feature is COMPLETE: ALL workstreams executed (backlog = 0, completed = total)
+- Feature is INCOMPLETE: ANY workstreams remain in backlog
+- NEVER stop execution early for: token limits, complexity, individual WS failures
 
 ### Circular Dependencies
 
