@@ -306,7 +306,7 @@ git checkout feature/{slug}
 ```bash
 # 1. Commit кода (после Green)
 git add src/hw_checker/
-git commit -m "feat({feature}): WS-060-01 - implement domain layer
+git commit -m "feat({feature}): 02-060-01 - implement domain layer
 
 - Add Entity dataclass
 - Add Repository protocol
@@ -314,7 +314,7 @@ git commit -m "feat({feature}): WS-060-01 - implement domain layer
 
 # 2. Commit тестов
 git add tests/
-git commit -m "test({feature}): WS-060-01 - add unit tests
+git commit -m "test({feature}): 02-060-01 - add unit tests
 
 - test_entity_creation
 - test_service_methods
@@ -334,7 +334,7 @@ All AC passed"
 
 ```bash
 git add .
-git commit -m "feat({feature}): WS-060-01 - {title}
+git commit -m "feat({feature}): PP-FFF-SS - {title}
 
 Implementation:
 - {что сделано 1}

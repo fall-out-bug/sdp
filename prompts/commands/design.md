@@ -82,25 +82,34 @@ grep -oE "WS-[0-9]{3}" tools/hw_checker/docs/workstreams/INDEX.md | sort -u | ta
 ### 3.2 Substream Format (STRICT)
 
 ```
-WS-{PARENT}-{SEQ}
+PP-FFF-SS
 
-PARENT = 3 цифры (060)
+PP = Project ID (2 digits, 00-99)
+FFF = Feature ID (3 digits, 000-999)
 SEQ = 2 цифры (01, 02, ... 99)
 ```
 
-**✅ Правильно:** `WS-060-01`, `WS-060-02`, `WS-060-10`
-**❌ Неправильно:** `WS-060-1`, `WS-60-01`, `WS-060-A`
+**Project ID Registry:**
+- 00 = SDP Protocol (universal meta-protocol)
+- 02 = hw_checker
+- 03 = mlsd
+- 04 = bdde
+- 05 = msu_ai_masters (meta-repo)
+- 01 = *Reserved*
+
+**✅ Правильно:** `00-060-01`, `02-060-01`, `05-503-01`
+**❌ Неправильно:** `WS-060-1`, `060-01`, `WS-060-A`
 
 ### 3.3 Decomposition Pattern
 
 Типичное разбиение по Clean Architecture:
 
 ```
-WS-060-01: Domain layer (entities, value objects)
-WS-060-02: Application layer (use cases, ports)
-WS-060-03: Infrastructure layer (adapters, DB)
-WS-060-04: Presentation layer (CLI/API)
-WS-060-05: Integration tests
+00-060-01: Domain layer (entities, value objects)
+00-060-02: Application layer (use cases, ports)
+00-060-03: Infrastructure layer (adapters, DB)
+00-060-04: Presentation layer (CLI/API)
+00-060-05: Integration tests
 ```
 
 ===============================================================================

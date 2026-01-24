@@ -98,6 +98,70 @@ Workstream (WS-001-WS-999) — атомарные задачи
 
 ---
 
+## Workstream Naming Convention (PP-FFF-SS)
+
+### Format
+
+```
+PP-FFF-SS
+├─ PP: Project ID (2 digits, 00-99)
+├─ FFF: Feature ID (3 digits, 000-999)
+└─ SS: Workstream Sequence (2 digits, 00-99)
+```
+
+### Project ID Registry
+
+| ID | Project | Description |
+|----|---------|-------------|
+| 00 | **SDP Protocol** | Universal meta-protocol (uses itself) |
+| 01 | *Reserved* | Available for future use |
+| 02 | hw_checker | Homework validation system |
+| 03 | mlsd | ML System Design course |
+| 04 | bdde | Big Data course |
+| 05 | msu_ai_masters | Meta-repo configuration |
+
+**Principle:** PP = who owns the workstream. All projects (02-05) use SDP (00) as their tool.
+
+### Examples
+
+| WS ID | Project | Feature | Description |
+|-------|---------|---------|-------------|
+| 00-500-01 | SDP | F500 | Sync SDP content |
+| 00-410-01 | SDP | F410 | Contract-driven WS spec |
+| 02-150-01 | hw_checker | F150 | Config fixes |
+| 02-201-01 | hw_checker | F201 | Multi-IDE parity |
+| 03-100-01 | mlsd | F100 | Question domain |
+| 04-050-01 | bdde | F050 | Data pipeline |
+
+### Cross-Project Dependencies
+
+Projects can depend on SDP workstreams:
+
+```yaml
+# In hw_checker (02-150-03.md):
+---
+depends_on:
+  - 00-100-05  # SDP Protocol WS-100-05
+---
+```
+
+**Rule:** Projects (02-05) may depend on SDP (00), but SDP does not depend on specific projects.
+
+### Migration from Legacy Format
+
+| Old Format | New Format | Example |
+|------------|------------|---------|
+| `WS-FFF-SS` | `PP-FFF-SS` | WS-193-01 → 00-193-01 |
+| `WS-FFF-SS` | `PP-FFF-SS` | WS-150-01 → 02-150-01 |
+
+The SDP parser supports both formats for backward compatibility. Legacy `WS-FFF-SS` format is automatically interpreted as Project 00 (SDP).
+
+### Automated Migration
+
+See `sdp/docs/migration/ws-naming-migration.md` for detailed migration guide.
+
+---
+
 ## Guardrails
 
 ### AI-Readiness (БЛОКИРУЮЩИЕ)
