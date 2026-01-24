@@ -1,85 +1,18 @@
-"""Project map parsing and querying for SDP projects.
+"""Project map parsing for SDP projects.
 
-This module provides ProjectMap abstraction that contains project-level
-decisions, constraints, patterns, and current state information.
+This module provides parsing functionality for PROJECT_MAP.md files.
 """
 
 import re
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
-
-@dataclass
-class Decision:
-    """Single architectural decision record.
-
-    Attributes:
-        area: Decision area (e.g., "Architecture", "Storage")
-        decision: Decision description
-        adr: ADR identifier (e.g., "ADR-001")
-        date: Decision date (YYYY-MM-DD)
-    """
-
-    area: str
-    decision: str
-    adr: str
-    date: str
-
-
-@dataclass
-class Constraint:
-    """Single project constraint.
-
-    Attributes:
-        category: Constraint category (e.g., "AI-Readiness", "Clean Architecture")
-        description: Constraint description text
-    """
-
-    category: str
-    description: str
-
-
-@dataclass
-class TechStackItem:
-    """Single tech stack entry.
-
-    Attributes:
-        layer: Layer name (e.g., "Language", "API")
-        technology: Technology name (e.g., "Python 3.11+", "FastAPI")
-    """
-
-    layer: str
-    technology: str
-
-
-@dataclass
-class ProjectMap:
-    """Parsed project map specification.
-
-    Attributes:
-        project_name: Project name extracted from title
-        decisions: List of architectural decisions
-        constraints: List of active constraints
-        current_state: Current state section content (raw markdown)
-        patterns: Patterns & conventions section content (raw markdown)
-        tech_stack: List of tech stack items
-        file_path: Path to source PROJECT_MAP.md file
-    """
-
-    project_name: str
-    decisions: list[Decision] = field(default_factory=list)
-    constraints: list[Constraint] = field(default_factory=list)
-    current_state: str = ""
-    patterns: str = ""
-    tech_stack: list[TechStackItem] = field(default_factory=list)
-    file_path: Optional[Path] = None
-
-
-class ProjectMapParseError(Exception):
-    """Error parsing project map file."""
-
-    pass
+from sdp.core.project_map_types import (
+    Constraint,
+    Decision,
+    ProjectMap,
+    ProjectMapParseError,
+    TechStackItem,
+)
 
 
 def parse_project_map(file_path: Path) -> ProjectMap:
@@ -131,231 +64,12 @@ def parse_project_map(file_path: Path) -> ProjectMap:
     )
 
 
-def get_decision(
-    project_map: ProjectMap,
-    *,
-    area: Optional[str] = None,
-    adr: Optional[str] = None,
-) -> Optional[Decision]:
-    """Query decision by area or ADR.
-
-    Args:
-        project_map: ProjectMap instance
-        area: Decision area to search for
-        adr: ADR identifier to search for
-
-    Returns:
-        Decision if found, None otherwise
-
-    Raises:
-        ValueError: If neither area nor adr is provided
-    """
-    if area is None and adr is None:
-        raise ValueError("Must provide either 'area' or 'adr' parameter")
-
-    for decision in project_map.decisions:
-        if area is not None and decision.area == area:
-            return decision
-        if adr is not None and decision.adr == adr:
-            return decision
-
-    return None
-
-
-def get_constraint(
-    project_map: ProjectMap,
-    *,
-    category: Optional[str] = None,
-    keyword: Optional[str] = None,
-) -> list[Constraint]:
-    """Query constraints by category or keyword.
-
-    Args:
-        project_map: ProjectMap instance
-        category: Constraint category to filter by
-        keyword: Keyword to search in constraint descriptions
-
-    Returns:
-        List of matching constraints (empty if none found)
-
-    Raises:
-        ValueError: If neither category nor keyword is provided
-    """
-    if category is None and keyword is None:
-        raise ValueError("Must provide either 'category' or 'keyword' parameter")
-
-    results: list[Constraint] = []
-
-    for constraint in project_map.constraints:
-        if category is not None and constraint.category == category:
-            results.append(constraint)
-        elif keyword is not None and keyword.lower() in constraint.description.lower():
-            results.append(constraint)
-
-    return results
-
-
-def create_project_map_template(file_path: Path, project_name: str) -> None:
-    """Generate PROJECT_MAP.md template for new project.
-
-    Args:
-        file_path: Path where template will be created
-        project_name: Project name to use in template
-    """
-    template = f"""# Project Map: {project_name}
-
-**Назначение:** Сквозная карта решений по проекту. Читается агентами перед началом WS.
-
-**Обновление:** После каждого значимого WS — добавить запись о принятых решениях.
-
----
-
-## Как использовать
-
-### Для агентов (перед началом WS):
-
-1. **ОБЯЗАТЕЛЬНО прочитай** перед планированием/выполнением WS
-2. Проверь что твой WS не противоречит существующим решениям
-3. Если нужно принять новое архитектурное решение → создай ADR
-
-### Структура:
-
-```
-PROJECT_MAP.md (этот файл)
-    ↓ ссылки на
-docs/architecture/decisions/ (ADR — Architecture Decision Records)
-```
-
----
-
-## Ключевые решения (Quick Reference)
-
-| Область | Решение | ADR | Дата |
-|---------|---------|-----|------|
-| _(Добавь решения здесь)_ | | | |
-
----
-
-## Current State (Live)
-
-### Production Services
-- _(Опиши текущие сервисы)_
-
-### Domains (L2)
-- _(Опиши домены)_
-
----
-
-## Patterns & Conventions
-
-### Naming
-- Files: `snake_case.py`
-- Classes: `PascalCase`
-- Functions: `snake_case`
-- Constants: `UPPER_SNAKE_CASE`
-
-### Import Order
-1. stdlib
-2. third-party
-3. local imports
-4. Relative imports
-
-### Type Hints
-- Python 3.10+ syntax: `list[str]`, `dict[str, int]`, `str | None`
-- Всегда `-> None` для void functions
-
-### Testing
-- Unit tests: `tests/unit/` (marker: `@pytest.mark.fast`)
-- Integration: `tests/integration/`
-- Coverage ≥ 80% для нового кода
-
----
-
-## Active Constraints
-
-### AI-Readiness
-- Files < 200 LOC
-- Complexity < 10 (CC)
-- No nesting > 3 levels
-
-### Clean Architecture
-- Domain: NO imports from app/infra/presentation
-- Application: NO direct infrastructure imports (use ports)
-- Infrastructure: implements ports
-- Presentation: uses application layer only
-
-### Security
-- _(Добавь security constraints)_
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Language | _(укажи язык)_ |
-| Framework | _(укажи framework)_ |
-| Database | _(укажи БД)_ |
-| Testing | _(укажи testing tools)_ |
-
----
-
-## How to Add Decision
-
-Когда принимаешь значимое решение в WS:
-
-1. **Создай ADR** в `docs/architecture/decisions/`:
-   ```bash
-   YYYY-MM-DD-{{short-title}}.md
-   ```
-
-2. **Формат:** (см. `sdp/PROTOCOL.md` → ADR Template)
-   - Status: Proposed / Accepted / Deprecated
-   - Context
-   - Decision
-   - Alternatives Considered
-   - Consequences
-
-3. **Обнови PROJECT_MAP.md** (этот файл):
-   - Добавь строку в "Ключевые решения"
-   - Обнови "Current State" если меняется архитектура
-
-4. **Укажи в WS Review:**
-   - "ADR-XXX created: {{short description}}"
-
----
-
-## Deprecated / Superseded
-
-_(Решения, от которых отказались)_
-
-| Было | Почему отказались | Когда | ADR |
-|------|-------------------|-------|-----|
-| _(Добавь deprecated решения)_ | | | |
-
----
-
-## Roadmap Alignment
-
-**Current Release:** _(укажи release)_
-**Current Features in progress:**
-- _(список features)_
-
----
-
-**Last updated:** _(YYYY-MM-DD)_
-**Maintained by:** _(team/agent name)_
-"""
-
-    file_path.write_text(template, encoding="utf-8")
-
-
 # =============================================================================
 # PRIVATE HELPER FUNCTIONS
 # =============================================================================
 
 
-def _extract_project_name(content: str) -> Optional[str]:
+def _extract_project_name(content: str) -> str | None:
     """Extract project name from title line.
 
     Args:
@@ -407,7 +121,7 @@ def _parse_decisions_table(content: str) -> list[Decision]:
 
         # Split by | and remove empty strings
         parts = [p.strip() for p in line.split("|") if p.strip()]
-        
+
         if len(parts) >= 4:
             area = parts[0].replace("**", "").strip()
             decision = parts[1].strip()
@@ -487,24 +201,24 @@ def _extract_section(content: str, section_name: str) -> str:
     # Try different header patterns (## and ###)
     # Allow optional trailing content after section name (e.g., "Current State (Live)")
     escaped_name = re.escape(section_name)
-    
+
     # Find section header (## or ###)
     for header_level in ["##", "###"]:
         # Pattern to match header with section name and optional trailing content
         header_pattern = rf"^{re.escape(header_level)}\s+{escaped_name}(?:[^\n]*)?$"
         header_match = re.search(header_pattern, content, re.MULTILINE)
-        
+
         if not header_match:
             continue
-        
+
         # Find the start of content (after the header line and its newline)
         # header_match.end() is at the end of the matched line
         # Skip any newline character to get to the actual content
         content_start = header_match.end()
         # Skip the newline if present
-        if content_start < len(content) and content[content_start] == '\n':
+        if content_start < len(content) and content[content_start] == "\n":
             content_start += 1
-        
+
         # Find the next section header at the same or higher level
         # For ##, stop at next ##
         # For ###, stop at next ### or ##
@@ -512,10 +226,10 @@ def _extract_section(content: str, section_name: str) -> str:
             next_section_pattern = r"^\s*##\s+"
         else:  # ###
             next_section_pattern = r"^\s*(?:###|##)\s+"
-        
+
         # Find the next section header
         next_match = re.search(next_section_pattern, content[content_start:], re.MULTILINE)
-        
+
         if next_match:
             # Extract content up to the next section (excluding the newline before it)
             content_end = content_start + next_match.start()
@@ -523,9 +237,9 @@ def _extract_section(content: str, section_name: str) -> str:
         else:
             # No next section, extract to end of file
             section_content = content[content_start:]
-        
+
         return section_content.strip()
-    
+
     return ""
 
 

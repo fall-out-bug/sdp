@@ -18,20 +18,20 @@ fi
 
 # Check if editing domain layer with infrastructure/presentation imports
 if echo "$FILE_PATH" | grep -q "domain/"; then
-    if grep -qE "from hw_checker\.(infrastructure|presentation)" "$FILE_PATH" 2>/dev/null; then
+    if grep -qE "from sdp\.(infrastructure|presentation)" "$FILE_PATH" 2>/dev/null; then
         echo "BLOCKED: Domain layer file contains infrastructure/presentation imports"
         echo "Clean Architecture violation detected in: $FILE_PATH"
         echo ""
         echo "Domain layer must NOT import from:"
-        echo "  - hw_checker.infrastructure.*"
-        echo "  - hw_checker.presentation.*"
+        echo "  - sdp.infrastructure.*"
+        echo "  - sdp.presentation.*"
         exit 2  # Exit code 2 blocks the action
     fi
 fi
 
 # Check if editing application layer with presentation imports
 if echo "$FILE_PATH" | grep -q "application/"; then
-    if grep -qE "from hw_checker\.presentation" "$FILE_PATH" 2>/dev/null; then
+    if grep -qE "from sdp\.presentation" "$FILE_PATH" 2>/dev/null; then
         echo "BLOCKED: Application layer file contains presentation imports"
         echo "Clean Architecture violation detected in: $FILE_PATH"
         exit 2

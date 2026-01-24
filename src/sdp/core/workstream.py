@@ -150,6 +150,8 @@ class Workstream:
     acceptance_criteria: list[AcceptanceCriterion] = field(default_factory=list)
     context: str = ""
     dependencies: list[str] = field(default_factory=list)
+    steps: list[str] = field(default_factory=list)
+    code_blocks: list[str] = field(default_factory=list)
     file_path: Optional[Path] = None
 
 
@@ -205,6 +207,8 @@ def parse_workstream(file_path: Path) -> Workstream:
     context = _extract_section(body, "Context")
     criteria = _extract_acceptance_criteria(body)
     deps = _extract_dependencies(body)
+    steps = _extract_steps(body)
+    code_blocks = _extract_code_blocks(body)
 
     return Workstream(
         ws_id=ws_id,
@@ -218,6 +222,8 @@ def parse_workstream(file_path: Path) -> Workstream:
         acceptance_criteria=criteria,
         context=context,
         dependencies=deps,
+        steps=steps,
+        code_blocks=code_blocks,
         file_path=file_path,
     )
 
@@ -298,3 +304,30 @@ def _extract_dependencies(body: str) -> list[str]:
         return []
     pattern = r"WS-\d+-\d+"
     return re.findall(pattern, dep_section)
+
+
+def _extract_steps(body: str) -> list[str]:
+    """Extract numbered steps from Steps section."""
+    steps_section = _extract_section(body, "Steps")
+    steps: list[str] = []
+
+    # Match patterns like "1. Step description" or "#### 1. Step"
+    # Look for lines starting with a number followed by a dot
+    for line in steps_section.split("\n"):
+        line = line.strip()
+        # Skip empty lines and headings
+        if not line or line.startswith("#"):
+            continue
+        # Match: "1. Step description" or "#### 1. Step"
+        match = re.match(r"^(?:####\s*)?(\d+)\.\s+(.+)", line)
+        if match:
+            steps.append(match.group(2).strip())
+
+    return steps
+
+
+def _extract_code_blocks(body: str) -> list[str]:
+    """Extract fenced code blocks from body."""
+    # Match ```language\ncode```
+    pattern = r"```[\w]*\n(.+?)```"
+    return re.findall(pattern, body, re.DOTALL)

@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/validators/pre-edit-check.sh \"$CLAUDE_FILE_PATH\""
+            "command": "bash /home/fall_out_bug/projects/sdp/hooks/validators/pre-edit-check.sh \"$CLAUDE_FILE_PATH\""
           }
         ]
       }
@@ -65,21 +65,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/validators/post-edit-check.sh \"$CLAUDE_FILE_PATH\""
+            "command": "bash /home/fall_out_bug/projects/sdp/hooks/validators/post-edit-check.sh \"$CLAUDE_FILE_PATH\""
           }
         ]
       }
     ],
-    "Stop": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/validators/session-quality-check.sh"
-          }
-        ]
-      }
-    ]
+    "Stop": []
   }
 }

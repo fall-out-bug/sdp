@@ -2,7 +2,8 @@
 # sdp/hooks/validators/session-quality-check.sh
 # Run at end of agent turn to check overall quality
 
-cd /home/fall_out_bug/msu_ai_masters/tools/hw_checker 2>/dev/null || exit 0
+# CD to project directory
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 0
 
 echo "Running session quality checks..."
 
@@ -14,7 +15,6 @@ if [ -d "tests/unit" ] && command -v poetry &> /dev/null; then
         echo "Fast tests: PASSED"
     } || {
         echo "WARNING: Some fast tests may be failing"
-        echo "Run: cd tools/hw_checker && poetry run pytest tests/unit/ -m fast -v"
     }
 fi
 

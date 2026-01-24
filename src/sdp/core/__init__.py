@@ -7,16 +7,16 @@ from sdp.core.feature import (
     load_feature_from_directory,
     load_feature_from_spec,
 )
-from sdp.core.project_map import (
+from sdp.core.project_map_parser import parse_project_map
+from sdp.core.project_map_template import create_project_map_template
+from sdp.core.project_map_types import (
     Constraint,
     Decision,
     ProjectMap,
     ProjectMapParseError,
     TechStackItem,
-    create_project_map_template,
     get_constraint,
     get_decision,
-    parse_project_map,
 )
 from sdp.core.workstream import (
     AcceptanceCriterion,
