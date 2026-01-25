@@ -1,0 +1,16 @@
+{
+  "feature": "F011",
+  "title": "PRD Command",
+  "status": "in-progress",
+  "completed_ws": [],
+  "current_ws": null,
+  "pending_ws": ["00-011-01", "00-011-02", "00-011-03", "00-011-04", "00-011-05", "00-011-06"],
+  "started_at": "2026-01-25T00:00:00Z",
+  "last_updated": "2026-01-25T00:00:00Z",
+  "blocked_reason": null,
+  "metrics": {
+    "ws_total": 6,
+    "ws_completed": 0,
+    "ws_completion_pct": 0
+  }
+}
