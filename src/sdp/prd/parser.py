@@ -4,7 +4,6 @@ This module parses PRD documents into sections for validation and processing.
 """
 
 import re
-from pathlib import Path
 
 
 def parse_prd_sections(content: str) -> dict[str, str]:

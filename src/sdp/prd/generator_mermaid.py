@@ -3,7 +3,7 @@
 This module generates Mermaid format diagrams from PRD flow annotations.
 """
 
-from .annotations import Flow, FlowStep
+from .annotations import Flow
 
 
 def generate_mermaid_sequence(flow: Flow) -> str:

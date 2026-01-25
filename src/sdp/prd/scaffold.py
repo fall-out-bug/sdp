@@ -3,13 +3,11 @@
 This module generates PRD document templates based on project profiles.
 """
 
-import json
 from datetime import datetime
 from pathlib import Path
 
-from .profiles import PRDProfile, PRDSection, ProjectType, get_profile
 from .detector import detect_project_type
-
+from .profiles import ProjectType, get_profile
 
 FRONTmatter_TEMPLATE = """---
 project_type: {project_type}

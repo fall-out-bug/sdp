@@ -43,68 +43,68 @@ from sdp.extensions.base import ExtensionManifest
 
 class ValidationError(Exception):
     """Extension validation error."""
-    
+
     pass
 
 
 class ManifestParser:
     """Parse and validate extension.yaml manifest.
-    
+
     Example:
         >>> parser = ManifestParser()
         >>> manifest = parser.parse_file(Path("extension.yaml"))
         >>> print(manifest.name)
         'hw_checker'
     """
-    
+
     REQUIRED_FIELDS: tuple[str, ...] = ("name", "version", "description", "author")
-    
+
     def parse_file(self, manifest_path: Path) -> ExtensionManifest:
         """Parse manifest from YAML file.
-        
+
         Args:
             manifest_path: Path to extension.yaml
-        
+
         Returns:
             Parsed manifest
-        
+
         Raises:
             ValidationError: If manifest is invalid
-        
+
         Example:
             >>> parser = ManifestParser()
             >>> manifest = parser.parse_file(Path("/path/to/extension.yaml"))
         """
         if not manifest_path.exists():
             raise ValidationError(f"Manifest not found: {manifest_path}")
-        
+
         try:
             with open(manifest_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
         except yaml.YAMLError as e:
             raise ValidationError(f"Invalid YAML in {manifest_path}: {e}")
-        
+
         return self.parse_dict(data, manifest_path)
-    
+
     def parse_dict(self, data: dict[str, Any], source: Path) -> ExtensionManifest:
         """Parse manifest from dictionary.
-        
+
         Args:
             data: Manifest data
             source: Source file path (for error messages)
-        
+
         Returns:
             Parsed manifest
-        
+
         Raises:
             ValidationError: If manifest is invalid
-        
+
         Example:
             >>> parser = ManifestParser()
             >>> manifest = parser.parse_dict({"name": "test", ...}, Path("test.yaml"))
         """
         self._validate_required_fields(data, source)
-        
+
         return ExtensionManifest(
             name=data["name"],
             version=data["version"],
@@ -115,14 +115,14 @@ class ManifestParser:
             skills_dir=data.get("skills_dir", "skills"),
             integrations_dir=data.get("integrations_dir", "integrations"),
         )
-    
+
     def _validate_required_fields(self, data: dict[str, Any], source: Path) -> None:
         """Validate required fields are present.
-        
+
         Args:
             data: Manifest data
             source: Source file path (for error messages)
-        
+
         Raises:
             ValidationError: If required fields are missing
         """

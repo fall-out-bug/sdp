@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from .profiles import ProjectType, get_section_limit, PROFILES
 from .parser import parse_prd_sections
+from .profiles import PROFILES, ProjectType
 
 
 class Severity(Enum):

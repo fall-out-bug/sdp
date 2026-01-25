@@ -70,17 +70,17 @@ def init(force: bool, path: Path | None) -> None:
     index_file = workstreams_dir / "INDEX.md"
     template_file = workstreams_dir / "TEMPLATE.md"
     sdp_local_dir = target_dir / "sdp.local"
-    
+
     # Track created files
     created_files = []
     skipped_files = []
-    
+
     # Create directories
     for directory in [docs_dir, workstreams_dir, backlog_dir, sdp_local_dir]:
         if not directory.exists():
             directory.mkdir(parents=True)
             created_files.append(str(directory) + "/")
-    
+
     # Create PROJECT_MAP.md
     if project_map_file.exists() and not force:
         skipped_files.append(str(project_map_file))
@@ -91,32 +91,32 @@ def init(force: bool, path: Path | None) -> None:
         )
         project_map_file.write_text(content)
         created_files.append(str(project_map_file))
-    
+
     # Create INDEX.md
     if index_file.exists() and not force:
         skipped_files.append(str(index_file))
     else:
         index_file.write_text(INDEX_TEMPLATE)
         created_files.append(str(index_file))
-    
+
     # Create TEMPLATE.md
     if template_file.exists() and not force:
         skipped_files.append(str(template_file))
     else:
         template_file.write_text(WS_TEMPLATE)
         created_files.append(str(template_file))
-    
+
     # Display results
     if created_files:
         for file in created_files:
             click.echo(f"✓ Created {file}")
-    
+
     if skipped_files:
         click.echo("")
         click.echo("Skipped (already exists, use --force to overwrite):")
         for file in skipped_files:
             click.echo(f"  - {file}")
-    
+
     # Success message
     click.echo("")
     click.echo("SDP initialized! Next steps:")

@@ -167,9 +167,9 @@ High-level feature tracking
 
 ---
 
-**Total Workstreams:** 0  
-**Completed:** 0  
-**In Progress:** 0  
+**Total Workstreams:** 0
+**Completed:** 0
+**In Progress:** 0
 **Backlog:** 0
 """
 

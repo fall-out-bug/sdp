@@ -11,14 +11,12 @@ if TYPE_CHECKING:
 
 from .annotations import Flow
 from .generator_mermaid import (
-    generate_mermaid_sequence,
     generate_mermaid_component,
-    generate_mermaid_deployment,
+    generate_mermaid_sequence,
 )
 from .generator_plantuml import (
-    generate_plantuml_sequence,
-    generate_plantuml_component,
     generate_plantuml_deployment,
+    generate_plantuml_sequence,
 )
 
 

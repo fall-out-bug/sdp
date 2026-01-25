@@ -3,7 +3,7 @@
 This module generates PlantUML format diagrams from PRD flow annotations.
 """
 
-from .annotations import Flow, FlowStep
+from .annotations import Flow
 
 
 def generate_plantuml_sequence(flow: Flow) -> str:

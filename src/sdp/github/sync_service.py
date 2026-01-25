@@ -11,8 +11,8 @@ from sdp.github.frontmatter_updater import FrontmatterUpdater
 from sdp.github.issue_sync import IssueSync
 from sdp.github.label_manager import LabelManager
 from sdp.github.milestone_manager import MilestoneManager
-from sdp.github.project_router import ProjectRouter
 from sdp.github.project_board_sync import ProjectBoardSync
+from sdp.github.project_router import ProjectRouter
 from sdp.github.projects_client import ProjectsClient
 from sdp.github.status_mapper import StatusMapper
 from sdp.github.ws_parser import parse_ws_file

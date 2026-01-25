@@ -7,7 +7,6 @@ when diagrams need to be regenerated.
 import hashlib
 from pathlib import Path
 
-from .parser_python import parse_directory
 from .parser_bash import parse_directory_bash
 
 

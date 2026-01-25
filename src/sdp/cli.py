@@ -386,9 +386,9 @@ def prd_validate(prd_file: Path, exit_code_on_error: bool) -> None:
         exit_code_on_error: Exit with code 1 if errors found
     """
     from sdp.prd.validator import (
-        validate_prd_file,
         format_validation_issues,
         has_critical_issues,
+        validate_prd_file,
     )
 
     issues = validate_prd_file(prd_file)
