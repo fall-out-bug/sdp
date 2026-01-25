@@ -16,9 +16,9 @@ def parse_prd_sections(content: str) -> dict[str, str]:
     Returns:
         Dictionary mapping section names to their content
     """
-    sections = {}
-    current_section = None
-    current_content = []
+    sections: dict[str, str] = {}
+    current_section: str | None = None
+    current_content: list[str] = []
     frontmatter_skipped = False
     frontmarker_count = 0
     has_frontmatter = content.strip().startswith("---")

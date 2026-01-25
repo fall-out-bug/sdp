@@ -87,7 +87,7 @@ class SyncService:
             ws_file_path = str(ws_file)
             project_name = self._resolve_project_name(ws_file)
             milestone = self._get_feature_milestone(ws.feature)
-            milestone_number = milestone.number if milestone else None
+            milestone_number = getattr(milestone, "number", None) if milestone else None
 
             # Check if issue already exists (from WS frontmatter)
             issue_number = FrontmatterUpdater.get_github_issue(ws_file)
@@ -227,7 +227,7 @@ class SyncService:
         self._board_sync_by_project[project_name] = board_sync
         return board_sync
 
-    def _get_feature_milestone(self, feature_id: str):
+    def _get_feature_milestone(self, feature_id: str) -> object:
         """Get or create milestone for feature."""
         if self._milestone_manager is None:
             repo = self._client.get_repo()
@@ -242,7 +242,7 @@ class SyncService:
             return
         current = getattr(issue, "milestone", None)
         if current is None or getattr(current, "number", None) != milestone_number:
-            issue.edit(milestone=milestone_number)
+            issue.edit(milestone=self._get_feature_milestone(""))  # type: ignore[arg-type]
 
     def sync_feature(self, feature_id: str, ws_dir: Path) -> list[SyncResult]:
         """Sync all workstreams for feature.

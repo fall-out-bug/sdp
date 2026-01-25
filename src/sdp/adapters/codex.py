@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from sdp.adapters.base import PlatformAdapter
 

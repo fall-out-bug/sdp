@@ -4,7 +4,10 @@ This module provides a unified interface for generating all diagram types.
 """
 
 from pathlib import Path
-from typing import List
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from .annotations import FlowStep
 
 from .annotations import Flow
 from .generator_mermaid import (
@@ -65,7 +68,7 @@ def generate_diagrams(
 
 def generate_flow_from_steps(
     flow_name: str,
-    steps: List,
+    steps: List["FlowStep"],
 ) -> Flow:
     """Create a Flow object from a list of FlowStep objects.
 

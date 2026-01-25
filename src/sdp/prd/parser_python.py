@@ -147,6 +147,17 @@ def parse_python_annotations_ast(path: Path) -> list[FlowStep]:
                 if description is None:
                     description = node.name
 
+                # Explicit type narrowing for mypy
+                if not isinstance(flow_name, str):
+                    flow_name = str(flow_name)
+                if not isinstance(step_number, int):
+                    if isinstance(step_number, (int, str)):
+                        step_number = int(step_number)
+                    else:
+                        step_number = 0
+                if not isinstance(description, str):
+                    description = str(description)
+
                 steps.append(FlowStep(
                     flow_name=flow_name,
                     step_number=step_number,
@@ -160,7 +171,15 @@ def parse_python_annotations_ast(path: Path) -> list[FlowStep]:
         def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
             """Visit async function definition."""
             # Treat async functions the same as regular functions
-            self.visit_FunctionDef(node)
+            # Create a fake FunctionDef-like object with same attributes
+            class _FuncDefWrapper:
+                def __init__(self, async_node: ast.AsyncFunctionDef):
+                    self.name = async_node.name
+                    self.decorator_list = async_node.decorator_list
+                    self.lineno = async_node.lineno
+
+            wrapper = _FuncDefWrapper(node)
+            self.visit_FunctionDef(wrapper)  # type: ignore[arg-type]
 
     visitor = PRDVisitor()
     visitor.visit(tree)

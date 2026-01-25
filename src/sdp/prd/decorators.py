@@ -4,10 +4,10 @@ This module provides decorators that can be used to annotate Python code
 with PRD flow information for automatic diagram generation.
 """
 
-from functools import wraps
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
-F = TypeVar('F', bound=Callable)
+F = TypeVar('F', bound=Callable[..., object])
 
 
 def prd_flow(flow_name: str) -> Callable[[F], F]:
@@ -64,7 +64,7 @@ def prd_step(step_number: int, description: str) -> Callable[[F], F]:
     return decorator
 
 
-def get_flow_info(func: Callable) -> tuple[str | None, int | None, str | None]:
+def get_flow_info(func: Callable[..., object]) -> tuple[str | None, int | None, str | None]:
     """Extract PRD flow information from a function.
 
     Args:

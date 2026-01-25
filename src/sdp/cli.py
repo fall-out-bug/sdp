@@ -260,6 +260,8 @@ def tier_promote_check(ws_id: str, storage: Path, dry_run: bool) -> None:
         new_tier = store.check_promotion_eligible(ws_id)
         if new_tier:
             metrics = store.get_metrics(ws_id)
+            if metrics is None:
+                continue
             changes.append((ws_id, metrics.current_tier, new_tier))
             click.echo(
                 f"⚠ {ws_id}: {metrics.current_tier} → {new_tier} "
