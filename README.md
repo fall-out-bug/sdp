@@ -103,10 +103,9 @@ sdp/
 
 SDP is inspired by and incorporates ideas from:
 
+- [superpowers](https://github.com/obra/superpowers) - AI agent capabilities framework
 - [vibe-kanban](https://github.com/BloopAI/vibe-kanban) - Task management for AI agents
-- [swebench](https://github.com/princeton-nlp/SWE-bench) - Benchmark for software engineering
-- [Aider](https://github.com/paul-gauthier/aider) - AI pair programming
-- [Cursor](https://cursor.sh) - AI code editor
+- [sub-agents.directory](https://github.com/ayush-that/sub-agents.directory) - Multi-agent orchestration
 
 ## License
 
