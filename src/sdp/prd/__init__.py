@@ -21,6 +21,29 @@ from .scaffold import (
     update_prd_frontmatter,
 )
 
+from .annotations import (
+    FlowStep,
+    Flow,
+)
+
+from .decorators import (
+    prd_flow,
+    prd_step,
+    get_flow_info,
+)
+
+from .parser_python import (
+    parse_python_annotations,
+    parse_python_annotations_ast,
+    parse_directory,
+)
+
+from .parser_bash import (
+    parse_bash_annotations,
+    parse_directory_bash,
+    parse_yaml_annotations,
+)
+
 __all__ = [
     # Profiles
     "ProjectType",
@@ -35,4 +58,18 @@ __all__ = [
     "generate_prd_template",
     "create_prd_file",
     "update_prd_frontmatter",
+    # Annotations
+    "FlowStep",
+    "Flow",
+    # Decorators
+    "prd_flow",
+    "prd_step",
+    "get_flow_info",
+    # Parsers
+    "parse_python_annotations",
+    "parse_python_annotations_ast",
+    "parse_directory",
+    "parse_bash_annotations",
+    "parse_directory_bash",
+    "parse_yaml_annotations",
 ]
