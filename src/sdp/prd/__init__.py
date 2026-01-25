@@ -44,6 +44,21 @@ from .parser_bash import (
     parse_yaml_annotations,
 )
 
+from .parser import (
+    parse_prd_sections,
+    get_frontmatter,
+    update_frontmatter,
+)
+
+from .validator import (
+    Severity,
+    ValidationIssue,
+    validate_prd,
+    validate_prd_file,
+    format_validation_issues,
+    has_critical_issues,
+)
+
 __all__ = [
     # Profiles
     "ProjectType",
@@ -72,4 +87,15 @@ __all__ = [
     "parse_bash_annotations",
     "parse_directory_bash",
     "parse_yaml_annotations",
+    # Parser
+    "parse_prd_sections",
+    "get_frontmatter",
+    "update_frontmatter",
+    # Validator
+    "Severity",
+    "ValidationIssue",
+    "validate_prd",
+    "validate_prd_file",
+    "format_validation_issues",
+    "has_critical_issues",
 ]
