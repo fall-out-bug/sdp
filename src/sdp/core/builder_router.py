@@ -10,6 +10,72 @@ from typing import Optional
 from sdp.core.model_mapping import ModelProvider, ModelRegistry
 from sdp.core.workstream import Workstream
 
+# Default weights for model selection
+DEFAULT_WEIGHTS = {
+    "cost": 0.4,
+    "availability": 0.3,
+    "context": 0.3,
+}
+
+
+def select_model_weighted(
+    models: list[ModelProvider],
+    weights: dict[str, float],
+    required_context: int = 0,
+) -> ModelProvider:
+    """Select model using weighted scoring.
+
+    Args:
+        models: Available models for tier
+        weights: Weight dict (cost, availability, context)
+        required_context: Minimum context window required
+
+    Returns:
+        Best model according to weighted score
+
+    Raises:
+        ValueError: If no models meet requirements
+    """
+    # Filter by context requirements
+    if required_context > 0:
+        candidates = [m for m in models if m.context_window >= required_context]
+    else:
+        candidates = models
+
+    if not candidates:
+        raise ValueError(f"No models with context >= {required_context}")
+
+    # Normalize metrics (0-1 scale, higher is better)
+    max_cost = max(m.cost_per_1m_tokens for m in candidates) if candidates else 1.0
+    if max_cost == 0:
+        max_cost = 1.0  # Avoid division by zero
+
+    scores = []
+    for model in candidates:
+        # Cost score: lower cost = higher score (inverted)
+        if max_cost > 0:
+            cost_score = 1 - (model.cost_per_1m_tokens / max_cost)
+        else:
+            cost_score = 1.0
+
+        # Availability score: already 0-1
+        avail_score = model.availability_pct
+
+        # Context score: normalize to 200K max
+        context_score = min(model.context_window / 200_000, 1.0)
+
+        # Weighted score
+        weighted_score = (
+            weights["cost"] * cost_score +
+            weights["availability"] * avail_score +
+            weights["context"] * context_score
+        )
+        scores.append((weighted_score, model))
+
+    # Return highest score
+    scores.sort(key=lambda x: x[0], reverse=True)
+    return scores[0][1]
+
 
 @dataclass
 class RetryPolicy:
@@ -109,7 +175,8 @@ class BuilderRouter:
         Raises:
             ValueError: If tier is invalid or no models available
         """
-        tier = workstream.capability_tier or self.default_tier
+        # Get capability_tier from workstream if available, otherwise use default
+        tier = getattr(workstream, "capability_tier", None) or self.default_tier
         return select_model_for_tier(tier, self.registry)
 
     def get_retry_policy(self, workstream: Workstream) -> RetryPolicy:
@@ -124,7 +191,7 @@ class BuilderRouter:
         Returns:
             RetryPolicy instance
         """
-        tier = workstream.capability_tier or self.default_tier
+        tier = getattr(workstream, "capability_tier", None) or self.default_tier
 
         # Policy D1: T2/T3 get 3 attempts → human escalation
         if tier in ("T2", "T3"):
@@ -168,22 +235,30 @@ class BuilderRouter:
         Returns:
             HumanEscalationError instance
         """
+        tier = getattr(workstream, "capability_tier", None) or self.default_tier
         return HumanEscalationError(
             ws_id=workstream.ws_id,
-            tier=workstream.capability_tier,
+            tier=tier,
             attempts=attempt,
             diagnostics=diagnostics,
         )
 
 
-def select_model_for_tier(tier: str, registry: ModelRegistry) -> ModelProvider:
+def select_model_for_tier(
+    tier: str,
+    registry: ModelRegistry,
+    required_context: int = 0,
+    weights: Optional[dict[str, float]] = None,
+) -> ModelProvider:
     """Select model provider for given capability tier.
 
-    Currently selects first available model. Future: add cost/availability logic.
+    Uses weighted selection based on cost, availability, context.
 
     Args:
         tier: Capability tier (T0, T1, T2, T3)
         registry: Model registry
+        required_context: Minimum context tokens needed
+        weights: Custom weights (defaults to DEFAULT_WEIGHTS)
 
     Returns:
         Selected ModelProvider instance
@@ -196,6 +271,8 @@ def select_model_for_tier(tier: str, registry: ModelRegistry) -> ModelProvider:
     if not models:
         raise ValueError(f"No models available for tier {tier}")
 
-    # For now, select first model (primary choice)
-    # Future: add cost/availability/context size selection logic
-    return models[0]
+    return select_model_weighted(
+        models,
+        weights or DEFAULT_WEIGHTS,
+        required_context
+    )

@@ -19,15 +19,15 @@
 
 **Recommended Models:**
 
-| Provider | Model | Context | Tool Use | Notes |
-|----------|-------|---------|----------|-------|
-| Anthropic | Claude Sonnet 4.5 | 200K | ✅ Full | Primary choice for /design |
-| Anthropic | Claude Opus 4 | 200K | ✅ Full | Highest quality, higher cost |
-| OpenAI | GPT-4 Turbo | 128K | ✅ Full | Alternative to Sonnet |
-| OpenAI | GPT-4o | 128K | ✅ Full | Good balance of quality/cost |
-| Google | Gemini Pro 1.5 | 1M+ | ✅ Full | Very large context support |
-| Local | Llama 3.1 70B (4-bit) | 128K | ⚠️ Limited | Requires 40GB+ VRAM |
-| Local | Qwen 2.5 72B (4-bit) | 32K | ⚠️ Limited | Good reasoning, Chinese support |
+| Provider | Model | Cost ($/1M) | Availability | Context | Tool Use | Notes |
+|----------|-------|-------------|--------------|---------|----------|-------|
+| Anthropic | Claude Sonnet 4.5 | 3.00 | 99.9% | 200K | ✅ Full | Primary choice for /design |
+| Anthropic | Claude Opus 4 | 15.00 | 99.9% | 200K | ✅ Full | Highest quality, higher cost |
+| OpenAI | GPT-4 Turbo | 10.00 | 99.5% | 128K | ✅ Full | Alternative to Sonnet |
+| OpenAI | GPT-4o | 5.00 | 99.5% | 128K | ✅ Full | Good balance of quality/cost |
+| Google | Gemini Pro 1.5 | 3.50 | 99.0% | 1M+ | ✅ Full | Very large context support |
+| Local | Llama 3.1 70B (4-bit) | 0.00 | 100% | 128K | ⚠️ Limited | Requires 40GB+ VRAM |
+| Local | Qwen 2.5 72B (4-bit) | 0.00 | 100% | 32K | ⚠️ Limited | Good reasoning, Chinese support |
 
 **Minimum Requirements:**
 - Context window: ≥ 32K tokens
@@ -46,16 +46,16 @@
 
 **Recommended Models:**
 
-| Provider | Model | Context | Tool Use | Notes |
-|----------|-------|---------|----------|-------|
-| Anthropic | Claude Sonnet 4.5 | 200K | ✅ Full | Can handle T1, but overkill |
-| Anthropic | Claude Haiku 4 | 200K | ✅ Full | **Recommended** for T1 |
-| OpenAI | GPT-4o-mini | 128K | ✅ Full | Cost-effective for T1 |
-| OpenAI | GPT-4 Turbo | 128K | ✅ Full | Higher quality, higher cost |
-| Google | Gemini Flash 1.5 | 1M+ | ✅ Full | Fast, large context |
-| Local | Llama 3.1 13B (4-bit) | 128K | ⚠️ Limited | Requires 8GB+ VRAM |
-| Local | DeepSeek-Coder 33B (4-bit) | 16K | ⚠️ Limited | Code-focused, requires 20GB+ VRAM |
-| Local | Qwen 2.5 14B (4-bit) | 32K | ⚠️ Limited | Requires 8GB+ VRAM |
+| Provider | Model | Cost ($/1M) | Availability | Context | Tool Use | Notes |
+|----------|-------|-------------|--------------|---------|----------|-------|
+| Anthropic | Claude Sonnet 4.5 | 3.00 | 99.9% | 200K | ✅ Full | Can handle T1, but overkill |
+| Anthropic | Claude Haiku 4 | 0.25 | 99.9% | 200K | ✅ Full | **Recommended** for T1 |
+| OpenAI | GPT-4o-mini | 0.15 | 99.5% | 128K | ✅ Full | Cost-effective for T1 |
+| OpenAI | GPT-4 Turbo | 10.00 | 99.5% | 128K | ✅ Full | Higher quality, higher cost |
+| Google | Gemini Flash 1.5 | 0.075 | 99.0% | 1M+ | ✅ Full | Fast, large context |
+| Local | Llama 3.1 13B (4-bit) | 0.00 | 100% | 128K | ⚠️ Limited | Requires 8GB+ VRAM |
+| Local | DeepSeek-Coder 33B (4-bit) | 0.00 | 100% | 16K | ⚠️ Limited | Code-focused, requires 20GB+ VRAM |
+| Local | Qwen 2.5 14B (4-bit) | 0.00 | 100% | 32K | ⚠️ Limited | Requires 8GB+ VRAM |
 
 **Minimum Requirements:**
 - Context window: ≥ 16K tokens
@@ -74,17 +74,17 @@
 
 **Recommended Models:**
 
-| Provider | Model | Context | Tool Use | Notes |
-|----------|-------|---------|----------|-------|
-| Anthropic | Claude Haiku 4 | 200K | ✅ Full | **Primary choice** for T2 |
-| OpenAI | GPT-4o-mini | 128K | ✅ Full | **Recommended** alternative |
-| OpenAI | GPT-3.5 Turbo | 16K | ✅ Full | Cost-effective, lower quality |
-| Google | Gemini Flash 1.5 | 1M+ | ✅ Full | Fast, very cost-effective |
-| Local | Llama 3.1 8B (4-bit) | 128K | ❌ None | **Baseline** for local T2 |
-| Local | CodeLlama 7B (4-bit) | 16K | ❌ None | Code-focused baseline |
-| Local | DeepSeek-Coder 6.7B (4-bit) | 16K | ❌ None | Code-focused, 8GB VRAM |
-| Local | Qwen 2.5 7B (4-bit) | 32K | ❌ None | Multilingual support |
-| Local | Mistral 7B (4-bit) | 8K | ❌ None | Smallest viable local model |
+| Provider | Model | Cost ($/1M) | Availability | Context | Tool Use | Notes |
+|----------|-------|-------------|--------------|---------|----------|-------|
+| Anthropic | Claude Haiku 4 | 0.25 | 99.9% | 200K | ✅ Full | **Primary choice** for T2 |
+| OpenAI | GPT-4o-mini | 0.15 | 99.5% | 128K | ✅ Full | **Recommended** alternative |
+| OpenAI | GPT-3.5 Turbo | 0.50 | 99.0% | 16K | ✅ Full | Cost-effective, lower quality |
+| Google | Gemini Flash 1.5 | 0.075 | 99.0% | 1M+ | ✅ Full | Fast, very cost-effective |
+| Local | Llama 3.1 8B (4-bit) | 0.00 | 100% | 128K | ❌ None | **Baseline** for local T2 |
+| Local | CodeLlama 7B (4-bit) | 0.00 | 100% | 16K | ❌ None | Code-focused baseline |
+| Local | DeepSeek-Coder 6.7B (4-bit) | 0.00 | 100% | 16K | ❌ None | Code-focused, 8GB VRAM |
+| Local | Qwen 2.5 7B (4-bit) | 0.00 | 100% | 32K | ❌ None | Multilingual support |
+| Local | Mistral 7B (4-bit) | 0.00 | 100% | 8K | ❌ None | Smallest viable local model |
 
 **Minimum Requirements:**
 - Context window: ≥ 8K tokens
@@ -110,16 +110,16 @@
 
 **Recommended Models:**
 
-| Provider | Model | Context | Tool Use | Notes |
-|----------|-------|---------|----------|-------|
-| Anthropic | Claude Haiku 4 | 200K | ✅ Full | Overkill but works |
-| OpenAI | GPT-4o-mini | 128K | ✅ Full | **Recommended** for T3 |
-| OpenAI | GPT-3.5 Turbo | 16K | ✅ Full | Very cost-effective |
-| Google | Gemini Flash 1.5 | 1M+ | ✅ Full | Fastest, cheapest cloud option |
-| Local | Llama 3.1 8B (4-bit) | 128K | ❌ None | Works for T3 |
-| Local | CodeLlama 7B (4-bit) | 16K | ❌ None | Code-focused |
-| Local | TinyLlama 1.1B (4-bit) | 2K | ❌ None | **Minimum viable** (4GB VRAM) |
-| Local | Phi-2 2.7B (4-bit) | 2K | ❌ None | Small, efficient (4GB VRAM) |
+| Provider | Model | Cost ($/1M) | Availability | Context | Tool Use | Notes |
+|----------|-------|-------------|--------------|---------|----------|-------|
+| Anthropic | Claude Haiku 4 | 0.25 | 99.9% | 200K | ✅ Full | Overkill but works |
+| OpenAI | GPT-4o-mini | 0.15 | 99.5% | 128K | ✅ Full | **Recommended** for T3 |
+| OpenAI | GPT-3.5 Turbo | 0.50 | 99.0% | 16K | ✅ Full | Very cost-effective |
+| Google | Gemini Flash 1.5 | 0.075 | 99.0% | 1M+ | ✅ Full | Fastest, cheapest cloud option |
+| Local | Llama 3.1 8B (4-bit) | 0.00 | 100% | 128K | ❌ None | Works for T3 |
+| Local | CodeLlama 7B (4-bit) | 0.00 | 100% | 16K | ❌ None | Code-focused |
+| Local | TinyLlama 1.1B (4-bit) | 0.00 | 100% | 2K | ❌ None | **Minimum viable** (4GB VRAM) |
+| Local | Phi-2 2.7B (4-bit) | 0.00 | 100% | 2K | ❌ None | Small, efficient (4GB VRAM) |
 
 **Minimum Requirements:**
 - Context window: ≥ 4K tokens
