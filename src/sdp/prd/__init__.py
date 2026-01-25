@@ -76,6 +76,13 @@ from .generator_plantuml import (
     generate_plantuml_deployment,
 )
 
+from .hash import (
+    calculate_diagrams_hash,
+    get_stored_hash,
+    update_stored_hash,
+    validate_diagrams_freshness,
+)
+
 __all__ = [
     # Profiles
     "ProjectType",
@@ -124,4 +131,9 @@ __all__ = [
     "generate_plantuml_sequence",
     "generate_plantuml_component",
     "generate_plantuml_deployment",
+    # Hash
+    "calculate_diagrams_hash",
+    "get_stored_hash",
+    "update_stored_hash",
+    "validate_diagrams_freshness",
 ]
