@@ -78,9 +78,19 @@ def _extract_project_name(content: str) -> str | None:
     Returns:
         Project name or None if not found
     """
-    match = re.search(r"^# Project Map:\s*(.+)$", content, re.MULTILINE)
-    if match:
-        return match.group(1).strip()
+    # Try multiple formats:
+    # 1. "# PROJECT_MAP: SDP" (SDP format)
+    # 2. "# Project Map: <name>" (standard format)
+    # 3. "# PROJECT: <name>" (alternative format)
+    patterns = [
+        r"^# PROJECT_MAP:\s*(.+)$",
+        r"^# Project Map:\s*(.+)$",
+        r"^# PROJECT:\s*(.+)$",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, content, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
     return None
 
 
