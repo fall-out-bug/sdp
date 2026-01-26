@@ -629,6 +629,83 @@ def queue_status() -> None:
         click.echo("Queue empty")
 
 
+# Test command group
+@main.group()
+def test() -> None:
+    """Test execution commands."""
+    pass
+
+
+@test.command("run")
+@click.option("--coverage", is_flag=True, help="Enable coverage report")
+@click.option("--pattern", help="Filter tests by pattern")
+def test_run(coverage: bool, pattern: str | None) -> None:
+    """Run tests once."""
+    from sdp.test_watch.runner import WatchTestRunner
+
+    runner = WatchTestRunner(".", coverage=coverage, pattern=pattern)
+    results = runner.run()
+
+    status_emoji = {"passed": "✅", "failed": "❌", "error": "⚠️", "no_tests": "⚪"}
+    click.echo(f"{status_emoji.get(results.status, '?')} Test Results")
+    click.echo(f"Status: {results.status.upper()}")
+
+    if results.status != "no_tests":
+        click.echo(f"Passed: {results.passed}")
+        click.echo(f"Failed: {results.failed}")
+        if results.coverage:
+            click.echo(f"Coverage: {results.coverage:.1f}%")
+
+    if results.error_message:
+        click.echo(f"Error: {results.error_message}", err=True)
+
+    sys.exit(0 if results.status in ["passed", "no_tests"] else 1)
+
+
+@test.command("watch")
+@click.option("--coverage", is_flag=True, default=True, help="Enable coverage report")
+@click.option("--pattern", help="Filter tests by pattern")
+@click.option("--debounce", type=float, default=0.5, help="Debounce delay in seconds")
+def test_watch(coverage: bool, pattern: str | None, debounce: float) -> None:
+    """Watch for file changes and run tests automatically."""
+    import time
+
+    from sdp.test_watch.runner import WatchTestRunner
+    from sdp.test_watch.watcher import watch_tests
+
+    runner = WatchTestRunner(".", coverage=coverage, pattern=pattern)
+
+    def on_change(changed_file: str) -> None:
+        click.echo(f"\n📝 {changed_file} changed")
+        click.echo("Running tests...")
+
+        results = runner.run_affected(changed_file)
+
+        status_emoji = {"passed": "✅", "failed": "❌", "error": "⚠️", "no_tests": "⚪"}
+        click.echo(f"{status_emoji.get(results.status, '?')} {results.status.upper()}")
+
+        if results.failed_tests:
+            click.echo(f"Failed: {results.failed}")
+
+    observer = watch_tests(".", on_change, debounce=debounce)
+
+    click.echo("Watching for file changes... (Ctrl+C to stop)")
+    try:
+        # Run initial tests
+        click.echo("Running initial tests...")
+        results = runner.run()
+        status_emoji = {"passed": "✅", "failed": "❌", "error": "⚠️", "no_tests": "⚪"}
+        click.echo(f"{status_emoji.get(results.status, '?')} Initial: {results.status.upper()}")
+
+        # Keep watcher alive
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        observer.join()
+        click.echo("\nWatch mode stopped")
+
+
 # Register extension commands
 from sdp.cli_extension import extension
 from sdp.cli_init import init
@@ -640,6 +717,7 @@ main.add_command(prd)
 main.add_command(daemon)
 main.add_command(queue)
 main.add_command(status)
+main.add_command(test)
 
 
 if __name__ == "__main__":
