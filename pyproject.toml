@@ -12,6 +12,7 @@ PyGithub = "^2.1.1"
 python-dotenv = "^1.0.0"
 click = "^8.1.0"
 pyyaml = "^6.0"
+jsonschema = ">=4.20.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
