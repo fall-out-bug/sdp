@@ -17,6 +17,7 @@ watchdog = ">=4.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
+pytest-asyncio = "^0.23"
 pytest-cov = "^4.1"
 ruff = "^0.1"
 mypy = "^1.7"
@@ -43,6 +44,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 markers = [
     "fast: Unit tests without external deps",
     "integration: Integration tests with external services",

@@ -920,6 +920,7 @@ main.add_command(status)
 main.add_command(test)
 main.add_command(task)
 main.add_command(ws)
+main.add_command(orchestrator)
 
 
 @main.command()
@@ -933,6 +934,134 @@ def dashboard() -> None:
     except Exception as e:
         click.echo(f"Error starting dashboard: {e}", err=True)
         sys.exit(1)
+
+
+# Orchestrator commands
+@main.group()
+def orchestrator() -> None:
+    """Multi-agent orchestration commands."""
+    pass
+
+
+@orchestrator.command("run")
+@click.argument("feature_id")
+@click.option("--max-agents", default=3, type=int, help="Maximum concurrent agents")
+@click.option("--ordered", is_flag=True, help="Run sequentially (for debugging)")
+@click.option("--ws-dir", default="docs/workstreams", help="Workstreams directory")
+def orchestrator_run(feature_id: str, max_agents: int, ordered: bool, ws_dir: str) -> None:
+    """Execute all workstreams for a feature.
+
+    Example: sdp orchestrator run F012
+    """
+    import asyncio
+
+    from sdp.agents.orchestrator import Orchestrator
+
+    async def run() -> None:
+        orch = Orchestrator(max_agents=max_agents, ws_dir=ws_dir)
+
+        # Progress callback
+        def on_progress(ws_id: str, success: bool, error: str | None) -> None:
+            status = click.style("✓", fg="green") if success else click.style("✗", fg="red")
+            click.echo(f"{status} {ws_id}" + (f": {error}" if error else ""))
+
+        orch.on_progress(on_progress)
+
+        click.echo(f"Executing feature {feature_id}...")
+
+        if ordered:
+            result = await orch.run_feature_ordered(feature_id)
+        else:
+            result = await orch.run_feature(feature_id)
+
+        # Summary
+        click.echo(f"\n{'='*50}")
+        click.echo(f"Feature: {result.feature_id}")
+        click.echo(f"Status: {click.style('SUCCESS', fg='green') if result.success else click.style('FAILED', fg='red')}")
+        click.echo(f"Duration: {result.duration_seconds:.1f}s")
+        click.echo(f"Completed: {len(result.completed)}")
+        click.echo(f"Failed: {len(result.failed)}")
+
+        if result.failed:
+            click.echo(f"\nFailed workstreams:")
+            for ws_id in result.failed:
+                error = result.errors.get(ws_id, "Unknown error")
+                click.echo(f"  {ws_id}: {error}")
+
+    try:
+        asyncio.run(run())
+    except ValueError as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"Unexpected error: {e}", err=True)
+        sys.exit(1)
+
+
+@orchestrator.command("enqueue")
+@click.argument("feature_id")
+@click.option(
+    "--priority",
+    type=click.Choice(["blocked", "backlog", "normal", "active", "urgent"], case_sensitive=False),
+    default="normal",
+    help="Task priority",
+)
+@click.option("--ws-dir", default="docs/workstreams", help="Workstreams directory")
+def orchestrator_enqueue(feature_id: str, priority: str, ws_dir: str) -> None:
+    """Enqueue all workstreams for a feature in the task queue.
+
+    Example: sdp orchestrator enqueue F012 --priority urgent
+    """
+    import asyncio
+
+    from sdp.agents.orchestrator import Orchestrator
+    from sdp.queue.task_queue import Priority
+
+    async def run() -> None:
+        orch = Orchestrator(ws_dir=ws_dir)
+
+        priority_map = {
+            "blocked": Priority.BLOCKED,
+            "backlog": Priority.BACKLOG,
+            "normal": Priority.NORMAL,
+            "active": Priority.ACTIVE,
+            "urgent": Priority.URGENT,
+        }
+
+        task_ids = await orch.enqueue_feature(feature_id, priority_map[priority])
+        click.echo(f"Enqueued {len(task_ids)} tasks for feature {feature_id}")
+
+    asyncio.run(run())
+
+
+@orchestrator.command("status")
+@click.option("--ws-dir", default="docs/workstreams", help="Workstreams directory")
+def orchestrator_status(ws_dir: str) -> None:
+    """Show orchestrator state and agent pool status."""
+    import asyncio
+
+    from sdp.agents.orchestrator import Orchestrator
+
+    orch = Orchestrator(ws_dir=ws_dir)
+
+    # Load saved state
+    state = orch.load_state()
+    if state:
+        click.echo(f"Last execution:")
+        click.echo(f"  Feature: {state.feature_id}")
+        click.echo(f"  Status: {state.status}")
+        click.echo(f"  Started: {state.started_at}")
+        click.echo(f"  Current: {state.current_ws or 'None'}")
+        click.echo(f"  Completed: {len(state.results)}/{len(state.results) + len(state.errors)}")
+    else:
+        click.echo("No previous execution state found.")
+
+    # Pool stats
+    stats = orch.get_stats()
+    click.echo(f"\nAgent Pool:")
+    click.echo(f"  Total: {stats.total_agents}")
+    click.echo(f"  Busy: {stats.busy_agents}")
+    click.echo(f"  Available: {stats.available_agents}")
 
 
 if __name__ == "__main__":
