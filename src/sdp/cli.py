@@ -632,12 +632,14 @@ def queue_status() -> None:
 # Register extension commands
 from sdp.cli_extension import extension
 from sdp.cli_init import init
+from sdp.status.command import status
 
 main.add_command(extension)
 main.add_command(init)
 main.add_command(prd)
 main.add_command(daemon)
 main.add_command(queue)
+main.add_command(status)
 
 
 if __name__ == "__main__":
