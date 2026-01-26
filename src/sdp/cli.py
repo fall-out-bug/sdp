@@ -922,5 +922,18 @@ main.add_command(task)
 main.add_command(ws)
 
 
+@main.command()
+def dashboard() -> None:
+    """Launch the SDP Dashboard TUI application."""
+    from sdp.dashboard.dashboard_app import DashboardApp
+
+    try:
+        app = DashboardApp()
+        app.run()
+    except Exception as e:
+        click.echo(f"Error starting dashboard: {e}", err=True)
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()
