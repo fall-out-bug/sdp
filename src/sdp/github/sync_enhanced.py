@@ -107,14 +107,13 @@ class EnhancedSyncService:
         Returns:
             Dict with workstream state
         """
-        from .ws_parser import WorkstreamParser
+        from ..core import parse_workstream
 
         # Try to find the workstream file
         for status in ["backlog", "in_progress", "completed"]:
             ws_path = Path(self._base.ws_dir) / status / f"{ws_id}.md"
             if ws_path.exists():
-                parser = WorkstreamParser()
-                ws = parser.parse(ws_path)
+                ws = parse_workstream(ws_path)
                 return {"status": ws.status.value}
 
         return {}

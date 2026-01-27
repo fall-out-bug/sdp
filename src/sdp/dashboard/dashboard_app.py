@@ -1,5 +1,6 @@
 """Main SDP Dashboard application."""
 
+import logging
 from datetime import datetime
 
 from textual.app import App, ComposeResult
@@ -13,6 +14,9 @@ from .sources.workstream_reader import WorkstreamReader
 from .tabs.tests_tab import TestsTab
 from .tabs.activity_tab import ActivityTab
 from .tabs.workstreams_tab import WorkstreamsTab
+
+
+logger = logging.getLogger(__name__)
 
 
 class DashboardApp(App):
@@ -65,7 +69,7 @@ class DashboardApp(App):
                     self._state_bus.publish(state)
                 except Exception as e:
                     # Don't crash on polling errors
-                    pass
+                    logger.debug("Workstream polling error: %s", e)
                 await asyncio.sleep(1)
 
         self.run_worker(poll())
@@ -79,8 +83,8 @@ class DashboardApp(App):
             current_state = self._state_bus.state or DashboardState()
             current_state.test_results = results
             self._state_bus.publish(current_state)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Test runner initialization error: %s", e)
 
     def action_switch_tab(self, tab_index: int) -> None:
         """Switch to tab by index.
@@ -103,8 +107,8 @@ class DashboardApp(App):
                 state.test_results = self._state_bus.state.test_results
 
             self._state_bus.publish(state)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Refresh error: %s", e)
 
     def on_unmount(self) -> None:
         """Cleanup when dashboard closes."""

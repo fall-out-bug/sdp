@@ -1,5 +1,6 @@
 """Queue state persistence."""
 
+import logging
 import json
 from dataclasses import asdict
 from datetime import datetime
@@ -7,6 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from queue import PriorityQueue
+
+
+logger = logging.getLogger(__name__)
 
 
 class QueueState:
@@ -37,8 +41,8 @@ class QueueState:
             # Put items back
             for item in temp_list:
                 queue.put_nowait(item)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Error extracting queue items: %s", e)
 
         # Convert to serializable format
         serializable = []
@@ -71,7 +75,8 @@ class QueueState:
         try:
             data = json.loads(state_path.read_text())
             return data.get("tasks", [])
-        except Exception:
+        except Exception as e:
+            logger.warning("Error loading queue state from %s: %s", state_path, e)
             return []
 
     @staticmethod
