@@ -1,12 +1,12 @@
 ---
 name: think
-description: Deep structured thinking for complex problems (INTERNAL - used by @idea and @design)
-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+description: Deep structured thinking with parallel agents (INTERNAL - used by @idea and @design)
+tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, Task
 ---
 
 # /think - Deep Structured Thinking
 
-**INTERNAL SKILL** — Used by `@idea` and `@design` for deep analysis of requirements and architecture.
+**INTERNAL SKILL** — Used by `@idea` and `@design` for deep analysis with parallel expert agents.
 
 ## Purpose
 
@@ -30,79 +30,113 @@ When a problem needs deeper exploration than surface-level questions:
 - Failure modes unclear
 - Performance/security tradeoffs significant
 
-## The Thinking Process
+## Parallel Expert Agents Pattern
 
-### Phase 1: Deconstruct the Problem
+### Step 1: Define Expert Roles
 
-Break down into dimensions:
-- **Users** — Who is affected? How?
-- **Scope** — What's in/out?
-- **Constraints** — Technical, business, time
-- **Risks** — What could go wrong?
-- **Dependencies** — What else does this touch?
+For complex problems, spawn 2-4 parallel expert agents:
 
-### Phase 2: Explore Multiple Angles
+| Expert | Focus | When to Use |
+|--------|-------|-------------|
+| **Architect** | System design, patterns, modularity | All architectural decisions |
+| **Security** | Threats, auth, data protection | User data, APIs, external integration |
+| **Performance** | Latency, throughput, scalability | High load, real-time requirements |
+| **UX** | User experience, discoverability | User-facing features |
+| **Ops** | Deployability, monitoring, failure modes | Production systems |
 
-For each significant dimension, explore:
+### Step 2: Launch Parallel Analysis
 
-**Angle 1: The Ideal Solution**
-- What would perfect look like?
-- What constraints prevent it?
+```python
+# Spawn experts in parallel (single message)
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the ARCHITECT expert for this problem.
 
-**Angle 2: The Pragmatic Solution**
-- What's realistic given constraints?
-- What are acceptable tradeoffs?
+PROBLEM: {problem_description}
 
-**Angle 3: The Minimal Solution**
-- What's the smallest thing that works?
-- What can be deferred?
+Your expertise: System design, patterns, modularity, clean architecture
 
-### Phase 3: Synthesize Insights
+Explore the problem from your perspective:
+1. What are the key architectural considerations?
+2. What patterns apply here?
+3. What are the risks?
 
-Look for:
-- Patterns across angles
-- Hidden assumptions
-- Risks not yet considered
-- Dependencies not yet mapped
+Return your analysis in 3-5 bullet points.""",
+    description="Architect analysis"
+)
 
-### Phase 4: Present Findings
+# Launch other experts similarly...
+```
 
-Format:
+**All agents run in parallel** — user sees all thoughts simultaneously.
+
+### Step 3: Aggregate and Synthesize
+
+After all experts complete, synthesize:
+
+```markdown
+## Expert Analysis Summary
+
+### @architect
+- Clean architecture suggests domain layer first
+- Risk: tight coupling to existing services
+
+### @security
+- Need threat modeling for user data
+- OAuth2 preferred over custom auth
+
+### @performance
+- Caching strategy needed for read-heavy workload
+- Database indexing critical for query performance
+
+### Synthesis
+Combining all perspectives, recommended approach: ...
+```
+
+## Single-Agent Mode (Simple Problems)
+
+For straightforward problems, skip parallel agents:
+
+1. **Deconstruct** the problem into dimensions
+2. **Explore** 3+ angles (ideal/pragmatic/minimal)
+3. **Synthesize** insights
+4. **Present** findings
+
+## Output Format
+
 ```markdown
 ## Problem Analysis
 
-### Dimensions
-- Users: ...
-- Scope: ...
-- Constraints: ...
+### Context
+{Brief problem statement}
 
-### Angles Explored
-1. **Ideal**: ... → Blocked by ...
-2. **Pragmatic**: ... → Tradeoffs: ...
-3. **Minimal**: ... → Deferred: ...
+### Expert Analysis
 
-### Key Insights
-- ...
-- ...
+**@architect:** {analysis}
+**@security:** {analysis}
+**@performance:** {analysis}
+
+### Synthesis
+{Combined insights}
 
 ### Recommendation
-With the above analysis, recommended approach: ...
+{Clear recommendation with rationale}
 
 ### Open Questions
-- ...
+{What remains unknown}
 ```
 
 ## Principles
 
-- **Explore before concluding** — Don't jump to answers
-- **Multiple angles** — At least 3 perspectives per major decision
+- **Parallel exploration** — Multiple experts run simultaneously
+- **Real-time thoughts** — User sees all expert thoughts as they complete
+- **Role-based expertise** — Each expert has defined perspective
+- **Synthesis** — Combine insights into coherent recommendation
 - **Explicit tradeoffs** — State what you're optimizing for
-- **Surface assumptions** — Make implicit things explicit
-- **Identify unknowns** — Distinguish known from unknown
 
 ## Exit When
 
-- Analysis covers all major dimensions
-- At least 2-3 angles explored for each decision
+- All experts have completed analysis (parallel mode) OR
+- All angles explored (single mode)
 - Tradeoffs are explicit
 - Recommendation is clear with rationale
