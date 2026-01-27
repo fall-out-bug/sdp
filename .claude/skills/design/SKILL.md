@@ -16,6 +16,21 @@ Transform idea drafts into detailed workstream specifications with execution gra
 
 ## Workflow
 
+### When to Call /think
+
+If architecture is **complex with multiple valid approaches**, call `/think` first:
+
+```python
+Skill("think")
+# Returns structured analysis of architectural options
+```
+
+Use /think for:
+- Multiple valid architectural approaches
+- Complex integration points
+- Unclear failure modes
+- Significant performance/security tradeoffs
+
 ### Step 0: Enter Plan Mode
 
 ```markdown

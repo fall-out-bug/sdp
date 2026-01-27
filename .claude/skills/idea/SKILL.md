@@ -19,6 +19,21 @@ Deep, interactive interviewing to capture comprehensive feature requirements usi
 
 **IMPORTANT:** Use AskUserQuestion for deep, continuous interviewing until requirements are complete.
 
+### When to Call /think
+
+If requirements are **ambiguous, complex, or have conflicting needs**, call `/think` first:
+
+```python
+Skill("think")
+# Returns structured analysis before interviewing
+```
+
+Use /think for:
+- Multiple user types with conflicting needs
+- Technical approach unclear
+- Success metrics debatable
+- Significant unknowns
+
 ### Step 1: Read Product Vision (If Exists)
 
 Check for PRODUCT_VISION.md to align with project goals:
