@@ -52,7 +52,19 @@ class FeatureOrchestrator:
     ) -> str:
         """Generate progressive menu for current step."""
         total_steps = 5
-        progress = len(execution.completed_phases) / total_steps * 100
+        completed = len(execution.completed_phases)
+        progress_pct = completed / total_steps * 100
+
+        # Step emoji mapping
+        step_emojis = {
+            1: "📋",
+            2: "🏗️",
+            3: "⚙️",
+            4: "✅",
+            5: "🚀",
+        }
+
+        # Phase names
         phase_names = {
             1: "Requirements Gathering",
             2: "Architecture Design",
@@ -60,13 +72,48 @@ class FeatureOrchestrator:
             4: "Quality Assurance",
             5: "User Acceptance",
         }
-        phase_name = phase_names.get(step, "Unknown")
-        menu = f"Step {step} of {total_steps}\n{phase_name}\nProgress: {progress:.0f}% complete\n"
+
+        # Build progress bar
+        filled = int(completed / total_steps * 10)
+        bar = "█" * filled + "░" * (10 - filled)
+
+        # Build menu sections
+        lines = []
+        lines.append("=" * 50)
+        lines.append(f"Feature: {execution.feature_name}")
+        lines.append("=" * 50)
+        lines.append("")
+        emoji = step_emojis.get(step, "")
+        name = phase_names.get(step, "Unknown")
+        lines.append(f"Step {step} of {total_steps}: {emoji} {name}")
+        lines.append("")
+        lines.append(f"Progress: [{bar}] {progress_pct:.0f}%")
+        lines.append("-" * 50)
+
+        # Skip flags
         if step == 1 and execution.skip_flags.skip_requirements:
-            menu += "[skip] Requirements phase will be skipped\n"
+            lines.append("")
+            lines.append("⚠️  [SKIP] Requirements phase will be skipped")
         elif step == 2 and execution.skip_flags.skip_architecture:
-            menu += "[skip] Architecture phase will be skipped\n"
-        return menu
+            lines.append("")
+            lines.append("⚠️  [SKIP] Architecture phase will be skipped")
+
+        lines.append("")
+        lines.append("Remaining steps:")
+
+        # Show remaining steps
+        for i in range(step, total_steps + 1):
+            emoji = step_emojis.get(i, "")
+            name = phase_names.get(i, "")
+            if i == step:
+                lines.append(f"  → {emoji} {name} (current)")
+            else:
+                lines.append(f"    {emoji} {name}")
+
+        lines.append("")
+        lines.append("=" * 50)
+
+        return "\n".join(lines)
 
     def execute_step(
         self, execution: FeatureExecution, step: int

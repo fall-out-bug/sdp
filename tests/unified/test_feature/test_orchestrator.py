@@ -66,7 +66,127 @@ class TestProgressiveMenu:
 
         menu = orchestrator.generate_progressive_menu(execution, step=1)
 
-        assert "0% complete" in menu
+        assert "0%" in menu
+
+    def test_menu_shows_visual_progress_bar(self):
+        """Should display visual progress bar with blocks."""
+        orchestrator = FeatureOrchestrator()
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+            completed_phases=[],
+        )
+
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+
+        # Should have progress bar with ░ characters (empty when 0% complete)
+        assert "░" in menu
+        # Should have progress bar format [blocks]
+        assert "[" in menu and "]" in menu
+
+    def test_menu_shows_step_emoji(self):
+        """Should show emoji indicator for current step."""
+        orchestrator = FeatureOrchestrator()
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+        )
+
+        # Step 1 (requirements) should show 📋
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+        assert "📋" in menu
+
+        # Step 2 (architecture) should show 🏗️
+        menu = orchestrator.generate_progressive_menu(execution, step=2)
+        assert "🏗" in menu
+
+    def test_menu_shows_skip_badge_when_flag_set(self):
+        """Should show [SKIP] badge when skip flag is set."""
+        orchestrator = FeatureOrchestrator()
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+            skip_flags=SkipFlags(skip_requirements=True),
+        )
+
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+
+        # Should show [SKIP] badge (uppercase, prominent)
+        assert "[SKIP]" in menu
+
+    def test_menu_shows_remaining_steps(self):
+        """Should list remaining steps with brief descriptions."""
+        orchestrator = FeatureOrchestrator()
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+            completed_phases=[],
+        )
+
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+
+        # Should show remaining steps section
+        assert "Remaining" in menu or "Next steps" in menu or "Upcoming" in menu
+
+    def test_menu_shows_section_separators(self):
+        """Should use visual separators between sections."""
+        orchestrator = FeatureOrchestrator()
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+        )
+
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+
+        # Should have separator lines (─ or ─ or similar)
+        assert "─" in menu or "=" in menu or "-" in menu
+
+    def test_menu_shows_feature_name(self):
+        """Should display feature name in header."""
+        orchestrator = FeatureOrchestrator()
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+        )
+
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+
+        # Should show feature name
+        assert "Test Feature" in menu
+
+    def test_menu_progress_bar_accuracy(self):
+        """Should show accurate progress bar based on completed phases."""
+        orchestrator = FeatureOrchestrator()
+
+        # 0 phases complete = 0%
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+            completed_phases=[],
+        )
+        menu = orchestrator.generate_progressive_menu(execution, step=1)
+        assert "0%" in menu or "[░░░" in menu
+
+        # 1 phase complete = 20%
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+            completed_phases=[FeaturePhase.REQUIREMENTS],
+        )
+        menu = orchestrator.generate_progressive_menu(execution, step=2)
+        assert "20%" in menu or "[█░░" in menu
+
+        # 2 phases complete = 40%
+        execution = FeatureExecution(
+            feature_id="test-feature",
+            feature_name="Test Feature",
+            completed_phases=[
+                FeaturePhase.REQUIREMENTS,
+                FeaturePhase.ARCHITECTURE,
+            ],
+        )
+        menu = orchestrator.generate_progressive_menu(execution, step=3)
+        assert "40%" in menu or "[██░" in menu
 
 
 class TestSkillInvocation:
