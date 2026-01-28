@@ -7,6 +7,13 @@ import click
 
 from sdp import __version__
 
+# Import Beads commands (optional - may not be available in all builds)
+try:
+    from sdp.cli.beads import beads
+    _beads_available = True
+except ImportError:
+    _beads_available = False
+
 
 @click.group()
 @click.version_option(version=__version__, prog_name="sdp")
@@ -19,8 +26,14 @@ def main() -> None:
     - Project map management
     - GitHub integration
     - Extension management
+    - Beads integration (if installed)
     """
     pass
+
+
+# Add Beads commands if available
+if _beads_available:
+    main.add_command(beads)
 
 
 @main.command()

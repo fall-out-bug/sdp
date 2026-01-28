@@ -1,145 +1,242 @@
 ---
 name: review
-description: Code review with metrics-based quality checks. Reviews entire features, enforces quality gates, generates UAT guide.
+description: Review feature quality using Beads task hierarchy. Validates all workstreams against quality gates.
 tools: Read, Write, Edit, Bash, Glob, Grep
+version: 2.0.0-beads
 ---
 
-# /review - Code Review
+# @review - Quality Review (Beads Integration)
 
-Comprehensive code review for features or workstreams with strict quality gates.
+Review feature by validating all workstreams against quality gates using Beads task hierarchy.
 
 ## When to Use
 
-- After all WS in a feature are completed
-- Before human UAT
-- Part of `/oneshot` flow
-- To verify quality standards
+- After all feature workstreams are complete
+- Before merging to main branch
+- To ensure quality standards are met
+- As part of code review process
+
+## Beads vs Markdown Workflow
+
+**This skill reads workstreams from Beads task hierarchy.**
+
+For traditional markdown workflow, use existing review process.
 
 ## Invocation
 
 ```bash
-/review F60         # Review entire feature
-/review WS-060      # Review all WS-060-XX
+@review bd-0001
 ```
+
+**Environment Variables:**
+- `BEADS_USE_MOCK=true` - Use mock Beads (default for dev)
 
 ## Workflow
 
-**IMPORTANT:** This skill delegates to the master prompt.
+### Step 1: Initialize Review
 
-### Load Master Prompt
+```python
+from sdp.beads import create_beads_client
+import os
 
-```bash
-cat sdp/prompts/commands/review.md
+use_mock = os.getenv("BEADS_USE_MOCK", "true").lower() == "true"
+client = create_beads_client(use_mock=use_mock)
 ```
 
-**This file contains:**
-- 17-point quality checklist
-- Metrics-based validation (coverage, complexity, LOC)
-- Goal achievement verification
-- Cross-WS consistency checks
-- UAT guide generation
-- Delivery notification template
-- Verdict rules (APPROVED / CHANGES_REQUESTED only)
+### Step 2: Read Feature and Workstreams
 
-### Execute Instructions
+```python
+# Get feature task
+feature = client.get_task(feature_id)
 
-Follow `sdp/prompts/commands/review.md`:
+if not feature:
+    print(f"❌ Feature not found: {feature_id}")
+    return
 
-1. Find all WS in scope
-2. For each WS:
-   - Check 0: Goal achieved? (BLOCKING)
-   - Checks 1-17: tests, coverage, complexity, etc.
-   - Collect metrics
-3. Cross-WS checks
-4. Generate UAT guide
-5. Send notification (if blockers)
-6. Output verdict
+# Get all sub-tasks (workstreams)
+workstreams = client.list_tasks(parent_id=feature_id)
 
-## Key Checks
+if not workstreams:
+    print(f"❌ No workstreams found for feature: {feature_id}")
+    return
 
-From master prompt:
+print(f"📋 Reviewing feature: {feature.title}")
+print(f"   Workstreams: {len(workstreams)}")
+```
 
-- **Check 0:** Goal Achievement (100% AC) 🔴 BLOCKING
-- **Check 2:** Test Coverage (≥80%) 
-- **Check 4:** AI-Readiness (file <200 LOC, CC <10)
-- **Check 5:** Clean Architecture (no violations)
-- **Check 6:** Type Hints (100% coverage)
-- **Check 9:** TODO/FIXME (must be 0)
-- **Check 12:** Git History (commits present)
-- **Check 14:** Human Verification (UAT) guide
+### Step 3: Validate Quality Gates
 
-## Metrics Summary Table
+For each workstream, check:
 
-Collected for each WS:
+```python
+from sdp.beads import BeadsStatus
 
-| Check | Target | Actual | Status |
-|-------|--------|--------|--------|
-| Goal Achievement | 100% | {X/Y}% | ✅/🔴 |
-| Test Coverage | ≥80% | {N}% | ✅/⚠️/🔴 |
-| Cyclomatic Complexity | <10 | avg {N} | ✅/⚠️/🔴 |
-| File Size | <200 LOC | max {N} | ✅/⚠️/🔴 |
-| Type Hints | 100% | {N}% | ✅/🔴 |
-| TODO/FIXME | 0 | {count} | ✅/🔴 |
+passed = 0
+failed = 0
+issues = []
 
-## Verdict Rules
+for ws in workstreams:
+    # Check if completed
+    if ws.status != BeadsStatus.CLOSED:
+        issues.append(f"{ws.id}: Not complete (status={ws.status.value})")
+        failed += 1
+        continue
+    
+    # Check quality gates
+    ws_issues = validate_quality_gates(ws)
+    
+    if ws_issues:
+        issues.append(f"{ws.id}: {len(ws_issues)} issues")
+        failed += 1
+    else:
+        passed += 1
+```
 
-From master prompt:
+### Quality Gates Checklist
 
-- **APPROVED:** All checks ✅, all WS Goals achieved
-- **CHANGES REQUESTED:** Any 🔴 BLOCKING issue
+```markdown
+**Coverage:**
+- [ ] Test coverage ≥ 80%
+- [ ] All critical paths covered
 
-**NO "APPROVED WITH NOTES"** - that's a loophole for tech debt!
+**Code Quality:**
+- [ ] No `except: pass` statements
+- [ ] No TODO/FIXME in production code
+- [ ] Files < 200 LOC (AI-readability)
+- [ ] Type hints present
+- [ ] MyPy strict mode passes
+
+**Clean Architecture:**
+- [ ] No layer violations
+- [ ] Dependencies point inward
+- [ ] Domain logic pure
+
+**Documentation:**
+- [ ] Docstrings on public APIs
+- [ ] README updated if needed
+- [ ] Changelog entry added
+
+**Tests:**
+- [ ] Unit tests present
+- [ ] Integration tests if needed
+- [ ] All tests passing
+```
+
+### Step 4: Generate Review Report
+
+```python
+# Print summary
+print(f"\n{'='*60}")
+print(f"Review Report for {feature.title}")
+print(f"{'='*60}")
+print(f"Workstreams: {len(workstreams)}")
+print(f"Passed: {passed} ✅")
+print(f"Failed: {failed} ❌")
+
+if issues:
+    print(f"\nIssues:")
+    for issue in issues:
+        print(f"  ❌ {issue}")
+else:
+    print(f"\n✅ All workstreams passed review!")
+
+print(f"{'='*60}")
+
+# Update feature status based on review
+if failed == 0:
+    client.update_task_status(feature_id, BeadsStatus.CLOSED)
+    print(f"\n✅ Feature {feature_id} approved!")
+else:
+    client.update_task_status(feature_id, BeadsStatus.BLOCKED)
+    print(f"\n❌ Feature {feature_id} blocked - fix issues and re-run @review")
+```
 
 ## Output
 
-### Per-WS Summary
+**Success:**
+```
+============================================================
+Review Report for User Authentication
+============================================================
+Workstreams: 3
+Passed: 3 ✅
+Failed: 0 ❌
 
-```markdown
-| WS | Verdict | Goal | Coverage |
-|----|---------|------|----------|
-| WS-060-01 | ✅ APPROVED | ✅ | 87% |
-| WS-060-02 | ❌ CHANGES REQUESTED | ❌ AC2 | 75% |
+✅ All workstreams passed review!
+
+============================================================
+✅ Feature bd-0001 approved!
 ```
 
-### Delivery Notification
+**Failure:**
+```
+============================================================
+Review Report for User Authentication
+============================================================
+Workstreams: 3
+Passed: 2 ✅
+Failed: 1 ❌
 
-```markdown
-## ✅ Review Complete: F60
+Issues:
+  ❌ bd-0001.3: 3 issues
+     - Coverage: 65% (need ≥80%)
+     - File src/auth/service.py: 250 LOC (need <200 LOC)
+     - Missing type hints on authenticate()
 
-**Feature:** LMS Integration
-**Status:** APPROVED
-**Elapsed (telemetry):** 2h 15m
-
-### Metrics
-| Metric | Target | Actual |
-|--------|--------|--------|
-| Coverage | ≥80% | 86% |
-| Complexity | <10 | avg 4.8 |
-
-### Impact
-{Business impact statement}
-
-### Next Steps
-1. Human UAT (5-10 min)
-2. `/deploy F60` if UAT passes
+============================================================
+❌ Feature bd-0001 blocked - fix issues and re-run @review
 ```
 
-## UAT Guide
+## Example Session
 
-Generated at: `docs/uat/F{XX}-uat-guide.md`
+```bash
+# After @oneshot completes
+@review bd-0001
 
-Sections:
-- Quick Smoke Test (30 sec)
-- Detailed Scenarios (5-10 min)
-- Red Flags checklist
-- Sign-off
+# Output:
+📋 Reviewing feature: User Authentication
+   Workstreams: 3
 
-## Master Prompt Location
+Checking quality gates...
+  bd-0001.1: Domain entities ✅
+  bd-0001.2: Repository layer ✅
+  bd-0001.3: Service layer ❌
 
-📄 **sdp/prompts/commands/review.md** (460+ lines)
+Issues found in bd-0001.3:
+  - Coverage: 72% (need ≥80%)
+  - Missing docstrings
 
-## Quick Reference
+# Fix issues...
+@build bd-0001.3  # Add tests, docstrings
 
-**Input:** Feature ID or WS prefix  
-**Output:** Verdict + UAT Guide + Metrics  
-**Next:** Human UAT → `/deploy F{XX}`
+# Re-run review
+@review bd-0001
+
+# Output:
+✅ All workstreams passed review!
+✅ Feature bd-0001 approved!
+```
+
+## Quality Gates Reference
+
+| Gate | Requirement | Check |
+|------|------------|-------|
+| **Coverage** | ≥80% | `pytest --cov` |
+| **File size** | <200 LOC | `wc -l` |
+| **Type hints** | Present | `mypy --strict` |
+| **Clean arch** | No violations | Manual review |
+| **No TODOs** | None in code | `grep -r "TODO"` |
+
+## Integration with Existing Review
+
+This skill extends existing review process:
+- Reads from Beads instead of file system
+- Validates same quality gates
+- Updates Beads task status
+- Compatible with existing review checklist
+
+---
+
+**Version:** 2.0.0-beads
+**Status:** Beads Integration
+**See Also:** `@idea`, `@design`, `@build`, `@oneshot`
