@@ -345,3 +345,200 @@ grep -rn "TODO\|FIXME" src/sdp/unified/orchestrator/
 - Full type hints on all functions
 - No TODO/FIXME comments (placeholder documented in docstring)
 - Ready for integration with WS-008 (Checkpoint save/resume)
+
+---
+
+## Execution Report: WS-004 (TeamManager role registry)
+
+**Workstream ID:** sdp-118.4
+**Status:** ✅ COMPLETED
+**Completed:** 2026-01-28
+**Duration:** ~1.5 hours (TDD cycle)
+
+### Implementation Summary
+
+Created TeamManager role registry for managing 100+ agent roles:
+- `TeamManager` class with role lifecycle management
+- `Role` and `RoleState` data models
+- `TeamConfigStore` for file-based persistence
+- Support for active/dormant role states
+- Message routing to active agents
+- Configuration storage at ~/.claude/teams/{feature_id}/config.json
+
+### Files Created
+
+**Implementation (326 LOC total, all files < 200 LOC):**
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/team/__init__.py` (12 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/team/errors.py` (7 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/team/manager.py` (176 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/team/models.py` (58 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/team/persistence.py` (73 LOC)
+
+**Tests (506 LOC):**
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/tests/unit/unified/team/test_team_manager.py`
+
+### Acceptance Criteria Verification
+
+✅ **AC1: TeamManager class created in src/sdp/unified/team/**
+- Location: `src/sdp/unified/team/manager.py`
+- Implements comprehensive role registry
+
+✅ **AC2: Role registry supports 100+ agent roles**
+- Tested with 100+ roles in `test_register_hundred_roles()`
+- Dictionary-based storage for O(1) lookups
+- Performance verified with large registries
+
+✅ **AC3: Methods implemented**
+- `register_role(role)`: Register new agent role
+- `activate_role(role_name)`: Activate dormant role
+- `deactivate_role(role_name)`: Deactivate active role (bonus)
+- `send_message(role_name, message)`: Send message to active role
+- `list_active_roles()`: Query active roles
+- `list_dormant_roles()`: Query dormant roles
+- `get_role(role_name)`: Get role by name
+
+✅ **AC4: Support for active/dormant role states**
+- `RoleState` enum with ACTIVE and DORMANT values
+- State transitions validated in tests
+- State persisted to config file
+
+✅ **AC5: File-based state storage**
+- Configuration at `~/.claude/teams/{feature_id}/config.json`
+- Automatic directory creation
+- JSON serialization/deserialization
+- Graceful handling of corrupted files
+
+✅ **AC6: Error handling and logging**
+- Custom `TeamManagerError` exception
+- Comprehensive logging at INFO/DEBUG/WARNING levels
+- Input validation (empty feature_id)
+- Error messages for nonexistent/inactive roles
+
+### Test Results
+
+**Tests:** 26/26 PASSED
+**Coverage:** 98% (101/103 statements covered)
+**Quality Gates:** ALL PASSED
+
+```bash
+# Test execution
+poetry run pytest tests/unit/unified/team/test_team_manager.py -v
+# Result: 26 passed in 0.06s
+
+# Coverage report
+poetry run pytest --cov=src/sdp/unified/team --cov-report=term-missing
+# Result: 98% coverage (2 missing lines in stub methods)
+
+# Linting
+poetry run ruff check src/sdp/unified/team/
+# Result: Success (no errors)
+
+# Type checking
+poetry run mypy src/sdp/unified/team/ --ignore-missing-imports
+# Result: Success: no issues found
+
+# No TODOs/FIXMEs
+grep -rn "TODO\|FIXME" src/sdp/unified/team/
+# Result: No matches found
+
+# File sizes < 200 LOC
+wc -l src/sdp/unified/team/*.py
+# Result: All files under 200 LOC (largest: manager.py at 176 LOC)
+```
+
+### TDD Cycle Followed
+
+1. **Red (Tests First):** Created 26 comprehensive failing tests
+2. **Green (Minimal Implementation):** Implemented TeamManager to pass tests
+3. **Refactor:** Extracted persistence logic to separate `TeamConfigStore` class
+4. **Quality Gates:** All passed with 98% coverage
+
+### Design Decisions
+
+1. **Separation of Concerns:**
+   - `models.py`: Role and RoleState data classes
+   - `errors.py`: Custom exceptions (TeamManagerError)
+   - `persistence.py`: Configuration file I/O (TeamConfigStore)
+   - `manager.py`: Main business logic (TeamManager)
+
+2. **Role Registry:**
+   - Dictionary-based storage for O(1) lookups by name
+   - Lazy loading from config file on initialization
+   - Immediate persistence after every state change
+
+3. **Active/Dormant States:**
+   - Roles can be registered in either state
+   - Activation/deactivation transitions are explicit
+   - Messages can only be sent to active roles
+
+4. **File-Based Persistence:**
+   - Automatic directory creation (~/.claude/teams/{feature_id}/)
+   - JSON format for human-readable configuration
+   - Graceful handling of corrupted files (starts empty)
+
+5. **Extensibility:**
+   - `_send_to_agent()` is a stub for WS-013 (SendMessage router)
+   - Metadata field in Role for future extensions
+   - Clean interfaces for team lifecycle (WS-005)
+
+### Integration Points
+
+- **CheckpointRepository:** Could be used for team state snapshots (future)
+- **TeamConfigStore:** File-based persistence ready for production
+- **WS-005:** Team lifecycle will use this registry
+- **WS-013:** SendMessage router will implement `_send_to_agent()`
+- **WS-015:** Role switching will use activation/deactivation
+
+### Test Coverage Highlights
+
+**Test Categories:**
+- Initialization tests (3 tests)
+- Role registration tests (4 tests)
+- Role activation/deactivation tests (4 tests)
+- Message sending tests (3 tests)
+- Role listing tests (4 tests)
+- Config persistence tests (2 tests)
+- Error handling tests (3 tests)
+- Large registry tests (3 tests - 100+ roles)
+
+**Edge Cases Covered:**
+- Duplicate role registration
+- Activating/deactivating nonexistent roles
+- Sending messages to dormant roles
+- Corrupted config files
+- Empty feature_id validation
+- Performance with 100+ roles
+
+### Files Summary
+
+```
+src/sdp/unified/team/
+├── __init__.py         (12 LOC) - Module exports
+├── errors.py           (7 LOC)  - Custom exceptions
+├── manager.py          (176 LOC) - Main business logic
+├── models.py           (58 LOC) - Role data classes
+└── persistence.py      (73 LOC) - Config file I/O
+
+tests/unit/unified/team/
+└── test_team_manager.py (506 LOC) - Comprehensive test suite
+```
+
+**Total Implementation:** 326 LOC (5 files)
+**Total Tests:** 506 LOC (1 file)
+**Grand Total:** 832 LOC
+
+### Next Steps
+
+- **WS-005:** Team lifecycle management will use this registry
+- **WS-013:** SendMessage router will implement `_send_to_agent()` stub
+- **WS-015:** Role switching will use activate/deactivate methods
+- **WS-020:** Unit tests will validate integration points
+
+### Notes
+
+- All files under 200 LOC limit (largest: manager.py at 176 LOC)
+- Full type hints on all functions
+- No TODO/FIXME comments
+- Ready for integration with WS-005 (Team lifecycle)
+- Performance tested with 100+ roles (< 0.1s for operations)
+- Error handling comprehensive (validation, corrupted files, edge cases)
