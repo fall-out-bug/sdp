@@ -542,3 +542,208 @@ tests/unit/unified/team/
 - Ready for integration with WS-005 (Team lifecycle)
 - Performance tested with 100+ roles (< 0.1s for operations)
 - Error handling comprehensive (validation, corrupted files, edge cases)
+
+---
+
+## Execution Report: WS-006 (ApprovalGateManager implementation)
+
+**Workstream ID:** sdp-118.6
+**Status:** ✅ COMPLETED
+**Completed:** 2026-01-28
+**Duration:** ~2 hours (TDD cycle)
+
+### Implementation Summary
+
+Created ApprovalGateManager with comprehensive approval gate system for @oneshot workflow:
+- `ApprovalGateManager` class for gate management
+- `GateOperations` for gate approve/reject/skip operations
+- `GateStorage` for checkpoint persistence
+- `SkipFlagParser` for command-line flag parsing
+- Three gate types: Requirements, Architecture, UAT
+- Four statuses: Pending, Approved, Rejected, Skipped
+
+### Files Created
+
+**Implementation (624 LOC total, all files < 200 LOC):**
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/__init__.py` (13 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/errors.py` (7 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/manager.py` (173 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/models.py` (33 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/operations.py` (176 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/parser.py` (59 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/unified/gates/storage.py` (163 LOC)
+
+**Tests (639 LOC):**
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/tests/unit/unified/gates/test_approval_gates.py` (391 LOC)
+- `/Users/fall_out_bug/projects/vibe_coding/sdp/tests/unit/unified/gates/test_skip_flag_parser.py` (248 LOC)
+
+### Acceptance Criteria Verification
+
+✅ **AC1: ApprovalGateManager class created**
+- Location: `src/sdp/unified/gates/manager.py`
+- Manages approval gate lifecycle
+
+✅ **AC2: RequirementsGate, ArchitectureGate, UATGate implemented**
+- Gate types defined in `GateType` enum
+- Each gate has independent status tracking
+- All three gates tested comprehensively
+
+✅ **AC3: SkipFlagParser for --skip-* flags**
+- Supports `--skip-requirements`, `--skip-architecture`, `--skip-uat`
+- Parses command-line arguments
+- `is_skip_required()` method for checking skip status
+
+✅ **AC4: Methods implemented**
+- `approve()`: Approve a gate with user and comments
+- `reject()`: Reject a gate with user and comments
+- `skip()`: Skip a gate with reason
+- `is_skipped()`: Check if gate is skipped
+- `get_gate_status()`: Get current status of a gate
+- `get_all_gates()`: Get all gates for a feature
+
+✅ **AC5: Integration with CheckpointRepository**
+- Gate decisions stored in checkpoint metrics
+- Persistent across checkpoint loads
+- Direct database updates for gate changes
+
+✅ **AC6: Error handling and logging**
+- Custom `GateManagerError` exception
+- Comprehensive logging at INFO/ERROR levels
+- Graceful error propagation
+
+### Test Results
+
+**Tests:** 29/29 PASSED
+**Coverage:** 86% (189/220 statements covered)
+**Quality Gates:** ALL PASSED
+
+```bash
+# Test execution
+poetry run pytest tests/unit/unified/gates/ -v
+# Result: 29 passed in 0.05s
+
+# Coverage report
+poetry run pytest --cov=src/sdp/unified/gates --cov-report=term-missing
+# Result: 86% coverage
+
+# Linting
+poetry run ruff check src/sdp/unified/gates/
+# Result: Success (no errors)
+
+# Type checking
+poetry run mypy src/sdp/unified/gates/ --ignore-missing-imports
+# Result: Success: no issues found
+
+# No TODOs/FIXMEs
+grep -rn "TODO\|FIXME" src/sdp/unified/gates/
+# Result: No matches found
+
+# File sizes < 200 LOC
+wc -l src/sdp/unified/gates/*.py
+# Result: All files under 200 LOC (largest: operations.py at 176 LOC)
+```
+
+### TDD Cycle Followed
+
+1. **Red (Tests First):** Created 29 comprehensive failing tests
+2. **Green (Minimal Implementation):** Implemented gates system to pass tests
+3. **Refactor:** Split into 7 modules (manager, operations, storage, parser, models, errors, __init__)
+4. **Quality Gates:** All passed with 86% coverage
+
+### Design Decisions
+
+1. **Separation of Concerns:**
+   - `models.py`: Gate data classes and enums
+   - `errors.py`: Custom exceptions (GateManagerError)
+   - `storage.py`: Checkpoint persistence (GateStorage)
+   - `operations.py`: Gate operations (approve, reject, skip)
+   - `manager.py`: High-level API with error handling
+   - `parser.py`: Command-line flag parsing
+
+2. **Gate Types:**
+   - Three gate types: Requirements, Architecture, UAT
+   - Independent status tracking for each
+   - All gates auto-created on first access
+
+3. **Gate Statuses:**
+   - PENDING: Not yet reviewed
+   - APPROVED: Approved by user
+   - REJECTED: Rejected by user
+   - SKIPPED: Skipped via --skip-* flag
+
+4. **Persistence Strategy:**
+   - Gates stored in checkpoint metrics as JSON
+   - Direct database updates after status changes
+   - Automatic checkpoint ID lookup
+
+5. **Skip Flag Parsing:**
+   - Simple flag-to-gate mapping
+   - Idempotent parse() method
+   - Easy integration with CLI tools
+
+### Integration Points
+
+- **CheckpointRepository:** Used for all gate persistence
+- **Checkpoint metrics:** Stores gate state as JSON
+- **WS-007:** SkipFlagParser will be integrated there
+- **WS-008:** Checkpoint save/resume will use gates
+
+### Test Coverage Highlights
+
+**Test Categories:**
+- Model tests (4 tests) - Gate data classes and enums
+- Manager approve tests (3 tests) - Requirements, Architecture, UAT approval
+- Manager reject tests (2 tests) - Requirements, Architecture rejection
+- Manager skip tests (2 tests) - Skip status checking
+- Manager query tests (3 tests) - Get status, get all gates
+- Manager error tests (1 test) - Nonexistent feature
+- Manager persistence tests (2 tests) - Multiple gates, cross-load persistence
+- Parser tests (12 tests) - Flag parsing, skip checking
+
+**Edge Cases Covered:**
+- Nonexistent features
+- Missing gates (auto-created)
+- Multiple gate approvals
+- Cross-manager persistence
+- Empty arguments
+- Multiple skip flags
+- Unknown flags ignored
+
+### Files Summary
+
+```
+src/sdp/unified/gates/
+├── __init__.py         (13 LOC) - Module exports
+├── errors.py            (7 LOC) - Custom exceptions
+├── manager.py          (173 LOC) - High-level API
+├── models.py            (33 LOC) - Gate data classes
+├── operations.py       (176 LOC) - Gate operations
+├── parser.py            (59 LOC) - Flag parsing
+└── storage.py          (163 LOC) - Checkpoint storage
+
+tests/unit/unified/gates/
+├── test_approval_gates.py    (391 LOC) - Gate management tests
+└── test_skip_flag_parser.py  (248 LOC) - Parser tests
+```
+
+**Total Implementation:** 624 LOC (7 files)
+**Total Tests:** 639 LOC (2 files)
+**Grand Total:** 1,263 LOC
+
+### Next Steps
+
+- **WS-007:** SkipFlagParser integration will use this parser
+- **WS-008:** Checkpoint save/resume will check gate status
+- **WS-009:** @feature orchestrator will enforce gate approvals
+- **WS-020:** Unit tests will validate integration points
+
+### Notes
+
+- All files under 200 LOC limit (largest: operations.py at 176 LOC)
+- Full type hints on all functions
+- No TODO/FIXME comments
+- Ready for integration with WS-007 (SkipFlagParser integration)
+- Gate decisions persist across checkpoint loads
+- Comprehensive error handling for all operations
+
+---
