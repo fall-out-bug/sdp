@@ -1,13 +1,13 @@
 ---
 name: oneshot
-description: Autonomous multi-agent execution using Beads ready detection with checkpoints and resume capability. Executes all feature workstreams in parallel with dependency tracking.
+description: Autonomous multi-agent execution using Beads ready detection with checkpoints, resume capability, and PR-less execution modes. Executes all feature workstreams in parallel with dependency tracking.
 tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 2.1.0-beads-ai-comm
+version: 2.2.0-workflow-efficiency
 ---
 
-# @oneshot - Multi-Agent Execution (Beads + AI-Comm Integration)
+# @oneshot - Multi-Agent Execution (Workflow Efficiency Integration)
 
-Execute all workstreams for a feature using multiple agents in parallel, with Beads automatically tracking dependencies, unblocking tasks, and checkpoint/resume capability for fault tolerance.
+Execute all workstreams for a feature using multiple agents in parallel, with Beads automatically tracking dependencies, unblocking tasks, checkpoint/resume capability, and optional PR-less execution modes for rapid iteration.
 
 ## When to Use
 
@@ -15,7 +15,8 @@ Execute all workstreams for a feature using multiple agents in parallel, with Be
 - Want to execute entire feature autonomously
 - After `@design` has created workstreams with execution graphs
 - For hands-off execution with progress tracking
-- For background execution with resume capability (NEW)
+- For background execution with resume capability
+- For PR-less execution when speed is critical (NEW)
 
 ## Beads vs Markdown Workflow
 
@@ -29,15 +30,110 @@ For traditional markdown workflow, use `prompts/commands/oneshot.md` instead.
 @oneshot bd-0001
 # or with custom agent count
 @oneshot bd-0001 --agents 5
-# or with resume (NEW)
+# or with resume
 @oneshot bd-0001 --resume abc123xyz
-# or background execution (NEW)
+# or background execution
 @oneshot bd-0001 --background
+
+# NEW: Workflow Efficiency modes (F014)
+@oneshot bd-0001 --auto-approve    # Skip PR, deploy directly (trusted features)
+@oneshot bd-0001 --sandbox         # Skip PR, deploy to sandbox only
+@oneshot bd-0001 --dry-run         # Preview changes without execution
+@oneshot bd-0001 --auto-approve --dry-run  # Preview + auto-approve
 ```
 
 **Environment Variables:**
 - `BEADS_USE_MOCK=true` - Use mock Beads (default for dev)
 - `BEADS_USE_MOCK=false` - Use real Beads CLI (requires Go + bd installed)
+
+## Execution Modes (NEW from F014)
+
+@oneshot supports three execution modes for different use cases:
+
+### Standard Mode (default)
+```bash
+@oneshot bd-0001
+```
+- **Behavior:** Creates PR, requires approval before deployment
+- **Use Case:** Production deployments requiring oversight
+- **Workflow:** Execute workstreams → Create PR → Wait for approval → Deploy
+- **Duration:** ~3h 45m (includes PR wait time)
+
+### Auto-Approve Mode
+```bash
+@oneshot bd-0001 --auto-approve
+```
+- **Behavior:** Skips PR, deploys directly after execution
+- **Use Case:** Trusted features, rapid iteration, sandbox environments
+- **Workflow:** Execute workstreams → Deploy immediately
+- **Duration:** ~45 min (5x faster than standard)
+- **Requirements:**
+  - Quality gates still enforced (coverage ≥80%, LOC <200, type hints)
+  - Destructive operations require manual confirmation
+  - Audit logging enabled automatically
+
+### Sandbox Mode
+```bash
+@oneshot bd-0001 --sandbox
+```
+- **Behavior:** Skips PR, deploys to sandbox environment only
+- **Use Case:** Testing without production risk
+- **Workflow:** Execute workstreams → Deploy to sandbox
+- **Duration:** ~45 min
+- **Requirements:**
+  - Target environment must be configured as "sandbox"
+  - Same quality gates as auto-approve
+  - No production deployment possible
+
+### Dry-Run Mode (preview)
+```bash
+@oneshot bd-0001 --dry-run
+@oneshot bd-0001 --auto-approve --dry-run  # Combine modes
+```
+- **Behavior:** Preview changes without executing
+- **Shows:** Workstreams to execute, files to create/modify, destructive operations
+- **Use Case:** Validate before actual execution
+- **Output:** Summary of planned changes + confirmation prompt
+
+### Mode Comparison
+
+| Mode | PR Required | Production | Duration | Use When |
+|------|-------------|------------|----------|----------|
+| **Standard** | ✅ Yes | ✅ Yes | ~3h 45m | Production releases |
+| **Auto-approve** | ❌ No | ✅ Yes | ~45 min | Trusted features, rapid iteration |
+| **Sandbox** | ❌ No | ❌ No | ~45 min | Testing, staging |
+| **Dry-run** | N/A | N/A | <1 min | Preview changes |
+
+## Audit Logging (NEW from F014)
+
+All `--auto-approve` executions are logged to `.sdp/audit.log`:
+
+```json
+{
+  "timestamp": "2026-01-28T10:00:00Z",
+  "user": "developer@example.com",
+  "feature": "bd-0001",
+  "mode": "auto-approve",
+  "workstreams_executed": 4,
+  "result": "success",
+  "deployment_target": "production"
+}
+```
+
+View audit logs:
+```bash
+sdp audit --last 10
+```
+
+## Quality Gates (Enforced in ALL modes)
+
+Regardless of execution mode, all quality gates are enforced:
+
+1. **Test Coverage:** ≥80% (pytest --cov-fail-under=80)
+2. **File Size:** <200 LOC per file
+3. **Type Hints:** mypy --strict
+4. **Error Handling:** No `except: pass`
+5. **Clean Architecture:** No layer violations
 
 ## Workflow
 

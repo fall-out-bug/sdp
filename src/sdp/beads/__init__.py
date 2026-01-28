@@ -45,7 +45,23 @@ from .models import (
 from .sync import BeadsSyncService, BeadsSyncError
 from .skills_design import FeatureDecomposer, WorkstreamSpec
 from .skills_build import WorkstreamExecutor, ExecutionResult
-from .skills_oneshot import MultiAgentExecutor, OneshotResult
+from .skills_oneshot import MultiAgentExecutor
+from .idea_interview import (
+    InterviewRound,
+    CriticalQuestions,
+    AmbiguityDetector,
+    IdeaInterviewer,
+    InterviewResult,
+)
+from .execution_mode import (
+    ExecutionMode,
+    AuditLogger,
+    DestructiveOperationDetector,
+    DestructiveOperations,
+    AuditLogEntry,
+)
+# Re-export OneshotResult from execution_mode (where it's now defined)
+from .execution_mode import OneshotResult
 
 __all__ = [
     # Client
@@ -70,6 +86,18 @@ __all__ = [
     "WorkstreamExecutor",
     "ExecutionResult",
     "MultiAgentExecutor",
+    # Idea interview (F014)
+    "InterviewRound",
+    "CriticalQuestions",
+    "AmbiguityDetector",
+    "IdeaInterviewer",
+    "InterviewResult",
+    # Execution modes (F014)
+    "ExecutionMode",
+    "AuditLogger",
+    "DestructiveOperationDetector",
+    "DestructiveOperations",
+    "AuditLogEntry",
     "OneshotResult",
 ]
 

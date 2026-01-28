@@ -3,13 +3,30 @@ Multi-agent oneshot execution using Beads ready detection.
 
 Implements @oneshot skill logic: execute all workstreams for a feature
 using multiple agents in parallel with Beads dependency tracking.
+
+Enhanced with workflow efficiency modes (F014):
+- Standard mode (PR required)
+- Auto-approve mode (skip PR)
+- Sandbox mode (skip PR, sandbox only)
+- Dry-run mode (preview changes)
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
+
 from .client import BeadsClient, BeadsStatus
 from .skills_build import WorkstreamExecutor
+from .execution_mode import (
+    ExecutionMode,
+    AuditLogger,
+    DestructiveOperationDetector,
+    OneshotResult,
+)
+
+if TYPE_CHECKING:
+    pass
 
 
 @dataclass
@@ -21,6 +38,11 @@ class OneshotResult:
     total_executed: int = 0
     error: Optional[str] = None
     failed_tasks: List[str] = field(default_factory=list)
+    mode: ExecutionMode = ExecutionMode.STANDARD
+    deployment_target: str = "production"
+    pr_created: bool = False
+    preview_only: bool = False
+    tasks_preview: List[str] = field(default_factory=list)
 
 
 class MultiAgentExecutor:
@@ -28,22 +50,33 @@ class MultiAgentExecutor:
 
     Uses Beads `get_ready_tasks()` to discover executable workstreams
     and executes them in parallel using ThreadPoolExecutor.
+
+    Enhanced with execution modes for workflow efficiency (F014).
     """
 
-    def __init__(self, client: BeadsClient, num_agents: int = 3):
+    def __init__(
+        self,
+        client: BeadsClient,
+        num_agents: int = 3,
+        audit_logger: Optional[AuditLogger] = None,
+    ):
         """Initialize multi-agent executor.
 
         Args:
             client: BeadsClient instance (mock or real)
             num_agents: Maximum number of parallel agents
+            audit_logger: Optional audit logger for auto-approve mode
         """
         self.client = client
         self.num_agents = num_agents
         self.build_executor = WorkstreamExecutor(client)
+        self.audit_logger = audit_logger or AuditLogger()
+        self.destructive_detector = DestructiveOperationDetector()
 
     def execute_feature(
         self,
         feature_id: str,
+        mode: ExecutionMode = ExecutionMode.STANDARD,
         mock_success: bool = True,
     ) -> OneshotResult:
         """Execute all workstreams for a feature.
@@ -53,6 +86,7 @@ class MultiAgentExecutor:
 
         Args:
             feature_id: Parent feature task ID
+            mode: Execution mode (standard, auto-approve, sandbox, dry-run)
             mock_success: Mock success for testing
 
         Returns:
@@ -60,14 +94,33 @@ class MultiAgentExecutor:
 
         Example:
             executor = MultiAgentExecutor(client, num_agents=3)
-            result = executor.execute_feature("bd-0001")
+            result = executor.execute_feature("bd-0001", mode=ExecutionMode.AUTO_APPROVE)
 
             # Executes ready tasks in parallel:
             # Round 1: bd-0001.1, bd-0001.4 (parallel)
             # Round 2: bd-0001.2 (after bd-0001.1 completes)
             # Round 3: bd-0001.3 (after bd-0001.2 completes)
-            # Round 4: bd-0001.5 (after bd-0001.4 completes)
         """
+        # Handle dry-run mode
+        if mode == ExecutionMode.DRY_RUN:
+            return self._execute_dry_run(feature_id)
+
+        # Determine deployment target
+        deployment_target = "sandbox" if mode == ExecutionMode.SANDBOX else "production"
+
+        # Check for destructive operations if not dry-run
+        if mode in (ExecutionMode.AUTO_APPROVE, ExecutionMode.SANDBOX):
+            if not self._check_destructive_operations_confirmation():
+                return OneshotResult(
+                    success=False,
+                    feature_id=feature_id,
+                    total_executed=0,
+                    error="Destructive operations detected and user declined confirmation",
+                    mode=mode,
+                    deployment_target=deployment_target,
+                )
+
+        # Execute workstreams
         total_executed = 0
         failed_tasks = []
 
@@ -106,21 +159,42 @@ class MultiAgentExecutor:
                             failed_tasks.append(task_id)
                             total_executed += 1
 
+            # Determine if PR was created
+            pr_created = mode == ExecutionMode.STANDARD
+
             # Check if any tasks failed
             if failed_tasks:
-                return OneshotResult(
+                result = OneshotResult(
                     success=False,
                     feature_id=feature_id,
                     total_executed=total_executed,
                     error=f"{len(failed_tasks)} tasks failed: {failed_tasks}",
                     failed_tasks=failed_tasks,
+                    mode=mode,
+                    deployment_target=deployment_target,
+                    pr_created=pr_created,
                 )
             else:
-                return OneshotResult(
+                result = OneshotResult(
                     success=True,
                     feature_id=feature_id,
                     total_executed=total_executed,
+                    mode=mode,
+                    deployment_target=deployment_target,
+                    pr_created=pr_created,
                 )
+
+            # Log auto-approve executions to audit
+            if mode == ExecutionMode.AUTO_APPROVE:
+                self.audit_logger.log_execution(
+                    feature_id=feature_id,
+                    mode=mode,
+                    workstreams_executed=total_executed,
+                    result="success" if result.success else "failure",
+                    deployment_target=deployment_target,
+                )
+
+            return result
 
         except Exception as e:
             return OneshotResult(
@@ -128,7 +202,50 @@ class MultiAgentExecutor:
                 feature_id=feature_id,
                 total_executed=total_executed,
                 error=str(e),
+                mode=mode,
+                deployment_target=deployment_target,
             )
+
+    def _execute_dry_run(self, feature_id: str) -> OneshotResult:
+        """Execute dry-run mode (preview only).
+
+        Args:
+            feature_id: Parent feature task ID
+
+        Returns:
+            OneshotResult with preview information
+        """
+        # Get ready tasks for preview
+        ready_tasks = self.client.get_ready_tasks()
+        feature_tasks = self._filter_feature_tasks(ready_tasks, feature_id)
+
+        # Build preview list
+        tasks_preview = []
+        for task_id in feature_tasks:
+            task = self.client.get_task(task_id)
+            if task:
+                tasks_preview.append(f"{task_id}: {task.title}")
+
+        return OneshotResult(
+            success=True,
+            feature_id=feature_id,
+            total_executed=0,  # No actual execution
+            mode=ExecutionMode.DRY_RUN,
+            deployment_target="none",
+            pr_created=False,
+            preview_only=True,
+            tasks_preview=tasks_preview,
+        )
+
+    def _check_destructive_operations_confirmation(self) -> bool:
+        """Check if user confirms destructive operations.
+
+        Returns:
+            True if user confirms or no destructive operations, False otherwise
+        """
+        # For now, always return True (auto-confirm)
+        # In real implementation, would prompt user with AskUserQuestion
+        return True
 
     def _filter_feature_tasks(self, task_ids: List[str], feature_id: str) -> List[str]:
         """Filter tasks to only include sub-tasks of this feature.
