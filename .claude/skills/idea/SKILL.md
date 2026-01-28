@@ -1,33 +1,57 @@
 ---
 name: idea
-description: Interactive requirements gathering through deep interviewing using AskUserQuestion. Creates feature draft with goals, scope, and open questions.
+description: Interactive requirements gathering using Beads for task storage. Creates Beads task with comprehensive requirements from deep interviewing.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+version: 2.0.0-beads
 ---
 
-# /idea - Requirements Gathering
+# @idea - Requirements Gathering (Beads Integration)
 
-Deep, interactive interviewing to capture comprehensive feature requirements using AskUserQuestion tool.
+Deep, interactive interviewing to capture comprehensive feature requirements using AskUserQuestion tool. **Outputs Beads task instead of markdown draft.**
 
 ## When to Use
 
-- Starting new feature
+- Starting new feature (Beads-first workflow)
 - Unclear requirements
 - Need comprehensive requirements document
 - Want to explore tradeoffs and edge cases
 
+## Beads vs Markdown Workflow
+
+**This skill creates Beads tasks** (hash-based IDs, multi-agent ready).
+
+For traditional markdown workflow, use `prompts/commands/idea.md` instead.
+
 ## Invocation
 
 ```bash
-/idea "feature description"
+@idea "feature description"
 # or with existing spec
-/idea "feature description" --spec path/to/SPEC.md
+@idea "feature description" --spec path/to/SPEC.md
 ```
+
+**Environment Variables:**
+- `BEADS_USE_MOCK=true` - Use mock Beads (default for dev)
+- `BEADS_USE_MOCK=false` - Use real Beads CLI (requires Go + bd installed)
 
 ## Workflow
 
 **IMPORTANT:** Use AskUserQuestion for deep, continuous interviewing until requirements are complete.
 
-### Step 1: Read Context (If Exists)
+### Step 1: Initialize Beads Client
+
+```python
+from sdp.beads import create_beads_client, BeadsTaskCreate, BeadsPriority
+import os
+
+# Detect which client to use
+use_mock = os.getenv("BEADS_USE_MOCK", "true").lower() == "true"
+client = create_beads_client(use_mock=use_mock)
+
+print(f"Using {'Mock' if use_mock else 'Real'} Beads client")
+```
+
+### Step 2: Read Context (If Exists)
 
 If user provides existing spec or similar features exist:
 
@@ -40,7 +64,7 @@ Glob("docs/specs/**/*")
 Grep("similar feature keywords")
 ```
 
-### Step 2: Initial Interview
+### Step 3: Initial Interview
 
 **Ask foundational questions using AskUserQuestion:**
 
@@ -70,7 +94,7 @@ AskUserQuestion({
 })
 ```
 
-### Step 3: Deep Dive Interview
+### Step 4: Deep Dive Interview
 
 **Continue with progressively detailed questions. Be VERY in-depth:**
 
@@ -101,60 +125,6 @@ AskUserQuestion({
 })
 ```
 
-**UI & UX:**
-```markdown
-AskUserQuestion({
-  "questions": [{
-    "question": "Where should this feature be accessible in the UI?",
-    "header": "UI Location",
-    "options": [
-      {"label": "Main navigation", "description": "High visibility, always accessible"},
-      {"label": "Settings page", "description": "One-time configuration"},
-      {"label": "Contextual menu", "description": "Appears when relevant"},
-      {"label": "Dashboard widget", "description": "Summary view with drill-down"}
-    ],
-    "multiSelect": true
-  }, {
-    "question": "How should users discover this feature?",
-    "header": "Discoverability",
-    "options": [
-      {"label": "Onboarding tutorial", "description": "Guided intro for new users"},
-      {"label": "In-app tooltip", "description": "Passive education on first encounter"},
-      {"label": "Documentation", "description": "Self-serve learning"},
-      {"label": "Assume familiarity", "description": "Power user feature, no hand-holding"}
-    ],
-    "multiSelect": false
-  }]
-})
-```
-
-**Concerns & Tradeoffs:**
-```markdown
-AskUserQuestion({
-  "questions": [{
-    "question": "What is your primary concern about this feature?",
-    "header": "Main Concern",
-    "options": [
-      {"label": "Performance impact", "description": "May slow down existing operations"},
-      {"label": "Complexity", "description": "Increases codebase maintenance burden"},
-      {"label": "Security risk", "description": "New attack surface or data exposure"},
-      {"label": "User confusion", "description": "May not be intuitive, requires support"}
-    ],
-    "multiSelect": true
-  }, {
-    "question": "If scope must be reduced, what is negotiable?",
-    "header": "Scope Priority",
-    "options": [
-      {"label": "Advanced features (Recommended)", "description": "Start with MVP, iterate based on usage"},
-      {"label": "UI polish", "description": "Functional but basic interface initially"},
-      {"label": "Edge case handling", "description": "Handle 80% of cases, document limitations"},
-      {"label": "Nothing", "description": "All requirements are critical"}
-    ],
-    "multiSelect": false
-  }]
-})
-```
-
 **Continue interviewing** until you have comprehensive answers about:
 - Technical implementation details
 - UI/UX specifics
@@ -173,35 +143,134 @@ AskUserQuestion({
 - Integration points
 - Tradeoffs between approaches
 
-### Step 4: Load Master Prompt
+### Step 5: Create Beads Task
 
-After interviewing is complete:
+After interviewing is complete, create Beads task:
 
-```bash
-cat prompts/commands/idea.md
+```python
+# Build comprehensive description from interview
+description = f"""## Context & Problem
+
+{problem_answer}
+
+## Goals & Non-Goals
+
+**Goals:**
+{goals_answer}
+
+**Non-Goals:**
+{nongoals_answer}
+
+## Primary Users
+
+{users_answer}
+
+## Technical Approach
+
+**Data Storage:** {storage_answer}
+**Failure Mode:** {failure_answer}
+
+## UI/UX Design
+
+{ui_answer}
+
+## Concerns & Risks
+
+{concerns_answer}
+
+## Tradeoffs
+
+{tradeoffs_answer}
+
+## Open Questions
+
+{open_questions}
+"""
+
+# Determine priority from scope
+scope_priority = {
+    "Critical path": BeadsPriority.CRITICAL,
+    "Important but not urgent": BeadsPriority.HIGH,
+    "Nice to have": BeadsPriority.MEDIUM,
+    "Backlog": BeadsPriority.BACKLOG
+}
+
+# Create Beads task
+task = client.create_task(BeadsTaskCreate(
+    title=feature_title,
+    description=description,
+    priority=scope_priority.get(scope_answer, BeadsPriority.MEDIUM),
+    sdp_metadata={
+        "feature_type": "idea",
+        "interview_answers": all_answers,
+        "created_by": "@idea skill",
+    }
+))
+
+print(f"✅ Created Beads task: {task.id}")
+print(f"   Title: {task.title}")
+print(f"   Status: {task.status}")
+print(f"   Priority: {task.priority}")
 ```
 
-### Step 5: Create Draft
+### Step 6: Optional Markdown Export
 
-Write comprehensive spec to `docs/drafts/idea-{slug}.md` including:
-- All answers from AskUserQuestion
-- Technical decisions made
-- Tradeoffs discussed
-- Open questions remaining
+For git history and human readability, export to markdown:
+
+```python
+markdown_path = f"docs/drafts/beads-{task.id}.md"
+
+with open(markdown_path, "w") as f:
+    f.write(f"""# {task.title}
+
+> **Beads Task ID:** {task.id}
+> **Created:** {datetime.utcnow().isoformat()}
+> **Priority:** {task.priority.value}
+
+{description}
+
+---
+
+## Next Steps
+
+1. Run `@design {task.id}` to decompose into workstreams
+2. Or run `bd show {task.id}` to view in Beads CLI
+""")
+```
 
 ## Output
 
-Draft: `docs/drafts/idea-{slug}.md`
+**Primary:** Beads task ID (e.g., `bd-0001`)
 
-**Comprehensive sections:**
-- **Context & Problem** — from interview about problem type
-- **Goals & Non-Goals** — from scope priority questions
-- **User Stories** — from primary users and use cases
-- **Technical Approach** — from implementation questions (storage, failure modes, etc.)
-- **UI/UX Design** — from UI location, discoverability questions
-- **Concerns & Risks** — from concerns interview
-- **Tradeoffs** — from tradeoff questions (performance vs simplicity, etc.)
-- **Open Questions** — remaining ambiguities
+**Secondary:** Optional markdown export to `docs/drafts/beads-{task_id}.md`
+
+**Beads Task Fields:**
+- `id`: Hash-based task ID (auto-generated)
+- `title`: Feature title from input
+- `description`: Comprehensive requirements from interview
+- `status`: OPEN (default)
+- `priority`: CRITICAL/HIGH/MEDIUM/LOW/BACKLOG
+- `sdp_metadata`: Interview answers, metadata
+
+## Next Steps
+
+After creating idea task:
+
+1. **Decompose into workstreams:**
+   ```bash
+   @design bd-0001
+   ```
+
+2. **View in Beads CLI:**
+   ```bash
+   bd show bd-0001
+   bd ready  # Check if ready to work on
+   ```
+
+3. **Start execution:**
+   ```bash
+   @build bd-0001.1  # First workstream sub-task
+   ```
 
 ## Key Principles
 
@@ -212,46 +281,104 @@ Draft: `docs/drafts/idea-{slug}.md`
 4. **Continue until complete** — keep asking until no ambiguities remain
 5. **Capture decisions** — record why certain approaches were chosen/rejected
 
-**Question Design:**
-- **Header**: 8-12 chars, clear category
-- **Question**: Specific, unambiguous
-- **Options**: 2-4 distinct choices
-- **Descriptions**: Show tradeoffs, not just features
-- **MultiSelect**: Use when choices aren't mutually exclusive
+**Beads Integration:**
+1. **Hash-based IDs** — No conflicts, multi-agent safe
+2. **Priority levels** — Map scope to priority (critical → P0, etc.)
+3. **Metadata** — Store interview answers in `sdp_metadata` for reference
+4. **Optional markdown** — Export for git history, but Beads is source of truth
 
-**Example of GOOD question:**
-```markdown
-{
-  "question": "How should rate limiting be enforced?",
-  "header": "Rate Limit",
-  "options": [
-    {"label": "Token bucket", "description": "Smooth traffic, allows bursts. Requires distributed state."},
-    {"label": "Fixed window", "description": "Simple, stateless. Allows burst at window boundary."},
-    {"label": "Sliding window", "description": "Precise, fair. Higher memory/compute cost."}
-  ],
-  "multiSelect": false
-}
+## Migration from Markdown Workflow
+
+**Old workflow:**
+```bash
+@idea "Add auth"  # → docs/drafts/idea-add-auth.md
+@design idea-add-auth  # → docs/workstreams/backlog/WS-*.md
+@build WS-001-01
 ```
 
-**Example of BAD question:**
-```markdown
-{
-  "question": "Should we add logging?",  // ← TOO OBVIOUS
-  "header": "Logging",
-  "options": [
-    {"label": "Yes"},  // ← No tradeoffs shown
-    {"label": "No"}
-  ]
-}
+**New Beads workflow:**
+```bash
+@idea "Add auth"  # → bd-0001 (Beads task)
+@design bd-0001  # → bd-0001.1, bd-0001.2, ... (sub-tasks)
+@build bd-0001.1  # → Updates Beads status
+```
+
+**Benefits:**
+- No ID conflicts (hash-based vs manual PP-FFF-SS)
+- Multi-agent ready (sub-tasks can be executed in parallel)
+- Built-in dependency tracking
+- `bd ready` shows what to work on next
+
+## Troubleshooting
+
+**Beads not found:**
+```bash
+# Use mock mode
+export BEADS_USE_MOCK=true
+
+# Or install Beads
+brew install go
+go install github.com/steveyegge/beads/cmd/bd@latest
+```
+
+**Task not created:**
+```bash
+# Check Beads status
+bd status
+
+# View Beads logs
+bd logs
 ```
 
 ## Quick Reference
 
-**Input:** Feature idea (+ optional existing spec)
-**Output:** `docs/drafts/idea-{slug}.md` (comprehensive)
-**Next:** `/design idea-{slug}`
+| Command | Purpose |
+|---------|---------|
+| `@idea "feature"` | Create Beads task with requirements |
+| `bd show {id}` | View task details |
+| `bd ready` | List ready tasks |
+| `bd list --status open` | List all open tasks |
+| `@design {id}` | Decompose into workstreams |
+| `@build {id}` | Execute workstream |
 
-**Typical flow:**
-1. 2-3 rounds of AskUserQuestion (6-12 total questions)
-2. ~15-20 minutes of user time
-3. Results in 2-3 page spec with clear decisions
+## Example Session
+
+```bash
+# Start interviewing
+@idea "Add user authentication"
+
+# ... (interviewing happens) ...
+
+# Output:
+✅ Created Beads task: bd-0001
+   Title: Add user authentication
+   Status: BeadsStatus.OPEN
+   Priority: BeadsPriority.HIGH
+
+# Next step: decompose
+@design bd-0001
+
+# Output:
+✅ Created 3 workstreams:
+   bd-0001.1: Domain entities
+   bd-0001.2: Repository layer
+   bd-0001.3: Service layer
+
+# Check what's ready
+bd ready
+
+# Output:
+Ready tasks:
+- bd-0001.1 (Domain entities)
+
+# Execute
+@build bd-0001.1
+
+# After completion, bd-0001.2 becomes ready automatically!
+```
+
+---
+
+**Version:** 2.0.0-beads
+**Status:** Beads Integration
+**See Also:** `@design`, `@build`, `@oneshot`
