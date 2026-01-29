@@ -4,9 +4,10 @@ Beads migration commands.
 Convert existing SDP markdown workstreams to Beads tasks.
 """
 
-import click
 from pathlib import Path
-from typing import Optional
+
+import click
+
 from .. import create_beads_client
 from .sync import BeadsSyncService
 
@@ -20,7 +21,7 @@ def beads():
 @beads.command()
 @click.argument(
     "workstreams_dir",
-    type=click.Path(exists=True, path_type=click.Path(dir_okay=True),
+    type=click.Path(exists=True),
 )
 @click.option(
     "--use-mock",
@@ -41,7 +42,6 @@ def migrate(workstreams_dir: Path, use_mock: bool):
     - ID mapping in .beads-sdp-mapping.jsonl
     - Preserves dependencies between workstreams
     """
-    import os
 
     click.echo(f"🔄 Migrating workstreams from {workstreams_dir}")
 
@@ -87,7 +87,7 @@ def migrate(workstreams_dir: Path, use_mock: bool):
 
     # Summary
     click.echo(f"\n{'='*60}")
-    click.echo(f"Migration complete!")
+    click.echo("Migration complete!")
     click.echo(f"{'='*60}")
     click.echo(f"Total: {len(ws_files)}")
     click.echo(f"Success: {success} ✅")
@@ -135,7 +135,7 @@ def status(format: str):
         click.echo("Beads Integration Status")
         click.echo("=" * 40)
         click.echo(f"Client: {'Mock (dev)' if use_mock else 'Real (Beads CLI)'}")
-        click.echo(f"Mapping: .beads-sdp-mapping.jsonl")
+        click.echo("Mapping: .beads-sdp-mapping.jsonl")
 
         migrated = _count_migrated_workstreams()
         click.echo(f"Migrated: {migrated} workstreams")
@@ -154,7 +154,8 @@ def _count_migrated_workstreams() -> int:
             for line in f:
                 if line.strip():
                     count += 1
-    except:
+    except FileNotFoundError:
+        # File doesn't exist yet
         pass
 
     return count

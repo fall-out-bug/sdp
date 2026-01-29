@@ -3,7 +3,6 @@
 import ast
 import re
 from pathlib import Path
-from typing import Any
 
 from sdp.quality.models import ArchitectureConfig
 from sdp.quality.validator_models import QualityGateViolation
@@ -25,6 +24,33 @@ class ArchitectureChecker:
         """
         self._config = config
         self._violations = violations
+
+        # Default layer patterns if not configured
+        if self._config.layer_patterns is None:
+            from sdp.quality.models import LayerPattern
+
+            self._config.layer_patterns = [
+                LayerPattern(
+                    name="domain",
+                    path_regex=r"(^|/)domain/",
+                    module_regex=r"(^|\.)domain(\.|$)",
+                ),
+                LayerPattern(
+                    name="application",
+                    path_regex=r"(^|/)application/",
+                    module_regex=r"(^|\.)application(\.|$)",
+                ),
+                LayerPattern(
+                    name="infrastructure",
+                    path_regex=r"(^|/)infrastructure/",
+                    module_regex=r"(^|\.)infrastructure(\.|$)",
+                ),
+                LayerPattern(
+                    name="presentation",
+                    path_regex=r"(^|/)presentation/",
+                    module_regex=r"(^|\.)presentation(\.|$)",
+                ),
+            ]
 
         # Build layer detection patterns from configuration
         self._layer_patterns = self._build_layer_patterns()
@@ -69,28 +95,23 @@ class ArchitectureChecker:
         path_str = str(path)
 
         # Check against layer patterns
-        for layer, pattern in self._layer_patterns.items():
-            if re.search(pattern, path_str):
+        for layer, (path_pattern, _module_pattern) in self._layer_patterns.items():
+            if re.search(path_pattern, path_str):
                 return layer
 
         return None
 
-    def _build_layer_patterns(self) -> dict[str, str]:
+    def _build_layer_patterns(self) -> dict[str, tuple[str, str | None]]:
         """Build regex patterns for layer detection from config.
 
         Returns:
-            Dict mapping layer names to regex patterns.
+            Dict mapping layer names to (path_regex, module_regex) tuples.
         """
-        # Default patterns for common clean architecture
-        defaults = {
-            "domain": r"(^|/)domain/",
-            "application": r"(^|/)application/",
-            "infrastructure": r"(^|/)infrastructure/",
-            "presentation": r"(^|/)presentation/",
-        }
-
-        # Could be extended to read from quality-gate.toml in the future
-        return defaults
+        patterns = {}
+        if self._config.layer_patterns:
+            for layer in self._config.layer_patterns:
+                patterns[layer.name] = (layer.path_regex, layer.module_regex)
+        return patterns
 
     def _check_import_node(
         self,
@@ -118,7 +139,8 @@ class ArchitectureChecker:
         # Check against forbidden patterns
         violation_pattern = f"{source_layer} -> {import_layer}"
 
-        if violation_pattern in self._config.forbid_violations:
+        forbid_violations = self._config.forbid_violations
+        if forbid_violations is not None and violation_pattern in forbid_violations:
             self._violations.append(
                 QualityGateViolation(
                     category="architecture",
@@ -143,12 +165,16 @@ class ArchitectureChecker:
         Returns:
             Layer name or None if not detected.
         """
-        for layer, pattern in self._layer_patterns.items():
-            # Convert path pattern to module pattern
-            # e.g., "(^|/)domain/" -> "(^|.)domain(.)"
-            module_pattern = pattern.replace("/", ".").replace("(^|)", "(^|.)")
-            if re.search(module_pattern, import_module):
+        for layer, (_path_pattern, module_pattern) in self._layer_patterns.items():
+            if module_pattern and re.search(module_pattern, import_module):
                 return layer
+            # Fallback: convert path pattern to module pattern
+            if not module_pattern:
+                module_pattern_fallback = _path_pattern.replace("/", ".").replace(
+                    "(^|)", "(^|.)"
+                )
+                if re.search(module_pattern_fallback, import_module):
+                    return layer
 
         return None
 
