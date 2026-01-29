@@ -141,7 +141,8 @@ sdp/
 ## Documentation
 
 ### Core Documentation
-- [PROTOCOL.md](PROTOCOL.md) - Full protocol specification (Russian)
+- [PROTOCOL.md](PROTOCOL.md) - Full specification (English)
+- [PROTOCOL_RU.md](PROTOCOL_RU.md) - Полная спецификация (Русский)
 - [PRODUCT_VISION.md](PRODUCT_VISION.md) - Project manifesto and direction (NEW)
 - [CLAUDE.md](CLAUDE.md) - Claude Code integration guide
 - [docs/workstreams/INDEX.md](docs/workstreams/INDEX.md) - Workstream index
