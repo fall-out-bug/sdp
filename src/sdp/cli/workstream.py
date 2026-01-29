@@ -1,28 +1,43 @@
-"""Workstream CLI commands."""
+"""Workstream parsing commands.
+
+Provides CLI commands for parsing workstreams and project maps.
+"""
 
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 
-from sdp.core import WorkstreamParseError, parse_workstream
 from sdp.errors import format_error_for_terminal
+
+if TYPE_CHECKING:
+    from click import Command
+
+# Import validate_tier if available
+validate_tier: Command | None = None
+try:
+    from sdp.cli.tier import validate_tier
+except ImportError:
+    validate_tier = None
 
 
 @click.group()
 def workstream() -> None:
-    """Workstream management commands."""
+    """Core SDP operations (workstreams, features, project maps)."""
     pass
 
 
 @workstream.command("parse")
 @click.argument("ws_file", type=click.Path(exists=True, path_type=Path))
-def workstream_parse(ws_file: Path) -> None:
+def parse_workstream_cmd(ws_file: Path) -> None:
     """Parse a workstream markdown file.
 
     Args:
         ws_file: Path to workstream markdown file
     """
+    from sdp.core import WorkstreamParseError, parse_workstream
+
     try:
         ws = parse_workstream(ws_file)
         click.echo(f"✓ Parsed {ws.ws_id}: {ws.title}")
@@ -36,80 +51,28 @@ def workstream_parse(ws_file: Path) -> None:
         sys.exit(1)
 
 
-@workstream.command("validate")
-@click.argument("ws_file", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--tier",
-    type=click.Choice(["T0", "T1", "T2", "T3"], case_sensitive=False),
-    required=True,
-    help="Capability tier to validate against (T0, T1, T2, T3)",
-)
-@click.option(
-    "--json",
-    "output_json",
-    is_flag=True,
-    help="Output results as JSON (machine-readable)",
-)
-def workstream_validate(ws_file: Path, tier: str, output_json: bool) -> None:
-    """Validate workstream against capability tier.
-
-    Validates a workstream markdown file against the specified capability tier
-    (T0-T3) according to Contract-Driven WS v2.0 specification.
+@workstream.command("parse-project-map")
+@click.argument("project_map_file", type=click.Path(exists=True, path_type=Path))
+def parse_project_map(project_map_file: Path) -> None:
+    """Parse a PROJECT_MAP.md file.
 
     Args:
-        ws_file: Path to workstream markdown file
-        tier: Capability tier (T0, T1, T2, T3)
-        output_json: Output results as JSON
+        project_map_file: Path to PROJECT_MAP.md file
     """
-    import json
-
-    from sdp.validators import validate_workstream_tier
+    from sdp.core import ProjectMapParseError, parse_project_map
 
     try:
-        result = validate_workstream_tier(ws_file, tier)
-    except ValueError as e:
+        pm = parse_project_map(project_map_file)
+        click.echo(f"✓ Parsed project map: {pm.project_name}")
+        click.echo(f"  Decisions: {len(pm.decisions)}")
+        click.echo(f"  Constraints: {len(pm.constraints)}")
+        if pm.tech_stack:
+            click.echo(f"  Tech Stack Items: {len(pm.tech_stack)}")
+    except ProjectMapParseError as e:
         click.echo(format_error_for_terminal(e), err=True)
         sys.exit(1)
-    except Exception as e:
-        click.echo(format_error_for_terminal(e), err=True)
-        sys.exit(1)
 
-    if output_json:
-        # Machine-readable JSON output
-        output = {
-            "tier": result.tier.value,
-            "passed": result.passed,
-            "checks": [
-                {
-                    "name": check.name,
-                    "passed": check.passed,
-                    "message": check.message,
-                    "details": check.details,
-                }
-                for check in result.checks
-            ],
-        }
-        click.echo(json.dumps(output, indent=2))
-        sys.exit(0 if result.passed else 1)
-    else:
-        # Human-readable output
-        click.echo(f"=== Capability Tier Validation ({result.tier.value}) ===")
-        click.echo(f"Workstream: {ws_file}")
-        click.echo()
 
-        for check in result.checks:
-            status = "✓" if check.passed else "✗"
-            click.echo(f"{status} {check.name}: {check.message}")
-            if check.details:
-                for detail in check.details:
-                    click.echo(f"    - {detail}")
-
-        click.echo()
-        if result.passed:
-            click.echo(f"Result: {result.tier.value}-READY ✓")
-            sys.exit(0)
-        else:
-            click.echo(f"Result: {result.tier.value}-READY ✗")
-            failed_count = sum(1 for check in result.checks if not check.passed)
-            click.echo(f"Failed checks: {failed_count}/{len(result.checks)}")
-            sys.exit(1)
+# Add validate_tier command if available (as 'validate' for compatibility)
+if validate_tier:
+    workstream.add_command(validate_tier, name='validate')
