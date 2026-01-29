@@ -60,7 +60,7 @@ dmypy.json
 
 # Development artifacts (not for production repo)
 debug_*.py
-test_*.py
+/test_*.py
 diagnostic.py
 quick_test.py
 verify_*.py
