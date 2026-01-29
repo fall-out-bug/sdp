@@ -34,8 +34,12 @@ echo "Max CC: $MAX_CC"
 echo "Max Average CC: $MAX_AVG_CC"
 echo ""
 
-# Check if radon is installed
-if ! command -v radon &> /dev/null; then
+# Check if radon is available (directly or via poetry)
+if command -v radon &> /dev/null; then
+    RADON_CMD="radon"
+elif command -v poetry &> /dev/null; then
+    RADON_CMD="poetry run radon"
+else
     echo "❌ radon not found"
     echo ""
     echo "Install: pip install radon"
@@ -46,10 +50,10 @@ fi
 # Run radon cc - show complexity for each function
 echo "Cyclomatic Complexity by function:"
 echo "-----------------------------------"
-radon cc "$TARGET_PATH" -a -s --min "A"
+$RADON_CMD cc "$TARGET_PATH" -a -s --min "A"
 
 # Check if any function exceeds max_cc
-VIOLATIONS=$(radon cc "$TARGET_PATH" -s --min "A" 2>/dev/null | grep -E "[F|E|D]" | grep -oE "[0-9]+$" | awk -v max="$MAX_CC" '$1 > max' || echo "")
+VIOLATIONS=$($RADON_CMD cc "$TARGET_PATH" -s --min "A" 2>/dev/null | grep -E "[F|E|D]" | grep -oE "\([0-9]+\)" | grep -oE "[0-9]+" | awk -v max="$MAX_CC" '$1 > max' || echo "")
 
 if [ -n "$VIOLATIONS" ]; then
     echo ""
@@ -64,7 +68,7 @@ if [ -n "$VIOLATIONS" ]; then
 fi
 
 # Check average complexity
-AVG_CC=$(radon cc "$TARGET_PATH" -a --min "A" 2>/dev/null | grep "Average" | grep -oE "[0-9.]+" || echo "0")
+AVG_CC=$($RADON_CMD cc "$TARGET_PATH" -a --min "A" 2>/dev/null | grep "Average" | grep -oE "[0-9.]+" || echo "0")
 
 if [ -n "$AVG_CC" ] && [ $(echo "$AVG_CC > $MAX_AVG_CC" | bc -l 2>/dev/null || echo "0") -eq 1 ]; then
     echo ""
