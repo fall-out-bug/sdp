@@ -196,19 +196,31 @@ class TestValidation:
             # Create checks that consistently return the same result
             mock_check_success = Mock()
             mock_check_success.critical = False
-            mock_result_success = Mock(status="success", passed=True)
-            # Use side_effect to return same result on multiple calls
-            mock_check_success.run.side_effect = [mock_result_success, mock_result_success]
+            mock_result_success = Mock()
+            mock_result_success.passed = True
+            mock_result_success.status = "success"
+            mock_check_success.run.return_value = mock_result_success
 
             mock_check_fail = Mock()
             mock_check_fail.critical = True  # Critical check fails
-            mock_result_fail = Mock(status="error", passed=False)
-            mock_check_fail.run.side_effect = [mock_result_fail, mock_result_fail]
+            mock_result_fail = Mock()
+            mock_result_fail.passed = False
+            mock_result_fail.status = "error"
+            mock_check_fail.run.return_value = mock_result_fail
 
             mock_checks.return_value = [mock_check_success, mock_check_fail]
 
             with patch("click.echo"):
                 result = run_doctor(tmp_path)
+
+            # Debug: check what run_doctor returns
+            print(f"\nDEBUG run_doctor_failure:")
+            print(f"  result = {result}")
+            print(f"  result type = {type(result)}")
+            print(f"  mock_check_success.critical = {mock_check_success.critical}")
+            print(f"  mock_check_fail.critical = {mock_check_fail.critical}")
+            print(f"  mock_result_success.passed = {mock_result_success.passed}")
+            print(f"  mock_result_fail.passed = {mock_result_fail.passed}")
 
         assert result is False, f"Expected False but got {result}"
 

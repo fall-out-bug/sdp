@@ -5,8 +5,6 @@ from pathlib import Path
 
 import click
 
-from sdp.errors import format_error_for_terminal
-
 
 @click.group()
 def quality() -> None:
