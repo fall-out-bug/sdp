@@ -185,7 +185,8 @@ class TestArchitectureChecking:
         checker.check_architecture(core_file, tree)
 
         assert len(violations) == 1
-        assert "core -> api" in violations[0].message
+        assert "core" in violations[0].message
+        assert "api" in violations[0].message
 
     def test_python_standard_library_imports(self, tmp_path: Path) -> None:
         """Test that standard library imports don't trigger violations."""

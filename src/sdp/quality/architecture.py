@@ -146,7 +146,10 @@ class ArchitectureChecker:
                     category="architecture",
                     file_path=str(file_path),
                     line_number=lineno,
-                    message=f"Architecture violation: {source_layer} cannot import from {import_layer}",
+                    message=(
+                        f"Architecture violation: {source_layer} cannot "
+                        f"import from {import_layer}"
+                    ),
                     severity="error",
                 )
             )

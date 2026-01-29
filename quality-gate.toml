@@ -47,20 +47,14 @@ require_explicit_errors = true
 # Clean architecture boundaries
 enabled = true
 enforce_layer_separation = true
-allowed_layer_imports = [
-    # Domain <- Application <- Infrastructure <- Presentation
-    "domain <- application",
-    "domain <- infrastructure",
-    "domain <- presentation",
-    "application <- infrastructure",
-    "application <- presentation",
-    "infrastructure <- presentation"
-]
 forbid_violations = [
-    # Prevent inward dependencies
-    "infrastructure -> domain",
-    "presentation -> domain",
-    "presentation -> application"
+    # Clean architecture: inner layers cannot import from outer layers
+    "domain -> application",
+    "domain -> infrastructure",
+    "domain -> presentation",
+    "application -> infrastructure",
+    "application -> presentation",
+    "infrastructure -> presentation"
 ]
 
 [documentation]

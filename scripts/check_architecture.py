@@ -25,12 +25,15 @@ import ast
 import sys
 from pathlib import Path
 
-from sdp.quality.config import QualityGateConfigLoader
 from sdp.quality.architecture import ArchitectureChecker
+from sdp.quality.config import QualityGateConfigLoader
 from sdp.quality.validator_models import QualityGateViolation
 
 
-def check_file(file_path: Path, config_loader: QualityGateConfigLoader) -> list[QualityGateViolation]:
+def check_file(
+    file_path: Path,
+    config_loader: QualityGateConfigLoader,
+) -> list[QualityGateViolation]:
     """Check a single file for architecture violations.
 
     Args:

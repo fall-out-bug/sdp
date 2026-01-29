@@ -162,8 +162,14 @@ class ConfigSectionParsers:
 
         return SecurityConfig(
             enabled=cast(bool, data.get("enabled", True)),
-            forbid_hardcoded_secrets=cast(bool, data.get("forbid_hardcoded_secrets", True)),
-            forbid_sql_injection_patterns=cast(bool, data.get("forbid_sql_injection_patterns", True)),
+            forbid_hardcoded_secrets=cast(
+                bool,
+                data.get("forbid_hardcoded_secrets", True),
+            ),
+            forbid_sql_injection_patterns=cast(
+                bool,
+                data.get("forbid_sql_injection_patterns", True),
+            ),
             forbid_eval_usage=cast(bool, data.get("forbid_eval_usage", True)),
             require_https_urls=cast(bool, data.get("require_https_urls", True)),
         )
@@ -176,7 +182,13 @@ class ConfigSectionParsers:
 
         return PerformanceConfig(
             enabled=cast(bool, data.get("enabled", True)),
-            forbid_sql_queries_in_loops=cast(bool, data.get("forbid_sql_queries_in_loops", True)),
+            forbid_sql_queries_in_loops=cast(
+                bool,
+                data.get("forbid_sql_queries_in_loops", True),
+            ),
             max_nesting_depth=cast(int, data.get("max_nesting_depth", 5)),
-            warn_large_string_concatenation=cast(bool, data.get("warn_large_string_concatenation", True)),
+            warn_large_string_concatenation=cast(
+                bool,
+                data.get("warn_large_string_concatenation", True),
+            ),
         )
