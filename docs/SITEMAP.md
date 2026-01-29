@@ -30,10 +30,16 @@ Complete navigation guide for all SDP documentation.
 |----------|----------|---------|------|
 | **START_HERE.md** | `/` | Welcome page with learning paths | 5 min |
 | **README.md** | `/` | Project overview and features | 5 min |
-| **Tutorial** | `docs/TUTORIAL.md` | Hands-on introduction | 15 min |
-| **Glossary** | `docs/GLOSSARY.md` | 150+ term reference | Ongoing |
+| **Tutorial** | `docs/beginner/TUTORIAL.md` | Hands-on introduction | 15 min |
+| **Glossary** | `docs/reference/GLOSSARY.md` | 150+ term reference | Ongoing |
 
-**Start here:** [START_HERE.md](../START_HERE.md) → [Tutorial](TUTORIAL.md) → [Protocol](../PROTOCOL.md)
+**Start here:** [START_HERE.md](../START_HERE.md) → [Tutorial](beginner/TUTORIAL.md) → [Protocol](../PROTOCOL.md)
+
+**Progressive Learning Path:** See `docs/beginner/` for structured learning:
+1. [00-quick-start.md](beginner/00-quick-start.md) - Get SDP working in 5 min
+2. [01-first-feature.md](beginner/01-first-feature.md) - Build your first feature
+3. [02-common-tasks.md](beginner/02-common-tasks.md) - Everyday SDP patterns
+4. [03-troubleshooting.md](beginner/03-troubleshooting.md) - Solve problems
 
 ---
 

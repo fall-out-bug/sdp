@@ -68,7 +68,44 @@ pytest --cov=src --cov-fail-under=80
 mypy src/ --strict
 ```
 
-### Step 5: Move to Completed
+### Step 5: Append Execution Report
+
+Generate and append execution report to the workstream file:
+
+```python
+from sdp.report.generator import ReportGenerator
+
+generator = ReportGenerator(ws_id="WS-XXX-YY")
+generator.start_timer()
+# ... execute workstream ...
+generator.stop_timer()
+
+# Collect statistics
+stats = generator.collect_stats(
+    files_changed=[("src/module.py", "modified", 100)],
+    coverage_pct=85.0,
+    tests_passed=12,
+    tests_failed=0,
+    deviations=["Added extra validation for edge case"]
+)
+
+# Get current commit
+import subprocess
+commit_hash = subprocess.run(
+    ["git", "rev-parse", "HEAD"],
+    capture_output=True,
+    text=True
+).stdout.strip()
+
+# Append report
+generator.append_report(
+    stats,
+    executed_by="developer-name",
+    commit_hash=commit_hash
+)
+```
+
+### Step 6: Move to Completed
 
 ```bash
 mv docs/workstreams/in_progress/WS-XXX-YY.md docs/workstreams/completed/

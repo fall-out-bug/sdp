@@ -190,7 +190,8 @@ class MockBeadsClient(BeadsClient):
             # Check if any blocking dependencies are still open
             blocked = False
             for dep in task.dependencies:
-                if dep.type.value == "blocks":
+                # dep.type is a string, not an enum
+                if dep.type == "blocks":
                     dep_task = self._tasks.get(dep.task_id)
                     if dep_task and dep_task.status == BeadsStatus.OPEN:
                         blocked = True

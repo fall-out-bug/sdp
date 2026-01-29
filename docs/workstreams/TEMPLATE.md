@@ -88,6 +88,7 @@ mypy module/ --strict
 
 **Executed by:** ______
 **Date:** ______
+**Duration:** ______ minutes
 
 ### Goal Status
 - [ ] AC1-AC3 — ✅
@@ -98,6 +99,17 @@ mypy module/ --strict
 | File | Action | LOC |
 |------|--------|-----|
 |      |        |     |
+
+### Statistics
+- **Files Changed:** ______
+- **Lines Added:** ______
+- **Lines Removed:** ______
+- **Test Coverage:** ______ %
+- **Tests Passed:** ______
+- **Tests Failed:** ______
+
+### Deviations from Plan
+- ______
 
 ### Commit
 ______
