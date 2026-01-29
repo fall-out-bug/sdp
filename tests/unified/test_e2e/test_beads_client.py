@@ -21,7 +21,7 @@ from sdp.beads.models import (
 )
 
 if TYPE_CHECKING:
-    from sdp.beads.client import MockBeadsClient
+    from sdp.beads.mock import MockBeadsClient
 
 
 class TestBeadsClientCreation:
@@ -199,10 +199,10 @@ class TestErrorHandling:
         # Should return None
         assert task is None
 
-    @patch('sdp.beads.client.subprocess.run')
+    @patch('sdp.beads.cli.subprocess.run')
     def test_handles_beads_unavailable(self, mock_run: MagicMock) -> None:
         """Should handle Beads CLI not being installed."""
-        from sdp.beads.client import BeadsClientError
+        from sdp.beads.exceptions import BeadsClientError
 
         mock_run.side_effect = FileNotFoundError("bd not found")
 
