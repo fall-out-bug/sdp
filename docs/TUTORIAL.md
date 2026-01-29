@@ -309,7 +309,8 @@ find src/sdp/module -name "*.py" -exec wc -l {} +
 ## Next Steps
 
 **Learn More:**
-- `PROTOCOL.md` - Full specification
+- `PROTOCOL.md` - Full specification (English)
+- `PROTOCOL_RU.md` - Полная спецификация (Русский)
 - `README.md` - Project overview
 - `docs/drafts/beads-sdp-118.md` - Unified workflow implementation
 
