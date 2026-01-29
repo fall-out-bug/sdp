@@ -7,12 +7,22 @@ import click
 
 from sdp import __version__
 
+# Import SDP error framework
+from sdp.errors import format_error_for_terminal
+
 # Import Beads commands (optional - may not be available in all builds)
 try:
     from sdp.cli.beads import beads
     _beads_available = True
 except ImportError:
     _beads_available = False
+
+# Import doctor command
+try:
+    from sdp.doctor import doctor
+    _doctor_available = True
+except ImportError:
+    _doctor_available = False
 
 
 @click.group()
@@ -34,6 +44,10 @@ def main() -> None:
 # Add Beads commands if available
 if _beads_available:
     main.add_command(beads)
+
+# Add doctor command if available
+if _doctor_available:
+    main.add_command(doctor)
 
 
 @main.command()
@@ -67,7 +81,7 @@ def parse_workstream(ws_file: Path) -> None:
         if ws.acceptance_criteria:
             click.echo(f"  Acceptance Criteria: {len(ws.acceptance_criteria)}")
     except WorkstreamParseError as e:
-        click.echo(f"Error parsing workstream: {e}", err=True)
+        click.echo(format_error_for_terminal(e), err=True)
         sys.exit(1)
 
 
@@ -89,7 +103,7 @@ def parse_project_map(project_map_file: Path) -> None:
         if pm.tech_stack:
             click.echo(f"  Tech Stack Items: {len(pm.tech_stack)}")
     except ProjectMapParseError as e:
-        click.echo(f"Error parsing project map: {e}", err=True)
+        click.echo(format_error_for_terminal(e), err=True)
         sys.exit(1)
 
 
@@ -125,10 +139,10 @@ def validate_tier(ws_file: Path, tier: str, output_json: bool) -> None:
     try:
         result = validate_workstream_tier(ws_file, tier)
     except ValueError as e:
-        click.echo(f"Error: {e}", err=True)
+        click.echo(format_error_for_terminal(e), err=True)
         sys.exit(1)
     except Exception as e:
-        click.echo(f"Unexpected error: {e}", err=True)
+        click.echo(format_error_for_terminal(e), err=True)
         sys.exit(1)
 
     if output_json:
