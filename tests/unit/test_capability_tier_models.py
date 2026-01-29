@@ -86,18 +86,21 @@ class TestValidationResult:
         assert result.tier == CapabilityTier.T2
         assert result.passed is True
         assert len(result.checks) == 1
-        assert result.errors == []
 
     def test_create_result_with_errors(self) -> None:
-        """Test creating a result with errors."""
+        """Test creating a result with errors (via failed checks)."""
+        check = ValidationCheck(
+            name="test",
+            passed=False,
+            message="Failed",
+        )
         result = ValidationResult(
             tier=CapabilityTier.T1,
             passed=False,
-            checks=[],
-            errors=["Error 1", "Error 2"],
+            checks=[check],
         )
         assert result.passed is False
-        assert len(result.errors) == 2
+        assert len(result.checks) == 1
 
     def test_create_result_with_multiple_checks(self) -> None:
         """Test creating a result with multiple checks."""

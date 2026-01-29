@@ -8,10 +8,10 @@ from enum import Enum
 class CapabilityTier(str, Enum):
     """SDP capability tier levels."""
 
-    T0 = "T0"
-    T1 = "T1"
-    T2 = "T2"
-    T3 = "T3"
+    T0 = "T0"  # Architect (Contract writer)
+    T1 = "T1"  # Integrator (Complex build)
+    T2 = "T2"  # Implementer (Contract-driven build)
+    T3 = "T3"  # Autocomplete (Micro build)
 
 
 @dataclass
@@ -20,7 +20,7 @@ class ValidationCheck:
 
     name: str
     passed: bool
-    message: str
+    message: str = ""
     details: list[str] = field(default_factory=list)
 
 
@@ -30,5 +30,10 @@ class ValidationResult:
 
     tier: CapabilityTier
     passed: bool
-    checks: list[ValidationCheck]
-    errors: list[str] = field(default_factory=list)
+    checks: list[ValidationCheck] = field(default_factory=list)
+
+    def add_check(self, check: ValidationCheck) -> None:
+        """Add a validation check result."""
+        self.checks.append(check)
+        if not check.passed:
+            self.passed = False
