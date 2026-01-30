@@ -67,17 +67,22 @@ You can also use pytest-watcher directly without the wrapper script:
 
 ```bash
 # Watch current directory
-poetry run ptw .
+poetry run pytest-watcher .
 
 # Watch with custom pytest args
-poetry run ptw . -- -x --lf --nf
+poetry run pytest-watcher . -- -x --lf --nf
 
 # Watch specific directory
-poetry run ptw tests/unit/
+poetry run pytest-watcher tests/unit/
 
 # Watch with different patterns
-poetry run ptw . --patterns '*.py,pyproject.toml'
+poetry run pytest-watcher . --patterns '*.py,pyproject.toml'
+
+# See all options
+poetry run pytest-watcher --help
 ```
+
+**Note:** Use `pytest-watcher` (not `ptw` which is from the abandoned pytest-watch package).
 
 ## Configuration
 
@@ -145,7 +150,7 @@ When running in a terminal with TTY support:
 
 Check file patterns:
 ```bash
-poetry run ptw . --patterns '*.py' --ignore-patterns '*/migrations/*'
+poetry run pytest-watcher . --patterns '*.py' --ignore-patterns '*/migrations/*'
 ```
 
 ### Tests run too slowly
@@ -165,7 +170,7 @@ def test_slow_operation():
 
 Then:
 ```bash
-poetry run ptw . -- -m "not slow"
+poetry run pytest-watcher . -- -m "not slow"
 ```
 
 ### Terminal errors
