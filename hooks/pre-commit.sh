@@ -125,6 +125,24 @@ else
     echo "  No Python files staged"
 fi
 
+# Check 3b: Quality Gates (security, documentation, performance)
+echo ""
+echo "Check 3b: Quality Gates (security, documentation, performance)"
+
+# Only check src/ Python files (avoid dependencies issues)
+SRC_PY_FILES=$(echo "$STAGED_FILES" | grep "src/.*\.py$" || true)
+
+if [ -n "$SRC_PY_FILES" ]; then
+    if ! python3 scripts/check_quality_gates.py --staged; then
+        echo ""
+        echo "❌ Quality gate validation failed"
+        echo "Configure rules in quality-gate.toml"
+        exit 1
+    fi
+else
+    echo "  No src/ Python files staged"
+fi
+
 # Check 4: Clean Architecture (portable Python module)
 echo ""
 echo "Check 4: Clean Architecture"

@@ -50,7 +50,6 @@ def _check_verification_commands(verification_section: str) -> "ValidationCheck"
 def _check_contract_is_read_only(body: str) -> "ValidationCheck":
     """Check contract appears to be a specification (not implementation)."""
     from sdp.validators.capability_tier_models import ValidationCheck
-    from sdp.validators.capability_tier_extractors import _extract_section
 
     # Look for Contract section
     contract_match = re.search(r"#+\s*Contract", body, re.IGNORECASE)

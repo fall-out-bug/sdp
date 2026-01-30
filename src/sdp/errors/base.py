@@ -3,8 +3,7 @@
 Defines ErrorCategory enum, SDPError base exception, and formatting functions.
 """
 
-import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 

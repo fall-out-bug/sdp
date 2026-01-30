@@ -176,7 +176,14 @@ def parse_workstream(file_path: Path) -> Workstream:
     content = file_path.read_text(encoding="utf-8")
     frontmatter = _extract_frontmatter(content)
 
-    ws_id: str = str(frontmatter["ws_id"])
+    # Validate ws_id format using WorkstreamID parser
+    ws_id_raw: str = str(frontmatter["ws_id"])
+    try:
+        parsed_ws_id = WorkstreamID.parse(ws_id_raw)
+        ws_id: str = str(parsed_ws_id)  # Use normalized format
+    except ValueError as e:
+        raise WorkstreamParseError(f"Invalid ws_id format: {e}") from e
+
     feature: str = str(frontmatter["feature"])
     status_str: str = str(frontmatter["status"])
     size_str: str = str(frontmatter["size"])

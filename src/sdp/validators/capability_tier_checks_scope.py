@@ -3,7 +3,6 @@
 Provides validation functions for workstream size and scope estimates.
 """
 
-import re
 
 
 def _check_scope_tiny(ws, body: str) -> "ValidationCheck":
