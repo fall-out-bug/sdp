@@ -325,6 +325,7 @@ v1.2 (Consensus) → v2.0 (Unified) → v0.3.0 (Commands) → v0.5.0 (Beads)
 **Status Update (2026-01-30):**
 - P0-1 Security Checks restored ✅
 - P0-2 F014 Destructive Confirmation implemented ✅
+- P0-3 Markdown vs Beads Workflow resolved ✅
 
 ### 🔴 P0 - КРИТИЧЕСКИ (исправить немедленно)
 
@@ -345,7 +346,16 @@ v1.2 (Consensus) → v2.0 (Unified) → v0.3.0 (Commands) → v0.5.0 (Beads)
    - **Patterns detected:** migration, delete, remove, drop, truncate, wipe, etc.
    - **Status:** Active - blocks destructive ops without user confirmation
 
-3. **Решить Markdown vs Beads Workflow**
+3. ~~**Решить Markdown vs Beads Workflow**~~ ✅ **RESOLVED**
+   - ~~Выбрать один подход как primary~~
+   - **Decision:** Beads-first workflow (`@feature` skill) is RECOMMENDED
+   - **Documentation:** Created `docs/workflow-decision.md` with:
+     - Detailed comparison of both workflows
+     - Decision matrix (when to use which)
+     - Migration path from markdown to Beads-first
+     - FAQ and future evolution timeline
+   - **Implementation:** Updated CLAUDE.md to reference decision document
+   - **Status:** Clear guidance provided - Beads-first for new features, markdown as fallback
    - Реализовать AskUserQuestion вместо `return True`
    - **Risk:** Destructive operations происходят без подтверждения
 

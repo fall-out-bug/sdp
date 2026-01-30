@@ -9,13 +9,15 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 Use **skills** to execute SDP commands:
 
 ```
-@feature "Add user authentication"    # New: unified entry point
-@idea "Add user authentication"       # Or start directly
+@feature "Add user authentication"    # ✅ RECOMMENDED: Beads-first workflow
+@idea "Add user authentication"       # ⚠️ ALTERNATIVE: Traditional markdown workflow
 @design idea-user-auth                # Plan workstreams
 @build 00-001-01                      # Execute workstream (PP-FFF-SS format)
 @review F01                           # Quality check
 @deploy F01                           # Deploy to production
 ```
+
+**📋 Workflow Decision:** See [docs/workflow-decision.md](docs/workflow-decision.md) for detailed comparison of Beads-first vs Traditional markdown workflows.
 
 **⚠️ Workstream ID Format:** Use `PP-FFF-SS` (e.g., `00-001-01`), NOT legacy `WS-FFF-SS`
 
