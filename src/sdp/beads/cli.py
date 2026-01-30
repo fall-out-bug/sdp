@@ -44,15 +44,25 @@ class CLIBeadsClient(BeadsClient):
     def create_task(self, params: BeadsTaskCreate) -> BeadsTask:
         """Create task via Beads CLI.
 
-        Example:
-            bd create --json '{"title": "...", "priority": 0}'
+        Beads expects: bd create [title] --description=... --priority=...
+        The --json flag is for OUTPUT format, not input.
         """
-        cmd = [
-            "bd",
-            "create",
-            "--json",
-            json.dumps(params.to_dict()),
-        ]
+        # Title as positional arg (Beads limit: 500 chars)
+        title = (params.title or "Untitled")[:500]
+
+        cmd = ["bd", "create", title, "--json"]
+
+        if params.description:
+            cmd.extend(["--description", params.description])
+        if params.priority is not None:
+            cmd.extend(["--priority", str(params.priority.value)])
+        if params.parent_id:
+            cmd.extend(["--parent", params.parent_id])
+        if params.external_ref:
+            cmd.extend(["--external-ref", params.external_ref])
+        if params.dependencies:
+            deps_str = ",".join(f"blocks:{d.task_id}" for d in params.dependencies)
+            cmd.extend(["--deps", deps_str])
 
         result = self._run_command(cmd, capture_output=True)
         return BeadsTask.from_dict(json.loads(result.stdout))
@@ -74,8 +84,8 @@ class CLIBeadsClient(BeadsClient):
             else:
                 return BeadsTask.from_dict(data)
 
-        except BeadsClientError:
-            # Task not found ( CalledProcessError)
+        except (BeadsClientError, json.JSONDecodeError):
+            # Task not found or invalid response
             return None
 
     def update_task_status(self, task_id: str, status: BeadsStatus) -> None:
@@ -139,6 +149,15 @@ class CLIBeadsClient(BeadsClient):
             return [BeadsTask.from_dict(t) for t in data]
         else:
             return [BeadsTask.from_dict(t) for t in data.get("tasks", [])]
+
+    def update_metadata(self, task_id: str, metadata: dict) -> None:
+        """Update task metadata via Beads CLI.
+
+        Example:
+            bd update bd-a3f8 --metadata '{"sdp": {...}}'
+        """
+        cmd = ["bd", "update", task_id, "--metadata", json.dumps(metadata)]
+        self._run_command(cmd)
 
     def _run_command(
         self, cmd: List[str], capture_output: bool = False

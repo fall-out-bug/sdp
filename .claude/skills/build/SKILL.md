@@ -1,141 +1,147 @@
 ---
 name: build
-description: Execute single workstream with TDD cycle enforcement and progress tracking
-tools: Read, Write, Edit, Bash, Skill
+description: Execute workstream with TDD and guard enforcement
+tools: Read, Write, StrReplace, Shell, Skill
 ---
 
-# /build - Execute Workstream
+# @build - Execute Workstream
 
-Execute a single workstream following TDD discipline with progress reporting.
+Execute a single workstream following TDD discipline with automatic guard.
 
-## When to Use
+## Invocation (BEADS-001)
 
-- Implementing a single workstream
-- After @design creates workstreams
-- For focused, tracked development
+Accepts **both** formats:
+
+- `@build 00-001-01` — WS-ID (PP-FFF-SS), resolve beads_id from `.beads-sdp-mapping.jsonl`
+- `@build sdp-xxx` — Beads task ID directly
+
+## Beads Integration (when enabled)
+
+**When Beads is enabled** (bd installed, `.beads/` exists):
+
+1. **Resolve ID:** ws_id → beads_id via mapping (if ws_id given)
+2. **Before work:** `bd update {beads_id} --status in_progress`
+3. **Execute:** TDD cycle
+4. **On success:** `bd close {beads_id} --reason "WS completed" --suggest-next`
+5. **On failure:** `bd update {beads_id} --status blocked`
+6. **Before commit:** `bd sync`
+
+**When Beads NOT enabled:** Skip Beads steps. Use ws_id only.
+
+**SDP repo:** Beads always enabled (see .cursorrules).
+
+## Quick Reference
+
+| Step | Action | Gate |
+|------|--------|------|
+| 0 | Resolve beads_id | ws_id → mapping or use beads_id |
+| 1 | Beads IN_PROGRESS | `bd update {beads_id} --status in_progress` |
+| 2 | Activate guard | `sdp guard activate {ws_id}` |
+| 3 | Read WS spec | AC present and clear |
+| 4 | TDD cycle | `@tdd` for each AC |
+| 5 | Quality check | `sdp quality check` passes |
+| 6 | Beads CLOSED/blocked | `bd close` or `bd update --status blocked` |
+| 7 | Beads sync + Complete | `bd sync` then commit |
 
 ## Workflow
 
-### Step 1: Read Workstream
-
-Read the workstream file to understand requirements:
+### Step 0: Resolve Task ID
 
 ```bash
-@docs/workstreams/in_progress/WS-XXX-YY.md
-# or
-@docs/workstreams/backlog/WS-XXX-YY.md
+# Input: ws_id (00-001-01) OR beads_id (sdp-xxx)
+# If ws_id: beads_id = grep mapping for sdp_id
+# If beads_id: ws_id = grep mapping for beads_id (reverse lookup)
+# Guard needs ws_id; Beads needs beads_id
+beads_id=$(grep -m1 "\"sdp_id\": \"{WS-ID}\"" .beads-sdp-mapping.jsonl 2>/dev/null | grep -o '"beads_id": "[^"]*"' | cut -d'"' -f4)
+ws_id=$(grep -m1 "\"beads_id\": \"{beads_id}\"" .beads-sdp-mapping.jsonl 2>/dev/null | grep -o '"sdp_id": "[^"]*"' | cut -d'"' -f4)
 ```
 
-### Step 2: Verify Prerequisites
-
-Check that all prerequisites are met:
+### Step 1: Beads IN_PROGRESS (when Beads enabled)
 
 ```bash
-# From WS Prerequisites section
-pytest tests/unit/XXX/ -v
-# or other check commands
+[ -n "$beads_id" ] && bd update "$beads_id" --status in_progress
 ```
 
-**If prerequisites fail:** Stop and report dependency issue.
-
-### Step 3: Execute Steps with TDD
-
-For each step in the workstream:
-
-1. **Mark progress:** "Step N/M: [Step description]"
-2. **Call /tdd** for Red-Green-Refactor cycle
-3. **Verify output** matches expected result
-4. **Self-review** after each step
-
-```python
-# TDD execution pattern
-Skill("tdd")
-# Follows: Red (write failing test) -> Green (minimal code) -> Refactor
-```
-
-### Step 4: Verify Acceptance Criteria
-
-After all steps complete:
+### Step 2: Activate Guard
 
 ```bash
-# Run all tests
-pytest tests/unit/ -v
-
-# Check coverage
-pytest --cov=src --cov-fail-under=80
-
-# Type check
-mypy src/ --strict
+sdp guard activate {WS-ID}
 ```
 
-### Step 5: Append Execution Report
+**Gate:** Must succeed. If fails, WS not ready.
 
-Generate and append execution report to the workstream file:
-
-```python
-from sdp.report.generator import ReportGenerator
-
-generator = ReportGenerator(ws_id="WS-XXX-YY")
-generator.start_timer()
-# ... execute workstream ...
-generator.stop_timer()
-
-# Collect statistics
-stats = generator.collect_stats(
-    files_changed=[("src/module.py", "modified", 100)],
-    coverage_pct=85.0,
-    tests_passed=12,
-    tests_failed=0,
-    deviations=["Added extra validation for edge case"]
-)
-
-# Get current commit
-import subprocess
-commit_hash = subprocess.run(
-    ["git", "rev-parse", "HEAD"],
-    capture_output=True,
-    text=True
-).stdout.strip()
-
-# Append report
-generator.append_report(
-    stats,
-    executed_by="developer-name",
-    commit_hash=commit_hash
-)
-```
-
-### Step 6: Move to Completed
+### Step 3: Read Workstream
 
 ```bash
-mv docs/workstreams/in_progress/WS-XXX-YY.md docs/workstreams/completed/
+Read("docs/workstreams/backlog/{WS-ID}-*.md")
 ```
 
-## Progress Reporting
+Extract:
+- Goal and Acceptance Criteria
+- Input/Output files
+- Steps to execute
 
-Report progress after each step:
+### Step 4: TDD Cycle
 
-```markdown
-✅ Step 1/5: Create module skeleton
-✅ Step 2/5: Implement core class
-✅ Step 3/5: Add error handling
-...
+For each AC, call internal TDD skill:
+
+```
+@tdd "AC1: {description}"
+```
+
+Cycle: Red → Green → Refactor
+
+### Step 5: Quality Check
+
+```bash
+sdp quality check --module {module}
+```
+
+Must pass:
+- Coverage ≥80%
+- mypy --strict
+- ruff (no errors)
+- Files <200 LOC
+
+### Step 6: Beads CLOSED or blocked
+
+**On success:**
+```bash
+[ -n "$beads_id" ] && bd close "$beads_id" --reason "WS completed" --suggest-next
+```
+
+**On failure (quality check fails, TDD fails):**
+```bash
+[ -n "$beads_id" ] && bd update "$beads_id" --status blocked
+```
+
+### Step 7: Complete
+
+```bash
+# When Beads enabled: sync before commit
+[ -d .beads ] && bd sync
+
+sdp guard complete {WS-ID}
+git add .
+git commit -m "feat({scope}): {WS-ID} - {title}"
 ```
 
 ## Quality Gates
 
-After each step:
-- [ ] Test written BEFORE implementation
-- [ ] Test verified FAILING in Red phase
-- [ ] Only minimal code in Green phase
-- [ ] All tests passing after Refactor
+See [Quality Gates Reference](../../docs/reference/quality-gates.md)
 
-## Output
+## Errors
 
-- Working code with tests
-- Updated workstream status
-- Progress tracking
+| Error | Cause | Fix |
+|-------|-------|-----|
+| No active WS | Guard not activated | `sdp guard activate` |
+| File not in scope | Editing wrong file | Check WS scope |
+| Coverage <80% | Missing tests | Add tests |
 
-## Next Step
+## See Also
 
-`/build WS-XXX-YY+1` for next workstream
+- [BEADS-001 Phase 2.3](../../docs/workstreams/backlog/BEADS-001-skills-integration.md) — Beads @build spec
+- [WorkstreamExecutor](../../src/sdp/beads/skills_build.py) — Python implementation
+- [Full Build Spec](../../docs/reference/build-spec.md)
+- [TDD Skill](../tdd/SKILL.md)
+- [Guard Skill](../guard/SKILL.md)

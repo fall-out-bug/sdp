@@ -235,7 +235,7 @@ curl -X POST https://api/admin/maintenance/disable
 
 ### 6.3 Monitor
 
-**Watch for 1 hour:**
+**Monitor continuously:**
 - Error rate: should be < 0.1%
 - Response time: should be < 200ms
 - Database connections: should be stable

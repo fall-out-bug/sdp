@@ -1,6 +1,6 @@
 ---
 name: hotfix
-description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, deploy < 2h.
+description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, immediate deploy.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -51,7 +51,7 @@ Fast-track critical bug fixes for production.
 - **Minimal changes** - no refactoring!
 - **No new features** - fix bug only
 - **Fast testing** - smoke + critical path
-- **SLA target: < 2h** - emergency window (not a scope estimate)
+- **SLA target: Immediate** - emergency response
 - **Backport mandatory** - to all branches
 
 ## Output

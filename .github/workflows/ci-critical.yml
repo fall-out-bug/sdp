@@ -29,6 +29,21 @@ jobs:
       - name: Install dependencies
         run: poetry install --with dev
 
+      - name: Check traceability
+        run: |
+          # Get WS ID from PR title or branch
+          WS_ID=$(echo "${{ github.head_ref }}" | grep -oE '[0-9]{2}-[0-9]{3}-[0-9]{2}' || echo "")
+          
+          if [ -n "$WS_ID" ]; then
+            echo "Checking traceability for WS $WS_ID..."
+            poetry run sdp trace check "$WS_ID" || {
+              echo "::error::Traceability check failed. Some ACs don't have tests."
+              exit 1
+            }
+          else
+            echo "No WS ID found in branch name (${{ github.head_ref }}), skipping traceability check"
+          fi
+
       - name: Run tests with coverage
         run: |
           poetry run pytest \
@@ -63,6 +78,7 @@ jobs:
             
             ### Critical Checks
             
+            - ✅ Traceability: All ACs must have tests
             - ✅ Tests must pass
             - ✅ Coverage must be ≥80%
             - ✅ mypy --strict must pass

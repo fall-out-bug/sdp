@@ -2,6 +2,7 @@
 ws_id: 00-032-14
 feature: F032
 status: completed
+completed: "2026-01-30"
 size: SMALL
 project_id: 00
 github_issue: null

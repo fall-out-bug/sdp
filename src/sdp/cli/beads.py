@@ -10,7 +10,7 @@ from pathlib import Path
 import click
 
 from ..beads.client import create_beads_client
-from .sync import BeadsSyncService
+from ..beads.sync import BeadsSyncService
 
 
 @click.group()
@@ -25,12 +25,20 @@ def beads() -> None:
     type=click.Path(exists=True),
 )
 @click.option(
-    "--use-mock",
+    "--real",
+    "use_real",
     is_flag=True,
-    default=True,
-    help="Use mock Beads client (default: True)",
+    default=False,
+    help="Use real Beads CLI (default: mock)",
 )
-def migrate(workstreams_dir: Path, use_mock: bool) -> None:
+@click.option(
+    "--use-mock",
+    "use_mock",
+    is_flag=True,
+    default=None,
+    help="Use mock Beads client (deprecated: use --real for real Beads)",
+)
+def migrate(workstreams_dir: Path, use_real: bool, use_mock: bool | None) -> None:
     """Migrate markdown workstreams to Beads tasks.
 
     Reads all markdown workstream files and converts them to Beads tasks.
@@ -46,12 +54,18 @@ def migrate(workstreams_dir: Path, use_mock: bool) -> None:
 
     click.echo(f"🔄 Migrating workstreams from {workstreams_dir}")
 
-    # Initialize client
-    client = create_beads_client(use_mock=use_mock)
+    # Initialize client (--real = real Beads, else mock)
+    force_mock = use_mock if use_mock is not None else (not use_real)
+    client = create_beads_client(use_mock=force_mock)
     sync = BeadsSyncService(client)
 
-    # Find all workstream markdown files
-    ws_files = list(Path(workstreams_dir).rglob("*.md"))
+    # Find all workstream markdown files (exclude feature overviews, epics)
+    all_files = list(Path(workstreams_dir).rglob("*.md"))
+    skip_patterns = ("00-032-00-", "BEADS-001-")  # Feature overview, Epic (no ws_id)
+    ws_files = [
+        f for f in all_files
+        if not any(f.name.startswith(p) for p in skip_patterns)
+    ]
 
     if not ws_files:
         click.echo("⚠️  No workstream files found")
@@ -85,6 +99,9 @@ def migrate(workstreams_dir: Path, use_mock: bool) -> None:
         except Exception as e:
             click.echo(f"  ❌ {ws_file.name}: {e}")
             failed += 1
+
+    # Persist deduplicated mapping (fixes legacy append-duplicates)
+    sync.persist_mapping()
 
     # Summary
     click.echo(f"\n{'='*60}")

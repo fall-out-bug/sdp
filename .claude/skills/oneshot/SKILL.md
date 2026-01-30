@@ -43,8 +43,10 @@ For traditional markdown workflow, use `prompts/commands/oneshot.md` instead.
 ```
 
 **Environment Variables:**
-- `BEADS_USE_MOCK=true` - Use mock Beads (default for dev)
+- `BEADS_USE_MOCK=true` - Use mock Beads (default for projects without Beads)
 - `BEADS_USE_MOCK=false` - Use real Beads CLI (requires Go + bd installed)
+
+**SDP repo:** Beads is always enabled. Use real Beads for execution.
 
 ## Execution Modes (NEW from F014)
 
@@ -57,7 +59,6 @@ For traditional markdown workflow, use `prompts/commands/oneshot.md` instead.
 - **Behavior:** Creates PR, requires approval before deployment
 - **Use Case:** Production deployments requiring oversight
 - **Workflow:** Execute workstreams → Create PR → Wait for approval → Deploy
-- **Duration:** ~3h 45m (includes PR wait time)
 
 ### Auto-Approve Mode
 ```bash
@@ -99,10 +100,10 @@ For traditional markdown workflow, use `prompts/commands/oneshot.md` instead.
 
 | Mode | PR Required | Production | Duration | Use When |
 |------|-------------|------------|----------|----------|
-| **Standard** | ✅ Yes | ✅ Yes | ~3h 45m | Production releases |
-| **Auto-approve** | ❌ No | ✅ Yes | ~45 min | Trusted features, rapid iteration |
-| **Sandbox** | ❌ No | ❌ No | ~45 min | Testing, staging |
-| **Dry-run** | N/A | N/A | <1 min | Preview changes |
+| **Standard** | ✅ Yes | ✅ Yes | Includes PR wait | Production releases |
+| **Auto-approve** | ❌ No | ✅ Yes | No PR wait | Trusted features, rapid iteration |
+| **Sandbox** | ❌ No | ❌ No | No PR wait | Testing, staging |
+| **Dry-run** | N/A | N/A | Instant | Preview changes |
 
 ## Audit Logging (NEW from F014)
 
@@ -161,8 +162,6 @@ for task in all_tasks:
         title=task.title,
         depends_on=[d.task_id for d in task.dependencies],
         oneshot_ready=metadata.get("oneshot_ready", True),
-        estimated_loc=metadata.get("estimated_loc"),
-        estimated_duration=metadata.get("estimated_duration"),
     ))
 
 # Get correct execution order

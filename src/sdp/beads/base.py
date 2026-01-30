@@ -100,3 +100,16 @@ class BeadsClient(ABC):
             List of matching tasks
         """
         pass
+
+    @abstractmethod
+    def update_metadata(self, task_id: str, metadata: dict) -> None:
+        """Update task metadata.
+
+        Args:
+            task_id: Beads task ID
+            metadata: Metadata dictionary to merge/update
+
+        Raises:
+            BeadsClientError: If task not found or update fails
+        """
+        pass

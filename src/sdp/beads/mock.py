@@ -125,3 +125,12 @@ class MockBeadsClient(BeadsClient):
             tasks = [t for t in tasks if t.parent_id == parent_id]
 
         return tasks
+
+    def update_metadata(self, task_id: str, metadata: dict) -> None:
+        """Update task metadata (mock)."""
+        task = self._tasks.get(task_id)
+        if not task:
+            raise BeadsClientError(f"Task not found: {task_id}")
+
+        # Merge metadata
+        task.sdp_metadata.update(metadata)

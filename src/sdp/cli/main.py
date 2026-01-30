@@ -43,11 +43,23 @@ except ImportError:
         """Core SDP operations (workstreams, features, project maps)."""
         pass
 
+guard: Group | None = None
+try:
+    from sdp.cli.guard import guard
+except ImportError:
+    guard = None
+
 tier: Group | None = None
 try:
     from sdp.cli.tier import tier
 except ImportError:
     tier = None
+
+sync: Group | None = None
+try:
+    from sdp.cli.sync import sync
+except ImportError:
+    sync = None
 
 metrics: Group | None = None
 metrics_escalations: Command | None = None
@@ -66,6 +78,12 @@ except ImportError:
     prd = None
     prd_detect_type = None
     prd_validate = None
+
+skill: Group | None = None
+try:
+    from sdp.cli.skill import skill
+except ImportError:
+    skill = None
 
 # Import extension commands
 _extension_available: bool = False
@@ -114,9 +132,17 @@ main.add_command(workstream)
 if _trace_available and trace:
     main.add_command(trace)
 
+# Add guard commands
+if guard:
+    main.add_command(guard)
+
 # Add tier commands (tier group includes metrics and promote-check)
 if tier:
     main.add_command(tier)
+
+# Add sync commands
+if sync:
+    main.add_command(sync)
 
 # Add metrics commands
 if metrics:
@@ -131,6 +157,10 @@ if prd_detect_type:
     main.add_command(prd_detect_type)
 if prd_validate:
     main.add_command(prd_validate)
+
+# Add skill commands
+if skill:
+    main.add_command(skill)
 
 # Add extension commands
 if _extension_available:

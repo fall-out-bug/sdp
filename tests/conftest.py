@@ -77,3 +77,28 @@ def mock_env(monkeypatch):  # type: ignore
     monkeypatch.setenv("GITHUB_TOKEN", "test_token")
     monkeypatch.setenv("GITHUB_REPO", "test-org/test-repo")
     monkeypatch.setenv("GITHUB_ORG", "test-org")
+
+
+@pytest.fixture(autouse=True)
+def use_mock_beads(monkeypatch):  # type: ignore
+    """Force mock Beads in all tests by default.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture
+
+    This ensures tests don't accidentally try to use real Beads CLI.
+    Override with real_beads fixture when testing real integration.
+    """
+    monkeypatch.setenv("BEADS_USE_MOCK", "true")
+
+
+@pytest.fixture
+def real_beads(monkeypatch):  # type: ignore
+    """Use real Beads for specific tests.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture
+
+    Apply this fixture to tests that need real Beads CLI integration.
+    """
+    monkeypatch.setenv("BEADS_USE_MOCK", "false")

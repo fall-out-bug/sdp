@@ -31,8 +31,10 @@ For traditional markdown workflow, use `prompts/commands/idea.md` instead.
 ```
 
 **Environment Variables:**
-- `BEADS_USE_MOCK=true` - Use mock Beads (default for dev)
+- `BEADS_USE_MOCK=true` - Use mock Beads (default for projects without Beads)
 - `BEADS_USE_MOCK=false` - Use real Beads CLI (requires Go + bd installed)
+
+**SDP repo:** Beads is always enabled. Use real Beads (bd installed, .beads/ exists).
 
 ## Workflow
 

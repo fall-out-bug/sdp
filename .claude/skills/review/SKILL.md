@@ -1,242 +1,187 @@
 ---
 name: review
-description: Review feature quality using Beads task hierarchy. Validates all workstreams against quality gates.
-tools: Read, Write, Edit, Bash, Glob, Grep
-version: 2.0.0-beads
+description: Quality review with traceability check
+tools: Read, Shell, Grep
 ---
 
-# @review - Quality Review (Beads Integration)
+# @review - Quality Review
 
-Review feature by validating all workstreams against quality gates using Beads task hierarchy.
+Review feature by validating workstreams against quality gates and traceability.
 
-## When to Use
+## Invocation (BEADS-001)
 
-- After all feature workstreams are complete
-- Before merging to main branch
-- To ensure quality standards are met
-- As part of code review process
+Accepts **both** formats:
 
-## Beads vs Markdown Workflow
+- `@review F01` — Feature ID (markdown workflow)
+- `@review sdp-xxx` — Beads task ID (parent feature)
 
-**This skill reads workstreams from Beads task hierarchy.**
+## Quick Reference
 
-For traditional markdown workflow, use existing review process.
-
-## Invocation
-
-```bash
-@review bd-0001
-```
-
-**Environment Variables:**
-- `BEADS_USE_MOCK=true` - Use mock Beads (default for dev)
+| Step | Action | Gate |
+|------|--------|------|
+| 0 | Resolve workstreams | beads_id → bd list, or markdown ls |
+| 1 | List WS | All WS found |
+| 2 | Traceability | All ACs have tests |
+| 3 | Quality gates | All checks pass |
+| 4 | Goal check | All ACs achieved |
+| 5 | Verdict | APPROVED or CHANGES_REQUESTED |
+| 6 | Post-review (if CHANGES_REQUESTED) | Report + @issue for bugs, WS under same feature |
 
 ## Workflow
 
-### Step 1: Initialize Review
+### Step 0: Resolve Workstreams (when Beads enabled)
 
-```python
-from sdp.beads import create_beads_client
-import os
-
-use_mock = os.getenv("BEADS_USE_MOCK", "true").lower() == "true"
-client = create_beads_client(use_mock=use_mock)
+**Beads workflow** (bd installed, `.beads/` exists):
+```bash
+# Get sub-tasks (workstreams) under feature
+bd list --parent {feature-id} --json
+# Resolve beads_id → ws_id via .beads-sdp-mapping.jsonl for trace check
 ```
 
-### Step 2: Read Feature and Workstreams
-
-```python
-# Get feature task
-feature = client.get_task(feature_id)
-
-if not feature:
-    print(f"❌ Feature not found: {feature_id}")
-    return
-
-# Get all sub-tasks (workstreams)
-workstreams = client.list_tasks(parent_id=feature_id)
-
-if not workstreams:
-    print(f"❌ No workstreams found for feature: {feature_id}")
-    return
-
-print(f"📋 Reviewing feature: {feature.title}")
-print(f"   Workstreams: {len(workstreams)}")
+**Markdown workflow:**
+```bash
+ls docs/workstreams/completed/{feature-id}-*.md
 ```
 
-### Step 3: Validate Quality Gates
-
-For each workstream, check:
-
-```python
-from sdp.beads import BeadsStatus
-
-passed = 0
-failed = 0
-issues = []
-
-for ws in workstreams:
-    # Check if completed
-    if ws.status != BeadsStatus.CLOSED:
-        issues.append(f"{ws.id}: Not complete (status={ws.status.value})")
-        failed += 1
-        continue
-    
-    # Check quality gates
-    ws_issues = validate_quality_gates(ws)
-    
-    if ws_issues:
-        issues.append(f"{ws.id}: {len(ws_issues)} issues")
-        failed += 1
-    else:
-        passed += 1
-```
-
-### Quality Gates Checklist
-
-```markdown
-**Coverage:**
-- [ ] Test coverage ≥ 80%
-- [ ] All critical paths covered
-
-**Code Quality:**
-- [ ] No `except: pass` statements
-- [ ] No TODO/FIXME in production code
-- [ ] Files < 200 LOC (AI-readability)
-- [ ] Type hints present
-- [ ] MyPy strict mode passes
-
-**Clean Architecture:**
-- [ ] No layer violations
-- [ ] Dependencies point inward
-- [ ] Domain logic pure
-
-**Documentation:**
-- [ ] Docstrings on public APIs
-- [ ] README updated if needed
-- [ ] Changelog entry added
-
-**Tests:**
-- [ ] Unit tests present
-- [ ] Integration tests if needed
-- [ ] All tests passing
-```
-
-### Step 4: Generate Review Report
-
-```python
-# Print summary
-print(f"\n{'='*60}")
-print(f"Review Report for {feature.title}")
-print(f"{'='*60}")
-print(f"Workstreams: {len(workstreams)}")
-print(f"Passed: {passed} ✅")
-print(f"Failed: {failed} ❌")
-
-if issues:
-    print(f"\nIssues:")
-    for issue in issues:
-        print(f"  ❌ {issue}")
-else:
-    print(f"\n✅ All workstreams passed review!")
-
-print(f"{'='*60}")
-
-# Update feature status based on review
-if failed == 0:
-    client.update_task_status(feature_id, BeadsStatus.CLOSED)
-    print(f"\n✅ Feature {feature_id} approved!")
-else:
-    client.update_task_status(feature_id, BeadsStatus.BLOCKED)
-    print(f"\n❌ Feature {feature_id} blocked - fix issues and re-run @review")
-```
-
-## Output
-
-**Success:**
-```
-============================================================
-Review Report for User Authentication
-============================================================
-Workstreams: 3
-Passed: 3 ✅
-Failed: 0 ❌
-
-✅ All workstreams passed review!
-
-============================================================
-✅ Feature bd-0001 approved!
-```
-
-**Failure:**
-```
-============================================================
-Review Report for User Authentication
-============================================================
-Workstreams: 3
-Passed: 2 ✅
-Failed: 1 ❌
-
-Issues:
-  ❌ bd-0001.3: 3 issues
-     - Coverage: 65% (need ≥80%)
-     - File src/auth/service.py: 250 LOC (need <200 LOC)
-     - Missing type hints on authenticate()
-
-============================================================
-❌ Feature bd-0001 blocked - fix issues and re-run @review
-```
-
-## Example Session
+### Step 1: List Workstreams
 
 ```bash
-# After @oneshot completes
-@review bd-0001
-
-# Output:
-📋 Reviewing feature: User Authentication
-   Workstreams: 3
-
-Checking quality gates...
-  bd-0001.1: Domain entities ✅
-  bd-0001.2: Repository layer ✅
-  bd-0001.3: Service layer ❌
-
-Issues found in bd-0001.3:
-  - Coverage: 72% (need ≥80%)
-  - Missing docstrings
-
-# Fix issues...
-@build bd-0001.3  # Add tests, docstrings
-
-# Re-run review
-@review bd-0001
-
-# Output:
-✅ All workstreams passed review!
-✅ Feature bd-0001 approved!
+# Beads: bd list --parent {beads_id}
+bd list --parent {feature-id}
 ```
 
-## Quality Gates Reference
+Or for markdown workflow:
 
-| Gate | Requirement | Check |
-|------|------------|-------|
-| **Coverage** | ≥80% | `pytest --cov` |
-| **File size** | <200 LOC | `wc -l` |
-| **Type hints** | Present | `mypy --strict` |
-| **Clean arch** | No violations | Manual review |
-| **No TODOs** | None in code | `grep -r "TODO"` |
+```bash
+ls docs/workstreams/completed/{feature-id}-*.md
+```
 
-## Integration with Existing Review
+### Step 2: Check Traceability
 
-This skill extends existing review process:
-- Reads from Beads instead of file system
-- Validates same quality gates
-- Updates Beads task status
-- Compatible with existing review checklist
+For each workstream, verify all ACs have mapped tests using the traceability CLI:
 
----
+```bash
+# ws_id from mapping (beads_id → sdp_id) or from markdown filename
+sdp trace check {WS-ID}
+```
 
-**Version:** 2.0.0-beads
-**Status:** Beads Integration
-**See Also:** `@idea`, `@design`, `@build`, `@oneshot`
+The command will:
+- Extract all ACs from the workstream
+- Check for test mappings
+- Display traceability table
+- Exit 1 if any AC is unmapped
+
+Example output:
+
+```
+Traceability Report: 00-032-01
+==================================================
+| AC | Description | Test | Status |
+|----|-------------|------|--------|
+| AC1 | User can login | `test_user_login` | ✅ |
+| AC2 | User can logout | - | ❌ |
+
+Coverage: 50% (1/2 ACs mapped)
+Status: ❌ INCOMPLETE (1 unmapped)
+```
+
+**Gate:** All ACs must have mapped tests (100% coverage).
+
+If traceability check fails (exit code 1) → **CHANGES_REQUESTED**
+
+**Auto-detection:** If mappings are missing, try auto-detection first:
+
+```bash
+sdp trace auto {WS-ID} --apply
+```
+
+This will automatically detect mappings from:
+- Test docstrings (e.g., `"""Tests AC1"""`)
+- Test function names (e.g., `test_ac1_user_login`)
+- Keyword matching between AC descriptions and test names
+
+### Step 3: Quality Gates
+
+```bash
+# All tests pass
+pytest tests/ -v
+
+# Coverage ≥80%
+pytest --cov=src --cov-fail-under=80
+
+# Type checking
+mypy src/ --strict
+
+# Linting
+ruff check src/
+
+# No except:pass
+grep -r "except:" src/ | grep "pass"
+
+# Files <200 LOC
+find src/ -name "*.py" -exec sh -c 'lines=$(wc -l < "$1"); [ $lines -gt 200 ] && echo "$1: $lines lines"' _ {} \;
+```
+
+### Step 4: Goal Achievement
+
+For each WS, verify:
+- [ ] All ACs have passing tests
+- [ ] Implementation matches description
+- [ ] No TODO/FIXME in code
+
+### Step 5: Verdict
+
+**APPROVED** if:
+- All ACs traceable to tests
+- All tests pass
+- All quality gates pass
+
+**CHANGES_REQUESTED** if any fails.
+
+No middle ground. No "approved with notes."
+
+### Step 6: Post-Review Actions (when CHANGES_REQUESTED)
+
+**6.1 Record verdict**
+- Save report to `docs/reports/{YYYY-MM-DD}-{reviewed-id}-review.md`
+- Include: verdict, AC status, quality gates, required actions
+
+**6.2 Update reviewed item**
+- Add to frontmatter: `review_verdict: CHANGES_REQUESTED`, `review_report: ../../reports/{date}-{id}-review.md`
+- Add link to report in body
+
+**6.3 Route findings — do NOT create new feature**
+
+| Finding type | Action | Output |
+|--------------|--------|--------|
+| **Bugs** (failing tests, mypy/ruff, runtime errors) | @issue | `docs/issues/{ID}-{slug}.md` → route to /bugfix |
+| **Planned work** (missing AC, new tests) | Add WS to **same feature** | `docs/workstreams/backlog/` with existing feature ID |
+| **Pre-existing tech debt** | @issue for triage | docs/issues/ or backlog |
+
+**6.4 Feature ID rule**
+- **Never create new feature** for review follow-up
+- Use `feature:` from reviewed workstreams or epic's parent
+- Epic (e.g. BEADS-001) → use parent feature (e.g. F032), not F033
+
+**6.5 Issue vs Workstream**
+- Failing tests, errors → **Bug** → @issue → /bugfix
+- Missing tests (AC), new capability → **Planned** → WS under same feature
+
+## Quality Gates
+
+See [Quality Gates Reference](../../docs/reference/quality-gates.md)
+
+## Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| Missing trace | AC has no test | Add test for AC |
+| Coverage <80% | Insufficient tests | Add more tests |
+| Goal not met | AC not working | Fix implementation |
+
+## See Also
+
+- [Post-Review Fix Plan](../../docs/plans/2026-01-30-review-skill-post-review-fix.md) — Issue vs WS, feature ID rule
+- [@issue skill](../issue/SKILL.md) — Bugs → docs/issues/ → /bugfix
+- [Full Review Spec](../../docs/reference/review-spec.md)
+- [Traceability Guide](../../docs/reference/traceability.md)

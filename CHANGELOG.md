@@ -4,6 +4,31 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 > **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
+## [0.6.0] - 2026-XX-XX
+
+### Breaking Changes
+
+- **prompts/commands/ deprecated** — All command prompts moved to `.claude/skills/`
+  - Migration: Use skills directly (`@build`, `@review`, etc.)
+  - See: `docs/migration/prompts-to-skills.md`
+
+### Added
+
+- Guard skill for pre-edit enforcement
+- Skill template standard (≤100 lines)
+- Traceability check in review
+- `sdp skill validate` command for skill validation
+- `sdp skill check-all` for batch validation
+- ADR-007: Skill Length Limit
+
+### Changed
+
+- Build skill reduced from 141 to 88 lines
+- Review skill reduced from 242 to 113 lines
+- Design skill reduced from 591 to 98 lines
+- Detailed specifications moved to `docs/reference/`
+- Skills now reference external docs instead of inline content
+
 ## [0.4.0] - 2026-01-27
 
 ### Added - Feature F011: PRD Command (6 workstreams)

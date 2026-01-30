@@ -94,11 +94,14 @@ class BeadsSyncService:
         except (json.JSONDecodeError, IOError) as e:
             raise BeadsSyncError(f"Failed to load mapping file: {e}") from e
 
+    def persist_mapping(self) -> None:
+        """Persist ID mapping to file (deduplicates and overwrites)."""
+        self._save_mapping()
+
     def _save_mapping(self) -> None:
-        """Save ID mapping to file (append-only)."""
+        """Save ID mapping to file (overwrite with current state)."""
         try:
-            with open(self.mapping_file, "a") as f:
-                # Write entire mapping (inefficient but simple)
+            with open(self.mapping_file, "w") as f:
                 for sdp_id, beads_id in self._mapping.items():
                     entry = {
                         "sdp_id": sdp_id,
@@ -110,15 +113,16 @@ class BeadsSyncService:
         except IOError as e:
             raise BeadsSyncError(f"Failed to save mapping file: {e}") from e
 
-    def _map_sdp_status_to_beads(self, sdp_status: str) -> BeadsStatus:
+    def _map_sdp_status_to_beads(self, sdp_status: str | object) -> BeadsStatus:
         """Map SDP status to Beads status."""
+        status_str = getattr(sdp_status, "value", str(sdp_status))
         mapping = {
             SDP_STATUS_BACKLOG: BeadsStatus.OPEN,
             SDP_STATUS_ACTIVE: BeadsStatus.IN_PROGRESS,
             SDP_STATUS_COMPLETED: BeadsStatus.CLOSED,
             SDP_STATUS_BLOCKED: BeadsStatus.BLOCKED,
         }
-        return mapping.get(sdp_status, BeadsStatus.OPEN)
+        return mapping.get(status_str, BeadsStatus.OPEN)
 
     def _map_beads_status_to_sdp(self, beads_status: BeadsStatus) -> str:
         """Map Beads status to SDP status."""
@@ -130,15 +134,16 @@ class BeadsSyncService:
         }
         return mapping.get(beads_status, SDP_STATUS_BACKLOG)
 
-    def _map_sdp_size_to_beads_priority(self, size: str) -> BeadsPriority:
+    def _map_sdp_size_to_beads_priority(self, size: str | object) -> BeadsPriority:
         """Map SDP size to Beads priority."""
+        size_str = getattr(size, "value", str(size)) if size else "MEDIUM"
         # Larger workstream = higher priority (lower number = more critical)
         mapping = {
             "SMALL": BeadsPriority(2),
             "MEDIUM": BeadsPriority(1),
             "LARGE": BeadsPriority(0),
         }
-        return mapping.get(size.upper(), BeadsPriority(2))
+        return mapping.get(str(size_str).upper(), BeadsPriority(2))
 
     def sync_workstream_to_beads(
         self,
@@ -207,7 +212,8 @@ class BeadsSyncService:
                     description += "**Acceptance Criteria:**\n"
                     for ac in ws_data["acceptance_criteria"]:
                         checked = "✓" if ac.get("checked") else "☐"
-                        description += f"{checked} {ac.get('text', '')}\n"
+                        text = ac.get("description") or ac.get("text", "")
+                        description += f"{checked} {text}\n"
 
                 # Map dependencies
                 dependencies = []
@@ -222,9 +228,12 @@ class BeadsSyncService:
                             )
                         )
 
-                # Create task
+                # Create task (Beads limits title to 500 chars)
+                full_title = f"{ws_id}: {ws_data.get('title', '')}"
+                title = full_title[:497] + "..." if len(full_title) > 500 else full_title
+
                 params = BeadsTaskCreate(
-                    title=f"{ws_id}: {ws_data.get('title', '')}",
+                    title=title,
                     description=description,
                     priority=self._map_sdp_size_to_beads_priority(ws_data.get("size", "MEDIUM")),
                     dependencies=dependencies,

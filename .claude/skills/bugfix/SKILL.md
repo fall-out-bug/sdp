@@ -50,7 +50,7 @@ Standard bug fixes with full quality cycle.
 | Branch from | main | develop/feature |
 | Testing | Fast | Full |
 | Deploy | Production | Staging |
-| SLA target | < 2h | < 24h |
+| SLA target | Immediate | Next sprint |
 
 ## Output
 

@@ -214,6 +214,13 @@ def parse_workstream(file_path: Path) -> Workstream:
     context = _extract_section(body, "Context")
     criteria = _extract_acceptance_criteria(body)
     deps = _extract_dependencies(body)
+    # Merge with frontmatter depends_on (PP-FFF-SS or ws_id format)
+    fm_deps = frontmatter.get("depends_on")
+    if fm_deps:
+        for d in fm_deps if isinstance(fm_deps, list) else [fm_deps]:
+            dep_id = str(d).strip()
+            if dep_id and dep_id not in deps:
+                deps.append(dep_id)
     steps = _extract_steps(body)
     code_blocks = _extract_code_blocks(body)
 
@@ -309,7 +316,8 @@ def _extract_dependencies(body: str) -> list[str]:
     dep_section = _extract_section(body, "Dependencies")
     if not dep_section or dep_section.lower() in ("none", ""):
         return []
-    pattern = r"WS-\d+-\d+"
+    # Support PP-FFF-SS (00-032-18) and legacy WS-FFF-SS formats
+    pattern = r"(?:\d{2}-\d{3}-\d{2}|WS-\d+-\d+)"
     return re.findall(pattern, dep_section)
 
 

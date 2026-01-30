@@ -4,6 +4,24 @@
 > **Status:** backlog
 > **Size:** LARGE
 > **Priority:** P0 (Blocks all Beads work)
+> **Note:** BEADS-001 build complete. All 5 skills integrate with Beads. Remaining: skill integration tests.
+> **Review (2026-01-30):** CHANGES_REQUESTED — [report](../../reports/2026-01-30-BEADS-001-review.md)
+> **Feature:** F032 (SDP Protocol Enforcement)
+
+---
+
+## Agent Routing (CHANGES_REQUESTED)
+
+| Item | Type | Skill | Agent Action |
+|------|------|-------|--------------|
+| [001-beads-review-failing-tests](../../issues/001-beads-review-failing-tests.md) | **Issue** (bugs) | @bugfix | Fix 6 failing tests |
+| [00-033-02](00-033-02-add-skill-integration-tests.md) | **WS** (planned) | @build | Add skill integration tests |
+
+**Rule:** Bugs → @issue → docs/issues/ → @bugfix. Planned work → WS under same feature → @build.
+
+**Ready for agents:**
+- `@bugfix "6 failing tests from BEADS-001 review" --feature=F032 --issue-id=001` — fix bugs
+- `@build 00-033-02` or `@build sdp-sfh` — add skill integration tests (bd start first when Beads enabled)
 
 ---
 
@@ -15,13 +33,13 @@ Integrate Beads with SDP skills (@idea, @design, @build, @review, @oneshot) to e
 
 ## Acceptance Criteria
 
-- [ ] `@idea` skill creates Beads task instead of markdown draft
-- [ ] `@design` skill creates sub-task graph in Beads (parent-child dependencies)
-- [ ] `@build` skill works with Beads IDs and updates status (OPEN → IN_PROGRESS → CLOSED)
-- [ ] `@oneshot` skill uses Beads `get_ready_tasks()` for multi-agent coordination
-- [ ] All skills support both mock (dev) and real Beads (prod)
-- [ ] Backward compatibility: existing markdown workstreams still work
-- [ ] Documentation updated with new workflow examples
+- [x] `@idea` skill creates Beads task instead of markdown draft
+- [x] `@design` skill creates sub-task graph in Beads (via `sdp beads migrate` after markdown WS)
+- [x] `@build` skill works with Beads IDs and updates status (OPEN → IN_PROGRESS → CLOSED)
+- [x] `@oneshot` skill uses Beads `get_ready_tasks()` for multi-agent coordination
+- [x] All skills support both mock (dev) and real Beads (prod)
+- [x] Backward compatibility: existing markdown workstreams still work
+- [x] Documentation updated with new workflow examples (runbook, skills, .cursorrules)
 - [ ] Tests for all skill integrations (mock + real Beads)
 
 ---
@@ -288,14 +306,14 @@ def migrate_workstreams(ws_dir: Path):
 
 ## Definition of Done
 
-- [ ] All 5 core skills (@idea, @design, @build, @review, @oneshot) use Beads
-- [ ] `BEADS_USE_MOCK` environment variable controls mock vs real
-- [ ] Existing markdown workstreams can be migrated via `sdp beads migrate`
-- [ ] Multi-agent @oneshot works with 3 parallel agents
-- [ ] All tests pass (unit + integration)
-- [ ] Documentation updated (CLAUDE.md, README, workflow guide)
-- [ ] Example project demonstrates new workflow
-- [ ] Backward compatibility maintained (markdown still works)
+- [x] All 5 core skills (@idea, @design, @build, @review, @oneshot) use Beads
+- [x] `BEADS_USE_MOCK` environment variable controls mock vs real
+- [x] Existing markdown workstreams can be migrated via `sdp beads migrate`
+- [x] Multi-agent @oneshot works with 3 parallel agents
+- [ ] All tests pass (unit + integration) — skill integration tests pending
+- [x] Documentation updated (CLAUDE.md, runbook, skills, .cursorrules)
+- [x] Example project demonstrates new workflow (SDP repo)
+- [x] Backward compatibility maintained (markdown still works)
 
 ---
 
@@ -327,18 +345,6 @@ def migrate_workstreams(ws_dir: Path):
 | **Ready detection** | Manual script | `bd ready` | Feature demo |
 
 ---
-
-## Estimate
-
-**Total:** ~2-3 weeks
-
-- Phase 2.1 (@idea): 2-3 days
-- Phase 2.2 (@design): 3-4 days
-- Phase 2.3 (@build): 3-4 days
-- Phase 2.4 (@oneshot): 2-3 days
-- Phase 2.5 (@review): 1-2 days
-- Phase 2.6 (migration): 2-3 days
-- Testing & docs: 3-5 days
 
 ---
 
