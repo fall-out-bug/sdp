@@ -60,7 +60,7 @@ fi
 echo ""
 echo "Check 1b: Workstreams layout"
 if echo "$STAGED_FILES" | grep -q "workstreams/"; then
-    if ! python3 sdp/scripts/check_workstreams_layout.py; then
+    if ! python3 scripts/check_workstreams_layout.py; then
         exit 1
     fi
 else
