@@ -218,6 +218,11 @@ sdp/
 - [docs/beginner/02-common-tasks.md](docs/beginner/02-common-tasks.md) - Common workflows
 - [docs/beginner/03-troubleshooting.md](docs/beginner/03-troubleshooting.md) - Troubleshooting
 
+### Migration Guides
+**Upgrading from a previous version?**
+- [docs/migrations/breaking-changes.md](docs/migrations/breaking-changes.md) - Complete guide for all breaking changes
+- [docs/migration/ws-naming-migration.md](docs/migration/ws-naming-migration.md) - Workstream ID format migration (WS-FFF-SS → PP-FFF-SS)
+
 ### Reference Documentation (Lookup)
 **Looking up specific commands or config?**
 - [docs/reference/README.md](docs/reference/README.md) - Reference overview

@@ -8,6 +8,13 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 Use **skills** to execute SDP commands:
 
+> **⚠️ Migration Notice:** **Upgrading from a previous version?** See [Breaking Changes Migration Guide](docs/migrations/breaking-changes.md) for:
+> - Consensus → Slash Commands migration
+> - Workstream ID format changes (WS-FFF-SS → PP-FFF-SS)
+> - 4-Phase → Slash Commands workflow
+> - QualityGateValidator removal
+> - And more...
+
 ```
 @feature "Add user authentication"    # ✅ RECOMMENDED: Beads-first workflow
 @idea "Add user authentication"       # ⚠️ ALTERNATIVE: Traditional markdown workflow

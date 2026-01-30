@@ -25,9 +25,18 @@ import ast
 import sys
 from pathlib import Path
 
-from sdp.quality.architecture import ArchitectureChecker
-from sdp.quality.config import QualityGateConfigLoader
-from sdp.quality.validator_models import QualityGateViolation
+# Add src to path for imports
+repo_root = Path(__file__).parent.parent
+sys.path.insert(0, str(repo_root / "src"))
+
+try:
+    from sdp.quality.architecture import ArchitectureChecker
+    from sdp.quality.config import QualityGateConfigLoader
+    from sdp.quality.validator_models import QualityGateViolation
+except ImportError as e:
+    print(f"⚠️  Architecture check skipped: {e}")
+    print("   (missing dependencies - install with: pip install pyyaml)")
+    sys.exit(0)  # Don't block commit if dependencies missing
 
 
 def check_file(

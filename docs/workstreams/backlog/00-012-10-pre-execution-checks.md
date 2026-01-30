@@ -2,7 +2,7 @@
 ws_id: 00-012-10
 project_id: 00
 feature: F012
-status: backlog
+status: superseded
 size: SMALL
 github_issue: null
 assignee: null
