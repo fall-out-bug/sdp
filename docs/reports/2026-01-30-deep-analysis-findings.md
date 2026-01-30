@@ -322,7 +322,9 @@ v1.2 (Consensus) → v2.0 (Unified) → v0.3.0 (Commands) → v0.5.0 (Beads)
 
 ## 🎯 Prioritized Actions
 
-**Status Update (2026-01-30):** P0-1 Security Checks restored ✅
+**Status Update (2026-01-30):**
+- P0-1 Security Checks restored ✅
+- P0-2 F014 Destructive Confirmation implemented ✅
 
 ### 🔴 P0 - КРИТИЧЕСКИ (исправить немедленно)
 
@@ -333,7 +335,17 @@ v1.2 (Consensus) → v2.0 (Unified) → v0.3.0 (Commands) → v0.5.0 (Beads)
    - **Detection:** password, api_key, secret, token, private_key patterns (case-insensitive)
    - **Status:** Active and tested - catches hardcoded secrets before commit
 
-2. **Исправить F014 Destructive Confirmation**
+2. ~~**Исправить F014 Destructive Confirmation**~~ ✅ **FIXED**
+   - ~~Реализовать AskUserQuestion вместо `return True`~~
+   - **Implemented:** `_check_destructive_operations_confirmation()` now:
+     - Gets feature subtasks from Beads
+     - Checks titles/descriptions for destructive keywords
+     - Prompts user via console for confirmation
+     - Returns False if user declines
+   - **Patterns detected:** migration, delete, remove, drop, truncate, wipe, etc.
+   - **Status:** Active - blocks destructive ops without user confirmation
+
+3. **Решить Markdown vs Beads Workflow**
    - Реализовать AskUserQuestion вместо `return True`
    - **Risk:** Destructive operations происходят без подтверждения
 
