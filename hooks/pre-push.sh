@@ -37,47 +37,54 @@ HAS_FAILURES=0
 
 # Run regression tests
 echo "1. Running regression tests..."
-cd tools/hw_checker
-
-if poetry run pytest tests/unit/ -m fast -q --tb=no 2>&1; then
-    echo "✓ Regression tests passed"
-else
-    echo "❌ Regression tests failed"
-    echo ""
-    echo "To fix this issue:"
-    echo "  1. Run: cd tools/hw_checker && poetry run pytest tests/unit/ -m fast -v"
-    echo "  2. Fix failing tests"
-    echo "  3. Commit the fixes"
-    echo "  4. Push again"
-    echo ""
-    if [ "$HARD_PUSH" = "1" ]; then
-        echo "🚫 PUSH BLOCKED (SDP_HARD_PUSH=1)"
-        echo "To bypass: git push --no-verify"
-        exit 1
+if [ -d "tests" ]; then
+    if command -v pytest &> /dev/null; then
+        if pytest tests/ -x -q --tb=no 2>&1; then
+            echo "✓ Regression tests passed"
+        else
+            echo "❌ Regression tests failed"
+            echo ""
+            echo "To fix this issue:"
+            echo "  1. Run: pytest tests/ -v"
+            echo "  2. Fix failing tests"
+            echo "  3. Commit the fixes"
+            echo "  4. Push again"
+            echo ""
+            if [ "$HARD_PUSH" = "1" ]; then
+                echo "🚫 PUSH BLOCKED (SDP_HARD_PUSH=1)"
+                echo "To bypass: git push --no-verify"
+                exit 1
+            else
+                echo "⚠️  WARNING: Push not blocked (SDP_HARD_PUSH not set)"
+                echo "   Set SDP_HARD_PUSH=1 to enforce blocking in future"
+                HAS_FAILURES=1
+            fi
+        fi
     else
-        echo "⚠️  WARNING: Push not blocked (SDP_HARD_PUSH not set)"
-        echo "   Set SDP_HARD_PUSH=1 to enforce blocking in future"
-        HAS_FAILURES=1
+        echo "⚠️  pytest not found, skipping tests"
     fi
+else
+    echo "⚠️  No tests/ directory found, skipping tests"
 fi
 
 # Check coverage if coverage report exists
 if [ -f ".coverage" ]; then
     echo ""
     echo "2. Checking coverage..."
-    COVERAGE=$(poetry run python -c "import coverage; cov = coverage.Coverage(); cov.load(); cov.report(file='/dev/stdout', show_missing=False)" 2>/dev/null | grep -oP '\d+%' | head -1 || echo "0%")
+    if command -v coverage &> /dev/null; then
+        COVERAGE=$(python -c "import coverage; cov = coverage.Coverage(); cov.load(); cov.report(file='/dev/stdout', show_missing=False)" 2>/dev/null | grep -oP '\d+%' | head -1 || echo "0%")
 
-    COVERAGE_NUM=$(echo "$COVERAGE" | sed 's/%//')
+        COVERAGE_NUM=$(echo "$COVERAGE" | sed 's/%//')
 
-    if [ "$COVERAGE_NUM" -lt 80 ]; then
-        echo "❌ Coverage is below 80% (currently: ${COVERAGE})"
-        echo ""
-        echo "To fix this issue:"
-        echo "  1. Run: cd tools/hw_checker && poetry run pytest --cov=. --cov-report=term-missing"
-        echo "  2. Add tests for uncovered lines"
-        echo "  3. Commit the tests"
-        echo "  4. Push again"
-        echo ""
+        if [ "$COVERAGE_NUM" -lt 80 ]; then
+            echo "❌ Coverage is below 80% (currently: ${COVERAGE})"
+            echo ""
+            echo "To fix this issue:"
+            echo "  1. Run: pytest --cov=src/sdp --cov-report=term-missing"
+            echo "  2. Add tests for uncovered lines"
+            echo "  3. Commit the tests"
+            echo "  4. Push again"
+            echo ""
         if [ "$HARD_PUSH" = "1" ]; then
             echo "🚫 PUSH BLOCKED (SDP_HARD_PUSH=1)"
             echo "To bypass: git push --no-verify"
