@@ -200,10 +200,16 @@ class TestErrorHandling:
         assert task is None
 
     @patch('sdp.beads.cli.subprocess.run')
-    def test_handles_beads_unavailable(self, mock_run: MagicMock) -> None:
+    @patch('shutil.which')
+    @patch.dict('os.environ', {'BEADS_USE_MOCK': 'false'}, clear=False)
+    def test_handles_beads_unavailable(
+        self, mock_which: MagicMock, mock_run: MagicMock
+    ) -> None:
         """Should handle Beads CLI not being installed."""
         from sdp.beads.exceptions import BeadsClientError
 
+        # Make factory think bd is in PATH so it tries CLIBeadsClient
+        mock_which.return_value = "/usr/bin/bd"
         mock_run.side_effect = FileNotFoundError("bd not found")
 
         # Should raise BeadsClientError when use_mock=False

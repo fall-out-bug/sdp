@@ -101,22 +101,71 @@ class BeadsCLICheck(HealthCheck):
         super().__init__("Beads CLI", critical=False)
 
     def run(self) -> HealthCheckResult:
-        """Check Beads CLI installation."""
+        """Check Beads CLI installation with version and Go detection."""
+        import subprocess
+
+        # Check if Go is installed
+        go_path = shutil.which("go")
+        go_installed = go_path is not None
+
+        # Check if bd CLI is installed
         beads_path = shutil.which("bd")
 
         if beads_path:
+            # Get version
+            version = self._get_version(beads_path)
             return HealthCheckResult(
                 name=self.name,
                 passed=True,
-                message=f"Beads CLI installed at {beads_path}",
+                message=f"Beads CLI installed (v{version}) at {beads_path}",
             )
+
+        # Build remediation message
+        remediation_steps = []
+        if not go_installed:
+            remediation_steps.append("1. Install Go: brew install go (macOS) or apt install golang-go (Linux)")
+        remediation_steps.append("2. Install Beads: go install github.com/steveyegge/beads/cmd/bd@latest")
+        remediation_steps.append("3. Add to PATH: export PATH=$PATH:$(go env GOPATH)/bin")
+        remediation_steps.append("4. Verify: bd --version")
+        remediation_steps.append("")
+        remediation_steps.append("See docs/setup/beads-installation.md for detailed instructions")
 
         return HealthCheckResult(
             name=self.name,
             passed=True,  # Optional, so still True
             message="Beads CLI not installed (optional)",
-            remediation="Install Beads CLI: pip install git+https://github.com/fall-out-bug/beads.git",
+            remediation="\n".join(remediation_steps),
         )
+
+    def _get_version(self, bd_path: str) -> str:
+        """Get Beads CLI version.
+
+        Args:
+            bd_path: Path to bd executable
+
+        Returns:
+            Version string or "unknown"
+        """
+        import subprocess
+
+        try:
+            result = subprocess.run(
+                [bd_path, "--version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            # Parse version from output like "bd version 0.1.0"
+            output = result.stdout.strip()
+            if output:
+                # Try to extract version number
+                parts = output.split()
+                for part in parts:
+                    if part and part[0].isdigit():
+                        return part
+            return output or "unknown"
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError):
+            return "unknown"
 
 
 class GitHubCLICheck(HealthCheck):
