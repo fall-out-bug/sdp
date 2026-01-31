@@ -9,19 +9,55 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+from sdp.errors import ErrorCategory, SDPError
 from sdp.core.workstream import Workstream, WorkstreamParseError, parse_workstream
 
 
-class CircularDependencyError(Exception):
-    """Raised when circular dependencies detected in workstreams."""
+class CircularDependencyError(SDPError):
+    """Circular dependency detected in workstream graph."""
 
-    pass
+    def __init__(self, ws_id: str, cycle: list[str]) -> None:
+        formatted_cycle = " → ".join(cycle + [cycle[0]]) if cycle else ws_id
+        super().__init__(
+            category=ErrorCategory.DEPENDENCY,
+            message=f"Circular dependency detected: {formatted_cycle}",
+            remediation=(
+                f"1. Break the cycle by removing one dependency:\n"
+                f"   - {ws_id} depends on: {' → '.join(cycle)}\n"
+                "2. Reorder workstreams to avoid circular reference\n"
+                "3. Or split into smaller independent features\n"
+                "4. See docs/dependency-management.md for strategies"
+            ),
+            docs_url="https://sdp.dev/docs/dependencies#circular",
+            context={"ws_id": ws_id, "cycle": cycle},
+        )
 
 
-class MissingDependencyError(Exception):
-    """Raised when a workstream references a missing dependency."""
+class MissingDependencyError(SDPError):
+    """Required workstream dependency not found."""
 
-    pass
+    def __init__(
+        self,
+        ws_id: str,
+        missing_dep: str,
+        available_workstreams: list[str],
+    ) -> None:
+        super().__init__(
+            category=ErrorCategory.DEPENDENCY,
+            message=f"Workstream {ws_id} depends on {missing_dep} which doesn't exist",
+            remediation=(
+                f"1. Create missing workstream first: {missing_dep}\n"
+                "2. Or remove dependency if not actually needed\n"
+                f"3. Available workstreams: {', '.join(available_workstreams[:5])}\n"
+                "4. See docs/workflows/dependency-management.md"
+            ),
+            docs_url="https://docs.sdp.dev/workflows#dependencies",
+            context={
+                "ws_id": ws_id,
+                "missing_dep": missing_dep,
+                "available_ws": available_workstreams,
+            },
+        )
 
 
 @dataclass
@@ -55,7 +91,9 @@ class Feature:
             for dep_id in ws.dependencies:
                 if dep_id not in ws_by_id:
                     raise MissingDependencyError(
-                        f"Workstream {ws.ws_id} depends on {dep_id}, but it's not in this feature"
+                        ws_id=ws.ws_id,
+                        missing_dep=dep_id,
+                        available_workstreams=list(ws_by_id.keys()),
                     )
                 self.dependency_graph[ws.ws_id].append(dep_id)
 
@@ -64,30 +102,37 @@ class Feature:
         ws_ids = {ws.ws_id for ws in self.workstreams}
         visited: set[str] = set()
         rec_stack: set[str] = set()
+        path: list[str] = []
 
-        def has_cycle(ws_id: str) -> bool:
-            """Check for cycles using DFS."""
+        def extract_cycle(ws_id: str) -> list[str] | None:
+            """Extract cycle using DFS, returns cycle path if found."""
             visited.add(ws_id)
             rec_stack.add(ws_id)
+            path.append(ws_id)
 
             for dep_id in self.dependency_graph.get(ws_id, []):
                 if dep_id not in ws_ids:
-                    continue  # External dependency, skip
+                    continue
                 if dep_id not in visited:
-                    if has_cycle(dep_id):
-                        return True
+                    cycle = extract_cycle(dep_id)
+                    if cycle is not None:
+                        return cycle
                 elif dep_id in rec_stack:
-                    return True  # Back edge found, cycle detected
+                    idx = path.index(dep_id)
+                    return path[idx:] + [dep_id]
 
+            path.pop()
             rec_stack.remove(ws_id)
-            return False
+            return None
 
         for ws_id in ws_ids:
             if ws_id not in visited:
-                if has_cycle(ws_id):
+                cycle = extract_cycle(ws_id)
+                if cycle is not None:
                     raise CircularDependencyError(
-                        f"Circular dependency detected involving workstream {ws_id}"
-                    )  # noqa: E501
+                        ws_id=ws_id,
+                        cycle=cycle[:-1] if cycle[-1] == cycle[0] else cycle,
+                    )
 
     def _build_reverse_graph(self, ws_ids: set[str]) -> dict[str, list[str]]:
         """Build reverse dependency graph.
@@ -139,7 +184,8 @@ class Feature:
         if len(result) != len(ws_ids):
             remaining = ws_ids - set(result)
             raise CircularDependencyError(
-                f"Could not determine execution order. Remaining: {remaining}"
+                ws_id=next(iter(remaining)),
+                cycle=list(remaining),
             )
 
         self.execution_order = result
@@ -201,7 +247,11 @@ def load_feature_from_directory(
                 )
             workstreams.append(ws)
         except WorkstreamParseError as e:
-            raise WorkstreamParseError(f"Failed to parse {ws_file}: {e}") from e
+            raise WorkstreamParseError(
+                message=f"Failed to parse {ws_file}: {e}",
+                file_path=ws_file,
+                parse_error=str(e),
+            ) from e
 
     return Feature(feature_id=feature_id, workstreams=workstreams)
 

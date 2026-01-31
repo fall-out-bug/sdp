@@ -7,6 +7,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from sdp.errors import ErrorCategory, SDPError
+
 
 @dataclass
 class ModelProvider:
@@ -46,10 +48,22 @@ class ModelRegistry:
         return self.tiers[tier_upper]
 
 
-class ModelMappingError(Exception):
+class ModelMappingError(SDPError):
     """Error loading model mapping registry."""
 
-    pass
+    def __init__(self, message: str, mapping_file: Path | None = None) -> None:
+        super().__init__(
+            category=ErrorCategory.CONFIGURATION,
+            message=message,
+            remediation=(
+                "1. Ensure model-mapping.md exists in docs/\n"
+                "2. Check file format (markdown with tier sections)\n"
+                "3. Verify YAML/table syntax in tier sections\n"
+                "4. See docs/reference/model-mapping.md for format"
+            ),
+            docs_url="https://docs.sdp.dev/model-mapping",
+            context={"mapping_file": str(mapping_file)} if mapping_file else None,
+        )
 
 
 def load_model_registry(mapping_file: Path) -> ModelRegistry:
@@ -65,7 +79,10 @@ def load_model_registry(mapping_file: Path) -> ModelRegistry:
         ModelMappingError: If file not found or cannot be parsed
     """
     if not mapping_file.exists():
-        raise ModelMappingError(f"Model mapping file not found: {mapping_file}")
+        raise ModelMappingError(
+            message=f"Model mapping file not found: {mapping_file}",
+            mapping_file=mapping_file,
+        )
 
     content = mapping_file.read_text(encoding="utf-8")
     tiers: dict[str, list[ModelProvider]] = {}

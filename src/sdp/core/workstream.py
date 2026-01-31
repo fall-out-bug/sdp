@@ -8,6 +8,8 @@ from typing import Any, Optional
 
 import yaml
 
+from sdp.errors import ErrorCategory, SDPError
+
 
 class WorkstreamStatus(Enum):
     """Workstream lifecycle status."""
@@ -155,10 +157,35 @@ class Workstream:
     file_path: Optional[Path] = None
 
 
-class WorkstreamParseError(Exception):
-    """Error parsing workstream file."""
+class WorkstreamParseError(SDPError):
+    """Workstream parsing error with actionable guidance."""
 
-    pass
+    def __init__(
+        self,
+        message: str,
+        file_path: Optional[Path] = None,
+        parse_error: Optional[str] = None,
+    ) -> None:
+        super().__init__(
+            category=ErrorCategory.VALIDATION,
+            message=message,
+            remediation=(
+                "1. Check WS ID format: PP-FFF-SS (e.g., 00-500-01)\n"
+                "   - PP: Project ID (00-99)\n"
+                "   - FFF: Feature ID (001-999)\n"
+                "   - SS: Sequence number (01-99)\n"
+                "2. Ensure file starts with --- frontmatter\n"
+                "3. Validate YAML syntax\n"
+                "4. See docs/workstreams/TEMPLATE.md for template"
+            ),
+            docs_url="https://sdp.dev/docs/workstreams#format",
+            context={
+                "file_path": str(file_path) if file_path else None,
+                "parse_error": parse_error,
+            }
+            if file_path or parse_error
+            else None,
+        )
 
 
 def parse_workstream(file_path: Path) -> Workstream:
@@ -174,7 +201,7 @@ def parse_workstream(file_path: Path) -> Workstream:
         WorkstreamParseError: If file has no frontmatter or required fields missing
     """
     content = file_path.read_text(encoding="utf-8")
-    frontmatter = _extract_frontmatter(content)
+    frontmatter = _extract_frontmatter(content, file_path)
 
     # Validate ws_id format using WorkstreamID parser
     ws_id_raw: str = str(frontmatter["ws_id"])
@@ -182,7 +209,11 @@ def parse_workstream(file_path: Path) -> Workstream:
         parsed_ws_id = WorkstreamID.parse(ws_id_raw)
         ws_id: str = str(parsed_ws_id)  # Use normalized format
     except ValueError as e:
-        raise WorkstreamParseError(f"Invalid ws_id format: {e}") from e
+        raise WorkstreamParseError(
+            message=f"Invalid ws_id format: {e}",
+            file_path=file_path,
+            parse_error=str(e),
+        ) from e
 
     feature: str = str(frontmatter["feature"])
     status_str: str = str(frontmatter["status"])
@@ -191,12 +222,20 @@ def parse_workstream(file_path: Path) -> Workstream:
     try:
         status = WorkstreamStatus(status_str)
     except ValueError as e:
-        raise WorkstreamParseError(f"Invalid status: {status_str}") from e
+        raise WorkstreamParseError(
+            message=f"Invalid status: {status_str}",
+            file_path=file_path,
+            parse_error=str(e),
+        ) from e
 
     try:
         size = WorkstreamSize(size_str)
     except ValueError as e:
-        raise WorkstreamParseError(f"Invalid size: {size_str}") from e
+        raise WorkstreamParseError(
+            message=f"Invalid size: {size_str}",
+            file_path=file_path,
+            parse_error=str(e),
+        ) from e
 
     github_issue_val = frontmatter.get("github_issue")
     github_issue: Optional[int] = None
@@ -242,25 +281,40 @@ def parse_workstream(file_path: Path) -> Workstream:
     )
 
 
-def _extract_frontmatter(content: str) -> dict[str, Any]:
+def _extract_frontmatter(
+    content: str, file_path: Optional[Path] = None
+) -> dict[str, Any]:
     """Extract YAML frontmatter from markdown."""
     match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
     if not match:
-        raise WorkstreamParseError("No frontmatter found (must start with ---)")
+        raise WorkstreamParseError(
+            message="No frontmatter found (must start with ---)",
+            file_path=file_path,
+        )
 
     frontmatter_text = match.group(1)
     try:
         data: Any = yaml.safe_load(frontmatter_text)
     except yaml.YAMLError as e:
-        raise WorkstreamParseError(f"Invalid YAML in frontmatter: {e}")
+        raise WorkstreamParseError(
+            message=f"Invalid YAML in frontmatter: {e}",
+            file_path=file_path,
+            parse_error=str(e),
+        ) from e
 
     if not isinstance(data, dict):
-        raise WorkstreamParseError("Frontmatter must be a YAML dict")
+        raise WorkstreamParseError(
+            message="Frontmatter must be a YAML dict",
+            file_path=file_path,
+        )
 
     required_fields = {"ws_id", "feature", "status", "size"}
     missing = required_fields - set(data.keys())
     if missing:
-        raise WorkstreamParseError(f"Missing required fields: {missing}")
+        raise WorkstreamParseError(
+            message=f"Missing required fields: {missing}",
+            file_path=file_path,
+        )
 
     return data
 

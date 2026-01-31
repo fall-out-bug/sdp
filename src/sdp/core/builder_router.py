@@ -9,6 +9,7 @@ from typing import Optional
 
 from sdp.core.model_mapping import ModelProvider, ModelRegistry
 from sdp.core.workstream import Workstream
+from sdp.errors import ErrorCategory, SDPError
 
 # Default weights for model selection
 DEFAULT_WEIGHTS = {
@@ -118,7 +119,7 @@ class BuildResult:
     diagnostics: Optional[str] = None
 
 
-class HumanEscalationError(Exception):
+class HumanEscalationError(SDPError):
     """Error raised when build should be escalated to human."""
 
     def __init__(
@@ -128,21 +129,26 @@ class HumanEscalationError(Exception):
         attempts: int,
         diagnostics: str,
     ) -> None:
-        """Initialize escalation error.
-
-        Args:
-            ws_id: Workstream ID
-            tier: Capability tier
-            attempts: Number of failed attempts
-            diagnostics: Diagnostic information for human
-        """
-        self.ws_id = ws_id
-        self.tier = tier
-        self.attempts = attempts
-        self.diagnostics = diagnostics
+        """Initialize escalation error."""
         super().__init__(
-            f"Build failed after {attempts} attempts for {ws_id} (tier: {tier}). "
-            f"Escalating to human. Diagnostics: {diagnostics}"
+            category=ErrorCategory.BUILD,
+            message=(
+                f"Build failed after {attempts} attempts for {ws_id} (tier: {tier}). "
+                "Escalating to human."
+            ),
+            remediation=(
+                "1. Review diagnostics below for failure cause\n"
+                "2. Fix the underlying issue (tests, implementation)\n"
+                "3. Retry build manually: sdp build {ws_id}\n"
+                "4. Escalate to human if issue persists"
+            ),
+            docs_url="https://docs.sdp.dev/build#escalation",
+            context={
+                "ws_id": ws_id,
+                "tier": tier,
+                "attempts": attempts,
+                "diagnostics": diagnostics,
+            },
         )
 
 

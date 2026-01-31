@@ -32,7 +32,10 @@ def validate_workstream_tier(ws_path: Path, tier: str) -> ValidationResult:
         raise ValueError(f"Invalid tier: {tier}. Must be one of T0, T1, T2, T3") from e
 
     if not ws_path.exists():
-        raise WorkstreamParseError(f"File not found: {ws_path}")
+        raise WorkstreamParseError(
+            message=f"File not found: {ws_path}",
+            file_path=ws_path,
+        )
 
     try:
         ws = parse_workstream(ws_path)

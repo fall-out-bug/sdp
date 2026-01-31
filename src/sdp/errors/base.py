@@ -3,6 +3,7 @@
 Defines ErrorCategory enum, SDPError base exception, and formatting functions.
 """
 
+import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -87,6 +88,14 @@ class SDPError(Exception):
                 lines.append(f"   {key}: {value}")
 
         return "\n".join(lines)
+
+    def format_terminal(self) -> str:
+        """Format error for terminal output."""
+        return str(self)
+
+    def format_json(self) -> str:
+        """Format error as JSON for machine parsing."""
+        return json.dumps(format_error_for_json(self), indent=2)
 
 
 def format_error_for_terminal(error: Exception) -> str:

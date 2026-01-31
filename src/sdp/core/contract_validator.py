@@ -9,23 +9,25 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from sdp.errors import ErrorCategory, SDPError
 
-class ContractViolationError(Exception):
-    """Raised when T2/T3 build violates contract.
 
-    Args:
-        ws_id: Workstream ID
-        tier: Capability tier (T2 or T3)
-        violation: Description of what was changed
-    """
+class ContractViolationError(SDPError):
+    """Raised when T2/T3 build violates contract."""
 
     def __init__(self, ws_id: str, tier: str, violation: str) -> None:
         """Initialize contract violation error."""
-        self.ws_id = ws_id
-        self.tier = tier
-        self.violation = violation
         super().__init__(
-            f"Contract violation in {ws_id} (tier {tier}): {violation}"
+            category=ErrorCategory.BUILD,
+            message=f"Contract violation in {ws_id} (tier {tier}): {violation}",
+            remediation=(
+                "1. Revert changes to Interface and Tests sections\n"
+                "2. Only modify Implementation section in T2/T3 builds\n"
+                "3. Run pre-build validation to catch contract changes\n"
+                "4. See docs/reference/contract-driven-development.md"
+            ),
+            docs_url="https://docs.sdp.dev/contract-driven",
+            context={"ws_id": ws_id, "tier": tier, "violation": violation},
         )
 
 
