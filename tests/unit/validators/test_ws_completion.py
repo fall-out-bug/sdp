@@ -69,7 +69,7 @@ scope_files:
         checks = verifier.verify_commands({"verification_commands": []})
         assert checks == []
 
-    @patch("sdp.validators.ws_completion.subprocess.run")
+    @patch("sdp.validators.ws_completion.checkers.subprocess.run")
     def test_verify_commands_success(
         self, mock_run: object, verifier: WSCompletionVerifier
     ) -> None:
@@ -161,7 +161,7 @@ scope_files:
 
 ## Verification
 """)
-        with patch("sdp.validators.ws_completion.subprocess.run") as mock_run:
+        with patch("sdp.validators.ws_completion.checkers.subprocess.run") as mock_run:
             from unittest.mock import MagicMock
 
             mock_run.return_value = MagicMock(returncode=0, stdout="TOTAL 100 20 80%")
