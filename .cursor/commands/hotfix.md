@@ -2,21 +2,35 @@
 
 When calling `/hotfix "description" --issue-id=001`:
 
-1. Load full prompt: `@prompts/commands/hotfix.md`
-2. Create hotfix branch from `main`
-3. Implement minimal fix (no refactoring!)
-4. Fast testing (smoke + critical path only)
-5. Deploy to production
-6. Monitor (5 min verification)
-7. Merge to `main` + tag `hotfix-{ID}`
-8. Backport to `develop` and all `feature/*` branches
-9. Close GitHub issue
-10. Send Telegram notification
+1. **Create branch** — `git checkout -b hotfix/{id}-{slug}` from main
+2. **Minimal fix** — No refactoring, fix bug only
+3. **Fast testing** — Smoke + critical path (no full suite)
+4. **Commit** — `fix(scope): description (issue NNN)`
+5. **MERGE, TAG, PUSH** — Execute yourself!
+6. **Backport** — Merge to dev and feature branches
+7. **Close issue** — Update status in issue file
+
+## CRITICAL: You MUST Complete
+
+```bash
+# Merge to main and tag
+git checkout main
+git merge hotfix/{branch} --no-edit
+git tag -a v{VERSION} -m "Hotfix: {description}"
+git push origin main --tags
+
+# Backport to dev
+git checkout dev
+git merge main --no-edit
+git push origin dev
+```
+
+**Work is NOT complete until all `git push` commands succeed.**
 
 ## Quick Reference
 
-**Input:** P0 CRITICAL issue
-**Output:** Production fix < 2h
+**Input:** P0 CRITICAL issue  
+**Output:** Production fix + pushed to origin
 
 **Key Rules:**
 - Minimal changes only
@@ -24,7 +38,3 @@ When calling `/hotfix "description" --issue-id=001`:
 - No new features
 - Fast testing
 - Backport mandatory
-
-**Timeline:** < 2 hours from detection to deployment
-
-**Next:** Monitor + postmortem

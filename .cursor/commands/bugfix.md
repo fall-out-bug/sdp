@@ -1,27 +1,33 @@
 # /bugfix — Quality Bug Fixes
 
-When calling `/bugfix "description" --feature=F23 --issue-id=002`:
+When calling `/bugfix issue NNN`:
 
-1. Load full prompt: `@prompts/commands/bugfix.md`
-2. Create bugfix branch (from feature/* or bugfix/* from develop)
-3. Implement fix with full TDD
-4. Complete test suite
-5. Quality gates (coverage, linters)
-6. Merge to appropriate branch (not main!)
-7. Close GitHub issue
+1. **Read issue** — Load `docs/issues/{NNN}-*.md`
+2. **Create branch** — `git checkout -b bugfix/{NNN}-{slug}` from dev
+3. **TDD cycle** — Write failing test → implement fix → refactor
+4. **Quality gates** — pytest, coverage ≥80%, mypy --strict, ruff
+5. **Commit** — `fix(scope): description (issue NNN)`
+6. **Mark issue closed** — Update status in issue file
+7. **MERGE AND PUSH** — Execute yourself, not instructions!
+
+## CRITICAL: You MUST Complete
+
+```bash
+git checkout dev
+git merge bugfix/{branch} --no-edit
+git push
+git status  # MUST show "up to date with origin"
+```
+
+**Work is NOT complete until `git push` succeeds.**
 
 ## Quick Reference
 
-**Input:** P1/P2 issue
-**Output:** Quality fix with full tests
+**Input:** P1/P2 issue  
+**Output:** Bug fixed + tests + pushed to origin
 
-**Key Difference from Hotfix:**
 | Aspect | Hotfix | Bugfix |
 |--------|--------|--------|
 | Severity | P0 | P1/P2 |
-| Branch from | main | develop/feature |
+| Branch from | main | dev |
 | Testing | Fast | Full |
-| Deploy | Production | Staging |
-| Timeline | < 2h | < 24h |
-
-**Next:** Merge to develop, later to main

@@ -7,29 +7,39 @@ agent: builder
 
 При вызове `/hotfix "description" --issue-id=001`:
 
-1. Загрузи полный промпт: `@sdp/prompts/commands/hotfix.md`
-2. Create hotfix branch from `main`
-3. Implement minimal fix (no refactoring!)
-4. Fast testing (smoke + critical path only)
-5. Deploy to production
-6. Monitor (5 min verification)
-7. Merge to `main` + tag `hotfix-{ID}`
-8. Backport to `develop` and all `feature/*` branches
-9. Close GitHub issue
-10. Send Telegram notification
+1. **Создай ветку** — `git checkout -b hotfix/{id}-{slug}` от main
+2. **Минимальный фикс** — Без рефакторинга, только баг
+3. **Быстрое тестирование** — Smoke + critical path
+4. **Коммит** — `fix(scope): description (issue NNN)`
+5. **MERGE, TAG, PUSH** — Выполни сам!
+6. **Backport** — Мерж в dev и feature ветки
+7. **Закрой issue** — Обнови статус в файле
+
+## КРИТИЧНО: Ты ДОЛЖЕН завершить
+
+```bash
+# Мерж в main и тег
+git checkout main
+git merge hotfix/{branch} --no-edit
+git tag -a v{VERSION} -m "Hotfix: {description}"
+git push origin main --tags
+
+# Backport в dev
+git checkout dev
+git merge main --no-edit
+git push origin dev
+```
+
+**Работа НЕ завершена пока все `git push` не выполнены.**
 
 ## Quick Reference
 
-**Input:** P0 CRITICAL issue
-**Output:** Production fix < 2h
+**Input:** P0 CRITICAL issue  
+**Output:** Production fix + запушено в origin
 
 **Key Rules:**
-- Minimal changes only
-- No refactoring
-- No new features
-- Fast testing
-- Backport mandatory
-
-**Timeline:** < 2 hours from detection to deployment
-
-**Next:** Monitor + postmortem
+- Минимальные изменения
+- Без рефакторинга
+- Без новых фич
+- Быстрое тестирование
+- Backport обязателен
