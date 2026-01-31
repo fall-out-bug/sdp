@@ -4,6 +4,39 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 > **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
+## [0.7.0] - 2026-01-31
+
+### Added - Feature F034: A+ Quality Initiative
+
+- **00-034-01:** Split Large Files (Phase 1: Core)
+- **00-034-02:** Split Large Files (Phase 2: Beads/Unified)
+- **00-034-03:** Increase Test Coverage to 80%+ (achieved 85%)
+- **00-034-04:** Documentation Consistency
+- **00-034-05:** Extract Domain Layer (Clean Architecture)
+- **00-034-06:** Add `sdp status` Command
+- **00-034-07:** Add Skill Discovery (@help)
+- **00-034-08:** Remove Legacy Code (~600 LOC)
+
+**Что нового:**
+- Coverage 68% → 85.28%
+- Clean Architecture: domain layer extracted, no beads→core violations
+- `sdp status` — project and guard status
+- Skill discovery via `@help` / `sdp skills`
+- Skills optimized (~64% reduction), repo restructured
+- Lint clean (F401, F821, E501 fixed)
+
+**Использование:**
+
+```bash
+# Project status
+sdp status
+
+# Skill discovery
+sdp skills list
+```
+
+---
+
 ## [0.5.2] - 2026-01-31
 
 ### Added - Feature F025: pip-audit Security Scanning
