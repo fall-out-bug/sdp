@@ -1,7 +1,8 @@
 ---
 ws_id: 00-020-02
 feature: F020
-status: backlog
+status: completed
+completed: "2026-01-31"
 size: MEDIUM
 project_id: 00
 github_issue: null
@@ -21,12 +22,12 @@ depends_on:
 - Configuration via `quality-gate.toml` or environment variables
 
 **Acceptance Criteria:**
-- [ ] AC1: All hardcoded paths to `tools/hw_checker` removed from hooks
-- [ ] AC2: Hooks auto-detect project root (finds `docs/workstreams/` directory)
-- [ ] AC3: Hooks work on SDP repository itself (zero external dependencies)
-- [ ] AC4: Configuration via `quality-gate.toml` supported (WS_DIR, etc.)
-- [ ] AC5: All existing tests pass + new tests for SDP repo
-- [ ] AC6: Coverage ≥80%, mypy --strict passes
+- [x] AC1: All hardcoded paths to `tools/hw_checker` removed from hooks
+- [x] AC2: Hooks auto-detect project root (finds `docs/workstreams/` directory)
+- [x] AC3: Hooks work on SDP repository itself (zero external dependencies)
+- [x] AC4: Configuration via `quality-gate.toml` supported (WS_DIR, etc.)
+- [x] AC5: All existing tests pass + new tests for SDP repo
+- [x] AC6: Coverage ≥80%, mypy --strict passes
 
 **⚠️ WS is NOT complete until Goal is achieved (all AC ✅).**
 
