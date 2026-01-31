@@ -92,19 +92,9 @@ def validate_tier(ws_file: Path, tier: str, output_json: bool) -> None:
 
 @click.group()
 def tier() -> None:
-    """Tier management commands (metrics, promotion, demotion)."""
+    """Tier management commands (validate, metrics, promotion)."""
     pass
 
 
-# Import and add subcommands
-try:
-    from sdp.cli.tier_metrics import tier_metrics
-    tier.add_command(tier_metrics)
-except ImportError:
-    pass
-
-try:
-    from sdp.cli.tier_promote import tier_promote_check
-    tier.add_command(tier_promote_check)
-except ImportError:
-    pass
+# Add validate_tier as subcommand
+tier.add_command(validate_tier, name="validate")

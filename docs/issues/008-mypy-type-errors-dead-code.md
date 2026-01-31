@@ -1,9 +1,9 @@
 # 008: mypy type errors — dead code and missing annotations
 
 **Source:** /issue (2026-01-31)  
-**Status:** Open  
+**Status:** Fixed  
 **Priority:** P2 (MEDIUM)  
-**Route:** New WS (backlog)
+**Route:** /bugfix (applied)
 
 ## Problem
 
@@ -109,6 +109,16 @@ FlowStep(flow_name=maybe_none_value)  # Should handle None
   - Prevents `mypy --strict` in CI
   - Masks real bugs
   - Accumulates debt
+
+## Resolution (2026-01-31)
+
+- **Option A applied:** Removed dead code `cli/tier_metrics.py`, `cli/tier_promote.py`
+- Fixed 22 remaining mypy errors across 12 files
+- Fixed beads/cli.py JSONDecodeError bug (e.stderr → e.msg)
+- Fixed prd/parser_python.py flow_name Optional handling
+- Branch: `bugfix/008-mypy-type-errors-dead-code`
+
+**Note:** Project coverage 59% is pre-existing; 80% gate deferred to separate WS.
 
 ## Related
 

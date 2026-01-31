@@ -5,6 +5,7 @@ Provides CLI commands for parsing workstreams and project maps.
 
 import sys
 from pathlib import Path
+
 import click
 
 from sdp.errors import format_error_for_terminal

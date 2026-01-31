@@ -4,7 +4,7 @@ Manages which files a workstream is allowed to modify by storing
 scope information in Beads task metadata.
 """
 
-from typing import List
+from typing import List, cast
 
 from sdp.beads.base import BeadsClient
 from sdp.beads.exceptions import BeadsClientError
@@ -41,7 +41,8 @@ class ScopeManager:
         if not task:
             raise ValueError(f"Workstream not found: {ws_id}")
 
-        return task.sdp_metadata.get("scope_files", [])
+        scope = task.sdp_metadata.get("scope_files", [])
+        return cast(List[str], scope if isinstance(scope, list) else [])
 
     def set_scope(self, ws_id: str, files: List[str]) -> None:
         """Set scope files for workstream.

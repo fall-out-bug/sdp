@@ -3,7 +3,7 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from .base import BeadsClient
 from .exceptions import BeadsClientError
@@ -150,7 +150,7 @@ class CLIBeadsClient(BeadsClient):
         else:
             return [BeadsTask.from_dict(t) for t in data.get("tasks", [])]
 
-    def update_metadata(self, task_id: str, metadata: dict) -> None:
+    def update_metadata(self, task_id: str, metadata: dict[str, Any]) -> None:
         """Update task metadata via Beads CLI.
 
         Example:
@@ -161,7 +161,7 @@ class CLIBeadsClient(BeadsClient):
 
     def _run_command(
         self, cmd: List[str], capture_output: bool = False
-    ) -> subprocess.CompletedProcess:
+    ) -> subprocess.CompletedProcess[str]:
         """Run a Beads CLI command.
 
         Args:
@@ -189,5 +189,5 @@ class CLIBeadsClient(BeadsClient):
             raise BeadsClientError(f"Command failed: {error_msg}") from e
 
         except json.JSONDecodeError as e:
-            error_msg = e.stderr if capture_output else str(e)
+            error_msg = getattr(e, "msg", str(e))
             raise BeadsClientError(f"Invalid JSON response: {error_msg}") from e

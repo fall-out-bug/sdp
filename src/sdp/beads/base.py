@@ -102,7 +102,7 @@ class BeadsClient(ABC):
         pass
 
     @abstractmethod
-    def update_metadata(self, task_id: str, metadata: dict) -> None:
+    def update_metadata(self, task_id: str, metadata: dict[str, object]) -> None:
         """Update task metadata.
 
         Args:

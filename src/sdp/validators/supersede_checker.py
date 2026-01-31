@@ -247,7 +247,7 @@ class SupersedeValidator:
 
         return None
 
-    def _parse_frontmatter(self, ws_path: Path) -> dict:
+    def _parse_frontmatter(self, ws_path: Path) -> dict[str, str]:
         """Parse frontmatter from WS file.
 
         Args:
@@ -257,7 +257,7 @@ class SupersedeValidator:
             Dict of frontmatter fields
         """
         content = ws_path.read_text(encoding="utf-8")
-        data: dict = {}
+        data: dict[str, str] = {}
 
         in_frontmatter = False
         for line in content.splitlines():
@@ -274,7 +274,7 @@ class SupersedeValidator:
 
         return data
 
-    def _update_frontmatter(self, ws_path: Path, updates: dict) -> None:
+    def _update_frontmatter(self, ws_path: Path, updates: dict[str, str]) -> None:
         """Update frontmatter fields.
 
         Args:

@@ -22,8 +22,10 @@ except ImportError:
 
 # Import trace command
 _trace_available: bool = False
+trace: click.Group | None = None
 try:
-    from sdp.cli.trace import trace
+    from sdp.cli.trace import trace as _trace
+    trace = _trace
     _trace_available = True
 except ImportError:
     trace = None
