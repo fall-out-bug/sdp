@@ -6,7 +6,8 @@ from pathlib import Path
 
 import click
 
-from sdp.validators.ws_completion import VerificationResult, WSCompletionVerifier
+from sdp.validators.ws_completion.models import VerificationResult
+from sdp.validators.ws_completion.verifier import WSCompletionVerifier
 
 
 @dataclass

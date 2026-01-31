@@ -1,12 +1,8 @@
 """SDP Core module."""
 
-from sdp.core.feature import (
-    CircularDependencyError,
-    Feature,
-    MissingDependencyError,
-    load_feature_from_directory,
-    load_feature_from_spec,
-)
+from sdp.core.feature.errors import CircularDependencyError, MissingDependencyError
+from sdp.core.feature.loader import load_feature_from_directory, load_feature_from_spec
+from sdp.core.feature.models import Feature
 from sdp.core.project_map_parser import parse_project_map
 from sdp.core.project_map_template import create_project_map_template
 from sdp.core.project_map_types import (
@@ -18,14 +14,13 @@ from sdp.core.project_map_types import (
     get_constraint,
     get_decision,
 )
-from sdp.core.workstream import (
+from sdp.core.workstream.parser import WorkstreamParseError, parse_workstream
+from sdp.domain.workstream import (
     AcceptanceCriterion,
     Workstream,
     WorkstreamID,
-    WorkstreamParseError,
     WorkstreamSize,
     WorkstreamStatus,
-    parse_workstream,
 )
 
 __all__ = [

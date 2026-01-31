@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import click
 
 from sdp.beads import create_beads_client
-from sdp.beads.sync import resolve_ws_id_to_beads_id
+from sdp.beads.sync.mapping import resolve_ws_id_to_beads_id
 from sdp.guard.skill import GuardSkill
 from sdp.guard.state import GuardState, StateManager
 

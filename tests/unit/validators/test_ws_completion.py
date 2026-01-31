@@ -5,11 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from sdp.validators.ws_completion import (
-    CheckResult,
-    VerificationResult,
-    WSCompletionVerifier,
-)
+from sdp.validators.ws_completion.models import CheckResult, VerificationResult
+from sdp.validators.ws_completion.verifier import WSCompletionVerifier
 
 
 @pytest.fixture

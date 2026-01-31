@@ -12,7 +12,8 @@ from unittest.mock import MagicMock
 import pytest
 from click.testing import CliRunner
 from sdp.hooks.ws_complete import HookResult, PostWSCompleteHook, main
-from sdp.validators.ws_completion import CheckResult, VerificationResult, WSCompletionVerifier
+from sdp.validators.ws_completion.models import CheckResult, VerificationResult
+from sdp.validators.ws_completion.verifier import WSCompletionVerifier
 
 
 def test_hook_result_dataclass() -> None:

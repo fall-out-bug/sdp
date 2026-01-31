@@ -9,7 +9,7 @@ import pytest
 
 from sdp.beads.mock import MockBeadsClient
 from sdp.beads.models import BeadsStatus, BeadsTaskCreate
-from sdp.beads.sync import BeadsSyncService
+from sdp.beads.sync.sync_service import BeadsSyncService
 
 
 class TestBeadsSyncServiceInit:

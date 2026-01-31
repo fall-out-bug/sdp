@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from sdp.beads.sync import BeadsSyncError, MappingManager, resolve_ws_id_to_beads_id
+from sdp.beads.sync.mapping import BeadsSyncError, MappingManager, resolve_ws_id_to_beads_id
 
 
 class TestResolveWsIdToBeadsId:

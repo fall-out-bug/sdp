@@ -88,13 +88,8 @@ try:
 except ImportError:
     status = None
 
-# Import extension commands
+# Import extension commands (deprecated, will be removed)
 _extension_available: bool = False
-try:
-    from sdp.cli_extension import extension  # noqa: E402
-    _extension_available = True
-except ImportError:
-    _extension_available = False
 
 _init_available: bool = False
 try:

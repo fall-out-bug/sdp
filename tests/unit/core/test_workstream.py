@@ -3,13 +3,12 @@
 import pytest
 from pathlib import Path
 
-from sdp.core.workstream import (
+from sdp.core.workstream.parser import WorkstreamParseError, parse_workstream
+from sdp.domain.workstream import (
     WorkstreamID,
     WorkstreamStatus,
     WorkstreamSize,
     Workstream,
-    WorkstreamParseError,
-    parse_workstream,
 )
 
 

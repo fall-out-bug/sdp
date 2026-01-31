@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from sdp.beads.sync import resolve_ws_id_to_beads_id
+from sdp.beads.sync.mapping import resolve_ws_id_to_beads_id
 
 
 class TestResolveWsIdToBeadsId:

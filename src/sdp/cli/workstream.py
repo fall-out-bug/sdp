@@ -183,7 +183,7 @@ def verify_completion(ws_id: str) -> None:
     Args:
         ws_id: Workstream ID (e.g., 00-032-26)
     """
-    from sdp.validators.ws_completion import WSCompletionVerifier
+    from sdp.validators.ws_completion.verifier import WSCompletionVerifier
 
     verifier = WSCompletionVerifier()
     result = verifier.verify(ws_id)
