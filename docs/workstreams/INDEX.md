@@ -16,18 +16,19 @@ SDP (Spec-Driven Protocol) workstreams for project_id: 00.
 | F011 | PRD Command | 0 | 6 | 6 | ✅ 100% complete |
 | F012 | GitHub Agent Orchestrator + Developer DX | 14 | 0 | 14 | 📋 Not Started |
 | F013 | AI-Human Communication Enhancement | 0 | 9 | 9 | ✅ 100% complete |
+| F025 | pip-audit Security Scanning | 0 | 1 | 1 | ✅ 100% complete |
 
 ## Summary
 
-- **Total:** 71 workstreams (SDP-specific only)
-- **Backlog:** 14 workstreams (20%)
-- **Completed:** 57 workstreams (80%)
+- **Total:** 72 workstreams (SDP-specific only)
+- **Backlog:** 14 workstreams (19%)
+- **Completed:** 58 workstreams (81%)
 
 **Removed:** F001, F002, F009 (37 hw_checker-specific workstreams)
 
 ## Implementation Status
 
-### ✅ Complete Features (9)
+### ✅ Complete Features (10)
 - **F003** Two-Stage Review (5/5 WS)
 - **F004** Platform Adapters (4/4 WS)
 - **F005** Extension System (3/3 WS)
@@ -37,6 +38,7 @@ SDP (Spec-Driven Protocol) workstreams for project_id: 00.
 - **F010** SDP Infrastructure (5/5 WS)
 - **F011** PRD Command (6/6 WS)
 - **F013** AI-Human Communication Enhancement (9/9 WS)
+- **F025** pip-audit Security Scanning (1/1 WS)
 
 ### ⏳ In Progress Features (0)
 
@@ -49,9 +51,10 @@ SDP (Spec-Driven Protocol) workstreams for project_id: 00.
 
 **F012 (14):** 00-012-01, 00-012-02, 00-012-03, 00-012-04, 00-012-05, 00-012-06, 00-012-07, 00-012-08, 00-012-09, 00-012-10, 00-012-11, 00-012-12, 00-012-13, 00-012-14
 
-### Completed (48)
+### Completed (58)
 
 **F003 (5):** 00-003-01, 00-003-02, 00-003-05, 00-003-07, 00-003-08
+**F025 (1):** 00-025-01
 **F011 (6):** 00-011-01, 00-011-02, 00-011-03, 00-011-04, 00-011-05, 00-011-06
 **F006 (6):** 00-006-01, 00-006-02, 00-006-03, 00-006-04, 00-006-05, 00-006-06
 **F004 (4):** 00-004-01 to 00-004-04

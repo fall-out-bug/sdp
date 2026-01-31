@@ -8,7 +8,7 @@ This package provides development tooling for:
 - Git workflow automation
 """
 
-__version__ = "0.3.0"
+__version__ = "0.5.2"
 
 # Public API exports
 from sdp.core import (

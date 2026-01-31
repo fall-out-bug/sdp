@@ -4,6 +4,30 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 > **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
+## [0.5.2] - 2026-01-31
+
+### Added - Feature F025: pip-audit Security Scanning
+
+- **00-025-01:** pip-audit + Dependabot — dependency vulnerability scanning in CI/CD
+
+**Что нового:**
+- pip-audit runs on every PR/push (blocks merge on vulnerabilities)
+- PR comments include CVE details, severity, fix versions
+- Dependabot weekly PRs for Python + GitHub Actions
+- SECURITY.md policy, docs/internals/development.md updated
+
+**Использование:**
+
+```bash
+# Run vulnerability scan locally
+poetry run pip-audit
+
+# Generate JSON report
+poetry run pip-audit --format json --desc -o audit-report.json
+```
+
+---
+
 ## [0.5.1] - 2026-01-31
 
 ### Added - Feature F020: Fast Feedback (Hooks Extraction & Project-Agnostic)
