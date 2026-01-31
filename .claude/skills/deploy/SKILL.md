@@ -1,74 +1,134 @@
 ---
 name: deploy
-description: Deployment orchestration. Generates docker-compose, CI/CD, release notes. Merges feature to main with tagging.
-tools: Read, Write, Edit, Bash, Glob, Grep
+description: Deployment orchestration. Generates artifacts and EXECUTES GitFlow merge.
+tools: Read, Write, Shell, Glob, Grep
 ---
 
-# /deploy - Deployment Orchestration
+# @deploy - Deployment Orchestration
 
-Generate deployment artifacts and execute GitFlow merge.
-
-## When to Use
-
-- After `/review` APPROVED
-- After human UAT passes
-- Ready for production
+Generate deployment artifacts and **EXECUTE** GitFlow merge. Do NOT propose — DO IT.
 
 ## Invocation
 
 ```bash
-/deploy F60
+@deploy F020          # Feature ID
+@deploy F020 patch    # Specify version bump (patch/minor/major)
 ```
-
-## Master Prompt
-
-📄 **sdp/prompts/commands/deploy.md** (480+ lines)
-
-**Contains:**
-- Pre-deployment checks (e2e tests)
-- Version resolution (semantic versioning)
-- Artifact generation (docker-compose, CI/CD)
-- GitFlow merge (feature → develop → main)
-- Tag creation
-- Release notes
-- GitHub notification
-
-## Workflow
-
-1. Pre-flight: e2e tests (via pre-deploy.sh)
-2. Version resolution dialogue
-3. Generate artifacts:
-   - docker-compose.yml
-   - .github/workflows/
-   - Release notes
-4. GitFlow merge:
-   - feature → develop (fast-forward)
-   - develop → main (--no-ff)
-5. Tag: v{X.Y.Z}
-6. Push + cleanup branches
-7. Update INDEX (WS to completed/)
-
-## Generated Artifacts
-
-- `docker-compose.yml` (production-ready)
-- `.github/workflows/ci.yml`
-- `.github/workflows/deploy.yml`
-- `docs/releases/v{X.Y.Z}.md`
-
-## GitFlow
-
-```
-feature/{slug} → develop → main
-                            ↓
-                        tag v{X.Y.Z}
-```
-
-## Output
-
-Feature deployed to main + tagged + release notes + cleanup
 
 ## Quick Reference
 
-**Input:** Feature ID (APPROVED + UAT passed)  
-**Output:** Production deployment + v{X.Y.Z} tag  
-**Next:** Monitor production
+| Step | Action | Must Execute |
+|------|--------|--------------|
+| 1 | Pre-flight checks | pytest, verify APPROVED |
+| 2 | Version resolution | Read current, bump semver |
+| 3 | Generate artifacts | CHANGELOG, release notes, pyproject.toml |
+| 4 | Commit artifacts | `git add && git commit` |
+| 5 | GitFlow merge | dev → main (--no-ff) |
+| 6 | Tag + Push | `git tag && git push` |
+| 7 | Report | Summary to user |
+
+**⚠️ CRITICAL:** Do NOT stop after generating artifacts. EXECUTE all git operations.
+
+## Workflow
+
+### Step 1: Pre-flight Checks
+
+```bash
+# Verify tests pass
+uv run pytest tests/ -q
+
+# Verify feature APPROVED (check review_verdict in WS files)
+```
+
+**Gate:** If tests fail or not APPROVED → STOP deployment.
+
+### Step 2: Version Resolution
+
+Read `pyproject.toml` current version. Bump based on:
+- `patch` (default): 0.5.0 → 0.5.1
+- `minor`: 0.5.0 → 0.6.0
+- `major`: 0.5.0 → 1.0.0
+
+### Step 3: Generate Artifacts
+
+Create/update:
+- `pyproject.toml` — update version
+- `CHANGELOG.md` — add version section
+- `docs/releases/v{X.Y.Z}.md` — release notes
+
+### Step 4: Commit Artifacts
+
+```bash
+git add pyproject.toml CHANGELOG.md docs/releases/v{X.Y.Z}.md
+git add .  # Include any other deploy-related changes
+git commit -m "chore(release): v{X.Y.Z} - {Feature} {Title}"
+```
+
+**⚠️ DO NOT ask user permission. Commit immediately.**
+
+### Step 5: GitFlow Merge
+
+```bash
+# Push dev first
+git push origin dev
+
+# Switch to main, pull, merge
+git checkout main
+git pull origin main
+git merge dev --no-ff -m "Merge dev: v{X.Y.Z} {Feature}"
+```
+
+**⚠️ DO NOT ask user permission. Execute merge.**
+
+### Step 6: Tag + Push
+
+```bash
+# Create annotated tag
+git tag -a v{X.Y.Z} -m "Release v{X.Y.Z}: {Feature} - {Title}"
+
+# Push main + tag
+git push origin main
+git push origin v{X.Y.Z}
+
+# Return to dev
+git checkout dev
+```
+
+**⚠️ DO NOT ask user permission. Tag and push immediately.**
+
+### Step 7: Report
+
+Output summary:
+
+```markdown
+## Deploy Complete: v{X.Y.Z}
+
+**Feature:** {FXX} - {Title}
+**Tag:** v{X.Y.Z}
+**Branch:** main
+
+### Artifacts Created
+- pyproject.toml (version bump)
+- CHANGELOG.md (release entry)
+- docs/releases/v{X.Y.Z}.md
+
+### Git Operations
+- [x] Committed release artifacts
+- [x] Merged dev → main
+- [x] Tagged v{X.Y.Z}
+- [x] Pushed to origin
+```
+
+## Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| Tests fail | Pre-flight failed | Fix tests first |
+| Not APPROVED | Review pending | Run @review first |
+| Merge conflict | Diverged branches | Resolve manually |
+| Push rejected | Remote ahead | Pull and retry |
+
+## See Also
+
+- [@review skill](../review/SKILL.md) — Must be APPROVED before deploy
+- [Release Notes Template](../../templates/release-notes.md)

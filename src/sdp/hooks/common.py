@@ -38,8 +38,8 @@ def find_project_root(start_dir: Path | None = None) -> Path:
                 config = tomllib.loads((path / "pyproject.toml").read_text())
                 if "tool" in config and "sdp" in config.get("tool", {}):
                     return path
-            except Exception:
-                pass
+            except (tomllib.TOMLDecodeError, OSError):
+                pass  # TOML parse or read failed, try next marker
 
     raise RuntimeError(
         "SDP project root not found. "
@@ -76,8 +76,8 @@ def find_workstream_dir(project_root: Path) -> Path:
                 ws_dir = project_root / cast(str, ws_config["dir"])
                 if ws_dir.exists():
                     return ws_dir
-        except Exception:
-            pass
+        except (tomllib.TOMLDecodeError, OSError):
+            pass  # Config parse failed, try env or defaults
 
     env_ws_dir = os.getenv("SDP_WORKSTREAM_DIR")
     if env_ws_dir:

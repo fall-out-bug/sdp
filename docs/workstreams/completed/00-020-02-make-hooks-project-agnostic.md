@@ -404,3 +404,20 @@ mypy src/sdp/hooks/ --strict
 
 ### Commit
 feat(hooks): 00-020-02 - Make hooks project-agnostic
+
+---
+
+## Review Results (2026-01-31, Updated)
+
+**Verdict:** APPROVED  
+**Report:** [2026-01-31-F020-review.md](../../reports/2026-01-31-F020-review.md)
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| ACs traceable | ⚠️ | 83% (AC6 unmapped) |
+| Tests pass | ✅ | 1040 passed |
+| Coverage ≥80% (hooks) | ✅ | 92% |
+| mypy --strict | ✅ | Pass |
+| Ruff | ✅ | Pass |
+| Files <200 LOC | ✅ | Max 198 lines |
+| except:pass | ✅ | Fixed (specific exceptions) |

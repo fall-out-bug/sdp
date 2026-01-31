@@ -4,6 +4,29 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 > **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
+## [0.5.1] - 2026-01-31
+
+### Added - Feature F020: Fast Feedback (Hooks Extraction & Project-Agnostic)
+
+- **00-020-01:** Git hooks extracted to Python — pre-commit, pre-push, post-build, pre-deploy
+- **00-020-02:** Hooks project-agnostic — auto-detect project root, `quality-gate.toml` config
+- **00-020-04:** Fix `except Exception: pass` in common.py (Issue 006)
+
+**Что нового:**
+- Shell hooks → testable Python modules (`src/sdp/hooks/`)
+- `find_project_root()`, `find_workstream_dir()` — auto-detection
+- Configuration via `quality-gate.toml` [workstreams.dir]
+- Hooks coverage 92%, mypy --strict
+
+**Использование:**
+
+```bash
+# Hooks run on any SDP project (dogfooding)
+python -m sdp.hooks.pre_commit
+```
+
+---
+
 ## [0.6.0] - 2026-XX-XX
 
 ### Breaking Changes

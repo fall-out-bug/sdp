@@ -1,39 +1,31 @@
 ---
-description: Deploy feature - generates DevOps configs, CI/CD, release notes, creates PR
+description: Deploy feature - generates artifacts and EXECUTES GitFlow merge
 agent: deployer
 ---
 
 # /deploy — Deploy Feature
 
-При вызове `/deploy {feature}`:
+При вызове `/deploy {feature} [version_bump]`:
 
-1. Загрузи полный промпт: `@sdp/prompts/commands/deploy.md`
-2. Проверь что все WS APPROVED
-3. Выполни Mandatory Dialogue (scope, environments)
-4. Проверь GitHub sync (см. Pre-deploy Check)
-5. Сгенерируй:
-   - docker-compose updates
-   - CI/CD pipeline updates
-   - CHANGELOG.md entry
-   - Release notes
-   - Deployment plan
+1. Загрузи skill: `.claude/skills/deploy/SKILL.md`
+2. Pre-flight: pytest, проверь APPROVED
+3. Version: bump semver (patch/minor/major)
+4. Generate: CHANGELOG, release notes, pyproject.toml
+5. **ВЫПОЛНИ** (не предлагай):
+   - `git commit` артефакты
+   - `git merge dev → main`
+   - `git tag v{X.Y.Z}`
+   - `git push origin main v{X.Y.Z}`
+6. Отчёт
 
 ## Quick Reference
 
-**Input:** APPROVED feature
-**Output:** DevOps configs + docs + release notes
-**Next:** Execute deployment plan
+**Input:** APPROVED feature + version bump (default: patch)
+**Output:** Production deployment + v{X.Y.Z} tag
+**Rule:** НЕ останавливайся после артефактов — ВЫПОЛНИ все git операции
 
-## Pre-deploy Check: GitHub Sync
+## Version Bump
 
-Before creating PR, verify all WS are synced:
-
-```bash
-# Check all feature WS have github_issue set
-grep -l "^github_issue: null" \
-  tools/hw_checker/docs/workstreams/*/WS-{feature_num}*.md
-
-# If any found, sync them first
-cd sdp
-poetry run sdp-github sync-all --ws-dir ../tools/hw_checker/docs/workstreams
-```
+- `@deploy F020` — patch (0.5.0 → 0.5.1)
+- `@deploy F020 minor` — minor (0.5.0 → 0.6.0)
+- `@deploy F020 major` — major (0.5.0 → 1.0.0)

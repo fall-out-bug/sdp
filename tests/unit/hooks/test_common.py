@@ -30,6 +30,14 @@ def test_find_project_root_via_git_and_pyproject(tmp_path: Path) -> None:
     assert find_project_root(tmp_path) == tmp_path
 
 
+def test_find_project_root_skips_invalid_toml(tmp_path: Path) -> None:
+    """find_project_root skips path when pyproject.toml has invalid TOML."""
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "pyproject.toml").write_text("invalid toml [", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="SDP project root not found"):
+        find_project_root(tmp_path)
+
+
 def test_find_project_root_raises_when_not_found(tmp_path: Path) -> None:
     """find_project_root raises RuntimeError when no markers found."""
     with pytest.raises(RuntimeError, match="SDP project root not found"):
@@ -43,6 +51,13 @@ def test_find_workstream_dir_from_quality_gate(tmp_path: Path) -> None:
         '[workstreams]\ndir = "custom_ws"', encoding="utf-8"
     )
     assert find_workstream_dir(tmp_path) == tmp_path / "custom_ws"
+
+
+def test_find_workstream_dir_falls_through_on_invalid_toml(tmp_path: Path) -> None:
+    """find_workstream_dir falls through to default when quality-gate.toml invalid."""
+    (tmp_path / "docs" / "workstreams").mkdir(parents=True)
+    (tmp_path / "quality-gate.toml").write_text("invalid toml [", encoding="utf-8")
+    assert find_workstream_dir(tmp_path) == tmp_path / "docs" / "workstreams"
 
 
 def test_find_workstream_dir_from_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
