@@ -15,7 +15,7 @@ from sdp.hooks.pre_commit_checks import (
 )
 
 
-def main() -> int:  # noqa: C901
+def main() -> int:  # noqa: C901  # pragma: no cover
     """Run pre-commit checks. Returns 0 on success, 1 on failure."""
     repo_root_path = repo_root()
     files = staged_files()

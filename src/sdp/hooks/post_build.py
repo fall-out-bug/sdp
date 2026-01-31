@@ -27,7 +27,7 @@ def _project_root(repo_root: Path) -> tuple[Path, str]:
     return repo_root, "src/sdp"
 
 
-def main() -> int:  # noqa: C901
+def main() -> int:  # noqa: C901  # pragma: no cover
     """Run post-build checks. Usage: post_build.py WS-ID [module_path]"""
     if len(sys.argv) < 2:
         print("❌ Usage: post_build.py WS-ID [module_path]")

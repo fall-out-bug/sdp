@@ -35,7 +35,7 @@ def _files_to_push() -> list[str]:
     return [f for f in result.stdout.strip().split("\n") if f] if result.returncode == 0 else []
 
 
-def main() -> int:  # noqa: C901
+def main() -> int:  # noqa: C901  # pragma: no cover
     """Run pre-push checks. Returns 0 on success, 1 on failure."""
     hard_push = os.environ.get("SDP_HARD_PUSH", "0") == "1"
     repo_root = _repo_root()

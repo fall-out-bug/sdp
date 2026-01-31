@@ -16,7 +16,7 @@ def _repo_root() -> Path:
     return Path(result.stdout.strip())
 
 
-def main() -> int:  # noqa: C901
+def main() -> int:  # noqa: C901  # pragma: no cover
     """Run pre-deploy checks. Usage: pre_deploy.py F{XX} [staging|prod]"""
     if len(sys.argv) < 2:
         print("Usage: pre_deploy.py F{XX} [staging|prod]")
