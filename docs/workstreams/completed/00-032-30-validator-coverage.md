@@ -1,13 +1,14 @@
 ---
 ws_id: 00-032-30
 title: Add Tests for F032 Validators (Coverage ≥80%)
-status: READY
+status: completed
 feature: F032
 project_id: 00
 size: L
 estimated_loc: 500
 dependencies:
   - 00-032-29
+completed: "2026-01-30"
 review_source: docs/reports/2026-01-30-F032-review.md
 ---
 
@@ -33,13 +34,13 @@ F032 review found overall coverage 52.68%, with these F032-scope modules at crit
 
 ## Acceptance Criteria
 
-- [ ] AC1: `supersede_checker.py` coverage ≥80%
-- [ ] AC2: `time_estimate_checker.py` coverage ≥80%
-- [ ] AC3: `ws_completion.py` coverage ≥80%
-- [ ] AC4: `ws_template_checker.py` coverage ≥80%
-- [ ] AC5: `capability_tier_checks_*.py` coverage ≥80%
-- [ ] AC6: All new tests pass
-- [ ] AC7: Overall F032 module coverage ≥80%
+- [x] AC1: `supersede_checker.py` coverage ≥80%
+- [x] AC2: `time_estimate_checker.py` coverage ≥80%
+- [x] AC3: `ws_completion.py` coverage ≥80%
+- [x] AC4: `ws_template_checker.py` coverage ≥80%
+- [x] AC5: `capability_tier_checks_*.py` coverage ≥80%
+- [x] AC6: All new tests pass
+- [x] AC7: Overall F032 module coverage ≥80%
 
 ## Technical Approach
 
@@ -73,4 +74,15 @@ F032 review found overall coverage 52.68%, with these F032-scope modules at crit
 
 ## Execution Report
 
-_To be filled during @build_
+**Date:** 2026-01-30
+
+**New test files:**
+- `tests/unit/validators/test_supersede_checker.py` — 9 tests, 83% coverage
+- `tests/unit/validators/test_time_estimate_checker.py` — 16 tests, 97% coverage
+- `tests/unit/validators/test_ws_template_checker.py` — 6 tests, 81% coverage
+- `tests/unit/validators/test_ws_completion.py` — 14 tests, 83% coverage
+- `tests/unit/validators/test_capability_tier_checks_interface.py` — 9 tests, 100% coverage
+- `tests/unit/validators/test_capability_tier_checks_contract.py` — 9 tests, 100% coverage
+- `tests/unit/validators/test_capability_tier_checks_scope.py` — 4 tests, 100% coverage
+
+**Result:** Validator module coverage 84% (≥80% gate). 115 tests pass.
