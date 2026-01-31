@@ -2,6 +2,11 @@
 # Version: 1.0.0
 # This file defines quality thresholds for code validation
 
+[workstreams]
+# Workstream directory (relative to project root)
+# Override with SDP_WORKSTREAM_DIR environment variable
+dir = "docs/workstreams"
+
 [coverage]
 # Test coverage requirements
 enabled = true

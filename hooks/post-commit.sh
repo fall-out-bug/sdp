@@ -7,7 +7,14 @@ set -e
 # Configuration
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GITHUB_REPO="${GITHUB_REPO:-}"
-WS_DIR="tools/hw_checker/docs/workstreams"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+WS_DIR="${SDP_WORKSTREAM_DIR:-docs/workstreams}"
+if [ ! -d "$REPO_ROOT/$WS_DIR" ]; then
+    WS_DIR="workstreams"
+fi
+if [ ! -d "$REPO_ROOT/$WS_DIR" ]; then
+    WS_DIR="tools/hw_checker/docs/workstreams"
+fi
 
 # Skip if GitHub not configured
 if [ -z "$GITHUB_TOKEN" ] || [ -z "$GITHUB_REPO" ]; then
@@ -30,7 +37,7 @@ if [ -z "$WS_ID" ]; then
 fi
 
 # Find WS file
-WS_FILE=$(find "$WS_DIR" -name "${WS_ID}*.md" -type f | head -1)
+WS_FILE=$(find "$REPO_ROOT/$WS_DIR" -name "${WS_ID}*.md" -type f 2>/dev/null | head -1)
 
 if [ ! -f "$WS_FILE" ]; then
     echo "⚠️  WS file not found: $WS_ID" >&2

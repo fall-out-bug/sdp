@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from sdp.validators.ws_completion import WSCompletionVerifier
+from sdp.validators.ws_completion import VerificationResult, WSCompletionVerifier
 
 
 @dataclass
@@ -51,7 +51,7 @@ class PostWSCompleteHook:
         )
 
     def _handle_verification_passed(
-        self, ws_id: str, result
+        self, ws_id: str, result: VerificationResult
     ) -> HookResult:
         """Build result for passed verification."""
         messages = [
@@ -65,7 +65,9 @@ class PostWSCompleteHook:
             passed=True, ws_id=ws_id, messages=messages, bypass_used=False, bypass_reason=None
         )
 
-    def _handle_verification_failed(self, ws_id: str, result) -> HookResult:
+    def _handle_verification_failed(
+        self, ws_id: str, result: VerificationResult
+    ) -> HookResult:
         """Build result for failed verification."""
         failed_checks = [c for c in result.checks if not c.passed]
         messages = [

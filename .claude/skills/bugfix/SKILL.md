@@ -21,26 +21,34 @@ Standard bug fixes with full quality cycle.
 /bugfix "description" --feature=F23 --issue-id=002
 ```
 
-## Master Prompt
-
-📄 **sdp/prompts/commands/bugfix.md** (530+ lines)
-
-**Contains:**
-- Full TDD workflow
-- Branch strategy (feature/* or bugfix/* from develop)
-- Complete test suite
-- Quality gates
-- Merge to develop (not main!)
-- GitHub issue closure
-
 ## Workflow
 
-1. Create bugfix branch (from feature or develop)
-2. Implement fix with TDD
-3. Full test suite
-4. Quality checks
-5. Merge to appropriate branch
-6. Close issue
+1. **Read issue** — Load issue file from `docs/issues/`
+2. **Create branch** — `git checkout -b bugfix/{issue-id}-{slug}` from dev
+3. **TDD cycle** — Write failing test → implement fix → refactor
+4. **Quality gates** — pytest, coverage ≥80%, mypy --strict, ruff
+5. **Commit** — `fix(scope): description (issue NNN)`
+6. **Mark issue closed** — Update status in issue file
+7. **MERGE AND PUSH** — See critical section below
+
+## CRITICAL: Completion Requirements
+
+**You MUST execute these commands yourself. Do NOT give instructions to user.**
+
+```bash
+# 1. Merge to dev
+git checkout dev
+git merge bugfix/{branch-name} --no-edit
+
+# 2. Push to remote (MANDATORY)
+git pull --rebase || true
+git push
+
+# 3. Verify
+git status  # MUST show "up to date with origin"
+```
+
+**Work is NOT complete until `git push` succeeds.**
 
 ## Key Difference from Hotfix
 
@@ -50,14 +58,10 @@ Standard bug fixes with full quality cycle.
 | Branch from | main | develop/feature |
 | Testing | Fast | Full |
 | Deploy | Production | Staging |
-| SLA target | Immediate | Next sprint |
 
 ## Output
 
-Bug fixed in feature/develop branch + tests + issue closed
-
-## Quick Reference
-
-**Input:** P1/P2 issue  
-**Output:** Quality fix with full tests  
-**Next:** Merge to develop, later to main
+- Bug fixed in dev branch
+- Tests added with ≥80% coverage
+- Issue marked closed
+- Changes pushed to origin

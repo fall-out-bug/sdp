@@ -15,13 +15,27 @@ fi
 echo "🔍 Pre-build checks for $WS_ID"
 echo "================================"
 
-# Find WS file
-WS_DIR="tools/hw_checker/docs/workstreams"
-WS_FILE=$(find "$WS_DIR" -name "${WS_ID}-*.md" 2>/dev/null | head -1)
+# Find WS file (project-agnostic: auto-detect workstream dir)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+WS_DIR=""
+if [ -n "$SDP_WORKSTREAM_DIR" ] && [ -d "$REPO_ROOT/$SDP_WORKSTREAM_DIR" ]; then
+    WS_DIR="$SDP_WORKSTREAM_DIR"
+elif [ -d "$REPO_ROOT/docs/workstreams" ]; then
+    WS_DIR="docs/workstreams"
+elif [ -d "$REPO_ROOT/workstreams" ]; then
+    WS_DIR="workstreams"
+elif [ -d "$REPO_ROOT/tools/hw_checker/docs/workstreams" ]; then
+    WS_DIR="tools/hw_checker/docs/workstreams"
+fi
+
+WS_FILE=""
+if [ -n "$WS_DIR" ]; then
+    WS_FILE=$(find "$REPO_ROOT/$WS_DIR" -name "${WS_ID}-*.md" 2>/dev/null | head -1)
+fi
 
 if [ -z "$WS_FILE" ]; then
     echo "❌ WS file not found: ${WS_ID}-*.md"
-    echo "   Searched in: $WS_DIR/backlog/, $WS_DIR/active/"
+    echo "   Searched in: docs/workstreams, workstreams, SDP_WORKSTREAM_DIR"
     exit 1
 fi
 
@@ -71,7 +85,7 @@ if [ -z "$DEP" ] || [ "$DEP" = "Независимый" ] || [ "$DEP" = "Indepen
 else
     echo "  Dependencies: $DEP"
     # Check if dependency is completed
-    INDEX_FILE="$WS_DIR/INDEX.md"
+    INDEX_FILE="$REPO_ROOT/$WS_DIR/INDEX.md"
     if grep -q "$DEP.*completed\|$DEP.*✅" "$INDEX_FILE" 2>/dev/null; then
         echo "✓ Dependency $DEP is completed"
     else

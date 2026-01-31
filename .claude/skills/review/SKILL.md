@@ -25,7 +25,10 @@ Accepts **both** formats:
 | 3 | Quality gates | All checks pass |
 | 4 | Goal check | All ACs achieved |
 | 5 | Verdict | APPROVED or CHANGES_REQUESTED |
-| 6 | Post-review (if CHANGES_REQUESTED) | Report + @issue for bugs, WS under same feature |
+| **6** | **Post-review actions** | **MANDATORY if CHANGES_REQUESTED** |
+| 7 | Completion gate | All findings tracked |
+
+**⚠️ CRITICAL:** Review is NOT complete until Step 7 checklist passes. Do NOT stop after Step 5.
 
 ## Workflow
 
@@ -140,7 +143,15 @@ For each WS, verify:
 
 No middle ground. No "approved with notes."
 
+---
+
+**⚠️ STOP — If CHANGES_REQUESTED, you MUST complete Step 6 before finishing.**
+
+---
+
 ### Step 6: Post-Review Actions (when CHANGES_REQUESTED)
+
+**⚠️ This step is MANDATORY when verdict is CHANGES_REQUESTED.**
 
 **6.1 Record verdict**
 - Save report to `docs/reports/{YYYY-MM-DD}-{reviewed-id}-review.md`
@@ -185,6 +196,32 @@ Before closing review, verify ALL items tracked:
 - Issue link (for bugs)
 - WS link (for planned work)
 - Explicit "out of scope" with justification
+
+---
+
+### Step 7: Completion Gate (MANDATORY)
+
+**⚠️ Review is NOT complete until this checklist passes.**
+
+Before responding to user, verify:
+
+```markdown
+## Review Completion Checklist
+
+- [ ] Verdict recorded (APPROVED or CHANGES_REQUESTED)
+- [ ] Report saved to docs/reports/
+
+If CHANGES_REQUESTED:
+- [ ] All bugs → Issue created (docs/issues/)
+- [ ] All planned work → WS created (docs/workstreams/backlog/)
+- [ ] Review report has tracking links
+- [ ] WS files updated with blocking links
+- [ ] No "deferred" without tracking
+```
+
+**If any item unchecked → DO NOT finish review. Complete missing items first.**
+
+---
 
 ## Quality Gates
 

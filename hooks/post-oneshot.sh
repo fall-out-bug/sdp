@@ -12,8 +12,16 @@ fi
 
 echo "🧪 Running post-oneshot checks for $FEATURE_ID..."
 
-# Change to project root
-cd "$(git rev-parse --show-toplevel)/tools/hw_checker"
+# Change to project root (project-agnostic: SDP or hw_checker)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+if [ -d "$REPO_ROOT/tools/hw_checker" ]; then
+    WORK_DIR="$REPO_ROOT/tools/hw_checker"
+    COV_MODULE="hw_checker"
+else
+    WORK_DIR="$REPO_ROOT"
+    COV_MODULE="sdp"
+fi
+cd "$WORK_DIR"
 
 # 1. Integration Tests
 echo ""
@@ -53,7 +61,7 @@ fi
 # 4. Coverage check (entire codebase)
 echo ""
 echo "=== 4. Overall Coverage Check ==="
-COVERAGE=$(poetry run pytest tests/ --cov=hw_checker --cov-report=term-missing --cov-fail-under=80 -q | grep "TOTAL" | awk '{print $4}')
+COVERAGE=$(poetry run pytest tests/ --cov="$COV_MODULE" --cov-report=term-missing --cov-fail-under=80 -q | grep "TOTAL" | awk '{print $4}')
 echo "Overall coverage: $COVERAGE"
 
 echo ""

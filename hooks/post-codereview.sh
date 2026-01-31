@@ -21,11 +21,25 @@ FEATURE_NUM=$(echo "$FEATURE" | grep -oE "[0-9]+")
 echo "🔍 Post-codereview checks for $FEATURE"
 echo "========================================"
 
-WS_DIR="tools/hw_checker/docs/workstreams"
-UAT_DIR="tools/hw_checker/docs/uat"
+# Project-agnostic: auto-detect workstream and UAT dirs
+REPO_ROOT=$(git rev-parse --show-toplevel)
+WS_DIR="${SDP_WORKSTREAM_DIR:-docs/workstreams}"
+if [ ! -d "$REPO_ROOT/$WS_DIR" ]; then
+    WS_DIR="workstreams"
+fi
+if [ ! -d "$REPO_ROOT/$WS_DIR" ]; then
+    WS_DIR="tools/hw_checker/docs/workstreams"
+fi
+UAT_DIR="${WS_DIR%/workstreams*}/uat"
+if [ ! -d "$REPO_ROOT/$UAT_DIR" ]; then
+    UAT_DIR="docs/uat"
+fi
+if [ ! -d "$REPO_ROOT/$UAT_DIR" ]; then
+    UAT_DIR="tools/hw_checker/docs/uat"
+fi
 
 # Find all WS files for this feature
-WS_FILES=$(find "$WS_DIR" -name "WS-${FEATURE_NUM}*.md" -o -name "WS-${FEATURE_NUM}-*.md" 2>/dev/null)
+WS_FILES=$(find "$REPO_ROOT/$WS_DIR" -name "WS-${FEATURE_NUM}*.md" -o -name "WS-${FEATURE_NUM}-*.md" -o -name "*${FEATURE_NUM}-*.md" 2>/dev/null)
 WS_COUNT=$(echo "$WS_FILES" | grep -c "WS-" || echo "0")
 
 if [ "$WS_COUNT" -eq 0 ]; then
@@ -76,8 +90,8 @@ echo "✓ Overall verdict: APPROVED"
 # Check 3: UAT Guide exists (only if APPROVED)
 echo ""
 echo "Check 3: UAT Guide"
-UAT_FILE="$UAT_DIR/${FEATURE}-uat-guide.md"
-ALT_UAT_FILE="$UAT_DIR/F${FEATURE_NUM}-uat-guide.md"
+UAT_FILE="$REPO_ROOT/$UAT_DIR/${FEATURE}-uat-guide.md"
+ALT_UAT_FILE="$REPO_ROOT/$UAT_DIR/F${FEATURE_NUM}-uat-guide.md"
 
 if [ "$SKIP_UAT_CHECK" = "1" ]; then
     echo "⚠️ Skipped (SKIP_UAT_CHECK=1)"
