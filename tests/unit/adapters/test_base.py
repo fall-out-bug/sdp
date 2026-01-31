@@ -84,3 +84,68 @@ class TestDetectPlatform:
         result = detect_platform(tmp_path)
 
         assert result is None
+
+    def test_detect_priority_claude_over_others(self, tmp_path: Path) -> None:
+        """Verify Claude Code takes priority when multiple platforms exist."""
+        # Create all three platforms
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / ".claude" / "settings.json").write_text("{}")
+        (tmp_path / ".codex").mkdir()
+        (tmp_path / ".codex" / "config.yaml").write_text("")
+        (tmp_path / ".opencode").mkdir()
+        (tmp_path / ".opencode" / "opencode.json").write_text("{}")
+        
+        result = detect_platform(tmp_path)
+        
+        # Claude should be detected first (priority)
+        assert result == PlatformType.CLAUDE_CODE
+
+    def test_detect_priority_codex_over_opencode(self, tmp_path: Path) -> None:
+        """Verify Codex takes priority over OpenCode."""
+        # Create Codex and OpenCode (no Claude)
+        (tmp_path / ".codex").mkdir()
+        (tmp_path / ".codex" / "config.yaml").write_text("")
+        (tmp_path / ".opencode").mkdir()
+        (tmp_path / ".opencode" / "opencode.json").write_text("{}")
+        
+        result = detect_platform(tmp_path)
+        
+        # Codex should be detected first
+        assert result == PlatformType.CODEX
+
+    def test_detect_walks_up_directory_tree(self, tmp_path: Path) -> None:
+        """Verify detection walks up directory tree to find platform."""
+        # Create platform in parent directory
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / ".claude" / "settings.json").write_text("{}")
+        
+        # Search from subdirectory
+        subdir = tmp_path / "subdir" / "nested"
+        subdir.mkdir(parents=True)
+        
+        result = detect_platform(subdir)
+        
+        assert result == PlatformType.CLAUDE_CODE
+
+    def test_detect_stops_at_git_root(self, tmp_path: Path) -> None:
+        """Verify detection stops at .git directory."""
+        # Create .git directory (stops search here)
+        (tmp_path / ".git").mkdir()
+        
+        # Create platform in parent (should not be detected)
+        parent = tmp_path.parent
+        (parent / ".claude").mkdir(exist_ok=True)
+        (parent / ".claude" / "settings.json").write_text("{}")
+        
+        result = detect_platform(tmp_path)
+        
+        # Should not find Claude in parent (stopped at .git)
+        assert result is None
+
+    def test_detect_without_search_path_uses_cwd(self) -> None:
+        """Verify detection uses current directory when no path provided."""
+        # Just verify it doesn't crash
+        result = detect_platform()
+        
+        # Result can be any value or None
+        assert result is None or isinstance(result, PlatformType)

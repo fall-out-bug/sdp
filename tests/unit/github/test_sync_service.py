@@ -83,17 +83,12 @@ class TestSyncServiceSyncWorkstream:
             client = GitHubClient(mock_config)
             client.get_issue = Mock(return_value=mock_issue)
 
-            with patch.object(
-                SyncService, "_resolve_project_name", return_value="SDP"
-            ), patch.object(
-                SyncService, "_get_feature_milestone", return_value=None
-            ), patch.object(
-                SyncService, "_sync_to_board"
-            ), patch.object(
-                SyncService, "_update_issue_status"
-            ), patch.object(
-                SyncService, "_ensure_issue_milestone"
-            ):
+            with patch("sdp.github.sync_helpers.SyncHelpers.resolve_project_name", return_value="SDP"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.get_feature_milestone", return_value=(None, None)), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.sync_to_board"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.update_issue_status"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.ensure_issue_milestone"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.get_board_sync", return_value=None):
                 service = SyncService(client=client)
                 service._issue_sync.sync_ws = Mock(return_value=123)
 
@@ -128,17 +123,12 @@ class TestSyncServiceSyncWorkstream:
             client = GitHubClient(mock_config)
             client.get_issue = Mock(return_value=mock_issue)
 
-            with patch.object(
-                SyncService, "_resolve_project_name", return_value="SDP"
-            ), patch.object(
-                SyncService, "_get_feature_milestone", return_value=None
-            ), patch.object(
-                SyncService, "_sync_to_board"
-            ), patch.object(
-                SyncService, "_update_issue_status"
-            ), patch.object(
-                SyncService, "_ensure_issue_milestone"
-            ):
+            with patch("sdp.github.sync_helpers.SyncHelpers.resolve_project_name", return_value="SDP"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.get_feature_milestone", return_value=(None, None)), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.sync_to_board"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.update_issue_status"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.ensure_issue_milestone"), \
+                 patch("sdp.github.sync_helpers.SyncHelpers.get_board_sync", return_value=None):
                 service = SyncService(client=client)
 
                 ws_file = tmp_path / "00-001-01.md"

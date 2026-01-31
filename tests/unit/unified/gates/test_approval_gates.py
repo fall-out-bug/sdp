@@ -2,9 +2,11 @@
 
 import pytest
 from datetime import datetime
+from unittest.mock import MagicMock
 
 from sdp.unified.gates.models import ApprovalGate, ApprovalStatus, GateType
 from sdp.unified.gates.manager import ApprovalGateManager
+from sdp.unified.gates.errors import GateManagerError
 from sdp.unified.gates.storage import GateStorage
 from sdp.unified.checkpoint.repository import CheckpointRepository
 from sdp.unified.checkpoint.schema import Checkpoint, CheckpointStatus
@@ -385,3 +387,170 @@ class TestApprovalGateManager:
         )
 
         assert status == ApprovalStatus.APPROVED
+
+    def test_approve_raises_on_non_gate_manager_error(self, checkpoint_repo, sample_checkpoint):
+        """Test that approve raises GateManagerError on unexpected exceptions."""
+        from unittest.mock import MagicMock, patch
+
+        checkpoint_id = checkpoint_repo.save_checkpoint(sample_checkpoint)
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock GateOperations to raise non-GateManagerError exception
+        with patch("sdp.unified.gates.manager.GateOperations.approve_gate") as mock_approve:
+            mock_approve.side_effect = ValueError("Unexpected error")
+
+            with pytest.raises(GateManagerError) as exc_info:
+                manager.approve(
+                    feature="F01",
+                    gate_type=GateType.REQUIREMENTS,
+                    approved_by="user123",
+                )
+
+            assert "Failed to approve gate" in str(exc_info.value)
+
+    def test_reject_raises_on_non_gate_manager_error(self, checkpoint_repo, sample_checkpoint):
+        """Test that reject raises GateManagerError on unexpected exceptions."""
+        from unittest.mock import MagicMock, patch
+
+        checkpoint_id = checkpoint_repo.save_checkpoint(sample_checkpoint)
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock GateOperations to raise non-GateManagerError exception
+        with patch("sdp.unified.gates.manager.GateOperations.reject_gate") as mock_reject:
+            mock_reject.side_effect = ValueError("Unexpected error")
+
+            with pytest.raises(GateManagerError) as exc_info:
+                manager.reject(
+                    feature="F01",
+                    gate_type=GateType.REQUIREMENTS,
+                    rejected_by="user123",
+                )
+
+            assert "Failed to reject gate" in str(exc_info.value)
+
+    def test_skip_raises_on_non_gate_manager_error(self, checkpoint_repo, sample_checkpoint):
+        """Test that skip raises GateManagerError on unexpected exceptions."""
+        from unittest.mock import MagicMock, patch
+
+        checkpoint_id = checkpoint_repo.save_checkpoint(sample_checkpoint)
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock GateOperations to raise non-GateManagerError exception
+        with patch("sdp.unified.gates.manager.GateOperations.skip_gate") as mock_skip:
+            mock_skip.side_effect = ValueError("Unexpected error")
+
+            with pytest.raises(GateManagerError) as exc_info:
+                manager.skip(
+                    feature="F01",
+                    gate_type=GateType.REQUIREMENTS,
+                    reason="Test skip",
+                )
+
+            assert "Failed to skip gate" in str(exc_info.value)
+
+    def test_is_skipped_returns_false_on_exception(self, checkpoint_repo):
+        """Test that is_skipped returns False when exception occurs."""
+        from unittest.mock import MagicMock
+
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock load_checkpoint to raise exception
+        checkpoint_repo.load_checkpoint = MagicMock(side_effect=Exception("Load failed"))
+
+        result = manager.is_skipped("F01", GateType.REQUIREMENTS)
+
+        assert result is False
+
+    def test_is_skipped_returns_false_when_checkpoint_none(self, checkpoint_repo):
+        """Test that is_skipped returns False when checkpoint is None."""
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock load_checkpoint to return None
+        checkpoint_repo.load_checkpoint = MagicMock(return_value=None)
+
+        result = manager.is_skipped("F01", GateType.REQUIREMENTS)
+
+        assert result is False
+
+    def test_get_gate_status_raises_when_checkpoint_none(self, checkpoint_repo):
+        """Test that get_gate_status raises when checkpoint not found."""
+        from sdp.unified.gates.errors import GateManagerError
+
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock load_checkpoint to return None
+        checkpoint_repo.load_checkpoint = MagicMock(return_value=None)
+
+        with pytest.raises(GateManagerError) as exc_info:
+            manager.get_gate_status("F01", GateType.REQUIREMENTS)
+
+        assert "No checkpoint found" in str(exc_info.value)
+
+    def test_get_gate_status_returns_pending_when_gate_none(self, checkpoint_repo, sample_checkpoint):
+        """Test that get_gate_status returns PENDING when gate not found."""
+        from unittest.mock import MagicMock, patch
+
+        checkpoint_id = checkpoint_repo.save_checkpoint(sample_checkpoint)
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock GateStorage to return None for gate
+        with patch("sdp.unified.gates.manager.GateStorage.find_gate", return_value=None):
+            status = manager.get_gate_status("F01", GateType.REQUIREMENTS)
+
+            assert status == ApprovalStatus.PENDING
+
+    def test_get_all_gates_raises_when_checkpoint_none(self, checkpoint_repo):
+        """Test that get_all_gates raises when checkpoint not found."""
+        from sdp.unified.gates.errors import GateManagerError
+
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock load_checkpoint to return None
+        checkpoint_repo.load_checkpoint = MagicMock(return_value=None)
+
+        with pytest.raises(GateManagerError) as exc_info:
+            manager.get_all_gates("F01")
+
+        assert "No checkpoint found" in str(exc_info.value)
+
+    def test_approve_re_raises_gate_manager_error(self, checkpoint_repo, sample_checkpoint):
+        """Test that approve re-raises GateManagerError from GateOperations."""
+        from unittest.mock import patch
+        from sdp.unified.gates.errors import GateManagerError
+
+        checkpoint_id = checkpoint_repo.save_checkpoint(sample_checkpoint)
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock GateOperations to raise GateManagerError
+        with patch("sdp.unified.gates.manager.GateOperations.approve_gate") as mock_approve:
+            mock_approve.side_effect = GateManagerError("Gate operation failed")
+
+            with pytest.raises(GateManagerError) as exc_info:
+                manager.approve(
+                    feature="F01",
+                    gate_type=GateType.REQUIREMENTS,
+                    approved_by="user123",
+                )
+
+            assert "Gate operation failed" in str(exc_info.value)
+
+    def test_skip_re_raises_gate_manager_error(self, checkpoint_repo, sample_checkpoint):
+        """Test that skip re-raises GateManagerError from GateOperations."""
+        from unittest.mock import patch
+        from sdp.unified.gates.errors import GateManagerError
+
+        checkpoint_id = checkpoint_repo.save_checkpoint(sample_checkpoint)
+        manager = ApprovalGateManager(checkpoint_repo)
+
+        # Mock GateOperations to raise GateManagerError
+        with patch("sdp.unified.gates.manager.GateOperations.skip_gate") as mock_skip:
+            mock_skip.side_effect = GateManagerError("Gate operation failed")
+
+            with pytest.raises(GateManagerError) as exc_info:
+                manager.skip(
+                    feature="F01",
+                    gate_type=GateType.REQUIREMENTS,
+                    reason="Test",
+                )
+
+            assert "Gate operation failed" in str(exc_info.value)

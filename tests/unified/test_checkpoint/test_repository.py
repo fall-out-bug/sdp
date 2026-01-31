@@ -260,3 +260,167 @@ class TestErrorHandling:
 
         # Database closed after context
         assert repo._db is None
+
+    def test_initialize_raises_on_database_error(self, tmp_path, monkeypatch):
+        """Should raise RepositoryError when database initialization fails."""
+        import logging
+        from unittest.mock import MagicMock, patch
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+
+        # Mock CheckpointDatabase to raise exception
+        with patch("sdp.unified.checkpoint.repository.CheckpointDatabase") as mock_db:
+            mock_instance = MagicMock()
+            mock_instance.initialize.side_effect = Exception("Database error")
+            mock_db.return_value = mock_instance
+
+            with pytest.raises(RepositoryError) as exc_info:
+                repo.initialize()
+
+            assert "Failed to initialize repository" in str(exc_info.value)
+
+    def test_save_checkpoint_raises_on_database_error(self, tmp_path, monkeypatch):
+        """Should raise RepositoryError when save fails."""
+        import logging
+        from unittest.mock import MagicMock, patch
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        checkpoint = Checkpoint(
+            feature="sdp-118",
+            agent_id="agent-001",
+            status=CheckpointStatus.IN_PROGRESS,
+            completed_ws=[],
+            execution_order=[],
+            started_at=datetime.now(timezone.utc),
+        )
+
+        # Mock database to raise exception
+        repo._db.create_checkpoint = MagicMock(side_effect=Exception("Save failed"))
+
+        with pytest.raises(RepositoryError) as exc_info:
+            repo.save_checkpoint(checkpoint)
+
+        assert "Failed to save checkpoint" in str(exc_info.value)
+
+    def test_load_checkpoint_raises_on_database_error(self, tmp_path, monkeypatch):
+        """Should raise RepositoryError when load fails."""
+        from unittest.mock import MagicMock
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        # Mock database to raise exception
+        repo._db.get_checkpoint_by_feature = MagicMock(side_effect=Exception("Load failed"))
+
+        with pytest.raises(RepositoryError) as exc_info:
+            repo.load_checkpoint("sdp-118")
+
+        assert "Failed to load checkpoint" in str(exc_info.value)
+
+    def test_load_latest_checkpoint_raises_on_database_error(self, tmp_path):
+        """Should raise RepositoryError when load_latest_checkpoint fails."""
+        from unittest.mock import MagicMock
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        # Mock database to raise exception
+        repo._db.get_checkpoint_by_feature = MagicMock(side_effect=Exception("Load failed"))
+
+        with pytest.raises(RepositoryError) as exc_info:
+            repo.load_latest_checkpoint("sdp-118")
+
+        assert "Failed to load latest checkpoint" in str(exc_info.value)
+
+    def test_load_latest_checkpoint_returns_none_for_none_checkpoint(self, tmp_path):
+        """Should return None when checkpoint doesn't exist."""
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        latest = repo.load_latest_checkpoint("nonexistent")
+        assert latest is None
+
+    def test_load_latest_checkpoint_logs_when_found(self, tmp_path, caplog):
+        """Should log info when active checkpoint found."""
+        import logging
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        checkpoint = Checkpoint(
+            feature="sdp-118",
+            agent_id="agent-001",
+            status=CheckpointStatus.IN_PROGRESS,
+            completed_ws=[],
+            execution_order=[],
+            started_at=datetime.now(timezone.utc),
+        )
+        repo.save_checkpoint(checkpoint)
+
+        with caplog.at_level(logging.INFO):
+            latest = repo.load_latest_checkpoint("sdp-118")
+
+        assert latest is not None
+        assert "Latest active checkpoint found" in caplog.text
+
+    def test_update_checkpoint_status_raises_on_database_error(self, tmp_path):
+        """Should raise RepositoryError when update fails."""
+        from unittest.mock import MagicMock
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        checkpoint = Checkpoint(
+            feature="sdp-118",
+            agent_id="agent-001",
+            status=CheckpointStatus.IN_PROGRESS,
+            completed_ws=[],
+            execution_order=[],
+            started_at=datetime.now(timezone.utc),
+        )
+        checkpoint_id = repo.save_checkpoint(checkpoint)
+
+        # Mock database to raise exception during update
+        repo._db.update_checkpoint = MagicMock(side_effect=Exception("Update failed"))
+
+        with pytest.raises(RepositoryError) as exc_info:
+            repo.update_checkpoint_status(
+                checkpoint_id, CheckpointStatus.COMPLETED, ["ws-001"]
+            )
+
+        assert "Failed to update checkpoint" in str(exc_info.value)
+
+    def test_list_active_checkpoints_raises_on_database_error(self, tmp_path):
+        """Should raise RepositoryError when list fails."""
+        from unittest.mock import MagicMock
+
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+        repo.initialize()
+
+        # Mock database to raise exception
+        repo._db.get_active_checkpoints = MagicMock(side_effect=Exception("List failed"))
+
+        with pytest.raises(RepositoryError) as exc_info:
+            repo.list_active_checkpoints()
+
+        assert "Failed to list active checkpoints" in str(exc_info.value)
+
+    def test_load_latest_checkpoint_raises_when_not_initialized(self, tmp_path):
+        """Should raise RepositoryError when repository not initialized."""
+        db_path = tmp_path / "test_checkpoints.db"
+        repo = CheckpointRepository(str(db_path))
+
+        with pytest.raises(RepositoryError) as exc_info:
+            repo.load_latest_checkpoint("F01")
+
+        assert "not initialized" in str(exc_info.value)

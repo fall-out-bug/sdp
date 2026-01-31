@@ -1,0 +1,326 @@
+...................................................sss.................. [  4%]
+........................................................................ [  9%]
+........................................................................ [ 13%]
+....................................................................ss.. [ 18%]
+................ss...................................................... [ 22%]
+........................................................................ [ 27%]
+........................................................................ [ 31%]
+........................................................................ [ 36%]
+.........................................s............................s. [ 41%]
+........................................................................ [ 45%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 59%]
+........................................................................ [ 63%]
+........................................................................ [ 68%]
+........................................................................ [ 72%]
+........................................................................ [ 77%]
+........................................................................ [ 82%]
+........................................................................ [ 86%]
+........................................................................ [ 91%]
+........................................................................ [ 95%]
+....................................................................     [100%]
+=============================== warnings summary ===============================
+src/sdp/core/__init__.py:10
+  /Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/core/__init__.py:10: DeprecationWarning: sdp.core.project_map_parser module is deprecated. Use 'from sdp.core.project_map import parse_project_map' instead.
+    from sdp.core.project_map_parser import parse_project_map
+
+src/sdp/errors/build.py:9
+  /Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/errors/build.py:9: PytestCollectionWarning: cannot collect test class 'TestFailureError' because it has a __init__ constructor (from: tests/test_errors.py)
+    class TestFailureError(SDPError):
+
+src/sdp/core/builder/router.py:5
+  /Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/core/builder/router.py:5: DeprecationWarning: sdp.core.model_mapping module is deprecated. Use 'from sdp.core.model import ...' instead.
+    from sdp.core.model_mapping import ModelProvider, ModelRegistry
+
+tests/unit/core/test_builder_router.py:6
+  /Users/fall_out_bug/projects/vibe_coding/sdp/tests/unit/core/test_builder_router.py:6: DeprecationWarning: sdp.core.builder_router module is deprecated. Use 'from sdp.core.builder import ...' instead.
+    from sdp.core.builder_router import (
+
+tests/unit/validators/test_supersede_checker.py:7
+  /Users/fall_out_bug/projects/vibe_coding/sdp/tests/unit/validators/test_supersede_checker.py:7: DeprecationWarning: sdp.validators.supersede_checker module is deprecated. Use 'from sdp.validators.supersede import ...' instead.
+    from sdp.validators.supersede_checker import (
+
+tests/integration/beads/test_skills_integration.py: 1 warning
+tests/unit/beads/sync/test_mapping.py: 3 warnings
+tests/unit/beads/sync/test_sync_service.py: 10 warnings
+  /Users/fall_out_bug/projects/vibe_coding/sdp/src/sdp/beads/sync/mapping.py:92: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "updated_at": datetime.utcnow().isoformat(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform darwin, python 3.14.2-final-0 ----------
+Name                                                     Stmts   Miss  Cover   Missing
+--------------------------------------------------------------------------------------
+src/sdp/__init__.py                                          4      0   100%
+src/sdp/adapters/__init__.py                                 5      0   100%
+src/sdp/adapters/base.py                                    35      5    86%   86, 101, 122, 137, 190
+src/sdp/adapters/claude_code.py                             70     10    86%   97, 151, 208, 226-232
+src/sdp/adapters/codex.py                                   72     59    18%   40-47, 61-68, 93-110, 134-156, 162-181, 185
+src/sdp/adapters/opencode.py                                70      5    93%   65, 97, 138, 160, 173
+src/sdp/beads/__init__.py                                   10      0   100%
+src/sdp/beads/base.py                                       25      7    72%   31, 43, 56, 69, 85, 102, 115
+src/sdp/beads/cli.py                                        79      0   100%
+src/sdp/beads/client.py                                     22      0   100%
+src/sdp/beads/exceptions.py                                  4      0   100%
+src/sdp/beads/execution/__init__.py                          4      0   100%
+src/sdp/beads/execution/audit.py                            30      2    93%   116-117
+src/sdp/beads/execution/destructive.py                      28      2    93%   64-65
+src/sdp/beads/execution/models.py                           30      0   100%
+src/sdp/beads/execution_mode.py                              2      0   100%
+src/sdp/beads/idea_interview.py                              2      0   100%
+src/sdp/beads/interview/__init__.py                          5      0   100%
+src/sdp/beads/interview/ambiguity_detector.py               28      0   100%
+src/sdp/beads/interview/interviewer.py                      23      1    96%   70
+src/sdp/beads/interview/models.py                           25      0   100%
+src/sdp/beads/interview/questions.py                        13      0   100%
+src/sdp/beads/mock.py                                       61      0   100%
+src/sdp/beads/models.py                                     77     13    83%   84, 106-111, 141, 146, 153-157, 174
+src/sdp/beads/oneshot/__init__.py                            2      0   100%
+src/sdp/beads/oneshot/destructive_checker.py                43     31    28%   39, 46-73, 92-116, 128-142
+src/sdp/beads/oneshot/dry_run.py                            11      0   100%
+src/sdp/beads/oneshot/executor.py                           50      8    84%   86, 133-137, 144, 176-177
+src/sdp/beads/oneshot/task_filter.py                        11      0   100%
+src/sdp/beads/scope_manager.py                              39      3    92%   59, 67-68
+src/sdp/beads/skills_build.py                               30      0   100%
+src/sdp/beads/skills_design.py                              27      0   100%
+src/sdp/beads/skills_oneshot.py                              2      0   100%
+src/sdp/beads/sync.py                                        3      3     0%   14-17
+src/sdp/beads/sync/__init__.py                               4      0   100%
+src/sdp/beads/sync/mapping.py                               58      0   100%
+src/sdp/beads/sync/status_mapper.py                         16      0   100%
+src/sdp/beads/sync/sync_service.py                          68      0   100%
+src/sdp/beads/sync_service.py                               61      4    93%   175-179
+src/sdp/cli.py                                               2      2     0%   6-8
+src/sdp/cli/__init__.py                                      2      0   100%
+src/sdp/cli/beads.py                                        83     67    19%   19, 55-122, 137-159, 164-179
+src/sdp/cli/doctor.py                                       79     28    65%   25-27, 40-44, 57-61, 125-141
+src/sdp/cli/guard.py                                        71      5    93%   36-38, 121-122
+src/sdp/cli/main.py                                        121     32    74%   12-13, 20-21, 30-31, 36-41, 46-47, 52-53, 58-59, 65-67, 74-77, 82-83, 88-89, 96-97, 103-104, 188
+src/sdp/cli/metrics.py                                      34     23    32%   14, 57-92
+src/sdp/cli/prd.py                                          24      0   100%
+src/sdp/cli/quality.py                                      74      0   100%
+src/sdp/cli/skill.py                                       113     22    81%   28, 50, 80, 91-112
+src/sdp/cli/skills/__init__.py                               0      0   100%
+src/sdp/cli/skills/registry.py                              11      0   100%
+src/sdp/cli/status/__init__.py                               2      0   100%
+src/sdp/cli/status/collector.py                             79      7    91%   104-105, 131-134, 158, 170
+src/sdp/cli/status/command.py                               14      6    57%   35-42
+src/sdp/cli/status/formatter.py                             66      4    94%   47, 62, 82, 97
+src/sdp/cli/status/models.py                                15      0   100%
+src/sdp/cli/status/parser.py                                54     10    81%   22, 30, 39-40, 46, 50, 80-82, 90
+src/sdp/cli/sync.py                                         34     22    35%   16, 31-45, 70-85
+src/sdp/cli/tier.py                                         44      0   100%
+src/sdp/cli/trace.py                                        84     10    88%   84-86, 121-123, 130-131, 136-137
+src/sdp/cli/workstream.py                                  149    106    29%   17-18, 35-47, 58-69, 75, 86-103, 116-126, 139-149, 160-170, 186-216, 229-238, 244-258
+src/sdp/cli_extension.py                                   101     87    14%   19, 35-60, 85-131, 159-235
+src/sdp/cli_init.py                                         65     11    83%   76, 103, 110, 117, 130-131, 134-137, 151
+src/sdp/core/__init__.py                                     6      0   100%
+src/sdp/core/builder/__init__.py                             4      0   100%
+src/sdp/core/builder/model_selector.py                      28      3    89%   45, 53, 99
+src/sdp/core/builder/policies.py                            18      1    94%   61
+src/sdp/core/builder/router.py                              22      5    77%   61, 79-80, 98-99
+src/sdp/core/builder_router.py                               4      0   100%
+src/sdp/core/contract_validator.py                          33     33     0%   7-136
+src/sdp/core/escalation_metrics.py                          66     66     0%   3-189
+src/sdp/core/feature.py                                      4      4     0%   6-23
+src/sdp/core/feature/__init__.py                             4      0   100%
+src/sdp/core/feature/errors.py                               8      0   100%
+src/sdp/core/feature/loader.py                              23      0   100%
+src/sdp/core/feature/models.py                              82     25    70%   40-46, 62-70, 80, 97-98, 127-129, 133-134, 150-153, 164
+src/sdp/core/model/__init__.py                               3      0   100%
+src/sdp/core/model/loader.py                                21      0   100%
+src/sdp/core/model/models.py                                19      0   100%
+src/sdp/core/model/parser.py                                56     18    68%   25, 45, 53, 66-67, 72-73, 80-86, 122, 129-132
+src/sdp/core/model_mapping.py                                4      0   100%
+src/sdp/core/project_map/__init__.py                         2      0   100%
+src/sdp/core/project_map/extractors.py                      28     13    54%   28, 57-81
+src/sdp/core/project_map/parser.py                          17      1    94%   35
+src/sdp/core/project_map/table_parsers.py                   67     50    25%   26-60, 80-109, 129-157
+src/sdp/core/project_map_parser.py                           4      0   100%
+src/sdp/core/project_map_template.py                         4      2    50%   16-161
+src/sdp/core/project_map_types.py                           38     17    55%   102-111, 133-144
+src/sdp/core/tier_metrics.py                                58     58     0%   3-142
+src/sdp/core/tier_promoter.py                               29     29     0%   3-92
+src/sdp/core/workstream.py                                   4      4     0%   6-25
+src/sdp/core/workstream/__init__.py                          3      0   100%
+src/sdp/core/workstream/markdown_helpers.py                 70      1    99%   81
+src/sdp/core/workstream/models.py                            4      4     0%   7-25
+src/sdp/core/workstream/parser.py                           50      0   100%
+src/sdp/design/__init__.py                                   2      0   100%
+src/sdp/design/graph.py                                     51      1    98%   56
+src/sdp/doctor.py                                           36      2    94%   49-51
+src/sdp/domain/__init__.py                                   4      0   100%
+src/sdp/domain/exceptions.py                                18      0   100%
+src/sdp/domain/feature.py                                   82      3    96%   71, 140-141
+src/sdp/domain/workstream.py                                66      3    95%   102, 107, 112
+src/sdp/errors/__init__.py                                   5      0   100%
+src/sdp/errors/base.py                                      39      0   100%
+src/sdp/errors/build.py                                     10      0   100%
+src/sdp/errors/config.py                                    11      0   100%
+src/sdp/errors/quality.py                                   13      0   100%
+src/sdp/extensions/__init__.py                               5      0   100%
+src/sdp/extensions/base.py                                  28      8    71%   142-143, 147-148, 152-153, 157-158
+src/sdp/extensions/loader.py                                51     39    24%   47-48, 62-77, 95-98, 112-126, 140-146, 162-173
+src/sdp/extensions/manifest.py                              24     13    46%   78-87, 106-108, 129-131
+src/sdp/extensions/validator.py                             27     20    26%   35-37, 48-54, 67-89, 105
+src/sdp/feature/__init__.py                                  2      0   100%
+src/sdp/feature/vision.py                                   39      1    97%   87
+src/sdp/github/__init__.py                                   3      0   100%
+src/sdp/github/cli/__init__.py                              74     74     0%   3-134
+src/sdp/github/client.py                                    26      4    85%   72-73, 103, 108
+src/sdp/github/config.py                                    44     34    23%   43-97, 101
+src/sdp/github/deploy_integration.py                        37     37     0%   3-166
+src/sdp/github/design_integration.py                        27     27     0%   3-102
+src/sdp/github/exceptions.py                                22      3    86%   61-66
+src/sdp/github/frontmatter_updater.py                       21      0   100%
+src/sdp/github/issue_formatter.py                           30     28     7%   16-54
+src/sdp/github/issue_sync.py                                15      0   100%
+src/sdp/github/label_manager.py                             43      0   100%
+src/sdp/github/milestone_manager.py                         59      0   100%
+src/sdp/github/project_board_sync.py                        65     52    20%   36-40, 49-54, 66-77, 87-96, 110-136, 146-172, 192-226
+src/sdp/github/project_router.py                            52     36    31%   38-57, 70-84, 97-105, 115-117
+src/sdp/github/projects_client.py                           54     41    24%   21-23, 42-55, 67-100, 113-129, 142-153, 171-188, 214-235, 252-266, 279-283
+src/sdp/github/retry_logic.py                               45      3    93%   65-67
+src/sdp/github/status_mapper.py                             22     10    55%   46-48, 63-65, 77, 99-102
+src/sdp/github/sync_helpers.py                              62     40    35%   34-48, 66-73, 80-85, 94-107, 120-124, 131-135
+src/sdp/github/sync_models.py                                6      0   100%
+src/sdp/github/sync_service.py                              64     15    77%   86, 150-162, 175-184
+src/sdp/github/ws_parser.py                                 33     25    24%   48-89, 114-117
+src/sdp/guard/__init__.py                                    4      0   100%
+src/sdp/guard/models.py                                      3      0   100%
+src/sdp/guard/skill.py                                      21      0   100%
+src/sdp/guard/state.py                                      25      0   100%
+src/sdp/guard/tracker.py                                    46      0   100%
+src/sdp/health_checks/__init__.py                            3      0   100%
+src/sdp/health_checks/base.py                               11      1    91%   36
+src/sdp/health_checks/beads.py                              42     42     0%   3-119
+src/sdp/health_checks/checks.py                             87      0   100%
+src/sdp/hooks/__init__.py                                    3      0   100%
+src/sdp/hooks/common.py                                     59      4    93%   29, 87-89
+src/sdp/hooks/post_build.py                                 15      4    73%   13-19, 26, 188
+src/sdp/hooks/pre_commit.py                                  5      0   100%
+src/sdp/hooks/pre_commit_checks.py                          79      8    90%   75, 78, 142-144, 184, 187, 193
+src/sdp/hooks/pre_deploy.py                                  8      1    88%   113
+src/sdp/hooks/pre_push.py                                   14      2    86%   29, 124
+src/sdp/hooks/ws_complete.py                                70      1    99%   163
+src/sdp/init_dependencies.py                                26      0   100%
+src/sdp/init_files.py                                       41      0   100%
+src/sdp/init_metadata.py                                    13      0   100%
+src/sdp/init_structure.py                                   32      0   100%
+src/sdp/init_validation.py                                  53      8    85%   28-30, 33, 72-73, 88-89
+src/sdp/init_wizard.py                                       6      0   100%
+src/sdp/prd/__init__.py                                     14      0   100%
+src/sdp/prd/annotations.py                                  13      3    77%   48, 56, 60
+src/sdp/prd/decorators.py                                   19     13    32%   33-36, 60-64, 76-79
+src/sdp/prd/detector.py                                     47     42    11%   27-58, 71-91, 103-118
+src/sdp/prd/generator.py                                    25      0   100%
+src/sdp/prd/generator_mermaid.py                            23      1    96%   92
+src/sdp/prd/generator_plantuml.py                           16      1    94%   47
+src/sdp/prd/hash.py                                         49     42    14%   25-54, 66-76, 86-113, 126-137
+src/sdp/prd/parser.py                                       80      0   100%
+src/sdp/prd/parser_bash.py                                  36     30    17%   24-60, 72-87, 101
+src/sdp/prd/parser_python.py                               108     19    82%   92-93, 164, 167, 182, 211, 213, 217, 219-222, 224, 248-262
+src/sdp/prd/profiles.py                                     23      6    74%   310, 323-327
+src/sdp/prd/scaffold.py                                     52     43    17%   38-63, 84-105, 120-129, 142-171
+src/sdp/prd/validator.py                                    71     46    35%   52-85, 99-117, 129-146, 158-166, 178-185, 198
+src/sdp/quality/__init__.py                                  4      0   100%
+src/sdp/quality/architecture.py                             63      2    97%   73, 78
+src/sdp/quality/config.py                                   75     26    65%   41, 49, 58, 64, 69-72, 105-107, 111, 127-150
+src/sdp/quality/config_parsers.py                           60      1    98%   104
+src/sdp/quality/exceptions.py                                4      2    50%   9-10
+src/sdp/quality/models.py                                   92      1    99%   17
+src/sdp/quality/validator_models.py                          7      2    71%   18-19
+src/sdp/report/__init__.py                                   2      0   100%
+src/sdp/report/generator.py                                 84      5    94%   83-85, 252-253
+src/sdp/schema/__init__.py                                   3      0   100%
+src/sdp/schema/models.py                                    38      2    95%   68-69
+src/sdp/schema/validator.py                                 39      9    77%   53-59, 65, 72, 89
+src/sdp/scripts/__init__.py                                  3      3     0%   3-9
+src/sdp/scripts/migrate_models.py                           83     83     0%   3-164
+src/sdp/scripts/migrate_workstream_ids.py                   73     73     0%   3-135
+src/sdp/tdd/__init__.py                                      2      0   100%
+src/sdp/tdd/runner.py                                       26      0   100%
+src/sdp/templates/__init__.py                                2      0   100%
+src/sdp/templates/init_templates.py                          3      0   100%
+src/sdp/traceability/__init__.py                             2      0   100%
+src/sdp/traceability/detector.py                            58      1    98%   201
+src/sdp/traceability/models.py                              50      1    98%   76
+src/sdp/traceability/service.py                            101     37    63%   50-51, 97, 136-172, 189-190, 205, 207, 220-227
+src/sdp/unified/__init__.py                                  1      0   100%
+src/sdp/unified/agent/__init__.py                            2      0   100%
+src/sdp/unified/agent/bug_report.py                         88      7    92%   30, 165-173
+src/sdp/unified/agent/role_loader.py                        52      0   100%
+src/sdp/unified/agent/role_state.py                         35      0   100%
+src/sdp/unified/agent/router.py                             74      6    92%   76, 117, 126, 129, 154-155
+src/sdp/unified/agent/send_message.py                        7      0   100%
+src/sdp/unified/agent/spawner.py                            32      1    97%   79
+src/sdp/unified/agent/task_wrapper.py                       13      0   100%
+src/sdp/unified/checkpoint/__init__.py                       2      0   100%
+src/sdp/unified/checkpoint/models.py                        16      0   100%
+src/sdp/unified/checkpoint/repository.py                    83      0   100%
+src/sdp/unified/checkpoint/schema.py                         5      0   100%
+src/sdp/unified/checkpoint/schema_manager.py                22      0   100%
+src/sdp/unified/checkpoint/serialization.py                 10      0   100%
+src/sdp/unified/checkpoint/storage.py                       78      0   100%
+src/sdp/unified/feature/__init__.py                          3      0   100%
+src/sdp/unified/feature/models.py                           29      0   100%
+src/sdp/unified/feature/orchestrator.py                     93     13    86%   87-88, 120, 127, 134, 139, 149-151, 163-164, 168-169
+src/sdp/unified/feature/skills.py                           24      9    62%   25-27, 41-43, 57-59
+src/sdp/unified/gates/__init__.py                            4      0   100%
+src/sdp/unified/gates/errors.py                              2      0   100%
+src/sdp/unified/gates/integration.py                        37      0   100%
+src/sdp/unified/gates/manager.py                            70      1    99%   69
+src/sdp/unified/gates/models.py                             17      0   100%
+src/sdp/unified/gates/operations.py                         62      8    87%   50-54, 93, 104-108, 145, 156-160
+src/sdp/unified/gates/parser.py                             23      0   100%
+src/sdp/unified/gates/storage.py                            52      3    94%   64, 86, 146
+src/sdp/unified/notifications/__init__.py                    0      0   100%
+src/sdp/unified/notifications/mock.py                       22      1    95%   88
+src/sdp/unified/notifications/provider.py                   56      4    93%   62, 111-113
+src/sdp/unified/notifications/router.py                     52      4    92%   130-131, 156-157
+src/sdp/unified/notifications/telegram.py                   58      6    90%   102-105, 127-131
+src/sdp/unified/orchestrator/__init__.py                     6      0   100%
+src/sdp/unified/orchestrator/agent.py                       63      0   100%
+src/sdp/unified/orchestrator/agent_extension.py             39      4    90%   52, 54, 99, 129
+src/sdp/unified/orchestrator/checkpoint.py                  48      8    83%   68-70, 93-95, 109-110
+src/sdp/unified/orchestrator/checkpoint_ops.py              57      0   100%
+src/sdp/unified/orchestrator/dispatcher.py                   5      0   100%
+src/sdp/unified/orchestrator/errors.py                       2      0   100%
+src/sdp/unified/orchestrator/models.py                      10      0   100%
+src/sdp/unified/orchestrator/monitor.py                     14      0   100%
+src/sdp/unified/team/__init__.py                             5      0   100%
+src/sdp/unified/team/errors.py                               2      0   100%
+src/sdp/unified/team/lifecycle.py                           42      3    93%   111-113
+src/sdp/unified/team/manager.py                             55      2    96%   105, 170
+src/sdp/unified/team/models.py                              15      0   100%
+src/sdp/unified/team/persistence.py                         27      0   100%
+src/sdp/validators/__init__.py                               3      0   100%
+src/sdp/validators/capability_tier.py                       36     14    61%   53-70, 75-76
+src/sdp/validators/capability_tier_checks.py                 4      0   100%
+src/sdp/validators/capability_tier_checks_contract.py       42      0   100%
+src/sdp/validators/capability_tier_checks_interface.py      25      0   100%
+src/sdp/validators/capability_tier_checks_scope.py           8      0   100%
+src/sdp/validators/capability_tier_extractors.py            19      0   100%
+src/sdp/validators/capability_tier_models.py                18      0   100%
+src/sdp/validators/capability_tier_t0_t1.py                 50      5    90%   23, 26, 53, 56, 83
+src/sdp/validators/capability_tier_t2_t3.py                 45      0   100%
+src/sdp/validators/supersede/__init__.py                     3      0   100%
+src/sdp/validators/supersede/chain.py                       34      7    79%   26, 49-57, 79
+src/sdp/validators/supersede/models.py                       7      0   100%
+src/sdp/validators/supersede/parser.py                      53      2    96%   85, 103
+src/sdp/validators/supersede/validator.py                   55     13    76%   57-58, 68, 122-135
+src/sdp/validators/supersede_checker.py                      4      0   100%
+src/sdp/validators/time_estimate_checker.py                 66      0   100%
+src/sdp/validators/ws_completion.py                          5      5     0%   6-18
+src/sdp/validators/ws_completion/__init__.py                 3      0   100%
+src/sdp/validators/ws_completion/checkers.py                54      7    87%   71-81, 132-133, 178
+src/sdp/validators/ws_completion/models.py                   5      0   100%
+src/sdp/validators/ws_completion/parser.py                  52     14    73%   59-60, 78-79, 81-90
+src/sdp/validators/ws_completion/verifier.py                42      0   100%
+src/sdp/validators/ws_template_checker.py                   88      0   100%
+--------------------------------------------------------------------------------------
+TOTAL                                                     8921   2160    76%
+Coverage JSON written to file coverage.json
+
+1571 passed, 9 skipped, 19 warnings in 5.37s

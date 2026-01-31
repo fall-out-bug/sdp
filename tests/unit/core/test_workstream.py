@@ -148,3 +148,164 @@ ws_id: 00-001-01
 
         with pytest.raises(WorkstreamParseError, match="Missing required"):
             parse_workstream(ws_file)
+
+    def test_parse_raises_invalid_status(self, tmp_path: Path) -> None:
+        """Verify parser raises for invalid status."""
+        ws_file = tmp_path / "bad.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: invalid_status
+size: SMALL
+---
+
+## Bad
+""")
+
+        with pytest.raises(WorkstreamParseError, match="Invalid status"):
+            parse_workstream(ws_file)
+
+    def test_parse_raises_invalid_size(self, tmp_path: Path) -> None:
+        """Verify parser raises for invalid size."""
+        ws_file = tmp_path / "bad.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: INVALID_SIZE
+---
+
+## Bad
+""")
+
+        with pytest.raises(WorkstreamParseError, match="Invalid size"):
+            parse_workstream(ws_file)
+
+    def test_parse_with_depends_on_list(self, tmp_path: Path) -> None:
+        """Verify parser merges depends_on list from frontmatter."""
+        ws_file = tmp_path / "00-001-01.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: SMALL
+depends_on:
+  - 00-002-01
+  - 00-003-01
+---
+
+## WS-00-001-01: Test Workstream
+
+### Dependencies
+
+00-004-01
+""")
+
+        ws = parse_workstream(ws_file)
+        assert "00-002-01" in ws.dependencies
+        assert "00-003-01" in ws.dependencies
+        assert "00-004-01" in ws.dependencies
+
+    def test_parse_with_depends_on_string(self, tmp_path: Path) -> None:
+        """Verify parser merges depends_on string from frontmatter."""
+        ws_file = tmp_path / "00-001-01.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: SMALL
+depends_on: 00-002-01
+---
+
+## WS-00-001-01: Test Workstream
+
+### Dependencies
+
+00-003-01
+""")
+
+        ws = parse_workstream(ws_file)
+        assert "00-002-01" in ws.dependencies
+        assert "00-003-01" in ws.dependencies
+
+    def test_parse_with_depends_on_duplicate_prevention(self, tmp_path: Path) -> None:
+        """Verify parser prevents duplicate dependencies."""
+        ws_file = tmp_path / "00-001-01.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: SMALL
+depends_on: 00-002-01
+---
+
+## WS-00-001-01: Test Workstream
+
+### Dependencies
+
+00-002-01
+""")
+
+        ws = parse_workstream(ws_file)
+        # Should only appear once
+        assert ws.dependencies.count("00-002-01") == 1
+
+    def test_parse_with_empty_depends_on(self, tmp_path: Path) -> None:
+        """Verify parser handles empty depends_on values."""
+        ws_file = tmp_path / "00-001-01.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: SMALL
+depends_on: ""
+---
+
+## WS-00-001-01: Test Workstream
+""")
+
+        ws = parse_workstream(ws_file)
+        assert ws.dependencies == []
+
+    def test_parse_with_github_issue(self, tmp_path: Path) -> None:
+        """Verify parser extracts github_issue."""
+        ws_file = tmp_path / "00-001-01.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: SMALL
+github_issue: 123
+---
+
+## WS-00-001-01: Test Workstream
+""")
+
+        ws = parse_workstream(ws_file)
+        assert ws.github_issue == 123
+
+    def test_parse_with_assignee(self, tmp_path: Path) -> None:
+        """Verify parser extracts assignee."""
+        ws_file = tmp_path / "00-001-01.md"
+        ws_file.write_text("""---
+ws_id: 00-001-01
+feature: F001
+status: backlog
+size: SMALL
+assignee: john@example.com
+---
+
+## WS-00-001-01: Test Workstream
+""")
+
+        ws = parse_workstream(ws_file)
+        assert ws.assignee == "john@example.com"
+
+    def test_parse_file_read_error(self, tmp_path: Path) -> None:
+        """Verify parser handles file read errors."""
+        ws_file = tmp_path / "00-001-01.md"
+        # Create a directory with the same name to cause read error
+        ws_file.mkdir()
+
+        with pytest.raises((OSError, IsADirectoryError)):
+            parse_workstream(ws_file)

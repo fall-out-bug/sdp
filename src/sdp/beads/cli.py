@@ -79,8 +79,11 @@ class CLIBeadsClient(BeadsClient):
             result = self._run_command(cmd, capture_output=True)
             data = json.loads(result.stdout)
             # bd show --json returns array with one element
-            if isinstance(data, list) and len(data) > 0:
-                return BeadsTask.from_dict(data[0])
+            if isinstance(data, list):
+                if len(data) > 0:
+                    return BeadsTask.from_dict(data[0])
+                else:
+                    return None  # Empty array means task not found
             else:
                 return BeadsTask.from_dict(data)
 

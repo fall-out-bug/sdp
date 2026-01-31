@@ -120,3 +120,43 @@ class TestBuilderRouter:
         policy = router.get_retry_policy(ws)
 
         assert policy.max_attempts == 3
+
+    def test_should_escalate_to_human_after_max_attempts(self) -> None:
+        """Verify should_escalate_to_human returns True after max attempts for T2."""
+        registry = load_model_registry(
+            Path(__file__).parent.parent.parent.parent / "docs" / "internals" / "model-mapping.md"
+        )
+        router = BuilderRouter(registry=registry)
+        ws = Workstream(
+            ws_id="00-001-01",
+            feature="F001",
+            status=WorkstreamStatus.BACKLOG,
+            size=WorkstreamSize.SMALL,
+        )
+        setattr(ws, "capability_tier", "T2")
+
+        # Should not escalate before max attempts
+        assert router.should_escalate_to_human(ws, attempt=2, failed=True) is False
+        # Should escalate after max attempts
+        assert router.should_escalate_to_human(ws, attempt=4, failed=True) is True
+
+    def test_create_escalation_error(self) -> None:
+        """Verify create_escalation_error creates proper error."""
+        registry = load_model_registry(
+            Path(__file__).parent.parent.parent.parent / "docs" / "internals" / "model-mapping.md"
+        )
+        router = BuilderRouter(registry=registry)
+        ws = Workstream(
+            ws_id="00-001-01",
+            feature="F001",
+            status=WorkstreamStatus.BACKLOG,
+            size=WorkstreamSize.SMALL,
+        )
+        setattr(ws, "capability_tier", "T2")
+
+        error = router.create_escalation_error(ws, attempt=3, diagnostics="Test failure")
+
+        assert error.context["ws_id"] == "00-001-01"
+        assert error.context["tier"] == "T2"
+        assert error.context["attempts"] == 3
+        assert error.context["diagnostics"] == "Test failure"

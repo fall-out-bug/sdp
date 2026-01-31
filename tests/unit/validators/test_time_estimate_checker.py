@@ -132,3 +132,35 @@ class TestMain:
             from sdp.validators.time_estimate_checker import main
 
             assert main() == 0
+
+    def test_main_directory_with_violations(self, tmp_path: Path) -> None:
+        """main with directory containing violations returns 1."""
+        (tmp_path / "file1.md").write_text("estimated_duration: 2h")
+        (tmp_path / "file2.md").write_text("Clean content")
+        with patch.object(sys, "argv", ["tc", str(tmp_path)]):
+            from sdp.validators.time_estimate_checker import main
+
+            assert main() == 1
+
+    def test_main_directory_no_violations_returns_0(self, tmp_path: Path) -> None:
+        """main with directory containing no violations returns 0."""
+        (tmp_path / "file1.md").write_text("Clean content")
+        (tmp_path / "file2.md").write_text("More clean content")
+        with patch.object(sys, "argv", ["tc", str(tmp_path)]):
+            from sdp.validators.time_estimate_checker import main
+
+            assert main() == 0
+
+    def test_cli_entry_point(self, tmp_path: Path) -> None:
+        """Test CLI entry point via __main__."""
+        import subprocess
+        import sys
+
+        f = tmp_path / "clean.md"
+        f.write_text("Clean content")
+        result = subprocess.run(
+            [sys.executable, "-m", "sdp.validators.time_estimate_checker", str(f)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
