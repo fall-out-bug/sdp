@@ -4,24 +4,18 @@
 > **Status:** backlog
 > **Size:** LARGE
 > **Priority:** P0 (Blocks all Beads work)
-> **Note:** BEADS-001 build complete. All 5 skills integrate with Beads. Remaining: skill integration tests.
-> **Review (2026-01-30):** CHANGES_REQUESTED — [report](../../reports/2026-01-30-BEADS-001-review.md)
+> **Note:** BEADS-001 build complete. All 5 skills integrate with Beads. Skill integration tests added (WS 00-033-02).
+> **Review (2026-01-30):** APPROVED — [report](../../reports/2026-01-30-BEADS-001-review.md)
 > **Feature:** F032 (SDP Protocol Enforcement)
 
 ---
 
-## Agent Routing (CHANGES_REQUESTED)
+## Agent Routing (APPROVED)
 
-| Item | Type | Skill | Agent Action |
-|------|------|-------|--------------|
-| [001-beads-review-failing-tests](../../issues/001-beads-review-failing-tests.md) | **Issue** (bugs) | @bugfix | Fix 6 failing tests |
-| [00-033-02](00-033-02-add-skill-integration-tests.md) | **WS** (planned) | @build | Add skill integration tests |
-
-**Rule:** Bugs → @issue → docs/issues/ → @bugfix. Planned work → WS under same feature → @build.
-
-**Ready for agents:**
-- `@bugfix "6 failing tests from BEADS-001 review" --feature=F032 --issue-id=001` — fix bugs
-- `@build 00-033-02` or `@build sdp-sfh` — add skill integration tests (bd start first when Beads enabled)
+| Item | Type | Status |
+|------|------|--------|
+| [001-beads-review-failing-tests](../../issues/001-beads-review-failing-tests.md) | Issue | ✅ Resolved |
+| [00-033-02](../completed/00-033-02-add-skill-integration-tests.md) | WS | ✅ Completed |
 
 ---
 
@@ -40,7 +34,7 @@ Integrate Beads with SDP skills (@idea, @design, @build, @review, @oneshot) to e
 - [x] All skills support both mock (dev) and real Beads (prod)
 - [x] Backward compatibility: existing markdown workstreams still work
 - [x] Documentation updated with new workflow examples (runbook, skills, .cursorrules)
-- [ ] Tests for all skill integrations (mock + real Beads)
+- [x] Tests for all skill integrations (mock + real Beads)
 
 ---
 
@@ -310,7 +304,7 @@ def migrate_workstreams(ws_dir: Path):
 - [x] `BEADS_USE_MOCK` environment variable controls mock vs real
 - [x] Existing markdown workstreams can be migrated via `sdp beads migrate`
 - [x] Multi-agent @oneshot works with 3 parallel agents
-- [ ] All tests pass (unit + integration) — skill integration tests pending
+- [x] All tests pass (unit + integration)
 - [x] Documentation updated (CLAUDE.md, runbook, skills, .cursorrules)
 - [x] Example project demonstrates new workflow (SDP repo)
 - [x] Backward compatibility maintained (markdown still works)
