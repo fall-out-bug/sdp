@@ -16,19 +16,19 @@ class GuardSkill:
         self._client = beads_client
         self._active_ws: str | None = None
 
-    def activate(self, ws_id: str) -> None:
+    def activate(self, task_id: str) -> None:
         """Set active workstream.
 
         Args:
-            ws_id: Workstream ID to activate
+            task_id: Beads task ID (e.g., sdp-4qq) or workstream ID (PP-FFF-SS)
 
         Raises:
-            ValueError: If WS not found
+            ValueError: If task not found
         """
-        ws = self._client.get_task(ws_id)
+        ws = self._client.get_task(task_id)
         if not ws:
-            raise ValueError(f"WS not found: {ws_id}")
-        self._active_ws = ws_id
+            raise ValueError(f"WS not found: {task_id}")
+        self._active_ws = task_id
 
     def check_edit(self, file_path: str) -> GuardResult:
         """Check if file edit is allowed.

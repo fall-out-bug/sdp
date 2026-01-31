@@ -97,6 +97,7 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 # - Designs WS decomposition
 # - Requests approval via ExitPlanMode
 # Result: WS-XXX-01, WS-XXX-02, etc. in docs/workstreams/backlog/
+# If WS created manually: sdp beads migrate docs/workstreams/backlog/ --real
 
 # 3. Execute each workstream
 @build WS-001-01

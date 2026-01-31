@@ -234,7 +234,7 @@ class _PRDVisitor(ast.NodeVisitor):
     ) -> None:
         """Add a flow step to the steps list."""
         self.steps.append(FlowStep(
-            flow_name=flow_name,
+            flow_name=flow_name or "",
             step_number=step_number,
             description=description,
             source_file=self.source_file,

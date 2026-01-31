@@ -12,7 +12,7 @@ Enhanced with workflow efficiency modes (F014):
 """
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from .client import BeadsClient
 from .execution_mode import (
@@ -276,7 +276,9 @@ class MultiAgentExecutor:
             # This prevents blocking all executions due to bugs in detection logic
             return True
 
-    def _build_destructive_operations_summary(self, destructive_tasks: list) -> str:
+    def _build_destructive_operations_summary(
+        self, destructive_tasks: list[dict[str, Any]]
+    ) -> str:
         """Build a summary of destructive operations for user confirmation.
 
         Args:

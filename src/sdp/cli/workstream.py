@@ -5,17 +5,13 @@ Provides CLI commands for parsing workstreams and project maps.
 
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import click
 
 from sdp.errors import format_error_for_terminal
 
-if TYPE_CHECKING:
-    from click import Command
-
 # Import validate_tier if available
-validate_tier: Command | None = None
+validate_tier: click.Command | None = None
 try:
     from sdp.cli.tier import validate_tier
 except ImportError:

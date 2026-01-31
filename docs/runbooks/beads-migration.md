@@ -2,6 +2,29 @@
 
 **Purpose:** Migrate SDP workstreams (markdown) to Beads tasks for 100% integration.
 
+## Beads-First Workflow
+
+**Recommended:** Create Beads tasks first, then workstream markdown.
+
+```
+✅ Right:  bd create → work → bd sync → commit
+❌ Wrong:  Create .md file → (forget bd sync)
+```
+
+**If you created workstream markdown manually** (e.g., via @design or copy-paste):
+
+```bash
+# Sync markdown → Beads
+sdp beads migrate docs/workstreams/backlog/ --real
+sdp beads migrate docs/workstreams/completed/ --real
+
+# Verify
+bd list | grep <ws_id>
+sdp guard activate <ws_id>  # Should work after migration
+```
+
+**Guard activate:** Accepts both `ws_id` (00-020-03) and Beads task ID (sdp-4qq). Resolves via `.beads-sdp-mapping.jsonl`.
+
 ## Prerequisites
 
 - Beads CLI installed: `bd --version`

@@ -30,6 +30,21 @@ jobs:
         run: |
           poetry install --with dev
 
+      - name: Run pip-audit security scan
+        id: pip-audit
+        run: |
+          poetry run pip-audit --format json --desc -o audit-report.json
+        continue-on-error: true
+
+      - name: Check pip-audit results
+        if: steps.pip-audit.outcome == 'failure'
+        run: |
+          echo "❌ Vulnerabilities detected:"
+          cat audit-report.json 2>/dev/null || poetry run pip-audit
+          echo ""
+          echo "💡 Run: poetry update to patch vulnerabilities"
+          exit 1
+
       - name: Run pytest with coverage
         id: pytest
         run: |
@@ -84,8 +99,33 @@ jobs:
         if: always()
         with:
           script: |
+            const fs = require('fs');
             const results = [];
             let status = '✅';
+
+            // pip-audit security scan
+            const pipAuditOutcome = '${{ steps.pip-audit.outcome }}';
+            let pipAuditSection = `### Security Scan (pip-audit)\n${pipAuditOutcome === 'success' ? '✅' : '❌'} ${pipAuditOutcome === 'success' ? 'No vulnerabilities found' : 'Vulnerabilities detected'}`;
+            if (pipAuditOutcome === 'failure' && fs.existsSync('audit-report.json')) {
+              try {
+                const report = JSON.parse(fs.readFileSync('audit-report.json', 'utf8'));
+                const depsWithVulns = (report.dependencies || []).filter(d => d.vulns && d.vulns.length > 0);
+                if (depsWithVulns.length > 0) {
+                  pipAuditSection += '\n\n';
+                  depsWithVulns.forEach(dep => {
+                    dep.vulns.forEach(v => {
+                      pipAuditSection += `- **${dep.name} ${dep.version}**: ${v.id || 'Unknown'}`;
+                      if (v.fix_versions && v.fix_versions[0]) {
+                        pipAuditSection += ` → fix: \`${v.fix_versions[0]}\``;
+                      }
+                      pipAuditSection += '\n';
+                    });
+                  });
+                  pipAuditSection += '\n💡 Run: poetry update to patch';
+                }
+              } catch (e) { /* keep default message */ }
+            }
+            results.push(pipAuditSection);
 
             // Coverage
             ${{ steps.coverage.outputs.coverage }} && results.push(
@@ -113,13 +153,7 @@ jobs:
             );
 
             // Determine overall status
-            if (${{
-              steps.coverage.outcome !== 'success' ||
-              steps.mypy.outcome !== 'success' ||
-              steps.ruff.outcome !== 'success' ||
-              steps.radon.outcome !== 'success' ||
-              steps.filesize.outcome !== 'success'
-            }}) {
+            if (pipAuditOutcome !== 'success' || ${{ steps.coverage.outcome !== 'success' || steps.mypy.outcome !== 'success' || steps.ruff.outcome !== 'success' || steps.radon.outcome !== 'success' || steps.filesize.outcome !== 'success' }}) {
               status = '❌';
             }
 
@@ -155,6 +189,7 @@ jobs:
 
       - name: Fail if any gate failed
         if: |
+          steps.pip-audit.outcome != 'success' ||
           steps.coverage.outcome != 'success' ||
           steps.mypy.outcome != 'success' ||
           steps.ruff.outcome != 'success' ||

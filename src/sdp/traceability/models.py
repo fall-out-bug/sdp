@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 
 class MappingStatus(Enum):
@@ -23,7 +24,7 @@ class ACTestMapping:
     status: MappingStatus
     confidence: float = 1.0  # 0.0-1.0 for auto-detected
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         """Serialize to dictionary."""
         return {
             "ac_id": self.ac_id,
@@ -35,7 +36,7 @@ class ACTestMapping:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "ACTestMapping":
+    def from_dict(cls, data: dict[str, Any]) -> "ACTestMapping":
         """Deserialize from dictionary."""
         return cls(
             ac_id=data["ac_id"],
@@ -86,7 +87,7 @@ class TraceabilityReport:
         """Whether all ACs have tests."""
         return self.missing_acs == 0
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         """Serialize to dictionary."""
         return {
             "ws_id": self.ws_id,

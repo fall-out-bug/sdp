@@ -126,7 +126,7 @@ class MockBeadsClient(BeadsClient):
 
         return tasks
 
-    def update_metadata(self, task_id: str, metadata: dict) -> None:
+    def update_metadata(self, task_id: str, metadata: dict[str, object]) -> None:
         """Update task metadata (mock)."""
         task = self._tasks.get(task_id)
         if not task:

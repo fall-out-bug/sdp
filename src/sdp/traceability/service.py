@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 
 from sdp.beads.base import BeadsClient
+from sdp.beads.models import BeadsTask
 from sdp.traceability.models import (
     ACTestMapping,
     MappingStatus,
@@ -170,7 +171,7 @@ class TraceabilityService:
         body = re.sub(r"^---\n.*?\n---", "", content, count=1, flags=re.DOTALL).lstrip()
         ws_path.write_text(f"---\n{new_fm}---\n\n{body}", encoding="utf-8")
 
-    def _get_ws_task(self, ws_id: str):
+    def _get_ws_task(self, ws_id: str) -> BeadsTask | None:
         """Get Beads task for workstream.
 
         Args:
@@ -214,7 +215,7 @@ class TraceabilityService:
         path = self._get_ws_file_path(ws_id)
         return path.read_text(encoding="utf-8") if path else None
 
-    def _get_traceability_from_markdown(self, content: str) -> list[dict]:
+    def _get_traceability_from_markdown(self, content: str) -> list[dict[str, object]]:
         """Extract traceability mappings from markdown frontmatter."""
         match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
         if not match:

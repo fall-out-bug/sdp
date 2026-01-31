@@ -1,13 +1,8 @@
 """Main CLI entry point for SDP package."""
 
-from typing import TYPE_CHECKING
-
 import click
 
 from sdp import __version__
-
-if TYPE_CHECKING:
-    from click import Command, Group
 
 # Import Beads commands (optional - may not be available in all builds)
 _beads_available: bool = False
@@ -27,8 +22,10 @@ except ImportError:
 
 # Import trace command
 _trace_available: bool = False
+trace: click.Group | None = None
 try:
-    from sdp.cli.trace import trace
+    from sdp.cli.trace import trace as _trace
+    trace = _trace
     _trace_available = True
 except ImportError:
     trace = None
@@ -43,35 +40,35 @@ except ImportError:
         """Core SDP operations (workstreams, features, project maps)."""
         pass
 
-guard: Group | None = None
+guard: click.Group | None = None
 try:
     from sdp.cli.guard import guard
 except ImportError:
     guard = None
 
-tier: Group | None = None
+tier: click.Group | None = None
 try:
     from sdp.cli.tier import tier
 except ImportError:
     tier = None
 
-sync: Group | None = None
+sync: click.Group | None = None
 try:
     from sdp.cli.sync import sync
 except ImportError:
     sync = None
 
-metrics: Group | None = None
-metrics_escalations: Command | None = None
+metrics: click.Group | None = None
+metrics_escalations: click.Command | None = None
 try:
     from sdp.cli.metrics import metrics, metrics_escalations
 except ImportError:
     metrics = None
     metrics_escalations = None
 
-prd: Group | None = None
-prd_detect_type: Command | None = None
-prd_validate: Command | None = None
+prd: click.Group | None = None
+prd_detect_type: click.Command | None = None
+prd_validate: click.Command | None = None
 try:
     from sdp.cli.prd import prd, prd_detect_type, prd_validate
 except ImportError:
@@ -79,7 +76,7 @@ except ImportError:
     prd_detect_type = None
     prd_validate = None
 
-skill: Group | None = None
+skill: click.Group | None = None
 try:
     from sdp.cli.skill import skill
 except ImportError:

@@ -396,6 +396,43 @@ SKIP_CHECK=1 git commit
 
 ---
 
+## Dependency Management & Security
+
+### Vulnerability Scanning
+
+- **Tool**: pip-audit (official PyPA tool)
+- **Runs**: CI/CD on every PR/push
+- **Failure threshold**: Any vulnerability blocks merge
+- **Exceptions**: Document in SECURITY.md with reason + workaround
+
+### Dependency Updates
+
+- **Automated**: Dependabot creates PRs weekly (Mondays 9am)
+- **Patch versions** (X.Y.Z → X.Y.Z+1): Auto-merge if tests pass
+- **Minor versions** (X.Y → X.Y+1): Manual review required
+- **Major versions** (X → X+1): Create dedicated workstream
+
+### Update Policy
+
+1. **Security patches**: Merge within 24 hours
+2. **Test compatibility**: Run `poetry lock --no-update` before committing
+3. **Update documentation**: Update CHANGELOG.md with dependency changes
+
+### Manual Commands
+
+```bash
+# Run vulnerability scan
+poetry run pip-audit
+
+# Generate JSON report
+poetry run pip-audit --format json --desc -o audit-report.json
+
+# Ignore specific vulnerability (document in SECURITY.md)
+poetry run pip-audit --ignore-vuln <VULN_ID>
+```
+
+---
+
 ## Continuous Integration
 
 ### GitHub Actions

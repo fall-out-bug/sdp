@@ -3,6 +3,7 @@
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -106,7 +107,7 @@ class WSCompletionVerifier:
             failed_commands=failed_commands,
         )
 
-    def verify_output_files(self, ws_data: dict) -> list[CheckResult]:
+    def verify_output_files(self, ws_data: dict[str, Any]) -> list[CheckResult]:
         """Check all output files in scope exist.
 
         Args:
@@ -133,7 +134,7 @@ class WSCompletionVerifier:
 
         return checks
 
-    def verify_commands(self, ws_data: dict) -> list[CheckResult]:
+    def verify_commands(self, ws_data: dict[str, Any]) -> list[CheckResult]:
         """Run verification commands and check exit codes.
 
         Args:
@@ -187,7 +188,7 @@ class WSCompletionVerifier:
 
         return checks
 
-    def verify_coverage(self, ws_data: dict) -> CheckResult | None:
+    def verify_coverage(self, ws_data: dict[str, Any]) -> CheckResult | None:
         """Check test coverage meets threshold.
 
         Args:
@@ -303,7 +304,7 @@ class WSCompletionVerifier:
                     commands.append(line.strip())
         return commands
 
-    def _parse_ws_file(self, ws_path: Path) -> dict:
+    def _parse_ws_file(self, ws_path: Path) -> dict[str, Any]:
         """Parse WS file for verification data.
 
         Args:

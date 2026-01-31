@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sdp"
-version = "0.5.1"
+version = "0.5.2"
 description = "Spec-Driven Protocol - Workstream automation tools"
 authors = ["MSU AI Masters <ai-masters@msu.ru>"]
 readme = "README.md"
@@ -23,6 +23,7 @@ mypy = "^1.7"
 radon = "^6.0"
 types-requests = "^2.31"
 types-pyyaml = "^6.0.12.20250915"
+pip-audit = "^2.7"
 
 [tool.poetry.scripts]
 sdp = "sdp.cli:main"

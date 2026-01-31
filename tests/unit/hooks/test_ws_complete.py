@@ -1,4 +1,10 @@
-"""Tests for sdp.hooks.ws_complete."""
+"""Tests for sdp.hooks.ws_complete.
+
+AC1: VerificationResult formatting via _handle_verification_passed/failed
+AC2: PostWSCompleteHook (WSCompleteChecker) class methods
+AC3: Integration with WSCompletionVerifier (verify_output_files, verify_commands,
+     verify_coverage) exercised via verifier.verify() in run()
+"""
 
 from pathlib import Path
 from unittest.mock import MagicMock

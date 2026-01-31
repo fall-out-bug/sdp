@@ -37,6 +37,36 @@ SDP_STATUS_BLOCKED = "blocked"
 # open, in_progress, blocked, deferred, closed, tombstone, pinned, hooked
 
 
+def resolve_ws_id_to_beads_id(ws_id: str, mapping_file: Path | None = None) -> str | None:
+    """Resolve SDP workstream ID (PP-FFF-SS) to Beads task ID.
+
+    Beads uses hash-based IDs (e.g., sdp-4qq); guard activate accepts ws_id (00-020-03).
+    This function looks up the mapping in .beads-sdp-mapping.jsonl.
+
+    Args:
+        ws_id: Workstream ID (PP-FFF-SS or beads_id)
+        mapping_file: Path to mapping file (default: .beads-sdp-mapping.jsonl)
+
+    Returns:
+        Beads task ID if found, else None (caller may use ws_id as-is for beads_id format)
+    """
+    path = mapping_file or Path.cwd() / ".beads-sdp-mapping.jsonl"
+    if not path.exists():
+        return None
+    try:
+        with open(path, "r") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                entry = json.loads(line)
+                if entry.get("sdp_id") == ws_id:
+                    beads_id = entry.get("beads_id")
+                    return beads_id if isinstance(beads_id, str) else None
+    except (json.JSONDecodeError, IOError):
+        pass
+    return None
+
+
 class BeadsSyncError(Exception):
     """Exception raised during sync operations."""
 

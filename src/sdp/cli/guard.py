@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import click
 
 from sdp.beads import create_beads_client
+from sdp.beads.sync import resolve_ws_id_to_beads_id
 from sdp.guard.skill import GuardSkill
 from sdp.guard.state import GuardState, StateManager
 
@@ -22,18 +23,21 @@ def activate(ws_id: str) -> None:
     """Activate workstream for editing.
 
     Args:
-        ws_id: Workstream ID to activate
+        ws_id: Workstream ID (PP-FFF-SS) or Beads task ID
     """
     client = create_beads_client()
     guard_skill = GuardSkill(client)
 
+    # Resolve ws_id (00-020-03) to beads_id (sdp-4qq) if needed
+    task_id = resolve_ws_id_to_beads_id(ws_id) or ws_id
+
     try:
-        guard_skill.activate(ws_id)
+        guard_skill.activate(task_id)
     except ValueError as e:
         click.echo(f"❌ {e}")
         sys.exit(1)
 
-    ws = client.get_task(ws_id)
+    ws = client.get_task(task_id)
     scope = ws.sdp_metadata.get("scope_files", []) if ws else []
 
     state = GuardState(
@@ -64,9 +68,12 @@ def check_file(file_path: str) -> None:
         click.echo("❌ No active WS. Run: sdp guard activate <ws_id>")
         sys.exit(1)
 
+    # Resolve ws_id (00-020-03) to beads_id (sdp-4qq) for get_task
+    task_id = resolve_ws_id_to_beads_id(state.active_ws) or state.active_ws
+
     client = create_beads_client()
     guard_skill = GuardSkill(client)
-    guard_skill._active_ws = state.active_ws
+    guard_skill._active_ws = task_id
 
     result = guard_skill.check_edit(file_path)
 
