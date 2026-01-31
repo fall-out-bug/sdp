@@ -15,13 +15,25 @@ fi
 echo "🔍 Pre-build checks for $WS_ID"
 echo "================================"
 
-# Find WS file
-WS_DIR="tools/hw_checker/docs/workstreams"
-WS_FILE=$(find "$WS_DIR" -name "${WS_ID}-*.md" 2>/dev/null | head -1)
+# Find WS file (support both SDP and hw_checker layouts)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+WS_FILE=""
+WS_DIR=""
+for CANDIDATE in "docs/workstreams" "tools/hw_checker/docs/workstreams"; do
+    FULL_DIR="$REPO_ROOT/$CANDIDATE"
+    if [ -d "$FULL_DIR" ]; then
+        FOUND=$(find "$FULL_DIR" -name "${WS_ID}-*.md" 2>/dev/null | head -1)
+        if [ -n "$FOUND" ]; then
+            WS_FILE="$FOUND"
+            WS_DIR="$CANDIDATE"
+            break
+        fi
+    fi
+done
 
 if [ -z "$WS_FILE" ]; then
     echo "❌ WS file not found: ${WS_ID}-*.md"
-    echo "   Searched in: $WS_DIR/backlog/, $WS_DIR/active/"
+    echo "   Searched in: docs/workstreams, tools/hw_checker/docs/workstreams"
     exit 1
 fi
 
@@ -71,7 +83,7 @@ if [ -z "$DEP" ] || [ "$DEP" = "Независимый" ] || [ "$DEP" = "Indepen
 else
     echo "  Dependencies: $DEP"
     # Check if dependency is completed
-    INDEX_FILE="$WS_DIR/INDEX.md"
+    INDEX_FILE="$REPO_ROOT/$WS_DIR/INDEX.md"
     if grep -q "$DEP.*completed\|$DEP.*✅" "$INDEX_FILE" 2>/dev/null; then
         echo "✓ Dependency $DEP is completed"
     else

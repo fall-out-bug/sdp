@@ -21,6 +21,12 @@ Usage:
 # Base classes
 from .base import ErrorCategory, SDPError, format_error_for_json, format_error_for_terminal
 
+# Build errors
+from .build import ArtifactValidationError, BuildValidationError, TestFailureError
+
+# Configuration errors
+from .config import ConfigurationError, DependencyNotFoundError, HookExecutionError
+
 # Quality-related errors
 from .quality import (
     BeadsNotFoundError,
@@ -28,12 +34,6 @@ from .quality import (
     QualityGateViolationError,
     WorkstreamValidationError,
 )
-
-# Configuration errors
-from .config import ConfigurationError, DependencyNotFoundError, HookExecutionError
-
-# Build errors
-from .build import ArtifactValidationError, BuildValidationError, TestFailureError
 
 __all__ = [
     # Base
