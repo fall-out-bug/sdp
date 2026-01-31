@@ -28,10 +28,10 @@
 
 ## Acceptance Criteria
 
-- [ ] All C901 violations fixed (complexity ≤ 10)
-- [ ] All E501 violations fixed (line length ≤ 88)
-- [ ] `ruff check src/sdp/` passes with 0 errors
-- [ ] No regressions (existing tests pass)
+- [x] All C901 violations fixed (complexity ≤ 10)
+- [x] All E501 violations fixed (line length ≤ 88)
+- [x] `ruff check src/sdp/` passes with 0 errors
+- [x] No regressions (existing tests pass)
 
 ---
 
@@ -55,6 +55,14 @@ E501 fixes: split long strings, use variables.
 
 ---
 
-## Resolution
+## Resolution (bugfix/003-f032-ruff-complexity)
 
-_To be filled after bugfix_
+**Date:** 2026-01-30
+
+**Fixes:**
+1. **cli/skill.py** — Extracted `_check_line_count`, `_check_sections`, `_check_refs`, `_output_validation`
+2. **cli/tier_promote.py** — Extracted `_get_next_tier`, `_show_validation_result`
+3. **hooks/ws_complete.py** — Extracted `_handle_bypass`, `_handle_verification_passed`, `_handle_verification_failed`
+4. **validators/ws_completion.py** — Extracted `_parse_frontmatter_scope`, `_parse_verification_commands`
+5. **validators/ws_template_checker.py** — Extracted `_extract_ws_id`, `_check_required_sections`, `_check_code_blocks`; split E501 long lines
+6. **validators/supersede_checker.py** — Split E501 long line (SupersedeResult)
