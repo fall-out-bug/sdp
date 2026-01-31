@@ -78,12 +78,12 @@ def _has_api_framework(project_path: Path) -> bool:
     # Check source files
     for src_file in project_path.rglob("*.py"):
         # Skip common non-source directories
-        if any(skip in str(src_file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules"]):
+        if any(skip in str(src_file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules"]):  # noqa: E501
             continue
         try:
             content = src_file.read_text()
             # Check for imports
-            if any(fw in content for fw in ["from fastapi", "import fastapi", "from flask", "import flask", "from django", "import django"]):
+            if any(fw in content for fw in ["from fastapi", "import fastapi", "from flask", "import flask", "from django", "import django"]):  # noqa: E501
                 return True
         except Exception:
             continue
@@ -105,11 +105,11 @@ def _has_cli_framework(cli_file: Path) -> bool:
         content_lower = content.lower()
 
         # Check for common CLI frameworks
-        if any(fw in content_lower for fw in ["import click", "from click", "import typer", "from typer", "argparse"]):
+        if any(fw in content_lower for fw in ["import click", "from click", "import typer", "from typer", "argparse"]):  # noqa: E501
             return True
 
         # Check for common CLI patterns
-        if any(pattern in content for pattern in ["@click.command", "@app.command", "ArgumentParser", "click.option"]):
+        if any(pattern in content for pattern in ["@click.command", "@app.command", "ArgumentParser", "click.option"]):  # noqa: E501
             return True
 
     except Exception:

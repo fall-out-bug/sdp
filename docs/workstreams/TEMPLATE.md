@@ -12,9 +12,9 @@ depends_on:
 
 ## WS-PP-FFF-WW: Title
 
-### 🎯 Цель (Goal)
+### 🎯 Goal
 
-**Что должно РАБОТАТЬ после завершения WS:**
+**What must WORK after completing this WS:**
 - [First specific outcome]
 - [Second specific outcome]
 
@@ -25,23 +25,23 @@ depends_on:
 - [ ] Coverage ≥ 80%
 - [ ] mypy --strict passes
 
-**⚠️ WS НЕ завершён, пока Goal не достигнута (все AC ✅).**
+**⚠️ WS is NOT complete until Goal is achieved (all AC ✅).**
 
 ---
 
-### Контекст
+### Context
 
 [Background information about the workstream]
 
-### Зависимость
+### Dependencies
 
-[List dependencies or write "Независимый" for no dependencies]
+[List dependencies or write "None" for no dependencies]
 
-### Входные файлы
+### Input Files
 
 [List input files or sections to read]
 
-### Шаги
+### Steps
 
 1. **[Step 1 title]**
 
@@ -51,24 +51,24 @@ depends_on:
 
    [Detailed instructions for step 2]
 
-### Код
+### Code
 
 ```python
-# Готовый код для copy-paste
-# Полные type hints
+# Ready-to-use code for copy-paste
+# Full type hints
 ```
 
-### Ожидаемый результат
+### Expected Outcome
 
 [Description of expected outcome]
 
 ### Scope Estimate
 
-- Файлов: ~[number]
-- Строк: ~[number] ([SMALL|MEDIUM|LARGE])
-- Токенов: ~[number]
+- Files: ~[number]
+- Lines: ~[number] ([SMALL|MEDIUM|LARGE])
+- Tokens: ~[number]
 
-### Критерий завершения
+### Completion Criteria
 
 ```bash
 # Verification commands
@@ -77,10 +77,10 @@ pytest --cov=module --cov-fail-under=80
 mypy module/ --strict
 ```
 
-### Ограничения
+### Constraints
 
-- НЕ [constraint 1]
-- НЕ [constraint 2]
+- DO NOT [constraint 1]
+- DO NOT [constraint 2]
 
 ---
 
@@ -88,6 +88,7 @@ mypy module/ --strict
 
 **Executed by:** ______
 **Date:** ______
+**Duration:** ______ minutes
 
 ### Goal Status
 - [ ] AC1-AC3 — ✅
@@ -97,7 +98,18 @@ mypy module/ --strict
 ### Files Changed
 | File | Action | LOC |
 |------|--------|-----|
-| | | |
+|      |        |     |
+
+### Statistics
+- **Files Changed:** ______
+- **Lines Added:** ______
+- **Lines Removed:** ______
+- **Test Coverage:** ______ %
+- **Tests Passed:** ______
+- **Tests Failed:** ______
+
+### Deviations from Plan
+- ______
 
 ### Commit
 ______

@@ -235,9 +235,46 @@ cp .cursorrules your-project/
 3. **Установить Git hooks** — Запустить `scripts/init.py --install-hooks`
 4. **Прочитать документацию** — См. [PROTOCOL.md](PROTOCOL.md) и [docs/PRINCIPLES.md](docs/PRINCIPLES.md)
 
+## Фичи (v0.4.0)
+
+- **F003:** Two-Stage Review (5 WS) — Сначала соответствие spec, потом качество кода
+- **F004:** Platform Adapters (4 WS) — Claude Code, Cursor, OpenCode
+- **F005:** Extension System (3 WS) — Кастомизация без форка
+- **F006:** Core SDP (6 WS) — Базовый фреймворк
+- **F007:** Oneshot & Hooks (10 WS) — Автономное выполнение
+- **F008:** Contract-Driven WS Tiers (9 WS) — Уровни сложности
+- **F010:** SDP Infrastructure (5 WS) — Инфраструктура проекта
+- **F011:** PRD Command (6 WS) — Авто-генерация диаграмм
+
+**Всего:** 48/58 workstreams завершено (83%)
+
+## Документация
+
+- [PROTOCOL.md](PROTOCOL.md) — Полная спецификация протокола
+- [CLAUDE.md](CLAUDE.md) — Гайд по интеграции с Claude Code
+- [docs/workstreams/INDEX.md](docs/workstreams/INDEX.md) — Индекс workstreams
+- [CHANGELOG_RU.md](CHANGELOG_RU.md) — История изменений
+
+## Вдохновение
+
+SDP вдохновлён и использует идеи из:
+
+- [superpowers](https://github.com/obra/superpowers) — Фреймворк возможностей AI-агентов
+- [vibe-kanban](https://github.com/BloopAI/vibe-kanban) — Управление задачами для AI-агентов
+- [sub-agents.directory](https://github.com/ayush-that/sub-agents.directory) — Мульти-агентная оркестрация
+
+## Лицензия
+
+MIT License — см. файл LICENSE.
+
+## Поддержка
+
+- GitHub Issues: https://github.com/fall-out-bug/sdp/issues
+- Документация: https://github.com/fall-out-bug/sdp/tree/main/docs
+
 ---
 
-**Версия:** 0.3.0 | **Статус:** Активен
+**Версия:** 0.4.0 | **Статус:** Активен | **Последнее обновление:** 2026-01-27
 
 ---
 

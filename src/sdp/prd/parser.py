@@ -87,48 +87,107 @@ def update_frontmatter(content: str, updates: dict[str, str]) -> str:
         Updated content
     """
     lines = content.split("\n")
-    in_frontmatter = False
-    frontmatter_seen = False
-    updated_lines = []
-    frontmatter_end_idx = -1
-
-    # First, find where frontmatter ends
-    for idx, line in enumerate(lines):
-        if line.strip() == "---":
-            if not frontmatter_seen:
-                frontmatter_seen = True
-                in_frontmatter = True
-            else:
-                in_frontmatter = False
-                frontmatter_end_idx = idx
-                break
+    frontmatter_end_idx = _find_frontmatter_end(lines)
 
     # If no frontmatter, return content unchanged
     if frontmatter_end_idx == -1:
         return content
 
-    # Process frontmatter
-    in_frontmatter = False
+    return _process_frontmatter_updates(lines, frontmatter_end_idx, updates)
+
+
+def _find_frontmatter_end(lines: list[str]) -> int:
+    """Find the line index where frontmatter ends.
+
+    Returns:
+        Index of closing "---", or -1 if no frontmatter found
+    """
+    frontmatter_seen = False
+
     for idx, line in enumerate(lines):
         if line.strip() == "---":
-            if not in_frontmatter:
-                in_frontmatter = True
+            if not frontmatter_seen:
+                frontmatter_seen = True
             else:
-                in_frontmatter = False
-                # Add any remaining updates before closing ---
-                for key, value in updates.items():
-                    updated_lines.append(f"{key}: {value}")
-                updated_lines.append(line)
-                continue
+                return idx
+
+    return -1
+
+
+def _process_frontmatter_updates(
+    lines: list[str],
+    frontmatter_end_idx: int,
+    updates: dict[str, str],
+) -> str:
+    """Process frontmatter and apply updates.
+
+    Args:
+        lines: Original content lines
+        frontmatter_end_idx: Index of closing "---"
+        updates: Dictionary of fields to update (will be mutated)
+
+    Returns:
+        Updated content
+    """
+    updated_lines: list[str] = []
+    in_frontmatter = False
+
+    for idx, line in enumerate(lines):
+        if line.strip() == "---":
+            in_frontmatter = _handle_frontmatter_marker(
+                in_frontmatter, updated_lines, line, updates
+            )
+            continue
 
         if in_frontmatter:
-            if ":" in line:
-                key = line.split(":", 1)[0].strip()
-                if key in updates:
-                    updated_lines.append(f"{key}: {updates[key]}")
-                    del updates[key]
-                    continue
+            line = _update_frontmatter_field(line, updates)
 
         updated_lines.append(line)
 
     return "\n".join(updated_lines)
+
+
+def _handle_frontmatter_marker(
+    in_frontmatter: bool,
+    updated_lines: list[str],
+    line: str,
+    updates: dict[str, str],
+) -> bool:
+    """Handle frontmatter marker ("---") line.
+
+    Args:
+        in_frontmatter: Whether we're currently in frontmatter
+        updated_lines: List to append updated lines to
+        line: Current line being processed
+        updates: Remaining updates to apply
+
+    Returns:
+        New in_frontmatter state
+    """
+    if not in_frontmatter:
+        return True
+    else:
+        # Add any remaining updates before closing ---
+        for key, value in updates.items():
+            updated_lines.append(f"{key}: {value}")
+        updated_lines.append(line)
+        return False
+
+
+def _update_frontmatter_field(line: str, updates: dict[str, str]) -> str:
+    """Update a frontmatter field if it's in the updates dict.
+
+    Args:
+        line: Current line being processed
+        updates: Dictionary of fields to update (will be mutated)
+
+    Returns:
+        Updated line (or original if no update)
+    """
+    if ":" in line:
+        key = line.split(":", 1)[0].strip()
+        if key in updates:
+            updated_line = f"{key}: {updates[key]}"
+            del updates[key]
+            return updated_line
+    return line

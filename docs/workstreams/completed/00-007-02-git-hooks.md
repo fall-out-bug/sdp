@@ -310,9 +310,11 @@ grep -q "git hooks" tools/hw_checker/docs/PROJECT_MAP.md
 
 1. ✅ **Created sdp/hooks/pre-push.sh**
    - Runs regression tests (pytest -m fast)
-   - Checks coverage ≥ 80% (warning if below)
+   - Checks coverage ≥ 80%
    - Only runs if Python files are being pushed
-   - Does not block push (warns only)
+   - Default: warns but doesn't block (SDP_HARD_PUSH=0)
+   - Hard blocking mode: blocks push on failures (SDP_HARD_PUSH=1)
+   - Provides clear remediation steps for all failures
 
 2. ✅ **Updated sdp/hooks/install-hooks.sh**
    - Added pre-push.sh installation

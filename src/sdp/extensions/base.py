@@ -127,7 +127,10 @@ class BaseExtension:
 
     Example:
         >>> manifest = ExtensionManifest(name="hw_checker", version="1.0.0", ...)
-        >>> ext = BaseExtension(manifest=manifest, root_path=Path("/home/user/.sdp/extensions/hw_checker"))
+        >>> ext = BaseExtension(
+        ...     manifest=manifest,
+        ...     root_path=Path("/home/user/.sdp/extensions/hw_checker")
+        ... )
         >>> hooks = ext.get_hooks_path()
     """
 

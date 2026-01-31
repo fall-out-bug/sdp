@@ -222,14 +222,44 @@ When you commit with a WS ID in the message (e.g., `feat: WS-060-01 - Create sub
 | Regression tests | Run `pytest -m fast` | Tests failed |
 | Coverage | Check >= 80% | Coverage below 80% |
 
-**Note:** pre-push **warns** but doesn't block pushing
+**Behavior Modes:**
 
-**What to do on warning:**
+**Default (WARNING mode):**
+- Warns about failures but doesn't block push
+- Allows flexibility during development
+- Shows clear remediation steps
 
-1. Read warning message
-2. Fix issues if critical
-3. Push: `git push`
-4. Or fix and try again
+**Hard blocking mode (SDP_HARD_PUSH=1):**
+- Blocks push on regression test failures
+- Blocks push on coverage < 80%
+- Enforces quality standards
+- Same remediation steps
+
+**Enable hard blocking:**
+
+```bash
+# Enable for current session
+export SDP_HARD_PUSH=1
+
+# Enable permanently (add to ~/.bashrc or ~/.zshrc)
+echo 'export SDP_HARD_PUSH=1' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**What to do on failure:**
+
+1. Read error/warning message
+2. Run suggested remediation command
+3. Fix failing tests or add coverage
+4. Commit the fixes
+5. Push again
+
+**Bypass hooks (emergency only):**
+
+```bash
+# Not recommended - use only for critical hotfixes
+git push --no-verify
+```
 
 ## Uninstallation
 
@@ -316,20 +346,31 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 **Solution:**
 
 ```bash
-# Option 1: Bypass hooks (not recommended)
+# Option 1: Bypass hooks (emergency only, not recommended)
 git push --no-verify
 
-# Option 2: Fix issues first (recommended)
+# Option 2: Disable hard blocking temporarily (recommended)
+export SDP_HARD_PUSH=0
+git push
+export SDP_HARD_PUSH=1  # Re-enable after push
+
+# Option 3: Fix issues first (best practice)
 # Fix tests/coverage
 git add .
 git commit
 git push
 
-# Option 3: Disable hook temporarily
+# Option 4: Disable hook temporarily (not recommended)
 mv .git/hooks/pre-push .git/hooks/pre-push.disabled
 git push
 mv .git/hooks/pre-push.disabled .git/hooks/pre-push
 ```
+
+**Note:** If hard blocking is enabled (SDP_HARD_PUSH=1), the hook will:
+1. Block push on test failures
+2. Block push on coverage < 80%
+3. Show clear remediation steps
+4. Require fix or explicit bypass (--no-verify)
 
 ## IDE-Specific Notes
 

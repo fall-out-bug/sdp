@@ -4,7 +4,91 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 > **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
-## [0.4.0] - 2026-01-25
+## [0.6.0] - 2026-XX-XX
+
+### Breaking Changes
+
+- **prompts/commands/ deprecated** — All command prompts moved to `.claude/skills/`
+  - Migration: Use skills directly (`@build`, `@review`, etc.)
+  - See: `docs/migration/prompts-to-skills.md`
+
+### Added
+
+- Guard skill for pre-edit enforcement
+- Skill template standard (≤100 lines)
+- Traceability check in review
+- `sdp skill validate` command for skill validation
+- `sdp skill check-all` for batch validation
+- ADR-007: Skill Length Limit
+
+### Changed
+
+- Build skill reduced from 141 to 88 lines
+- Review skill reduced from 242 to 113 lines
+- Design skill reduced from 591 to 98 lines
+- Detailed specifications moved to `docs/reference/`
+- Skills now reference external docs instead of inline content
+
+## [0.4.0] - 2026-01-27
+
+### Added - Feature F011: PRD Command (6 workstreams)
+- PRD command with project type profiles (cli, service, library)
+- Auto-generated architecture diagrams from code annotations
+- `@prd:` annotation parser for documentation updates
+- Line limits validator for PRD documents
+- Diagram generator (Mermaid format)
+- CodeReview hook integration for PRD validation
+
+### Added - Feature F003: Two-Stage Review (5 workstreams)
+- Stage 1: Spec Compliance (goal achievement, AC coverage, specification alignment)
+- Stage 2: Code Quality (coverage >= 80%, mypy strict, AI-readiness)
+- Stage 2 only runs if Stage 1 passes — no polishing incorrect code
+- Updated `/codereview` skill with two-stage workflow
+
+### Added - Feature F004: Platform Adapters (4 workstreams)
+- `PlatformAdapter` interface for unified API
+- `detect_platform()` for auto IDE detection
+- Claude Code adapter (`.claude/` support)
+- Cursor adapter (`.codex/` support)
+- OpenCode adapter (`.opencode/` support)
+
+### Added - Feature F005: Extension System (3 workstreams)
+- `sdp.local/` and `~/.sdp/extensions/{name}/` support
+- `extension.yaml` manifest format
+- Extension auto-discovery and loading
+- Hooks, patterns, skills, integrations components
+
+### Added - Feature F007: Oneshot & Hooks (10 workstreams)
+- `/oneshot` command for autonomous feature execution
+- Git hooks: pre-commit, post-commit, pre-push
+- Quality gates enforcement
+- Cursor agents integration
+- `/debug` and `/test` commands
+- `/idea` and `/design` skills
+
+### Added - Feature F008: Contract-Driven WS Tiers (9 workstreams)
+- Starter, Standard, Advanced tiers
+- Capability tier validator
+- Model mapping registry
+- Tier auto-promotion
+- Escalation metrics
+
+### Added - Feature F010: SDP Infrastructure (5 workstreams)
+- Submodule support
+- PP-FFF-SS naming convention
+- Content synchronization
+
+### Changed
+- Workstream ID format changed to PP-FFF-WW
+- Enhanced GitHub bidirectional sync service
+- Improved documentation structure
+
+### Statistics
+- **Total Workstreams:** 58
+- **Completed:** 48 (83%)
+- **Features:** 8 (F003, F004, F005, F006, F007, F008, F010, F011)
+
+## [0.4.0-rc] - 2026-01-25
 
 ### Added - Feature F003: Two-Stage Review (5 workstreams)
 - Peer review skill with 17-point quality checklist

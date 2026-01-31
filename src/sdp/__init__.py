@@ -34,6 +34,24 @@ from sdp.core import (
     parse_workstream,
 )
 
+# Error framework
+from sdp.errors import (
+    ArtifactValidationError,
+    BeadsNotFoundError,
+    BuildValidationError,
+    ConfigurationError,
+    CoverageTooLowError,
+    DependencyNotFoundError,
+    ErrorCategory,
+    HookExecutionError,
+    QualityGateViolationError,
+    SDPError,
+    TestFailureError,
+    WorkstreamValidationError,
+    format_error_for_json,
+    format_error_for_terminal,
+)
+
 __all__ = [
     "__version__",
     # Core types
@@ -58,5 +76,20 @@ __all__ = [
     "get_decision",
     "get_constraint",
     "create_project_map_template",
+    # Error framework
+    "SDPError",
+    "ErrorCategory",
+    "BeadsNotFoundError",
+    "CoverageTooLowError",
+    "QualityGateViolationError",
+    "WorkstreamValidationError",
+    "ConfigurationError",
+    "DependencyNotFoundError",
+    "HookExecutionError",
+    "TestFailureError",
+    "BuildValidationError",
+    "ArtifactValidationError",
+    "format_error_for_terminal",
+    "format_error_for_json",
 ]
 

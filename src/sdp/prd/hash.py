@@ -27,7 +27,7 @@ def calculate_diagrams_hash(project_path: Path) -> str:
     # Collect Python annotations
     for py_file in project_path.rglob("*.py"):
         # Skip common non-source directories
-        if any(skip in str(py_file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules", ".git", "build", "dist"]):
+        if any(skip in str(py_file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules", ".git", "build", "dist"]):  # noqa: E501
             continue
 
         from .parser_python import parse_python_annotations
@@ -37,13 +37,13 @@ def calculate_diagrams_hash(project_path: Path) -> str:
     for ext in ["*.sh", "*.bash", "*.yml", "*.yaml"]:
         for file in project_path.rglob(ext):
             # Skip common non-source directories
-            if any(skip in str(file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules", ".git", "build", "dist"]):
+            if any(skip in str(file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules", ".git", "build", "dist"]):  # noqa: E501
                 continue
 
-            all_steps.extend(parse_directory_bash(file.parent) if file.parent == project_path else [])
+            all_steps.extend(parse_directory_bash(file.parent) if file.parent == project_path else [])  # noqa: E501
 
     # Sort for deterministic hash
-    sorted_steps = sorted(all_steps, key=lambda s: (s.flow_name, s.step_number, str(s.source_file), s.line_number))
+    sorted_steps = sorted(all_steps, key=lambda s: (s.flow_name, s.step_number, str(s.source_file), s.line_number))  # noqa: E501
 
     # Create hash from normalized content
     content = "\n".join(
@@ -113,7 +113,7 @@ def update_stored_hash(project_map_path: Path, new_hash: str) -> None:
         pass
 
 
-def validate_diagrams_freshness(project_path: Path, project_map_name: str = "PROJECT_MAP.md") -> tuple[bool, str | None]:
+def validate_diagrams_freshness(project_path: Path, project_map_name: str = "PROJECT_MAP.md") -> tuple[bool, str | None]:  # noqa: E501
     """Check if diagrams are up-to-date.
 
     Args:

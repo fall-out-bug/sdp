@@ -1,0 +1,49 @@
+# Example quality-gate.toml for Hexagonal Architecture (Ports and Adapters)
+# This configuration focuses on domain independence
+
+[architecture]
+enabled = true
+enforce_layer_separation = true
+
+# Hexagonal architecture: Domain (entities) is at the center
+# Ports (interfaces) define boundaries
+# Adapters implement ports
+allowed_layer_imports = [
+    "domain <- ports",
+    "domain <- adapters",
+    "ports <- adapters",
+]
+
+forbid_violations = [
+    "adapters -> ports",
+    "adapters -> domain",
+    "ports -> domain",
+]
+
+[complexity]
+enabled = true
+# Hexagonal architecture may have slightly higher complexity
+max_cc = 12
+max_average_cc = 6
+
+[file_size]
+enabled = true
+max_lines = 200
+max_imports = 15
+max_functions = 12
+
+[type_hints]
+enabled = true
+require_return_types = true
+require_param_types = true
+strict_mode = true
+
+[error_handling]
+enabled = true
+forbid_bare_except = true
+forbid_pass_with_except = true
+
+[coverage]
+enabled = true
+minimum = 85
+fail_under = 85

@@ -1,150 +1,81 @@
 ---
 name: debug
-description: Systematic 4-phase debugging process using scientific method for evidence-based root cause analysis
-tools: Read, Write, Edit, Bash, Glob, Grep
+description: Systematic debugging using scientific method for evidence-based root cause analysis
+tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
 # /debug - Systematic Debugging
 
-Systematic 4-phase root cause analysis using scientific method.
+Evidence-based debugging using scientific method. Not "try stuff and see" -- systematic investigation.
 
 ## When to Use
 
-- You have a specific bug to fix
-- You need evidence-based debugging (not trial-and-error)
-- You want to follow systematic process
-- You need to prevent infinite fix loops
+- Tests failing unexpectedly
+- Production incidents
+- Bug reports with unclear cause
+- Performance degradation
+- Integration failures
 
-## Invocation
+## The 4-Phase Method
 
-```bash
-/debug "Description of the issue"
-# Example: /debug "API returns 500 on /submissions endpoint"
-```
+### Phase 1: OBSERVE - Gather Facts
 
-## Workflow
+**Goal:** Collect evidence WITHOUT forming hypotheses
 
-**IMPORTANT:** This skill delegates to the master prompt.
+**Actions:**
+- Read error messages/logs completely
+- Check git diff for recent changes
+- Verify environment (Python version, dependencies)
+- Check configuration files
+- Reproduce the bug consistently
 
-### Load Master Prompt
+**Output:** Observation log with timestamps, error messages, environment state
 
-First, read the systematic debugging protocol:
+### Phase 2: HYPOTHESIZE - Form Theories
 
-```bash
-cat prompts/skills/systematic-debugging.md
-```
+**Goal:** Create testable theories about root cause
 
-**This file contains:**
-- 4-phase debugging process (Evidence → Pattern → Hypothesis → Implementation)
-- Evidence collection checklist
-- Pattern analysis techniques
-- Hypothesis testing protocol
-- Root-cause tracing method
-- Failsafe rule (3 strikes → stop, question architecture)
+**Process:**
+1. List ALL possible causes (brainstorm)
+2. Rank by likelihood (use evidence)
+3. Select TOP theory to test first
+4. Define falsification test
 
-### Execute 4 Phases
+**Output:** Hypothesis list with ranked theories
 
-Follow the systematic debugging process from the master prompt:
+### Phase 3: EXPERIMENT - Test Theories
 
-#### Phase 1: Evidence Collection
-- Collect error messages
-- Document reproduction steps
-- Check recent changes
-- Capture environment state
+**Goal:** Run targeted tests to confirm/deny hypotheses
 
-#### Phase 2: Pattern Analysis
-- Find working examples
-- Compare working vs. broken
-- Identify patterns
+**Actions:**
+- Design minimal experiment
+- Run ONLY the experiment
+- Record result objectively
+- Move to next hypothesis if denied
 
-#### Phase 3: Hypothesis Testing
-- Form ONE hypothesis
-- Design minimal test
-- Execute test
-- Record result (PASS/FAIL)
+**Output:** Experiment results with pass/fail
 
-#### Phase 4: Implementation
-- Write failing test first
+### Phase 4: CONFIRM - Verify Root Cause
+
+**Goal:** Confirm root cause and verify fix
+
+**Actions:**
+- Reproduce bug with root cause isolated
 - Implement minimal fix
-- Verify fix (unit + regression + integration)
-- Document root cause
+- Verify fix resolves issue
+- Add regression test
 
-### Failsafe Rule
+**Output:** Root cause report + fix
 
-**After 3 failed fix attempts → STOP, escalate to architecture review**
+## Common Pitfalls
 
-Do NOT continue debugging. Create architecture WS instead.
+- **Skipping observation** -> jumping to conclusions
+- **Testing multiple things at once** -> can't isolate cause
+- **Confirmation bias** -> only looking for evidence that proves theory
+- **Stopping at first fix** -> not understanding WHY it worked
 
-## Output Format
+## Exit When
 
-```markdown
-# Debug Session: [Issue Description]
-
-## Phase 1: Evidence Collection
-
-**Error Messages:**
-```
-[Error logs]
-```
-
-**Reproduction Steps:**
-1. [Step 1]
-2. [Step 2]
-
-**Recent Changes:**
-- [File 1]: [Change]
-
-**Environment:**
-- Python: [version]
-- OS: [version]
-
-## Phase 2: Pattern Analysis
-
-**Working Examples:**
-- [Example 1]
-
-**Comparison:**
-| Aspect | Working | Broken | Difference |
-|--------|---------|--------|------------|
-| [Aspect] | [value] | [value] | [diff] |
-
-## Phase 3: Hypothesis Testing
-
-**Hypothesis #1:** [Clear statement]
-
-**Test:**
-```python
-[Minimal test code]
-```
-
-**Result:** PASS / FAIL
-
-## Phase 4: Implementation
-
-**Failing Test:**
-```python
-def test_fix():
-    # Reproduce bug
-    assert broken_function() == expected  # Fails initially
-```
-
-**Fix:**
-```python
-def broken_function():
-    # Minimal fix
-    pass
-```
-
-**Verification:**
-- Unit test: ✅ PASS
-- Regression: ✅ PASS
-- Integration: ✅ PASS
-
-**Root Cause:** [Clear explanation]
-```
-
-## Related Commands
-
-- `/issue` - For full issue analysis (severity, routing, GitHub)
-- `/hotfix` - For P0 production fixes
-- `/bugfix` - For P1/P2 feature bugs
+- Root cause identified
+- Fix implemented and verified
+- Regression test added

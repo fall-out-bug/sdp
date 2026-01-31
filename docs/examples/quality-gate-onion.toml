@@ -1,0 +1,60 @@
+# Example quality-gate.toml for Onion Architecture
+# This configuration enforces strict dependency inversion
+
+[architecture]
+enabled = true
+enforce_layer_separation = true
+
+# Onion architecture: Domain -> Application -> Infrastructure -> UI
+# Dependencies point inward
+allowed_layer_imports = [
+    "domain <- application",
+    "domain <- infrastructure",
+    "domain <- ui",
+    "application <- infrastructure",
+    "application <- ui",
+]
+
+forbid_violations = [
+    "infrastructure -> application",
+    "infrastructure -> domain",
+    "ui -> infrastructure",
+    "ui -> application",
+    "ui -> domain",
+]
+
+[complexity]
+enabled = true
+max_cc = 10
+max_average_cc = 5
+
+[file_size]
+enabled = true
+max_lines = 180
+max_imports = 15
+max_functions = 10
+
+[type_hints]
+enabled = true
+require_return_types = true
+require_param_types = true
+strict_mode = true
+allow_implicit_any = false
+
+[error_handling]
+enabled = true
+forbid_bare_except = true
+forbid_bare_raise = true
+forbid_pass_with_except = true
+
+[coverage]
+enabled = true
+minimum = 90
+fail_under = 90
+
+[documentation]
+enabled = true
+require_docstrings = false
+require_module_docstrings = true
+require_class_docstrings = true
+require_function_docstrings = false

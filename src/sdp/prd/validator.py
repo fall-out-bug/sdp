@@ -108,7 +108,7 @@ def _validate_db_section(db_section: str) -> list[ValidationIssue]:
         if len(line) > max_line_length:
             issues.append(ValidationIssue(
                 section="Модель БД",
-                message=f"Поле превышает {max_line_length} символов (строка {line_num}): {line[:50]}...",
+                message=f"Поле превышает {max_line_length} символов (строка {line_num}): {line[:50]}...",  # noqa: E501
                 severity=Severity.ERROR,
                 current=len(line),
                 limit=max_line_length

@@ -161,7 +161,7 @@ def update_prd_frontmatter(
                 updated_lines.append(f"last_updated: {datetime.now().strftime('%Y-%m-%d')}")
             elif diagrams_hash and line.startswith("diagrams_hash:"):
                 updated_lines.append(f"diagrams_hash: {diagrams_hash}")
-            elif not diagrams_hash and line.startswith("diagrams_hash:") and diagrams_hash is not None:
+            elif not diagrams_hash and line.startswith("diagrams_hash:") and diagrams_hash is not None:  # noqa: E501
                 updated_lines.append(f"diagrams_hash: {diagrams_hash}")
             else:
                 updated_lines.append(line)

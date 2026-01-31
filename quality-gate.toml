@@ -1,0 +1,98 @@
+# SDP Quality Gate Configuration
+# Version: 1.0.0
+# This file defines quality thresholds for code validation
+
+[coverage]
+# Test coverage requirements
+enabled = true
+minimum = 80
+fail_under = 80
+exclude_patterns = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/migrations/*"
+]
+
+[complexity]
+# Cyclomatic complexity limits
+enabled = true
+max_cc = 10
+max_average_cc = 5
+
+[file_size]
+# File size limits (lines of code)
+enabled = true
+max_lines = 200
+max_imports = 20
+max_functions = 15
+
+[type_hints]
+# Type hinting requirements
+enabled = true
+require_return_types = true
+require_param_types = true
+strict_mode = true
+allow_implicit_any = false
+
+[error_handling]
+# Error handling patterns
+enabled = true
+forbid_bare_except = true
+forbid_bare_raise = true
+forbid_pass_with_except = true
+require_explicit_errors = true
+
+[architecture]
+# Clean architecture boundaries
+enabled = true
+enforce_layer_separation = true
+forbid_violations = [
+    # Clean architecture: inner layers cannot import from outer layers
+    "domain -> application",
+    "domain -> infrastructure",
+    "domain -> presentation",
+    "application -> infrastructure",
+    "application -> presentation",
+    "infrastructure -> presentation"
+]
+
+[documentation]
+# Documentation requirements
+enabled = true
+require_docstrings = false
+min_docstring_coverage = 0.5
+require_module_docstrings = true
+require_class_docstrings = false
+require_function_docstrings = false
+
+[testing]
+# Test quality requirements
+enabled = true
+require_test_for_new_code = true
+min_test_to_code_ratio = 0.8
+require_fast_marker = true
+forbid_print_statements = true
+
+[naming]
+# Naming conventions
+enabled = true
+enforce_pep8 = true
+allow_single_letter = false
+min_variable_name_length = 3
+max_variable_name_length = 50
+
+[security]
+# Security checks
+enabled = true
+forbid_hardcoded_secrets = true
+forbid_sql_injection_patterns = true
+forbid_eval_usage = true
+require_https_urls = true
+
+[performance]
+# Performance checks
+enabled = true
+forbid_sql_queries_in_loops = true
+max_nesting_depth = 5
+warn_large_string_concatenation = true

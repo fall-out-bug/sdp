@@ -1,0 +1,158 @@
+name: Quality Warnings
+
+on:
+  pull_request:
+    branches: [main, dev]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  warnings:
+    name: Quality Warnings (Non-Blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+          pip install radon
+
+      - name: Check file sizes
+        id: filesize
+        run: |
+          python3 scripts/check_file_size.py --json > filesize.json || true
+          echo "count=$(jq '.count // 0' filesize.json)" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Check complexity
+        id: complexity
+        run: |
+          poetry run radon cc src/sdp -a -j > complexity.json || true
+          if [ -s complexity.json ]; then
+            avg=$(jq '[.[] | .complexity] | add / length' complexity.json 2>/dev/null || echo "0")
+            echo "avg=$avg" >> $GITHUB_OUTPUT
+          else
+            echo "avg=0" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Check ruff warnings
+        id: ruff_warn
+        run: |
+          poetry run ruff check src/sdp --select=W --output-format=json > ruff_warnings.json || true
+          if [ -s ruff_warnings.json ]; then
+            echo "count=$(jq 'length' ruff_warnings.json)" >> $GITHUB_OUTPUT
+          else
+            echo "count=0" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Comment PR with warnings
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let warnings = [];
+            
+            // File size warnings
+            if (fs.existsSync('filesize.json')) {
+              try {
+                const data = JSON.parse(fs.readFileSync('filesize.json', 'utf8'));
+                if (data.violations && data.violations.length > 0) {
+                  warnings.push(`### 📁 File Size Warnings\n`);
+                  data.violations.slice(0, 5).forEach(v => {
+                    warnings.push(`- \`${v.file}\`: ${v.lines} lines (max 200)`);
+                  });
+                  if (data.violations.length > 5) {
+                    warnings.push(`- ... and ${data.violations.length - 5} more`);
+                  }
+                  warnings.push('');
+                }
+              } catch (e) {
+                console.log('Error parsing filesize.json:', e.message);
+              }
+            }
+            
+            // Complexity warnings
+            const avgComplexity = '${{ steps.complexity.outputs.avg }}';
+            if (avgComplexity && parseFloat(avgComplexity) > 7) {
+              warnings.push(`### 🔄 Complexity Warning\n`);
+              warnings.push(`Average cyclomatic complexity: ${parseFloat(avgComplexity).toFixed(2)} (target: <7)`);
+              warnings.push('');
+            }
+            
+            // Ruff warnings
+            if (fs.existsSync('ruff_warnings.json')) {
+              try {
+                const data = JSON.parse(fs.readFileSync('ruff_warnings.json', 'utf8'));
+                if (Array.isArray(data) && data.length > 0) {
+                  warnings.push(`### ⚠️ Style Warnings (${data.length})\n`);
+                  data.slice(0, 5).forEach(w => {
+                    warnings.push(`- \`${w.filename}:${w.location.row}\`: ${w.message}`);
+                  });
+                  if (data.length > 5) {
+                    warnings.push(`- ... and ${data.length - 5} more`);
+                  }
+                  warnings.push('');
+                }
+              } catch (e) {
+                console.log('Error parsing ruff_warnings.json:', e.message);
+              }
+            }
+            
+            if (warnings.length === 0) {
+              console.log('✅ No warnings to report');
+              return;
+            }
+            
+            const body = `## ⚠️ Quality Warnings (Non-Blocking)
+            
+            These are suggestions for improvement. They don't block merge.
+            
+            ${warnings.join('\n')}
+            
+            ---
+            *Consider fixing these in a follow-up PR.*`;
+            
+            // Find existing warning comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existing = comments.find(c => 
+              c.body && c.body.includes('Quality Warnings (Non-Blocking)')
+            );
+            
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }

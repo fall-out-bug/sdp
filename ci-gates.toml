@@ -1,0 +1,26 @@
+# CI Quality Gates Configuration
+
+[critical]
+# These BLOCK PR merge
+
+tests_pass = true
+coverage_threshold = 80
+mypy_strict = true
+ruff_errors = true
+
+[warning]
+# These COMMENT but don't block
+
+file_size_loc = 200
+complexity_cc = 10
+ruff_warnings = true
+
+[thresholds]
+# Numeric thresholds
+
+coverage_min = 80
+coverage_warn = 85
+complexity_max = 10
+complexity_warn = 7
+file_size_max = 200
+file_size_warn = 150

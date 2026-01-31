@@ -176,7 +176,14 @@ def parse_workstream(file_path: Path) -> Workstream:
     content = file_path.read_text(encoding="utf-8")
     frontmatter = _extract_frontmatter(content)
 
-    ws_id: str = str(frontmatter["ws_id"])
+    # Validate ws_id format using WorkstreamID parser
+    ws_id_raw: str = str(frontmatter["ws_id"])
+    try:
+        parsed_ws_id = WorkstreamID.parse(ws_id_raw)
+        ws_id: str = str(parsed_ws_id)  # Use normalized format
+    except ValueError as e:
+        raise WorkstreamParseError(f"Invalid ws_id format: {e}") from e
+
     feature: str = str(frontmatter["feature"])
     status_str: str = str(frontmatter["status"])
     size_str: str = str(frontmatter["size"])
@@ -207,6 +214,13 @@ def parse_workstream(file_path: Path) -> Workstream:
     context = _extract_section(body, "Context")
     criteria = _extract_acceptance_criteria(body)
     deps = _extract_dependencies(body)
+    # Merge with frontmatter depends_on (PP-FFF-SS or ws_id format)
+    fm_deps = frontmatter.get("depends_on")
+    if fm_deps:
+        for d in fm_deps if isinstance(fm_deps, list) else [fm_deps]:
+            dep_id = str(d).strip()
+            if dep_id and dep_id not in deps:
+                deps.append(dep_id)
     steps = _extract_steps(body)
     code_blocks = _extract_code_blocks(body)
 
@@ -302,7 +316,8 @@ def _extract_dependencies(body: str) -> list[str]:
     dep_section = _extract_section(body, "Dependencies")
     if not dep_section or dep_section.lower() in ("none", ""):
         return []
-    pattern = r"WS-\d+-\d+"
+    # Support PP-FFF-SS (00-032-18) and legacy WS-FFF-SS formats
+    pattern = r"(?:\d{2}-\d{3}-\d{2}|WS-\d+-\d+)"
     return re.findall(pattern, dep_section)
 
 

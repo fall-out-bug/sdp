@@ -1,0 +1,22 @@
+{
+  "problem": "SDP lacks structured AI-human communication patterns: no unified entry point, no machine-readable intent, workstreams lack execution metadata, no TDD enforcement, no systematic debugging, no deep thinking framework.",
+  "users": ["end_users", "developers"],
+  "success_criteria": [
+    {"criterion": "Time to running code", "measurement": "Less than 1 hour"},
+    {"criterion": "Onboarding time", "measurement": "Less than 30 min to first WS"},
+    {"criterion": "Intent coverage", "measurement": "100% of features have intent.json"},
+    {"criterion": "WS metadata", "measurement": "100% of WS have execution graphs"}
+  ],
+  "tradeoffs": {
+    "security": "accept",
+    "performance": "prioritize",
+    "complexity": "accept",
+    "time_to_market": "prioritize"
+  },
+  "technical_approach": {
+    "architecture": "event_driven",
+    "storage": "file_system",
+    "failure_mode": "graceful_degradation",
+    "auth_method": "none"
+  }
+}

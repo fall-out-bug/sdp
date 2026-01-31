@@ -16,6 +16,17 @@ fi
 echo "🔍 Post-build checks for $WS_ID"
 echo "================================"
 
+# Get repository root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+# Load quality gate configuration
+if [ -f "quality-gate.toml" ]; then
+    echo "✓ Using quality-gate.toml"
+else
+    echo "⚠️ quality-gate.toml not found, using defaults"
+fi
+
 cd tools/hw_checker
 
 # Check 1: Fast tests (regression)
@@ -44,14 +55,37 @@ fi
 if poetry run ruff check "$LINT_PATH" --quiet 2>/dev/null; then
     echo "✓ Ruff: no issues"
 else
-    echo "⚠️ Ruff found issues (run: ruff check $LINT_PATH)"
+    echo "❌ Ruff found issues"
+    echo ""
+    echo "Fix: Run 'poetry run ruff check $LINT_PATH' and fix violations"
+    echo "Or auto-fix: poetry run ruff check $LINT_PATH --fix"
+    exit 1
 fi
 
-# Mypy (optional, soft fail)
+# Mypy (strict type checking)
 if poetry run mypy "$LINT_PATH" --ignore-missing-imports --no-error-summary 2>/dev/null; then
     echo "✓ Mypy: no issues"
 else
-    echo "⚠️ Mypy found issues (run: mypy $LINT_PATH)"
+    echo "❌ Mypy found type errors"
+    echo ""
+    echo "Fix: Add missing type hints and fix type errors"
+    echo "Run: poetry run mypy $LINT_PATH --ignore-missing-imports"
+    exit 1
+fi
+
+# Check 2b: Complexity (Radon)
+echo ""
+echo "Check 2b: Complexity (Radon)"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+if [ -f "$REPO_ROOT/scripts/check_complexity.sh" ]; then
+    if "$REPO_ROOT/scripts/check_complexity.sh" "$LINT_PATH"; then
+        echo "✓ Complexity check passed"
+    else
+        # Script already output error and exit
+        exit 1
+    fi
+else
+    echo "  Skipped (check_complexity.sh not found)"
 fi
 
 # Check 3: TODO/FIXME
@@ -79,8 +113,14 @@ LARGE_FILES=$(find "$TODO_PATH" -name "*.py" -exec wc -l {} \; 2>/dev/null | awk
 if [ -z "$LARGE_FILES" ]; then
     echo "✓ All files < 200 LOC"
 else
-    echo "⚠️ Large files found:"
+    echo "❌ Large files found (quality gate: max 200 LOC)"
     echo "$LARGE_FILES"
+    echo ""
+    echo "Fix: Split large files into smaller modules:"
+    echo "  - Keep each file under 200 lines"
+    echo "  - Extract related functions into separate modules"
+    echo "  - Follow Single Responsibility Principle"
+    exit 1
 fi
 
 # Check 5: Import check
@@ -91,7 +131,11 @@ if [ -n "$MODULE" ]; then
     if python -c "import $IMPORT_PATH" 2>/dev/null; then
         echo "✓ Module imports successfully"
     else
-        echo "⚠️ Module import failed (run: python -c 'import $IMPORT_PATH')"
+        echo "❌ Module import failed"
+        echo ""
+        echo "Fix: Check for circular dependencies or missing imports"
+        echo "Run: python -c 'import $IMPORT_PATH'"
+        exit 1
     fi
 else
     echo "  Skipped (no module specified)"
@@ -99,7 +143,7 @@ fi
 
 # Check 6: Coverage (if tests exist for module)
 echo ""
-echo "Check 6: Coverage"
+echo "Check 6: Coverage (≥80% required)"
 if [ -n "$MODULE" ]; then
     TEST_FILE="tests/unit/test_${MODULE}.py"
     if [ -f "$TEST_FILE" ]; then
@@ -108,8 +152,13 @@ if [ -n "$MODULE" ]; then
             COV_PCT=$(echo "$COV_RESULT" | grep -oE "[0-9]+%" | head -1 || echo "N/A")
             echo "✓ Coverage: $COV_PCT (≥80%)"
         else
-            echo "⚠️ Coverage check failed"
-            echo "   Run: pytest $TEST_FILE --cov=hw_checker/$MODULE --cov-fail-under=80"
+            echo "❌ Coverage check failed (quality gate: ≥80%)"
+            echo ""
+            echo "Fix: Add tests to reach 80% coverage"
+            echo "Run: pytest $TEST_FILE --cov=hw_checker/$MODULE --cov-report=term-missing"
+            echo ""
+            echo "Coverage report shows missing lines - add tests for those paths"
+            exit 1
         fi
     else
         echo "  Skipped (no test file: $TEST_FILE)"
@@ -183,7 +232,7 @@ else
     fi
 fi
 
-# Check 10: GitHub sync (optional, warning only)
+# Check 10: GitHub sync (required if GITHUB_TOKEN set)
 echo ""
 echo "Check 10: GitHub sync"
 if [ -z "$GITHUB_TOKEN" ]; then
@@ -192,10 +241,13 @@ else
     ISSUE_NUM=$(grep -oP 'github_issue:\s*\K\d+' "$WS_FILE" 2>/dev/null || echo "")
     if [ -n "$ISSUE_NUM" ] && [ "$ISSUE_NUM" != "null" ]; then
         echo "✓ GitHub issue linked: #$ISSUE_NUM"
-        echo "  Reminder: Update issue status if needed"
+        echo "  Reminder: Update issue status after completing work"
     else
-        echo "⚠️ No GitHub issue linked (github_issue: null)"
-        echo "  Consider syncing: sdp-github sync $WS_FILE"
+        echo "❌ No GitHub issue linked (github_issue: null)"
+        echo ""
+        echo "Fix: Sync WS file with GitHub"
+        echo "Run: sdp-github sync $WS_FILE"
+        exit 1
     fi
 fi
 

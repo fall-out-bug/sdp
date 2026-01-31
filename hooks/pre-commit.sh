@@ -8,6 +8,10 @@ set -e
 echo "🔍 Pre-commit checks"
 echo "===================="
 
+# Get repository root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
 # Get list of staged files
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
 
@@ -21,8 +25,13 @@ echo ""
 echo "Check 0: Branch check"
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-    echo "⚠️ Warning: Committing directly to $CURRENT_BRANCH"
-    echo "  Consider using a feature branch: git checkout -b feature/{slug}"
+    echo "❌ Committing directly to $CURRENT_BRANCH"
+    echo ""
+    echo "Fix: Create a feature branch first:"
+    echo "  git checkout -b feature/{slug}"
+    echo "  # Make changes and commit"
+    echo "  # Then create PR to merge to main"
+    exit 1
 fi
 echo "✓ Branch: $CURRENT_BRANCH"
 
@@ -51,7 +60,7 @@ fi
 echo ""
 echo "Check 1b: Workstreams layout"
 if echo "$STAGED_FILES" | grep -q "workstreams/"; then
-    if ! python3 sdp/scripts/check_workstreams_layout.py; then
+    if ! python3 scripts/check_workstreams_layout.py; then
         exit 1
     fi
 else
@@ -103,8 +112,12 @@ if [ -n "$PY_FILES" ]; then
     # Check for pass in except
     EXCEPT_PASS=$(git diff --cached -- $PY_FILES | grep -A1 "^\+.*except" | grep "^\+.*pass$" || true)
     if [ -n "$EXCEPT_PASS" ]; then
-        echo "⚠️ Warning: except: pass found"
-        echo "Consider logging the exception."
+        echo "❌ except: pass found"
+        echo "$EXCEPT_PASS"
+        echo ""
+        echo "Fix: Handle the exception explicitly (log, raise, or return)."
+        echo "See: https://docs.python.org/3/tutorial/errors.html#handling-exceptions"
+        exit 1
     fi
     
     echo "✓ Python checks passed"
@@ -112,23 +125,52 @@ else
     echo "  No Python files staged"
 fi
 
-# Check 4: Clean Architecture (domain imports)
+# Check 3b: Quality Gates (security, documentation, performance)
 echo ""
-echo "Check 4: Clean Architecture"
-DOMAIN_FILES=$(echo "$STAGED_FILES" | grep "domain/.*\.py$" || true)
+echo "Check 3b: Quality Gates (security, documentation, performance)"
 
-if [ -n "$DOMAIN_FILES" ]; then
-    BAD_IMPORTS=$(git diff --cached -- $DOMAIN_FILES | grep -E "^\+.*from hw_checker\.(infrastructure|presentation)" || true)
-    if [ -n "$BAD_IMPORTS" ]; then
-        echo "❌ Domain layer importing from infrastructure/presentation:"
-        echo "$BAD_IMPORTS"
+# Only check src/ Python files (avoid dependencies issues)
+SRC_PY_FILES=$(echo "$STAGED_FILES" | grep "src/.*\.py$" || true)
+
+if [ -n "$SRC_PY_FILES" ]; then
+    if ! python3 scripts/check_quality_gates.py --staged; then
         echo ""
-        echo "Domain layer should not depend on outer layers."
+        echo "❌ Quality gate validation failed"
+        echo "Configure rules in quality-gate.toml"
         exit 1
     fi
-    echo "✓ Clean Architecture respected"
 else
-    echo "  No domain files staged"
+    echo "  No src/ Python files staged"
+fi
+
+# Check 4: Clean Architecture (portable Python module)
+echo ""
+echo "Check 4: Clean Architecture"
+
+# Use Python module for architecture checking (reads from quality-gate.toml)
+ARCH_VIOLATIONS=0
+
+# Find all staged Python files
+PY_FILES=$(echo "$STAGED_FILES" | grep "\.py$" || true)
+
+if [ -n "$PY_FILES" ]; then
+    # Create temp file with list of files
+    TEMP_FILE=$(mktemp)
+    echo "$PY_FILES" > "$TEMP_FILE"
+
+    # Run architecture checker
+    if ! python3 scripts/check_architecture.py --staged 2>&1; then
+        ARCH_VIOLATIONS=1
+    fi
+
+    rm -f "$TEMP_FILE"
+fi
+
+if [ $ARCH_VIOLATIONS -eq 1 ]; then
+    echo ""
+    echo "Architecture violations detected."
+    echo "Configure rules in quality-gate.toml [architecture] section."
+    exit 1
 fi
 
 # Check 5: WS file format (if creating new WS)

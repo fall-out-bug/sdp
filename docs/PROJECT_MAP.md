@@ -1,7 +1,7 @@
 ---
 project_type: cli
 prd_version: "2.0"
-last_updated: 2026-01-25
+last_updated: 2026-01-26
 diagrams_hash: sdp-prd-v1
 ---
 

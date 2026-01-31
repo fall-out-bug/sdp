@@ -1,0 +1,163 @@
+name: SDP Quality Gate
+
+on:
+  pull_request:
+    branches: [main, dev]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'poetry'
+
+      - name: Setup Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+
+      - name: Run pytest with coverage
+        id: pytest
+        run: |
+          poetry run pytest --cov=src/sdp --cov-report=term --cov-report=json --cov-report=xml
+        continue-on-error: true
+
+      - name: Check coverage threshold
+        id: coverage
+        run: |
+          coverage=$(poetry run python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered'])")
+          echo "coverage=$coverage" >> $GITHUB_OUTPUT
+          if (( $(echo "$coverage < 80.0" | bc -l) )); then
+            echo "Coverage ${coverage}% is below 80% threshold"
+            exit 1
+          fi
+          echo "Coverage ${coverage}% meets threshold"
+        continue-on-error: true
+
+      - name: Run mypy strict type checking
+        id: mypy
+        run: |
+          poetry run mypy --strict src/sdp
+        continue-on-error: true
+
+      - name: Run ruff linter
+        id: ruff
+        run: |
+          poetry run ruff check src/sdp
+        continue-on-error: true
+
+      - name: Run radon complexity check
+        id: radon
+        run: |
+          poetry run radon cc src/sdp -a -nb --total-average
+          # Exit with error if average complexity > 10
+          poetry run radon cc src/sdp -a -nb --total-average | grep -q "Average: .*" && \
+            avg=$(poetry run radon cc src/sdp -a -nb --total-average | grep "Average" | awk '{print $2}') && \
+            if (( $(echo "$avg > 10" | bc -l) )); then
+              echo "Average complexity $avg exceeds 10"
+              exit 1
+            fi
+        continue-on-error: true
+
+      - name: Check file size limits
+        id: filesize
+        run: |
+          poetry run python scripts/check_file_size.py
+        continue-on-error: true
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const results = [];
+            let status = '✅';
+
+            // Coverage
+            ${{ steps.coverage.outputs.coverage }} && results.push(
+              `### Coverage\n${{ steps.coverage.outcome === 'success' ? '✅' : '❌' }} ${{ steps.coverage.outputs.coverage }}% (required: ≥80%)`
+            );
+
+            // mypy
+            ${{ steps.mypy.outcome }} && results.push(
+              `### Type Checking (mypy)\n${{ steps.mypy.outcome === 'success' ? '✅' : '❌' }} ${{ steps.mypy.outcome === 'success' ? 'Passed' : 'Failed' }}`
+            );
+
+            // ruff
+            ${{ steps.ruff.outcome }} && results.push(
+              `### Linting (ruff)\n${{ steps.ruff.outcome === 'success' ? '✅' : '❌' }} ${{ steps.ruff.outcome === 'success' ? 'Passed' : 'Failed' }}`
+            );
+
+            // radon
+            ${{ steps.radon.outcome }} && results.push(
+              `### Complexity (radon)\n${{ steps.radon.outcome === 'success' ? '✅' : '❌' }} ${{ steps.radon.outcome === 'success' ? 'Passed' : 'Failed' }} (max CC: 10)`
+            );
+
+            // file size
+            ${{ steps.filesize.outcome }} && results.push(
+              `### File Size\n${{ steps.filesize.outcome === 'success' ? '✅' : '❌' }} ${{ steps.filesize.outcome === 'success' ? 'Passed' : 'Failed' }} (max: 200 LOC)`
+            );
+
+            // Determine overall status
+            if (${{
+              steps.coverage.outcome !== 'success' ||
+              steps.mypy.outcome !== 'success' ||
+              steps.ruff.outcome !== 'success' ||
+              steps.radon.outcome !== 'success' ||
+              steps.filesize.outcome !== 'success'
+            }}) {
+              status = '❌';
+            }
+
+            const body = `## SDP Quality Gate Results ${status}\n\n${results.join('\n\n')}`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('SDP Quality Gate Results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Fail if any gate failed
+        if: |
+          steps.coverage.outcome != 'success' ||
+          steps.mypy.outcome != 'success' ||
+          steps.ruff.outcome != 'success' ||
+          steps.radon.outcome != 'success' ||
+          steps.filesize.outcome != 'success'
+        run: exit 1

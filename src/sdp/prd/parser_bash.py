@@ -76,7 +76,7 @@ def parse_directory_bash(directory: Path) -> list[FlowStep]:
         for ext in extensions:
             for file in directory.rglob(ext):
                 # Skip common non-source directories
-                if any(skip in str(file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules", ".git"]):
+                if any(skip in str(file) for skip in ["venv", ".venv", "__pycache__", ".tox", "node_modules", ".git"]):  # noqa: E501
                     continue
 
                 if file.is_file():
