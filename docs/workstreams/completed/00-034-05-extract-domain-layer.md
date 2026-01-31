@@ -1,7 +1,7 @@
 ---
 ws_id: 00-034-05
 feature: F034
-status: COMPLETED
+status: completed
 complexity: MEDIUM
 project_id: "00"
 depends_on:

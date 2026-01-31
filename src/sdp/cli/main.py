@@ -88,9 +88,6 @@ try:
 except ImportError:
     status = None
 
-# Import extension commands (deprecated, will be removed)
-_extension_available: bool = False
-
 _init_available: bool = False
 try:
     from sdp.cli_init import init  # noqa: E402
@@ -163,10 +160,6 @@ if skill:
 # Add status command
 if status:
     main.add_command(status)
-
-# Add extension commands
-if _extension_available:
-    main.add_command(extension)
 
 # Add init command
 if _init_available:

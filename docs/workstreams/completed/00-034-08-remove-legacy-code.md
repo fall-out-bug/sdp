@@ -1,7 +1,7 @@
 ---
 ws_id: 00-034-08
 feature: F034
-status: READY
+status: completed
 complexity: SMALL
 project_id: "00"
 ---

@@ -5,7 +5,12 @@ This module provides backward compatibility by re-exporting from the supersede p
 
 import warnings
 
-from sdp.validators.supersede import SupersedeChain, SupersedeResult, SupersedeValidator, ValidationReport
+from sdp.validators.supersede import (
+    SupersedeChain,
+    SupersedeResult,
+    SupersedeValidator,
+    ValidationReport,
+)
 
 warnings.warn(
     "sdp.validators.supersede_checker module is deprecated. "

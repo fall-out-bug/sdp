@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 from ..client import BeadsClient
 from ..models import BeadsDependency, BeadsDependencyType, BeadsSyncResult, BeadsTaskCreate
-from .mapping import BeadsSyncError, MappingManager
+from .mapping import MappingManager
 from .status_mapper import (
     SDP_STATUS_BACKLOG,
     map_beads_status_to_sdp,
