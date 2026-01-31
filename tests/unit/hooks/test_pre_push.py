@@ -37,6 +37,27 @@ def test_main_skips_when_no_py_files() -> None:
     assert exit_code == 0
 
 
+def test_main_coverage_check_branch() -> None:
+    """main() runs coverage check when .coverage exists."""
+    from sdp.hooks.pre_push import main
+
+    repo = Path(__file__).resolve().parents[3]
+    (repo / ".coverage").touch()
+    try:
+        with patch("sdp.hooks.pre_push._repo_root") as m_root:
+            m_root.return_value = repo
+            with patch("sdp.hooks.pre_push._files_to_push") as m_files:
+                m_files.return_value = ["src/foo.py"]
+                with patch("subprocess.run") as m_run:
+                    m_run.return_value = MagicMock(
+                        returncode=0, stdout="TOTAL 100 85 85%"
+                    )
+                    exit_code = main()
+        assert exit_code == 0
+    finally:
+        (repo / ".coverage").unlink(missing_ok=True)
+
+
 def test_main_runs_tests_when_py_files() -> None:
     """main() runs pytest when Python files to push."""
     from sdp.hooks.pre_push import main

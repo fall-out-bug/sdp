@@ -168,7 +168,7 @@ def test_staged_files_returns_list() -> None:
     assert "README.md" in files
 
 
-def testrun_script_returns_success_when_exists() -> None:
+def test_run_script_returns_success_when_exists() -> None:
     """run_script returns (True, output) when script succeeds."""
     repo = Path(__file__).resolve().parents[3]
     script = "scripts/check_workstreams_layout.py"
@@ -179,7 +179,7 @@ def testrun_script_returns_success_when_exists() -> None:
     assert "ok" in out
 
 
-def testrun_script_skips_when_not_exists() -> None:
+def test_run_script_skips_when_not_exists() -> None:
     """run_script returns (True, msg) when script not found."""
     ok, out = run_script(Path("/tmp"), "nonexistent/script.py", [])
     assert ok is True
