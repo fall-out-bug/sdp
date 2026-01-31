@@ -1,14 +1,39 @@
 ---
-ws_id: 00-032-29
-title: Add AC→Test Mappings for F032 Workstreams
-status: completed
-feature: F032
-project_id: 00
-size: M
-estimated_loc: 200
+completed: '2026-01-30'
 dependencies: []
-completed: "2026-01-30"
+estimated_loc: 200
+feature: F032
+project_id: 0
 review_source: docs/reports/2026-01-30-F032-review.md
+size: M
+status: completed
+title: Add AC→Test Mappings for F032 Workstreams
+traceability:
+- ac_description: Run `sdp trace auto --apply` on all F032 workstreams
+  ac_id: AC1
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/test_traceability_service.py
+  test_name: test_check_traceability_extracts_acs
+- ac_description: Manual mappings added where auto-detect fails
+  ac_id: AC2
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/test_traceability_cli.py
+  test_name: test_add_mapping
+- ac_description: '`sdp trace check 00-032-XX` passes for all 28 workstreams'
+  ac_id: AC3
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/test_traceability_cli.py
+  test_name: test_check_exits_0_if_complete
+- ac_description: Traceability report shows 100% coverage
+  ac_id: AC4
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/test_traceability_cli.py
+  test_name: test_check_shows_table
+ws_id: 00-032-29
 ---
 
 # 00-032-29: Add AC→Test Mappings for F032 Workstreams

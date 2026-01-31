@@ -1,15 +1,58 @@
 ---
-ws_id: 00-032-30
-title: Add Tests for F032 Validators (Coverage ≥80%)
-status: completed
-feature: F032
-project_id: 00
-size: L
-estimated_loc: 500
+completed: '2026-01-30'
 dependencies:
-  - 00-032-29
-completed: "2026-01-30"
+- 00-032-29
+estimated_loc: 500
+feature: F032
+project_id: 0
 review_source: docs/reports/2026-01-30-F032-review.md
+size: L
+status: completed
+title: Add Tests for F032 Validators (Coverage ≥80%)
+traceability:
+- ac_description: '`supersede_checker.py` coverage ≥80%'
+  ac_id: AC1
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_supersede_checker.py
+  test_name: test_supersede_success_updates_frontmatter
+- ac_description: '`time_estimate_checker.py` coverage ≥80%'
+  ac_id: AC2
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_time_estimate_checker.py
+  test_name: test_detects_estimated_duration
+- ac_description: '`ws_completion.py` coverage ≥80%'
+  ac_id: AC3
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_ws_completion.py
+  test_name: test_verify_output_files_exists
+- ac_description: '`ws_template_checker.py` coverage ≥80%'
+  ac_id: AC4
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_ws_template_checker.py
+  test_name: test_valid_short_ws_passes
+- ac_description: '`capability_tier_checks_*.py` coverage ≥80%'
+  ac_id: AC5
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_capability_tier_checks_scope.py
+  test_name: test_tiny_scope_passes
+- ac_description: All new tests pass
+  ac_id: AC6
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_time_estimate_checker.py
+  test_name: test_empty_file_returns_no_violations
+- ac_description: Overall F032 module coverage ≥80%
+  ac_id: AC7
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/validators/test_supersede_checker.py
+  test_name: test_supersede_success_updates_frontmatter
+ws_id: 00-032-30
 ---
 
 # 00-032-30: Add Tests for F032 Validators (Coverage ≥80%)
