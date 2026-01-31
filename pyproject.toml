@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sdp"
-version = "0.5.0-dev"
+version = "0.5.0"
 description = "Spec-Driven Protocol - Workstream automation tools"
 authors = ["MSU AI Masters <ai-masters@msu.ru>"]
 readme = "README.md"
