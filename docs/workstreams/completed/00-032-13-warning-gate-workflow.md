@@ -1,13 +1,45 @@
 ---
-ws_id: 00-032-13
-feature: F032
-status: completed
-completed: "2026-01-30"
-size: MEDIUM
-project_id: 00
-github_issue: null
 assignee: Claude
-depends_on: ["00-032-11"]
+completed: '2026-01-30'
+depends_on:
+- 00-032-11
+feature: F032
+github_issue: null
+project_id: 0
+size: MEDIUM
+status: completed
+traceability:
+- ac_description: '`.github/workflows/ci-warnings.yml` created'
+  ac_id: AC1
+  confidence: 1.0
+  status: mapped
+  test_file: tests/integration/test_guard_flow.py
+  test_name: test_happy_path_activate_edit_complete
+- ac_description: File size check with JSON output
+  ac_id: AC2
+  confidence: 1.0
+  status: mapped
+  test_file: tests/integration/test_guard_flow.py
+  test_name: test_edit_blocked_without_active_ws
+- ac_description: Complexity check with JSON output
+  ac_id: AC3
+  confidence: 1.0
+  status: mapped
+  test_file: tests/integration/test_guard_flow.py
+  test_name: test_edit_blocked_outside_scope
+- ac_description: 'Does not block merge (all `continue-on-error: true`)'
+  ac_id: AC5
+  confidence: 1.0
+  status: mapped
+  test_file: tests/unit/test_scope_manager.py
+  test_name: test_is_in_scope_with_restricted_scope
+- ac_description: PR comment with grouped warnings
+  ac_id: AC4
+  confidence: 1.0
+  status: mapped
+  test_file: tests/integration/test_guard_flow.py
+  test_name: test_concurrent_activation_blocked
+ws_id: 00-032-13
 ---
 
 ## 00-032-13: Warning Gate Workflow
