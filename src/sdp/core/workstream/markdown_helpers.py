@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 import yaml
 
-from sdp.core.workstream.models import AcceptanceCriterion
+from sdp.domain.workstream import AcceptanceCriterion
 
 
 def extract_frontmatter(content: str, error_path: Optional[str] = None) -> dict[str, Any]:

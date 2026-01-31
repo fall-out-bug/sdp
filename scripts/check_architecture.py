@@ -1,164 +1,145 @@
 #!/usr/bin/env python3
-"""Check clean architecture layer boundaries.
+"""Check Clean Architecture dependency rules.
 
-Usage:
-    python scripts/check_architecture.py <file_paths...>
-
-This script replaces hardcoded architecture checks in hooks/pre-commit.sh.
-It uses configurable layer patterns from quality-gate.toml.
-
-Examples:
-    # Check specific files
-    python scripts/check_architecture.py src/domain/entities/user.py
-
-    # Check from pre-commit hook
-    python scripts/check_architecture.py --staged
-
-Exit codes:
-    0: All checks passed
-    1: Architecture violations found
-    2: Configuration error
+Validates that domain layer has no external dependencies and that
+other layers follow the dependency flow: domain ← core ← (beads, unified, cli).
 """
 
-import argparse
 import ast
 import sys
 from pathlib import Path
+from typing import Any
 
-# Add src to path for imports
-repo_root = Path(__file__).parent.parent
-sys.path.insert(0, str(repo_root / "src"))
+# Forbidden import rules for each layer
+FORBIDDEN_IMPORTS = {
+    # Domain layer must have ZERO dependencies on other SDP layers
+    "src/sdp/domain/": [
+        "sdp.core",
+        "sdp.beads",
+        "sdp.unified",
+        "sdp.cli",
+        "sdp.prd",
+        "sdp.github",
+        "sdp.hooks",
+        "sdp.validators",
+        "sdp.quality",
+        "sdp.tdd",
+        "sdp.adapters",
+    ],
+    # Beads should not import from core (use domain instead)
+    "src/sdp/beads/": [
+        "sdp.core.workstream.models",  # Use domain.workstream
+        "sdp.core.feature.models",  # Use domain.feature
+    ],
+    # Unified should not import from core models (use domain)
+    "src/sdp/unified/": [
+        "sdp.core.workstream.models",
+        "sdp.core.feature.models",
+    ],
+}
 
-try:
-    from sdp.quality.architecture import ArchitectureChecker
-    from sdp.quality.config import QualityGateConfigLoader
-    from sdp.quality.validator_models import QualityGateViolation
-except ImportError as e:
-    print(f"⚠️  Architecture check skipped: {e}")
-    print("   (missing dependencies - install with: pip install pyyaml)")
-    sys.exit(0)  # Don't block commit if dependencies missing
+
+class ImportVisitor(ast.NodeVisitor):
+    """AST visitor to collect imports."""
+
+    def __init__(self) -> None:
+        self.imports: list[tuple[str, int]] = []
+
+    def visit_Import(self, node: ast.Import) -> None:
+        """Visit import statement."""
+        for alias in node.names:
+            self.imports.append((alias.name, node.lineno))
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        """Visit from-import statement."""
+        if node.module:
+            self.imports.append((node.module, node.lineno))
 
 
-def check_file(
-    file_path: Path,
-    config_loader: QualityGateConfigLoader,
-) -> list[QualityGateViolation]:
-    """Check a single file for architecture violations.
+def check_imports(file_path: Path, forbidden: list[str]) -> list[str]:
+    """Check file for forbidden imports.
 
     Args:
-        file_path: Path to Python file.
-        config_loader: Quality gate configuration loader.
+        file_path: Python file to check
+        forbidden: List of forbidden import prefixes
 
     Returns:
-        List of violations (empty if none).
+        List of violation messages
     """
-    violations: list[QualityGateViolation] = []
-
     try:
-        content = file_path.read_text(encoding="utf-8")
-        tree = ast.parse(content, filename=str(file_path))
+        content = file_path.read_text()
+        tree = ast.parse(content, str(file_path))
+    except SyntaxError as e:
+        return [f"{file_path}:0: Syntax error: {e}"]
 
-        checker = ArchitectureChecker(
-            config=config_loader.config.architecture,
-            violations=violations,
-        )
-        checker.check_architecture(file_path, tree)
+    visitor = ImportVisitor()
+    visitor.visit(tree)
 
-    except (SyntaxError, OSError) as e:
-        violations.append(
-            QualityGateViolation(
-                category="architecture",
-                file_path=str(file_path),
-                line_number=None,
-                message=f"Error parsing file: {e}",
-                severity="error",
-            )
-        )
+    violations = []
+    for module, lineno in visitor.imports:
+        for forbidden_prefix in forbidden:
+            if module == forbidden_prefix or module.startswith(f"{forbidden_prefix}."):
+                violations.append(
+                    f"{file_path}:{lineno}: Forbidden import '{module}' "
+                    f"(violates '{forbidden_prefix}' rule)"
+                )
 
     return violations
 
 
+def find_python_files(directory: Path) -> list[Path]:
+    """Find all Python files in directory.
+
+    Args:
+        directory: Directory to search
+
+    Returns:
+        List of .py files
+    """
+    return list(directory.rglob("*.py"))
+
+
 def main() -> int:
-    """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Check clean architecture layer boundaries",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "files",
-        nargs="*",
-        help="Python files to check",
-    )
-    parser.add_argument(
-        "--staged",
-        action="store_true",
-        help="Check only staged Python files",
-    )
-    parser.add_argument(
-        "--config",
-        type=Path,
-        default=None,
-        help="Path to quality-gate.toml file",
-    )
+    """Run architecture checks.
 
-    args = parser.parse_args()
+    Returns:
+        Exit code: 0 if all checks pass, 1 if violations found
+    """
+    workspace = Path(__file__).parent.parent
+    src_dir = workspace / "src" / "sdp"
 
-    # Load configuration
-    try:
-        config_loader = QualityGateConfigLoader(args.config)
-    except Exception as e:
-        print(f"❌ Configuration error: {e}", file=sys.stderr)
-        return 2
-
-    if not config_loader.config.architecture.enabled:
-        print("⚠️  Architecture checks disabled in configuration")
-        return 0
-
-    # Determine files to check
-    if args.staged:
-        import subprocess
-
-        try:
-            result = subprocess.run(
-                ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            file_paths = [
-                Path(f) for f in result.stdout.splitlines() if f.endswith(".py")
-            ]
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            print("⚠️  Not in git repository or git not available")
-            file_paths = []
-    else:
-        file_paths = [Path(f) for f in args.files]
-
-    if not file_paths:
-        print("No Python files to check")
-        return 0
-
-    # Check all files
-    all_violations: list[QualityGateViolation] = []
-    for file_path in file_paths:
-        if not file_path.exists():
-            continue
-        violations = check_file(file_path, config_loader)
-        all_violations.extend(violations)
-
-    # Report results
-    if all_violations:
-        print(f"❌ Architecture violations found ({len(all_violations)})")
-        print()
-
-        for violation in all_violations:
-            print(f"  {violation.file_path}:{violation.line_number or '?'}")
-            print(f"    {violation.message}")
-            print()
-
+    if not src_dir.exists():
+        print(f"Error: Source directory not found: {src_dir}")
         return 1
 
-    print(f"✓ Architecture checks passed ({len(file_paths)} files)")
+    violations_found = False
+
+    # Check each layer
+    for layer_path, forbidden_imports in FORBIDDEN_IMPORTS.items():
+        layer_dir = workspace / layer_path
+        if not layer_dir.exists():
+            continue
+
+        print(f"Checking {layer_path}...")
+        python_files = find_python_files(layer_dir)
+
+        for py_file in python_files:
+            violations = check_imports(py_file, forbidden_imports)
+            if violations:
+                violations_found = True
+                for violation in violations:
+                    print(f"  ❌ {violation}")
+
+    if violations_found:
+        print("\n❌ Architecture violations found!")
+        print("\nClean Architecture rules:")
+        print("  • domain/ must not import from any other SDP layer")
+        print("  • beads/ should use domain/, not core/workstream/models")
+        print("  • unified/ should use domain/, not core/feature/models")
+        print("\nSee docs/concepts/clean-architecture/ for details.")
+        return 1
+
+    print("\n✅ All architecture checks passed!")
     return 0
 
 

@@ -13,7 +13,7 @@ from sdp.core.workstream.markdown_helpers import (
     extract_title,
     strip_frontmatter,
 )
-from sdp.core.workstream.models import Workstream, WorkstreamID, WorkstreamSize, WorkstreamStatus
+from sdp.domain.workstream import Workstream, WorkstreamID, WorkstreamSize, WorkstreamStatus
 from sdp.errors import ErrorCategory, SDPError
 
 

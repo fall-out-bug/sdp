@@ -1,12 +1,213 @@
-# Clean Architecture
+# Clean Architecture in SDP
 
 Clean Architecture is a software design principle that separates concerns into layers with strict dependency rules.
 
-## The Core Rule
+## SDP Architecture
 
-**Dependencies point inward.**
+SDP implements Clean Architecture with the following layers:
 
-Inner layers know nothing about outer layers.
+```
+                    ┌─────────────┐
+                    │   domain/   │  ← Pure entities, no deps
+                    └─────────────┘
+                          ↑
+            ┌─────────────┼─────────────┐
+            │             │             │
+      ┌─────────┐   ┌─────────┐   ┌─────────┐
+      │  core/  │   │ beads/  │   │ unified/│
+      └─────────┘   └─────────┘   └─────────┘
+            ↑             ↑             ↑
+            │             │             │
+            └─────────────┼─────────────┘
+                          │
+                    ┌─────────┐
+                    │   cli/  │
+                    └─────────┘
+```
+
+### Layer Responsibilities
+
+| Layer | Purpose | Allowed Dependencies |
+|-------|---------|---------------------|
+| **domain/** | Pure business entities (Workstream, Feature, WorkstreamID) | None (pure Python only) |
+| **core/** | Application logic (parsing, validation, orchestration) | domain/ |
+| **beads/** | Infrastructure layer (external task storage) | domain/, core/ |
+| **unified/** | Infrastructure layer (AI agent integration) | domain/, core/ |
+| **cli/** | Presentation layer (CLI commands) | domain/, core/, beads/, unified/ |
+
+### SDP-Specific Entities
+
+#### Domain Layer (`src/sdp/domain/`)
+
+**Workstream Entity** (`workstream.py`):
+```python
+@dataclass
+class Workstream:
+    """Core workstream entity with business logic."""
+    ws_id: str
+    feature: str
+    status: WorkstreamStatus
+    size: WorkstreamSize
+    # ... no I/O logic or external dependencies
+```
+
+**Feature Aggregate** (`feature.py`):
+```python
+@dataclass
+class Feature:
+    """Feature aggregate managing workstream dependencies."""
+    feature_id: str
+    workstreams: list[Workstream]
+    dependency_graph: dict[str, list[str]]
+    execution_order: list[str]  # Topologically sorted
+```
+
+**Value Objects** (`workstream.py`):
+```python
+@dataclass(frozen=True)
+class WorkstreamID:
+    """Immutable workstream identifier (PP-FFF-SS format)."""
+    project_id: int
+    feature_id: int
+    sequence: int
+```
+
+**Domain Exceptions** (`exceptions.py`):
+```python
+class DomainError(Exception): pass
+class ValidationError(DomainError): pass
+class DependencyCycleError(DomainError): pass
+class MissingDependencyError(DomainError): pass
+```
+
+#### Core Layer (`src/sdp/core/`)
+
+**Application Services**:
+- `workstream/parser.py` - Parse markdown files → Workstream entities
+- `feature/models.py` - Feature dependency graph management
+- `feature/loader.py` - Load features from directories
+
+**Business Logic**:
+- Dependency validation (cycle detection)
+- Topological sorting (execution order)
+- Status transitions
+
+#### Infrastructure Layers
+
+**Beads** (`src/sdp/beads/`):
+- External task storage (JSON files)
+- Skill orchestration
+- Sync with domain entities
+
+**Unified** (`src/sdp/unified/`):
+- AI agent integration
+- Multi-agent orchestration
+- Tool abstractions
+
+#### Presentation Layer (`src/sdp/cli/`)
+
+**CLI Commands**:
+- `sdp build WS-001-01` - Execute workstream
+- `sdp review F01` - Review feature
+- `sdp guard activate WS-001-01` - Activate guard
+
+## Architecture Rules
+
+### ✅ Allowed
+
+```python
+# domain/ → (nothing)
+# core/ → domain/
+from sdp.domain.workstream import Workstream, WorkstreamStatus
+
+# beads/ → domain/, core/
+from sdp.domain.workstream import Workstream
+from sdp.core.workstream import parse_workstream
+
+# cli/ → domain/, core/, beads/, unified/
+from sdp.domain.workstream import WorkstreamID
+from sdp.core.workstream import parse_workstream
+from sdp.beads.sync_service import BeadsSync
+```
+
+### ❌ Forbidden
+
+```python
+# domain/ → ANYTHING
+from sdp.core.workstream import parse_workstream  # ❌ External dependency
+
+# beads/ → core/workstream/models
+from sdp.core.workstream.models import Workstream  # ❌ Use domain/ instead
+
+# unified/ → core/feature/models
+from sdp.core.feature.models import Feature  # ❌ Use domain/ instead
+```
+
+## Checking Architecture
+
+### Manual Check
+
+```bash
+python scripts/check_architecture.py
+```
+
+Output:
+```
+Checking src/sdp/domain/...
+Checking src/sdp/beads/...
+Checking src/sdp/unified/...
+
+✅ All architecture checks passed!
+```
+
+### Pre-commit Hook
+
+Add to `.git/hooks/pre-commit`:
+```bash
+#!/bin/bash
+python scripts/check_architecture.py || exit 1
+```
+
+### CI Integration
+
+```yaml
+# .github/workflows/architecture.yml
+- name: Check architecture
+  run: python scripts/check_architecture.py
+```
+
+## Migration from Old Structure
+
+### Before (Violation)
+
+```python
+# beads/sync_service.py
+from sdp.core.workstream import Workstream  # ❌ Infrastructure → Application
+```
+
+**Problem**: `beads/` (infrastructure) directly imports from `core/` (application), creating tight coupling.
+
+### After (Fixed)
+
+```python
+# beads/sync_service.py
+from sdp.domain.workstream import Workstream  # ✅ Infrastructure → Domain
+```
+
+**Solution**: Both layers depend on shared domain entities.
+
+### Backward Compatibility
+
+Old imports still work (with deprecation warnings):
+
+```python
+# OLD: core/workstream/models.py
+from sdp.core.workstream.models import Workstream
+# DeprecationWarning: Use 'from sdp.domain.workstream import Workstream'
+
+# NEW: domain/workstream.py
+from sdp.domain.workstream import Workstream  # ✅ No warning
+```
 
 ```
 ┌─────────────────────────────────────────────────────┐

@@ -1,9 +1,10 @@
 """Workstream package - parsing and validation for SDP markdown files.
 
 This module provides backward compatibility by re-exporting all public APIs.
+Domain entities are now in sdp.domain package.
 """
 
-from sdp.core.workstream.models import (
+from sdp.domain.workstream import (
     AcceptanceCriterion,
     Workstream,
     WorkstreamID,

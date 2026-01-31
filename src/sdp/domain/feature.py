@@ -1,16 +1,25 @@
-"""Feature model with dependency graph management."""
+"""Pure domain entities for features.
+
+Feature aggregates represent collections of workstreams with dependency management.
+"""
 
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import Optional
 
-from sdp.core.feature.errors import CircularDependencyError, MissingDependencyError
+from sdp.domain.exceptions import (
+    DependencyCycleError,
+    MissingDependencyError,
+)
 from sdp.domain.workstream import Workstream
 
 
 @dataclass
 class Feature:
     """Feature containing multiple workstreams with dependency management.
+
+    This is a domain aggregate root that manages workstream dependencies
+    and calculates execution order.
 
     Attributes:
         feature_id: Feature identifier (FXXX)
@@ -41,7 +50,6 @@ class Feature:
                     raise MissingDependencyError(
                         ws_id=ws.ws_id,
                         missing_dep=dep_id,
-                        available_workstreams=list(ws_by_id.keys()),
                     )
                 self.dependency_graph[ws.ws_id].append(dep_id)
 
@@ -77,8 +85,7 @@ class Feature:
             if ws_id not in visited:
                 cycle = extract_cycle(ws_id)
                 if cycle is not None:
-                    raise CircularDependencyError(
-                        ws_id=ws_id,
+                    raise DependencyCycleError(
                         cycle=cycle[:-1] if cycle[-1] == cycle[0] else cycle,
                     )
 
@@ -131,8 +138,7 @@ class Feature:
         # Check if all workstreams were processed
         if len(result) != len(ws_ids):
             remaining = ws_ids - set(result)
-            raise CircularDependencyError(
-                ws_id=next(iter(remaining)),
+            raise DependencyCycleError(
                 cycle=list(remaining),
             )
 
