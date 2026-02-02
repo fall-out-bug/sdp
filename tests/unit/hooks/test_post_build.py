@@ -118,5 +118,3 @@ def test_main_skips_tests_when_dir_missing() -> None:
         assert exit_code in (0, 1)
     finally:
         sys.argv = orig
-
-
