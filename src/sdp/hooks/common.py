@@ -4,7 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-import tomllib
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    import tomli as tomllib  # Python 3.10 backport
 
 
 def find_project_root(start_dir: Path | None = None) -> Path:

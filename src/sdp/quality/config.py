@@ -3,7 +3,10 @@
 from pathlib import Path
 from typing import Any, cast
 
-import tomllib
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    import tomli as tomllib  # Python 3.10 backport
 
 from sdp.quality.config_parsers import ConfigSectionParsers
 from sdp.quality.exceptions import ConfigValidationError

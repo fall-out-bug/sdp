@@ -1649,7 +1649,7 @@ version = "2.4.0"
 description = "A lil' TOML parser"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "tomli-2.4.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:b5ef256a3fd497d4973c11bf142e9ed78b150d36f5773f1ca6088c230ffc5867"},
     {file = "tomli-2.4.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5572e41282d5268eb09a697c89a7bee84fae66511f87533a6f88bd2f7b652da9"},
@@ -1699,6 +1699,7 @@ files = [
     {file = "tomli-2.4.0-py3-none-any.whl", hash = "sha256:1f776e7d669ebceb01dee46484485f43a4048746235e683bcdffacdf1fb4785a"},
     {file = "tomli-2.4.0.tar.gz", hash = "sha256:aa89c3f6c277dd275d8e243ad24f3b5e701491a860d5121f2cdd399fbb31fc9c"},
 ]
+markers = {main = "python_version == \"3.10\""}
 
 [[package]]
 name = "tomli-w"
@@ -1815,4 +1816,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "763bd986fa4d020ed0c72a847784d25a7cfca2c92945d71f2fa86d8649e17431"
+content-hash = "e9a70ccd263c086d898aece50da5272a6d1f5bb5e20610c36e27ffe5d8b3eb1e"
