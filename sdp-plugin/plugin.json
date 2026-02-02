@@ -1,0 +1,27 @@
+{
+  "name": "sdp",
+  "version": "1.0.0",
+  "displayName": "Spec-Driven Protocol (SDP)",
+  "description": "Workstream-driven development with TDD, clean architecture, and quality gates for AI agents. Language-agnostic support for Python, Java, Go projects.",
+  "author": "MSU AI Masters",
+  "license": "MIT",
+  "homepage": "https://github.com/ai-masters/sdp",
+  "repository": "https://github.com/ai-masters/sdp",
+  "categories": ["development", "testing", "documentation", "workflow"],
+  "keywords": ["tdd", "clean-architecture", "workstream", "quality-gates", "ai-agents", "claude"],
+  "permissions": [
+    "Read(*)",
+    "Write(*)",
+    "Edit(*)",
+    "Bash(git status, git log, git diff, git add, git commit, git push)",
+    "Bash(pytest, mvn test, go test)",
+    "Grep(*)",
+    "Glob(*)"
+  ],
+  "prompts": {
+    "skills": "prompts/skills/*.md",
+    "agents": "prompts/agents/*.md",
+    "validators": "prompts/validators/*.md"
+  },
+  "minClaudeVersion": "1.0.0"
+}
