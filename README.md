@@ -214,7 +214,7 @@ sdp/
 
 ### Beginner Guides (Progressive Learning)
 **New to SDP? Start here:**
-- [START_HERE.md](START_HERE.md) - Welcome page with learning paths
+- [docs/beginner/START_HERE.md](docs/beginner/START_HERE.md) - Welcome page with learning paths
 - [docs/beginner/00-quick-start.md](docs/beginner/00-quick-start.md) - 5-minute overview
 - [docs/beginner/01-first-feature.md](docs/beginner/01-first-feature.md) - Hands-on tutorial
 - [docs/beginner/02-common-tasks.md](docs/beginner/02-common-tasks.md) - Common workflows

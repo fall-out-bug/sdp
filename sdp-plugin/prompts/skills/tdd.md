@@ -10,6 +10,8 @@ tools: Read, Write, Edit, Bash
 
 Enforce TDD discipline with Red-Green-Refactor cycle.
 
+**Language-Agnostic:** Works with Python, Java, Go, and other languages.
+
 ## Purpose
 
 Called automatically by `@build` to ensure:
@@ -55,14 +57,14 @@ After each cycle:
 
 - All acceptance criteria met
 - Coverage >= 80%
-- mypy --strict passes
+- Type checking passes (language-specific)
 
-## Full Cycle Example
+## Language-Specific Examples
+
+### Python Example
 
 ```
 # Phase 1: RED - Write Failing Test
-
-→ Writing test for email validation...
 
 File: tests/unit/test_validators.py
 ```python
@@ -72,14 +74,12 @@ def test_email_validation():
     assert validator.is_valid("invalid-email") is False
 ```
 
-→ Running test...
+Running test...
 $ pytest tests/unit/test_validators.py
 FAILED - ModuleNotFoundError: No module named 'validators'
 ✓ Test fails as expected (RED phase complete)
 
 # Phase 2: GREEN - Minimal Implementation
-
-→ Writing minimal implementation...
 
 File: src/validators.py
 ```python
@@ -91,14 +91,12 @@ class EmailValidator:
         return bool(re.match(pattern, email))
 ```
 
-→ Running test...
+Running test...
 $ pytest tests/unit/test_validators.py
 PASSED
 ✓ Test passes (GREEN phase complete)
 
 # Phase 3: REFACTOR - Improve Code
-
-→ Refactoring: Extract pattern as constant...
 
 File: src/validators.py
 ```python
@@ -112,30 +110,173 @@ class EmailValidator:
         return bool(re.match(EMAIL_PATTERN, email))
 ```
 
-→ Running test...
+Running test...
 $ pytest tests/unit/test_validators.py
 PASSED
 ✓ Tests still pass after refactor
 
-→ Running coverage...
-$ pytest --cov=src/validators tests/unit/test_validators.py
-Coverage: 100%
-✓ Coverage >= 80%
+Running quality checks...
+$ pytest --cov=src/ tests/unit/test_validators.py
+Coverage: 100% ✓
 
-→ Running type check...
 $ mypy src/validators.py --strict
-Success: no issues found
-✓ Type checking passed
-
-# Phase 4: COMMIT - Save State
-
-→ Creating commit...
-$ git add src/validators.py tests/unit/test_validators.py
-$ git commit -m "feat(validators): add email validation
-
-- Add EmailValidator class with regex pattern
-- Cover basic valid/invalid cases
-- 100% test coverage"
-
-✓ TDD cycle complete! Ready for next AC.
+Success: no issues found ✓
 ```
+
+### Java Example
+
+```
+# Phase 1: RED - Write Failing Test
+
+File: src/test/java/com/example/EmailValidatorTest.java
+```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class EmailValidatorTest {
+    @Test
+    void testEmailValidation() {
+        EmailValidator validator = new EmailValidator();
+        assertTrue(validator.isValid("user@example.com"));
+        assertFalse(validator.isValid("invalid-email"));
+    }
+}
+```
+
+Running test...
+$ mvn test -Dtest=EmailValidatorTest
+FAILED - EmailValidator class not found
+✓ Test fails as expected (RED phase complete)
+
+# Phase 2: GREEN - Minimal Implementation
+
+File: src/main/java/com/example/EmailValidator.java
+```java
+package com.example;
+
+import java.util.regex.Pattern;
+
+public class EmailValidator {
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    );
+
+    public boolean isValid(String email) {
+        return EMAIL_PATTERN.matcher(email).matches();
+    }
+}
+```
+
+Running test...
+$ mvn test -Dtest=EmailValidatorTest
+PASSED
+✓ Test passes (GREEN phase complete)
+
+# Phase 3: REFACTOR - Improve Code
+
+Running test...
+$ mvn test
+PASSED
+✓ Tests still pass after refactor
+
+Running quality checks...
+$ mvn verify
+JaCoCo coverage: 100% ✓
+```
+
+### Go Example
+
+```
+# Phase 1: RED - Write Failing Test
+
+File: service/validator_test.go
+```go
+package service
+
+import "testing"
+
+func TestEmailValidation(t *testing.T) {
+    validator := NewEmailValidator()
+    if !validator.IsValid("user@example.com") {
+        t.Error("expected valid email to pass")
+    }
+    if validator.IsValid("invalid-email") {
+        t.Error("expected invalid email to fail")
+    }
+}
+```
+
+Running test...
+$ go test -v -run TestEmailValidation
+--- FAIL: TestEmailValidation (0.00s)
+    validator_test.go:10: undefined: NewEmailValidator
+✓ Test fails as expected (RED phase complete)
+
+# Phase 2: GREEN - Minimal Implementation
+
+File: service/validator.go
+```go
+package service
+
+import "regexp"
+
+var emailPattern = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
+type EmailValidator struct{}
+
+func NewEmailValidator() *EmailValidator {
+    return &EmailValidator{}
+}
+
+func (e *EmailValidator) IsValid(email string) bool {
+    return emailPattern.MatchString(email)
+}
+```
+
+Running test...
+$ go test -v -run TestEmailValidation
+--- PASS: TestEmailValidation (0.00s)
+✓ Test passes (GREEN phase complete)
+
+# Phase 3: REFACTOR - Improve Code
+
+Running test...
+$ go test -v
+--- PASS: TestEmailValidation (0.00s)
+✓ Tests still pass after refactor
+
+Running quality checks...
+$ go test -coverprofile=coverage.out ./...
+$ go tool cover -func=coverage.out | grep total
+github.com/user/service/    100.0% ✓
+```
+
+## Quality Gates Summary
+
+| Gate | Python | Java | Go |
+|------|--------|------|-----|
+| Tests | pytest | mvn test | go test |
+| Coverage | pytest-cov ≥80% | JaCoCo ≥80% | go tool cover ≥80% |
+| Type Check | mypy --strict | javac -Xlint:all | go vet |
+| File Size | wc -l <200 | wc -l <200 | wc -l <200 |
+
+**All gates must PASS for TDD cycle completion.**
+
+## Common Mistakes
+
+❌ **Writing implementation before test** - Violates Red phase
+❌ **Writing too much code in Green** - Should be minimal
+❌ **Skipping Refactor** - Code quality degrades
+❌ **Committing without tests** - Violates TDD discipline
+
+✅ **Test FIRST** - Always write test before code
+✅ **Minimal Green** - Just enough to pass
+✅ **Refactor thoroughly** - Clean up before commit
+✅ **Commit each cycle** - Small, atomic changes
+
+## See Also
+
+- [@build Skill](../build/SKILL.md) - Calls /tdd automatically
+- [Python Quick Start](../../docs/examples/python/QUICKSTART.md)
+- [Java Quick Start](../../docs/examples/java/QUICKSTART.md)
+- [Go Quick Start](../../docs/examples/go/QUICKSTART.md)

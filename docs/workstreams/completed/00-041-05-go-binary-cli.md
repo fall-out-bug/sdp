@@ -1,9 +1,10 @@
 # 00-041-05: Go Binary CLI
 
 > **Feature:** F041 - Claude Plugin Distribution
-> **Status:** backlog
+> **Status:** completed
 > **Size:** LARGE
 > **Created:** 2026-02-02
+> **Completed:** 2026-02-03
 
 ## Goal
 
@@ -537,3 +538,54 @@ file bin/sdp-darwin-arm64
 
 - 00-041-06 (Cross-Language Validation) - needs binary for testing
 - 00-041-07 (Marketplace Release) - binary distributed in marketplace
+
+## Execution Report
+
+**Completed:** 2026-02-03
+**Duration:** ~2 hours
+**Commit:** 818cdc8
+
+### Summary
+
+Implemented Go binary CLI with 3 commands: init, doctor, hooks. Binary compiles to single executable (~5.5MB) with cross-platform support.
+
+### Files Created
+
+1. **cmd/sdp/main.go** - Entry point with cobra root command
+2. **cmd/sdp/init.go** - Init command with project type detection
+3. **cmd/sdp/doctor.go** - Doctor command with environment checks
+4. **cmd/sdp/hooks.go** - Hooks command (install/uninstall)
+5. **internal/sdpinit/init.go** - Init logic (copy prompts from prompts/)
+6. **internal/doctor/doctor.go** - Doctor checks
+7. **internal/hooks/hooks.go** - Hooks management
+8. **Makefile** - Build automation
+9. **go.mod** - Go module definition
+10. **go.sum** - Dependency checksums
+
+### Binary Sizes
+
+| Platform | Binary | Size |
+|----------|--------|------|
+| macOS ARM64 | sdp-darwin-arm64 | 5.5M |
+| macOS AMD64 | sdp-darwin-amd64 | 5.7M |
+| Linux AMD64 | sdp-linux-amd64 | 5.6M |
+| Windows AMD64 | sdp-windows-amd64.exe | 5.7M |
+
+All binaries well under 20MB limit (AC4 satisfied).
+
+### Acceptance Criteria Status
+
+- ✅ AC1: `sdp init` creates .claude/ and copies prompts
+- ✅ AC2: `sdp doctor` checks environment
+- ✅ AC3: `sdp hooks install` installs git hooks
+- ✅ AC4: Binary compiles to ~5.5MB (no dependencies)
+- ✅ AC5: Cross-platform binaries (macOS, Linux, Windows)
+
+### Design Decisions
+
+1. Package named `sdpinit` (not `init`) to avoid Go conflict
+2. Prompts copied from local filesystem (simpler than embedding)
+3. Used spf13/cobra for CLI structure
+4. Version injection via ldflags
+
+---
