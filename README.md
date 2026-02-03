@@ -18,7 +18,7 @@ SDP is for you if:
 - ✅ **You prefer progress tracking** with task systems (Beads CLI) over manual to-do lists
 - ✅ **You're building solo or small team** projects with 5-500 workstreams
 
-**New to SDP?** See [START_HERE.md](START_HERE.md) for beginner guides!
+**New to SDP?** See [START_HERE.md](https://github.com/fall-out-bug/sdp/blob/main/docs/beginner/START_HERE.md) for beginner guides!
 
 **Upgrading from an earlier version?** See [Migration Guide](docs/migration/breaking-changes.md) for breaking changes!
 
