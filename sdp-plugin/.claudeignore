@@ -1,0 +1,34 @@
+# Ignore documentation files (they're in docs/, not prompts)
+*.md
+!README.md
+
+# Ignore test files
+tests/
+test_*.py
+*_test.py
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Ignore build artifacts
+dist/
+build/
+*.egg-info/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore Git
+.git/
+.gitignore
+.github/
+
+# Ignore lock files
+poetry.lock
+package-lock.json
