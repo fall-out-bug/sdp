@@ -4,12 +4,7 @@
   },
   "teammateMode": "auto",
   "hooks": {
-    "PostToolUse": {
-      "Bash": {
-        "pattern": "git commit.*",
-        "command": "echo '✅ Commit complete, syncing Beads...' && bd sync || true"
-      }
-    }
+    "PostToolUse": "date >> /tmp/hook_test.txt && echo '✅ Hook ran at' $(date) && bd sync || true"
   },
   "skills": {
     "verify-workstream": {
