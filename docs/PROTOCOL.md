@@ -2,6 +2,8 @@
 
 **Workstream-driven development** for AI agents with multi-agent coordination.
 
+**⚠️ Deprecation Notice:** This Python implementation is deprecated in favor of the [SDP Plugin](https://github.com/ai-masters/sdp-plugin). See [Migration Guide](migrations/python-sdp-deprecation.md) for details.
+
 **Русская версия:** [PROTOCOL_RU.md](PROTOCOL_RU.md)
 
 ---
