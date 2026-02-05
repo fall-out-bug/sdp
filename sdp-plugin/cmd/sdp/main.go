@@ -31,6 +31,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(beadsCmd())
 	rootCmd.AddCommand(tddCmd())
 	rootCmd.AddCommand(driftCmd())
+	rootCmd.AddCommand(qualityCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

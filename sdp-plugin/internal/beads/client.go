@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -32,13 +31,9 @@ type mappingEntry struct {
 
 // NewClient creates a new Beads client
 func NewClient() (*Client, error) {
-	// Detect Beads installation
 	beadsInstalled := isBeadsInstalled()
-
-	// Find mapping file (try multiple locations)
 	mappingPath, err := findMappingFile()
 	if err != nil {
-		// Use default path if not found
 		mappingPath = ".beads-sdp-mapping.jsonl"
 	}
 
@@ -48,19 +43,17 @@ func NewClient() (*Client, error) {
 	}, nil
 }
 
-// Ready returns available tasks (not blocked, not completed)
+// Ready returns available tasks
 func (c *Client) Ready() ([]Task, error) {
 	if !c.beadsInstalled {
 		return []Task{}, nil
 	}
 
-	// Run: bd ready
 	output, err := c.runBeadsCommand("ready")
 	if err != nil {
 		return []Task{}, fmt.Errorf("bd ready failed: %w", err)
 	}
 
-	// Parse output
 	tasks := c.parseTaskList(output)
 	if tasks == nil {
 		return []Task{}, nil
@@ -74,17 +67,12 @@ func (c *Client) Show(beadsID string) (*Task, error) {
 		return nil, fmt.Errorf("beads CLI not installed")
 	}
 
-	// Run: bd show <id>
 	output, err := c.runBeadsCommand("show", beadsID)
 	if err != nil {
 		return nil, fmt.Errorf("bd show failed: %w", err)
 	}
 
-	// Parse output (simplified - just extract ID)
-	task := &Task{
-		ID: beadsID,
-	}
-
+	task := &Task{ID: beadsID}
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "Title:") {
@@ -105,7 +93,6 @@ func (c *Client) Update(beadsID string, status string) error {
 		return fmt.Errorf("beads CLI not installed")
 	}
 
-	// Run: bd update <id> --status <status>
 	_, err := c.runBeadsCommand("update", beadsID, "--status", status)
 	if err != nil {
 		return fmt.Errorf("bd update failed: %w", err)
@@ -165,7 +152,7 @@ func (c *Client) readMapping() ([]mappingEntry, error) {
 
 		var entry mappingEntry
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
-			continue // Skip invalid lines
+			continue
 		}
 
 		entries = append(entries, entry)
@@ -176,17 +163,6 @@ func (c *Client) readMapping() ([]mappingEntry, error) {
 	}
 
 	return entries, nil
-}
-
-// runBeadsCommand executes a Beads CLI command
-func (c *Client) runBeadsCommand(args ...string) (string, error) {
-	cmd := exec.Command("bd", args...)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
-	}
-
-	return string(output), nil
 }
 
 // parseTaskList parses the output of "bd ready"
@@ -200,7 +176,6 @@ func (c *Client) parseTaskList(output string) []Task {
 			continue
 		}
 
-		// Extract task ID (sdp-xxx)
 		parts := strings.Fields(line)
 		if len(parts) > 0 {
 			taskID := parts[0]
@@ -218,27 +193,4 @@ func (c *Client) parseTaskList(output string) []Task {
 		return []Task{}
 	}
 	return tasks
-}
-
-// isBeadsInstalled checks if Beads CLI is available
-func isBeadsInstalled() bool {
-	_, err := exec.LookPath("bd")
-	return err == nil
-}
-
-// findMappingFile finds the Beads mapping file
-func findMappingFile() (string, error) {
-	// Try common locations
-	locations := []string{
-		".beads-sdp-mapping.jsonl",
-		"../.beads-sdp-mapping.jsonl",
-	}
-
-	for _, loc := range locations {
-		if _, err := os.Stat(loc); err == nil {
-			return loc, nil
-		}
-	}
-
-	return "", fmt.Errorf("mapping file not found")
 }
