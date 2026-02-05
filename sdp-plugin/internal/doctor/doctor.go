@@ -178,13 +178,18 @@ func checkDrift() CheckResult {
 		}
 	}
 
-	// Check drift for each workstream
+	// Check drift for each workstream (limit to 5 for performance)
 	detector := drift.NewDetector(projectRoot)
 	totalErrors := 0
 	totalWarnings := 0
 	checkedCount := 0
+	maxToCheck := 5
 
 	for _, wsPath := range recentWorkstreams {
+		if checkedCount >= maxToCheck {
+			break
+		}
+
 		// Detect drift
 		report, err := detector.DetectDrift(wsPath)
 		if err != nil {
@@ -289,6 +294,8 @@ func findRecentWorkstreamsForDrift(projectRoot string) ([]string, error) {
 		filepath.Join(projectRoot, "docs", "workstreams", "completed"),
 	}
 
+	maxTotal := 5 // Maximum total workstreams to return
+
 	for _, dir := range dirs {
 		// Check if directory exists
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -305,9 +312,9 @@ func findRecentWorkstreamsForDrift(projectRoot string) ([]string, error) {
 			continue
 		}
 
-		// Add workstreams (limit to 10 most recent from each directory)
+		// Add workstreams (limit to 5 most recent total)
 		count := 0
-		for i := len(entries) - 1; i >= 0 && count < 10; i++ {
+		for i := len(entries) - 1; i >= 0 && len(workstreams) < maxTotal; i-- {
 			if i < 0 || i >= len(entries) {
 				continue
 			}
@@ -322,6 +329,11 @@ func findRecentWorkstreamsForDrift(projectRoot string) ([]string, error) {
 				workstreams = append(workstreams, wsPath)
 				count++
 			}
+		}
+
+		// Stop if we have enough workstreams
+		if len(workstreams) >= maxTotal {
+			break
 		}
 	}
 
