@@ -1,144 +1,226 @@
 ---
 name: feature
-description: Unified entry point for feature development with progressive disclosure
-tools: Read, Write, Edit, Bash, AskUserQuestion, Skill
+description: Feature development with multi-agent discovery
+tools: Read, Write, Edit, Bash, AskUserQuestion, Task
+version: 5.0.0
 ---
 
-# /feature - Unified Feature Development
+# @feature - Multi-Agent Feature Development
 
-Progressive disclosure workflow: vision -> requirements -> planning -> execution.
+Spawn expert agents for discovery → analysis → planning.
 
 ## When to Use
 
-- Starting new feature (recommended for all)
-- Exploring feature idea
-- Creating MVP from scratch
-- Power users can skip to @idea or @design directly
+- New feature development
+- Product ideation
+- Requirements gathering
+- Feature planning
 
 ## Workflow
 
-### Phase 1: Vision Interview (3-5 questions)
+### Step 1: Quick Interview (3-5 questions)
 
-AskUserQuestion about:
-- **Mission**: What problem do we solve?
-- **Users**: Who are we building for?
-- **Success Metrics**: How do we measure success?
+AskUserQuestion:
+- What problem do we solve?
+- Who are the users?
+- Success metrics?
+- Timeline/urgency?
 
-### Phase 2: Generate PRODUCT_VISION.md
+### Step 2: Spawn Discovery Agents (PARALLEL)
 
-Create or update `PRODUCT_VISION.md` at project root.
-
-Format:
-```markdown
-# PRODUCT_VISION.md
-
-> **Last Updated:** YYYY-MM-DD
-> **Version:** 1.0
-
-## Mission
-
-[Product mission statement]
-
-## Users
-
-1. **[User type]**
-2. **[User type]**
-
-## Success Metrics
-
-- [ ] [Metric 1]
-- [ ] [Metric 2]
-
-## Strategic Tradeoffs
-
-| Aspect | Decision | Rationale |
-|--------|----------|-----------|
-| [Aspect] | [Decision] | [Why] |
-
-## Non-Goals
-
-- [Not doing X]
-- [Not doing Y]
+**Detect Beads:**
+```bash
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+else
+  BEADS_ENABLED=false
+fi
 ```
 
-### Phase 3: Technical Interview (5-8 questions)
+**Spawn 4 agents in parallel (single message with multiple Task calls):**
 
-AskUserQuestion about:
-- Technical approach (architecture, storage, failure mode)
-- Tradeoffs (security vs performance, complexity vs speed)
-- Integration points
+```python
+# Agent 1: Business Analyst
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the BUSINESS ANALYST expert.
 
-### Phase 4: Generate intent.json
+Read .claude/agents/business-analyst.md for your specification.
 
-Validate against `docs/schema/intent.schema.json`, save to `docs/intent/{slug}.json`
+FEATURE: {feature_description}
+
+Your task:
+1. Discover user needs
+2. Write user stories (Given/When/Then)
+3. Define success metrics (KPIs)
+4. Identify stakeholders
+
+Output format (as per business-analyst.md):
+## Business Requirements
+{stakeholders, problem, user stories, KPIs}
+
+BEADS_INTEGRATION:
+If Beads enabled ($BEADS_ENABLED=true):
+- Create feature task: `bd create "Feature: {title}" --parent {project}`
+- Link user stories to task
+- Otherwise: Skip Beads operations
+""",
+    description="Business analysis"
+)
+
+# Agent 2: Product Manager
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the PRODUCT MANAGER expert.
+
+Read .claude/agents/product-manager.md for your specification.
+
+FEATURE: {feature_description}
+
+Your task:
+1. Define product vision
+2. Prioritize features (RICE framework)
+3. Create roadmap (quarterly)
+4. Define success metrics
+
+Output format:
+## Product Requirements
+{vision, prioritization, roadmap, KPIs}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Update feature task with roadmap
+- Create child tasks for high-priority features
+- Otherwise: Skip
+""",
+    description="Product management"
+)
+
+# Agent 3: Systems Analyst
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the SYSTEMS ANALYST expert.
+
+Read .claude/agents/systems-analyst.md for your specification.
+
+FEATURE: {feature_description}
+
+Your task:
+1. Define functional requirements
+2. Specify APIs/interfaces
+3. Design data models
+4. Document use cases
+
+Output format:
+## Functional Specification
+{FRs, APIs, data models, use cases}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Note: Workstreams will be created by Technical Decomposition agent
+- Otherwise: Skip
+""",
+    description="Systems analysis"
+)
+
+# Agent 4: Technical Decomposition
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the TECHNICAL DECOMPOSITION expert.
+
+Read .claude/agents/technical-decomposition.md for your specification.
+
+FEATURE: {feature_description}
+INPUT FROM:
+- Business Analyst (user stories)
+- Product Manager (priorities)
+- Systems Analyst (functional specs)
+
+Your task:
+1. Break into workstreams
+2. Define dependencies
+3. Estimate effort (T-shirt sizing)
+4. Identify critical path
+
+Output format:
+## Workstream Breakdown
+{workstreams with AC, dependencies, estimates}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Create task per workstream: `bd create "WS-XXX: {title}" --parent {feature}`
+- Set dependencies: `bd update {ws} --blocks {other_ws}`
+- Update .beads-sdp-mapping.jsonl with ws_id → beads_id
+- Otherwise: Skip Beads operations
+""",
+    description="Technical decomposition"
+)
+```
+
+### Step 3: Synthesize Results
+
+Wait for all 4 agents to complete, then:
+
+```markdown
+## Feature Specification: {feature_name}
+
+### Vision (from Product Manager)
+{vision statement}
+
+### User Stories (from Business Analyst)
+{prioritized stories with acceptance criteria}
+
+### Functional Requirements (from Systems Analyst)
+{FRs, APIs, data models}
+
+### Workstreams (from Technical Decomposition)
+| WS | Title | Size | Dependencies | Priority |
+|----|-------|------|--------------|----------|
+| WS-001 | {title} | M | None | P0 |
+
+### Success Metrics (from BA + PM)
+{KPIs with targets}
+
+### Next Steps
+- Review workstreams
+- Execute: @design {feature_id} or @oneshot {feature_id}
+```
+
+### Step 4: Save Outputs
 
 ```bash
-# Create intent directory
-mkdir -p docs/intent
+# Save feature spec
+mkdir -p docs/drafts
+cat > docs/drafts/{feature_id}.md << 'EOF'
+{synthesized specification}
+EOF
 
-# Create and validate
-from sdp.schema.validator import IntentValidator
-from sdp.schema.models import Intent
-
-intent = Intent.from_dict({
-    "problem": "...",
-    "users": [...],
-    "success_criteria": [...]
-})
-
-# Validate
-validator = IntentValidator()
-validator.validate(intent.to_dict())
-
-# Save
-import json
-with open("docs/intent/{slug}.json", "w") as f:
-    json.dump(intent.to_dict(), f, indent=2)
+# If Beads enabled: Update parent feature task
+if [ "$BEADS_ENABLED" = true ]; then
+  bd show {feature_id}  # Verify parent exists
+fi
 ```
-
-### Phase 5: Create Requirements Draft (REQUIRED)
-
-Create `docs/drafts/idea-{slug}.md` with full specification:
-
-```markdown
-# {Feature Name}
-
-> **Feature ID:** FXXX
-> **Status:** Draft
-> **Created:** YYYY-MM-DD
-
-## Problem
-[From interview]
-
-## Users
-[From interview]
-
-## Success Criteria
-[From interview]
-
-## Goals
-[Primary goals]
-
-## Non-Goals
-[Out of scope]
-
-## Technical Approach
-[From technical interview]
-```
-
-### Phase 6: Transition to @design
-
-Call `/design` with full context (vision + intent).
-
-## Power User Flags
-
-- `--vision-only` -- Only create vision, skip planning
-- `--no-interview` -- Skip questions, use defaults
-- `--update-vision` -- Update existing PRODUCT_VISION.md
-- `--spec PATH` -- Start from existing spec
 
 ## Output
 
-- `PRODUCT_VISION.md` -- Project manifesto
-- `docs/drafts/idea-{slug}.md` -- Full spec
-- `docs/intent/{slug}.json` -- Machine-readable intent
+**Success:**
+```
+✅ Feature specification created
+📄 docs/drafts/FXXX.md
+📊 Workstreams: N defined (P0: X, P1: Y)
+📌 Beads: {N tasks created if enabled}
+```
+
+## Beads Detection
+
+All agents check `$BEADS_ENABLED` before Beads operations:
+- If enabled: Create/update/link tasks
+- If disabled: Markdown-only workflow
+
+## Parallel Execution Pattern
+
+Spawning 4 agents simultaneously (via 4 Task calls in one response) follows the `.claude/skills/think/SKILL.md` pattern for parallel expert analysis.
+
+## Version
+
+**5.0.0** - Multi-agent discovery (BA + PM + SA + TD)

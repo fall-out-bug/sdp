@@ -1,105 +1,268 @@
 ---
 name: review
-description: Quality review with traceability check
-tools: Read, Shell, Grep
+description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead)
+tools: Read, Bash, Grep, Task
+version: 5.0.0
 ---
 
-# @review - Quality Review
+# @review - Multi-Agent Quality Review
 
-Review feature by validating workstreams against quality gates and traceability.
+Spawn specialist agents for comprehensive quality review.
 
 ## Invocation
 
 ```bash
-@review F01       # Feature ID (markdown workflow)
+@review F01       # Feature ID
 @review sdp-xxx   # Beads task ID
 ```
 
-## Workflow Summary
+## Workflow
 
-| Step | Action | Gate |
-|------|--------|------|
-| 1 | List workstreams | All WS found |
-| 2 | Check traceability | All ACs have tests |
-| 3 | Run quality gates | All checks pass |
-| 4 | Verify goals | All ACs achieved |
-| 5 | Verdict | APPROVED or CHANGES_REQUESTED |
-| 6 | Post-review (if needed) | Track all findings |
+### Step 1: List Workstreams
 
-## Step 1-2: List & Check Traceability
-
+**Detect Beads:**
 ```bash
-# List workstreams (Beads OR markdown)
 if bd --version &>/dev/null && [ -d .beads ]; then
-    bd list --parent {feature-id}  # Beads-enabled
+  BEADS_ENABLED=true
+  bd list --parent {feature-id}
 else
-    ls docs/workstreams/completed/{feature-id}-*.md  # Markdown-only
+  BEADS_ENABLED=false
+  ls docs/workstreams/completed/{feature-id}-*.md
 fi
-
-# Check traceability
-sdp trace check {WS-ID}
 ```
 
-**Gate:** 100% AC coverage (all ACs have mapped tests).
+### Step 2: Spawn Review Agents (PARALLEL)
 
-## Step 3: Quality Gates
+```python
+# Agent 1: QA
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the QA expert.
 
-```bash
-pytest tests/ -v                    # All tests pass
-pytest --cov=src --cov-fail-under=80  # Coverage ≥80%
-mypy src/ --strict                  # Type checking
-ruff check src/                     # Linting
-grep -r "except:" src/ | grep "pass"  # No except:pass
+Read .claude/agents/qa.md for your specification.
+
+FEATURE: {feature_id}
+WORKSTREAMS: {list of completed WS}
+
+Your task:
+1. Review test coverage (target: 80%+)
+2. Check test quality (pytest/jest/etc)
+3. Verify quality metrics (defect density, pass rate)
+4. Validate quality gates (entry/exit criteria)
+
+Output:
+## QA Review
+- Coverage: {percentage}
+- Tests: {passing/total}
+- Quality metrics: {table}
+- Verdict: {PASS/FAIL}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Block workstreams that fail gates
+- Update quality metrics in tasks
+""",
+    description="QA review"
+)
+
+# Agent 2: Security
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the SECURITY expert.
+
+Read .claude/agents/security.md for your specification.
+
+FEATURE: {feature_id}
+
+Your task:
+1. Review security controls (auth, input validation, encryption)
+2. Check for vulnerabilities (OWASP Top 10)
+3. Verify compliance (GDPR/SOC2/etc if applicable)
+4. Review secrets management
+
+Output:
+## Security Review
+- Threats: {mitigated/partial/open}
+- Vulnerabilities: {none/low/medium/high}
+- Compliance: {status}
+- Verdict: {PASS/FAIL}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Create security tasks for gaps
+- Track compliance in Beads
+""",
+    description="Security review"
+)
+
+# Agent 3: DevOps
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the DEVOPS expert.
+
+Read .claude/agents/devops.md for your specification.
+
+FEATURE: {feature_id}
+
+Your task:
+1. Review CI/CD pipeline (build, test, deploy)
+2. Check infrastructure (Terraform/K8s)
+3. Verify deployment strategy (rollback procedures)
+4. Check environment management
+
+Output:
+## DevOps Review
+- CI/CD: {status}
+- Infrastructure: {review findings}
+- Deployment: {safe/unsafe}
+- Verdict: {PASS/FAIL}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Track deployment status in tasks
+""",
+    description="DevOps review"
+)
+
+# Agent 4: SRE
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the SRE expert.
+
+Read .claude/agents/sre.md for your specification.
+
+FEATURE: {feature_id}
+
+Your task:
+1. Review SLOs/SLIs (defined? measurable?)
+2. Check monitoring (metrics, logs, traces)
+3. Verify incident response procedures
+4. Review disaster recovery plan
+
+Output:
+## SRE Review
+- SLOs: {defined/measurable}
+- Monitoring: {coverage}
+- Incidents: {procedures}
+- Verdict: {PASS/FAIL}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Track SLO compliance in tasks
+""",
+    description="SRE review"
+)
+
+# Agent 5: Tech Lead
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the TECH LEAD expert.
+
+Read .claude/agents/tech-lead.md for your specification.
+
+FEATURE: {feature_id}
+WORKSTREAMS: {list}
+
+Your task:
+1. Review code quality (SOLID, clean code)
+2. Check architecture decisions (ADRs)
+3. Verify team coordination (blockers)
+4. Review technical debt
+
+Output:
+## Technical Review
+- Code quality: {assessment}
+- Architecture: {review}
+- Blockers: {none/identified}
+- Verdict: {PASS/FAIL}
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Unblock stuck tasks
+- Update tasks with guidance
+""",
+    description="Technical lead review"
+)
 ```
 
-## Step 4: Goal Achievement
+### Step 3: Synthesize Verdict
 
-For each WS verify:
-- [ ] All ACs have passing tests
-- [ ] Implementation matches description
-- [ ] No TODO/FIXME in code
-
-## Step 5: Verdict
-
-**APPROVED** — All gates pass, all ACs traceable  
-**CHANGES_REQUESTED** — Any failure
-
-No middle ground. No "approved with notes."
-
-## Step 6: Post-Review (when CHANGES_REQUESTED)
-
-**⚠️ MANDATORY when verdict is CHANGES_REQUESTED**
-
-| Finding type | Action | Output |
-|--------------|--------|--------|
-| **Bugs** | @issue | `docs/issues/` → /bugfix |
-| **Planned work** | Add WS to **same feature** | `docs/workstreams/backlog/` |
-| **Tech debt** | @issue for triage | Backlog |
-
-**Rules:**
-- Never create new feature for review follow-up
-- Every finding must have Issue or WS link
-- "Deferred" without tracking = protocol violation
-
-### Completion Checklist
+Wait for all 5 agents, then:
 
 ```markdown
-- [ ] Verdict recorded
-- [ ] Report saved to docs/reports/
-- [ ] All bugs → Issue created
-- [ ] All planned work → WS created
-- [ ] No "deferred" without tracking
+## Feature Review: {feature_id}
+
+### QA Review
+{coverage, tests, metrics, verdict}
+
+### Security Review
+{threats, vulnerabilities, compliance, verdict}
+
+### DevOps Review
+{CI/CD, infrastructure, deployment, verdict}
+
+### SRE Review
+{SLOs, monitoring, incidents, verdict}
+
+### Tech Lead Review
+{code quality, architecture, verdict}
+
+## Overall Verdict
+
+**APPROVED** if all 5 PASS
+**CHANGES_REQUESTED** if any FAIL
+
+No middle ground.
+
+## Findings (if CHANGES_REQUESTED)
+
+| Type | Description | Action | Owner |
+|------|-------------|--------|-------|
+| Bug | {...} | @issue | TBD |
+| Tech debt | {...} | @issue | TBD |
+| Missing | {...} | New WS | TBD |
 ```
 
-## Errors
+### Step 4: Post-Review (MANDATORY if CHANGES_REQUESTED)
 
-| Error | Fix |
-|-------|-----|
-| Missing trace | Add test for AC |
-| Coverage <80% | Add more tests |
-| Goal not met | Fix implementation |
+**Track findings:**
+- Bugs → `@issue` → route to `/bugfix`
+- Planned work → Add WS to **same feature**
+- Tech debt → `@issue` for triage
 
-## See Also
+**Rules:**
+- Never create new feature for follow-up
+- All findings tracked in Beads (if enabled)
 
-- [@issue skill](../issue/SKILL.md)
-- [Traceability Guide](../../docs/reference/traceability.md)
+## Output
+
+**Success:**
+```
+✅ APPROVED
+📊 QA: PASS (82% coverage)
+🔒 Security: PASS (no vulnerabilities)
+⚙️ DevOps: PASS (CI/CD validated)
+⏱️ SRE: PASS (SLOs defined)
+👨‍💻 TechLead: PASS (code quality good)
+📌 Beads: {updated if enabled}
+```
+
+**Failure:**
+```
+❌ CHANGES_REQUESTED
+📊 QA: FAIL (coverage 65%)
+🔒 Security: PASS
+⚙️ DevOps: FAIL (no rollback)
+⏱️ SRE: PASS
+👨‍💻 TechLead: PASS
+
+Findings tracked: {N issues}
+```
+
+## Parallel Execution Pattern
+
+5 agents spawned simultaneously (via 5 Task calls) following `.claude/skills/think/SKILL.md` pattern.
+
+## Version
+
+**5.0.0** - Multi-agent review (QA + Security + DevOps + SRE + TechLead)
