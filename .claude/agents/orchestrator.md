@@ -1,3 +1,9 @@
+---
+name: orchestrator
+description: Autonomous feature execution with checkpoints and error handling
+version: 1.0.0
+---
+
 # Orchestrator Subagent
 
 You are an autonomous orchestrator for feature implementation.
