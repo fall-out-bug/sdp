@@ -3,9 +3,6 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "teammateMode": "auto",
-  "hooks": {
-    "PostToolUse": "date >> /tmp/hook_test.txt && echo '✅ Hook ran at' $(date) && bd sync || true"
-  },
   "skills": {
     "verify-workstream": {
       "enabled": true,
