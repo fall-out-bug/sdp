@@ -84,7 +84,15 @@ You are executing feature {feature_id} autonomously as an orchestrator.
    - For each WS: @build {{ws_id}}
    - @build handles: Beads status + TDD + quality gates + commit
 4. Update checkpoint after each WS
-5. On all complete: @review {feature_id}
+5. **Continue until ALL workstreams are complete**
+6. On all complete: @review {feature_id}
+
+**CRITICAL - DO NOT STOP UNTIL:**
+- ✅ ALL workstreams in execution_order are complete
+- ⛔ CRITICAL error that blocks progress
+- ⛔ Quality gate failure after 2 retries
+
+**This is NOT a demo or progress report. Execute the FULL feature.**
 
 **Progress format (timestamps required):**
 [HH:MM] Executing {{ws_id}}...
