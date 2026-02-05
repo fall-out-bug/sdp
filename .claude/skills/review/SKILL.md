@@ -192,11 +192,28 @@ Task(
 FEATURE: {feature_id}
 WORKSTREAMS: {list of completed WS}
 
-Your task:
-1. Run drift detection on all completed workstreams
-2. Verify implementation matches specifications
-3. Check for missing files or entities
-4. Validate completeness of documentation
+Your task: Check drift at THREE levels
+
+## Level 1: Vision → Specifications
+**Question:** Does what we planned match what we wanted?
+
+Find and read:
+- PRODUCT_VISION.md (if exists)
+- docs/specs/{feature_id}.md (feature spec)
+- docs/drafts/idea-{feature_id}.md (original requirements)
+
+Analyze:
+1. What were the original business requirements?
+2. Did workstreams cover all requirements?
+3. Any requirements missed in workstream decomposition?
+
+**Check for gaps:**
+- Required features not in any workstream
+- User stories not implemented
+- Acceptance criteria missing
+
+## Level 2: Specifications → Implementation
+**Question:** Does what we built match what we planned?
 
 For each workstream:
 ```bash
@@ -209,24 +226,52 @@ Check:
 - Does file purpose match documentation?
 - Any TODO/FIXME/HACK comments in production code?
 
+## Level 3: Vision → Implementation
+**Question:** Did we deliver what we promised?
+
+Final cross-check:
+1. Read all completed workstream specs
+2. Read actual implementation code
+3. Compare to original vision/requirements
+4. Identify gaps:
+   - Features in vision but not implemented
+   - Features implemented but not in vision (scope creep)
+   - Quality gaps (security, performance, UX)
+
 Output:
 ## Documentation & Drift Review
+
+### Level 1: Vision → Specifications
+- Vision document: {found/missing}
+- Requirements covered: {X%}
+- Missing in workstreams: {count/list}
+- **Verdict:** {PASS/FAIL}
+
+### Level 2: Specifications → Implementation
 - Workstreams checked: {N}
 - Drift percentage: {X%} (target: 0%)
 - Missing files: {count/list}
 - Missing entities: {count/list}
-- Documentation completeness: {assessment}
-- Verdict: {PASS/FAIL}
+- **Verdict:** {PASS/FAIL}
 
-Drift criteria:
-- PASS: ≤5% drift, all critical files present, no blocking gaps
-- FAIL: >10% drift, missing critical files, or incomplete documentation
+### Level 3: Vision → Implementation
+- Original requirements delivered: {X%}
+- Scope creep detected: {yes/no}
+- Critical gaps: {count/list}
+- **Verdict:** {PASS/FAIL}
+
+### Overall Verdict
+**{PASS/FAIL}**
+
+Criteria:
+- PASS: All 3 levels PASS, ≤5% drift, no critical gaps
+- FAIL: Any level FAIL, >10% drift, or missing critical features
 
 BEADS_INTEGRATION:
 If Beads enabled:
 - Block workstreams with high drift (>10%)
 - Create tasks for missing implementation
-- Update drift status in Beads
+- Track gaps in Beads issues
 """,
     description="Documentation and drift review"
 )
@@ -255,7 +300,10 @@ Wait for all 6 agents, then:
 {code quality, architecture, verdict}
 
 ### Documentation & Drift Review
-{drift percentage, missing files, documentation completeness, verdict}
+**Level 1 (Vision → Specs):** {verdict, coverage%}
+**Level 2 (Specs → Code):** {verdict, drift%}
+**Level 3 (Vision → Code):** {verdict, gaps}
+{overall verdict}
 
 ## Overall Verdict
 
@@ -294,7 +342,10 @@ No middle ground.
 ⚙️ DevOps: PASS (CI/CD validated)
 ⏱️ SRE: PASS (SLOs defined)
 👨‍💻 TechLead: PASS (code quality good)
-📚 Documentation: PASS (0% drift, complete)
+📚 Documentation: PASS
+   - L1 (Vision → Specs): PASS (100% coverage)
+   - L2 (Specs → Code): PASS (0% drift)
+   - L3 (Vision → Code): PASS (all delivered)
 📌 Beads: {updated if enabled}
 ```
 
@@ -306,7 +357,10 @@ No middle ground.
 ⚙️ DevOps: FAIL (no rollback)
 ⏱️ SRE: PASS
 👨‍💻 TechLead: PASS
-📚 Documentation: FAIL (15% drift, missing files)
+📚 Documentation: FAIL
+   - L1 (Vision → Specs): FAIL (2 requirements missing)
+   - L2 (Specs → Code): PASS (3% drift)
+   - L3 (Vision → Code): FAIL (scope creep: +3 untracked features)
 
 Findings tracked: {N issues}
 ```
@@ -317,4 +371,6 @@ Findings tracked: {N issues}
 
 ## Version
 
-**6.0.0** - Multi-agent review (QA + Security + DevOps + SRE + TechLead + Documentation)
+**6.0.0** - Multi-agent review (QA + Security + DevOps + SRE + TechLead + Documentation & Drift)
+- Agent 6 checks drift at 3 levels: Vision → Specs → Code
+- Validates implementation matches original requirements
