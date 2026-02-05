@@ -58,3 +58,13 @@ lint:
 # Show version
 version:
 	@echo "$(VERSION)"
+
+.PHONY: lint
+lint: ## Run golangci-lint
+	@echo "Running golangci-lint..."
+	@golangci-lint run ./...
+
+.PHONY: lint
+lint: ## Run golangci-lint
+	@echo "Running golangci-lint..."
+	@golangci-lint run ./...
