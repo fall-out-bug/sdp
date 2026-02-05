@@ -29,8 +29,24 @@ Execute all workstreams for a feature using autonomous orchestrator agent with c
 
 ### Step 1: Identify Feature Workstreams
 
+**Detect Beads:**
 ```bash
-# Find all workstreams for this feature
+# Check if Beads is available
+if bd --version &>/dev/null && [ -d .beads ]; then
+    BEADS_ENABLED=true
+else
+    BEADS_ENABLED=false
+fi
+```
+
+**Find workstreams:**
+```bash
+# Method 1: Beads (if enabled)
+if [ "$BEADS_ENABLED" = true ]; then
+    bd list --parent F050 --json | jq -r '.[].id'
+fi
+
+# Method 2: Markdown (always works)
 grep -l "^feature: F050" docs/workstreams/backlog/*.md
 ```
 

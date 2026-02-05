@@ -52,15 +52,17 @@ Execute all workstreams of a feature autonomously, managing dependencies, handli
 Input: Feature ID (F050)
   ↓
 1. Initialize
-   - Glob all workstream files: docs/workstreams/backlog/00-050-*.md
-   - Read .beads-sdp-mapping.jsonl for ws_id → beads_id mapping
+   - Detect Beads: `bd --version` + `.beads/` exists
+   - Glob workstreams: docs/workstreams/backlog/00-050-*.md
+   - If Beads enabled: Read .beads-sdp-mapping.jsonl
    - Build dependency graph (check "Dependencies:" in each WS)
    - Create checkpoint: .oneshot/{feature_id}-checkpoint.json
   ↓
 2. Loop: While WS remaining
    - Find ready WS (all dependencies satisfied)
    - Execute: @build {ws_id}
-     - @build handles: Beads IN_PROGRESS → TDD → quality → Beads CLOSED → commit
+     - If Beads: Beads IN_PROGRESS → TDD → quality → Beads CLOSED → commit
+     - If no Beads: TDD → quality → commit
    - Update checkpoint with completed ws_id
    - Report progress with timestamp
   ↓
@@ -76,7 +78,7 @@ Input: Feature ID (F050)
 
 ## Beads Integration
 
-When @build executes each workstream, it automatically handles Beads:
+When Beads is **enabled** (`bd --version` works, `.beads/` exists):
 
 ```bash
 # @build does this for each WS:
@@ -87,7 +89,25 @@ bd sync
 git commit
 ```
 
-You don't need to call bd commands directly — @build handles them.
+When Beads is **NOT enabled**:
+
+```bash
+# @build does this for each WS:
+# Execute TDD cycle
+git commit
+```
+
+**Detection:**
+```bash
+# Check if Beads is available
+if bd --version &>/dev/null && [ -d .beads ]; then
+    BEADS_ENABLED=true
+else
+    BEADS_ENABLED=false
+fi
+```
+
+You don't need to call bd commands directly — @build handles detection automatically.
 
 ## Quality Standards
 
@@ -197,7 +217,7 @@ Update checkpoint after **each completed workstream**.
 Read before starting:
 - Feature spec (if exists): `docs/drafts/{feature_id}.md` or `docs/specs/{feature_id}/`
 - Workstream files: `docs/workstreams/backlog/{ws_id}.md`
-- Beads mapping: `.beads-sdp-mapping.jsonl`
+- Beads mapping (if enabled): `.beads-sdp-mapping.jsonl`
 - Project map: `docs/PROJECT_MAP.md`
 
 ## When to Use This Subagent
