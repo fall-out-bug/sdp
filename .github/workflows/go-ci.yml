@@ -29,6 +29,11 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
+      - name: Run govnulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govnulncheck ./...
+
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
@@ -67,9 +72,18 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
           - os: macos-latest
             goos: darwin
             goarch: arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,14 +95,19 @@ jobs:
           cache: true
 
       - name: Build
+        working-directory: ./sdp-plugin
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build \
-            -ldflags="-s -w -X main.version=${{ github.sha }}" \
-            -o dist/beads-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }} \
-            ./cmd/beads
+          $env:GOOS="${{ matrix.goos }}"
+          $env:GOARCH="${{ matrix.goarch }}"
+          if ("${{ matrix.goos }}" -eq "windows") {
+            go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o dist/sdp-${{ matrix.goos }}-${{ matrix.goarch }}.exe ./cmd/sdp
+          } else {
+            go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o dist/sdp-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/sdp
+          }
+        shell: pwsh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: beads-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/beads-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: sdp-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: sdp-plugin/dist/sdp-*
