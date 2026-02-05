@@ -1,3 +1,9 @@
+---
+name: readme
+description: Agent roles setup guide and documentation
+version: 1.0.0
+---
+
 # Agent Roles Setup Guide
 
 **SDP Agent System** - multi-agent coordination for feature development.
