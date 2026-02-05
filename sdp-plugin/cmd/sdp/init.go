@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/ai-masters/sdp/internal/sdpinit"
+	"github.com/spf13/cobra"
 )
 
 func initCmd() *cobra.Command {

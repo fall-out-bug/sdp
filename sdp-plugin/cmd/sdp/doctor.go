@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/ai-masters/sdp/internal/doctor"
+	"github.com/spf13/cobra"
 )
 
 func doctorCmd() *cobra.Command {
