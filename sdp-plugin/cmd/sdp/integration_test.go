@@ -29,6 +29,18 @@ func skipIfBinaryNotBuilt(t *testing.T) string {
 	return absPath
 }
 
+// repoRoot returns the absolute path to the repository root
+func repoRoot(t *testing.T) string {
+	// From sdp-plugin/cmd/sdp, go up THREE levels to get to repo root
+	// sdp-plugin/cmd/sdp → ../.. → sdp-plugin/ → ../../.. → sdp/
+	path := filepath.Join("..", "..", "..")
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		t.Fatalf("Cannot resolve repo root: %v", err)
+	}
+	return absPath
+}
+
 // TestParseCommand tests the sdp parse command
 func TestParseCommand(t *testing.T) {
 	binaryPath := skipIfBinaryNotBuilt(t)
@@ -70,8 +82,8 @@ func TestParseCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cmd := exec.Command(binaryPath, tt.args...)
-			// Set working directory to sdp-plugin root so workstream files are found
-			cmd.Dir = ".."
+			// Set working directory to repo root so docs/workstreams/ are found
+			cmd.Dir = repoRoot(t)
 
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout = &stdout
@@ -83,7 +95,8 @@ func TestParseCommand(t *testing.T) {
 				t.Errorf("Expected error but got none")
 			}
 			if !tt.wantErr && err != nil {
-				t.Errorf("Unexpected error: %v", err)
+				output := stdout.String() + stderr.String()
+				t.Errorf("Unexpected error: %v\nOutput:\n%s", err, output)
 			}
 
 			output := stdout.String() + stderr.String()
