@@ -29,6 +29,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(hooksCmd())
 	rootCmd.AddCommand(parseCmd())
 	rootCmd.AddCommand(beadsCmd())
+	rootCmd.AddCommand(tddCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
