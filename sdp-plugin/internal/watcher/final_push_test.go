@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -24,6 +25,7 @@ func TestQualityWatcher_DebounceBehavior(t *testing.T) {
 	}
 
 	changeCount := 0
+	var mu sync.Mutex
 
 	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{
 		Quiet: true,
@@ -36,7 +38,9 @@ func TestQualityWatcher_DebounceBehavior(t *testing.T) {
 	// Track changes
 	originalOnChange := qw.watcher.config.OnChange
 	qw.watcher.config.OnChange = func(path string) {
+		mu.Lock()
 		changeCount++
+		mu.Unlock()
 		originalOnChange(path)
 	}
 
@@ -56,8 +60,12 @@ func TestQualityWatcher_DebounceBehavior(t *testing.T) {
 	// Wait for debounce
 	time.Sleep(200 * time.Millisecond)
 
-	if changeCount < 1 {
-		t.Errorf("Expected at least 1 change, got %d", changeCount)
+	mu.Lock()
+	finalCount := changeCount
+	mu.Unlock()
+
+	if finalCount < 1 {
+		t.Errorf("Expected at least 1 change, got %d", finalCount)
 	}
 }
 

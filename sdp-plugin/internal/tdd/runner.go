@@ -130,8 +130,45 @@ func (r *Runner) buildTestCommand(wsPath string) *exec.Cmd {
 		// Java: mvn test
 		return exec.Command("mvn", "test", "-f", wsPath)
 	default:
+		// Validate testCmd against whitelist before using
+		if !isAllowedTestCommand(r.testCmd) {
+			return exec.Command("echo", fmt.Sprintf("Error: disallowed test command '%s'", r.testCmd))
+		}
 		return exec.Command(r.testCmd, wsPath)
 	}
+}
+
+// isAllowedTestCommand validates testCmd against a whitelist of safe commands
+func isAllowedTestCommand(testCmd string) bool {
+	// Whitelist of allowed test commands
+	// Only allow specific, known-safe test runners
+	allowedCommands := []string{
+		"pytest",
+		"pytest-3",
+		"python -m pytest",
+		"go test",
+		"mvn test",
+		"mvnw test",
+		"gradle test",
+		"./gradlew test",
+		"gradlew test",
+		"npm test",
+		"yarn test",
+		"pnpm test",
+		"jest",
+		"jasmine",
+		"mocha",
+		"cargo test",
+		"dart test",
+		"flutter test",
+	}
+
+	for _, allowed := range allowedCommands {
+		if testCmd == allowed {
+			return true
+		}
+	}
+	return false
 }
 
 // NewRunner creates a new Runner for the specified language

@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"os"
+	"sync"
 	"testing"
 	"time"
 )
@@ -57,12 +58,15 @@ func TestWatcher_DebounceReset(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	changeCount := 0
+	var mu sync.Mutex
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns:  []string{"*.go"},
 		DebounceInterval: 200 * time.Millisecond,
 		OnChange: func(path string) {
+			mu.Lock()
 			changeCount++
+			mu.Unlock()
 		},
 	})
 	if err != nil {
@@ -85,8 +89,12 @@ func TestWatcher_DebounceReset(t *testing.T) {
 	time.Sleep(300 * time.Millisecond)
 
 	// Should only trigger once due to debouncing
-	if changeCount != 1 {
-		t.Errorf("Expected 1 change after debounce reset, got %d", changeCount)
+	mu.Lock()
+	finalCount := changeCount
+	mu.Unlock()
+
+	if finalCount != 1 {
+		t.Errorf("Expected 1 change after debounce reset, got %d", finalCount)
 	}
 }
 

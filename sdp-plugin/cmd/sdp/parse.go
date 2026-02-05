@@ -44,6 +44,12 @@ func parseRun(cmd *cobra.Command, args []string) error {
 
 	wsID := args[0]
 
+	// Sanitize wsID to prevent path traversal attacks
+	wsID = filepath.Clean(wsID)
+	if wsID != args[0] {
+		return fmt.Errorf("invalid workstream ID: path traversal detected")
+	}
+
 	// Find workstream file
 	wsPath, err := findWorkstreamFile(wsID)
 	if err != nil {
@@ -68,6 +74,13 @@ func validateRun(cmd *cobra.Command, args []string) error {
 	}
 
 	wsPath := args[0]
+
+	// Sanitize path to prevent path traversal attacks
+	wsPath = filepath.Clean(wsPath)
+	// Check if path tries to escape expected directories
+	if containsPathTraversal(wsPath) {
+		return fmt.Errorf("invalid file path: path traversal detected")
+	}
 
 	// Validate file
 	issues, err := parser.ValidateFile(wsPath)
@@ -160,4 +173,35 @@ func countErrors(issues []parser.ValidationIssue) int {
 		}
 	}
 	return count
+}
+
+// containsPathTraversal checks if a path contains traversal attempts
+func containsPathTraversal(path string) bool {
+	// Check for obvious traversal patterns
+	traversalPatterns := []string{
+		"../",
+		"..\\",
+		"~/.", // Don't allow home directory access
+	}
+	for _, pattern := range traversalPatterns {
+		if contains(path, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+// contains checks if a string contains a substring
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && findSubstring(s, substr) >= 0
+}
+
+// findSubstring finds a substring in a string
+func findSubstring(s, substr string) int {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return i
+		}
+	}
+	return -1
 }
