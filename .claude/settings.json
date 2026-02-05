@@ -4,22 +4,12 @@
   },
   "teammateMode": "auto",
   "hooks": {
-    "afterEdit": [
-      "echo '✅ File edited, running quality gates...'",
-      "pytest tests/ --quiet --tb=no || echo '⚠️ Tests failed, fix before committing'"
-    ],
-    "beforeCommit": [
-      "echo '🔍 Pre-commit checks...'",
-      "pytest tests/ --quiet --tb=no",
-      "python -m mypy src/ --strict",
-      "ruff check src/",
-      "python scripts/check_consistency.py || echo '⚠️ Documentation drift detected'"
-    ],
-    "afterCommit": [
-      "git status",
-      "echo '✅ Commit complete, syncing Beads...'",
-      "bd sync || true"
-    ]
+    "PostToolUse": {
+      "Bash": {
+        "pattern": "git commit.*",
+        "command": "echo '✅ Commit complete, syncing Beads...' && bd sync || true"
+      }
+    }
   },
   "skills": {
     "verify-workstream": {
