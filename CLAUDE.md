@@ -77,6 +77,19 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
    - No `except: pass`
    - Full type hints
 
+4. **Install Beads CLI** (for task tracking):
+   ```bash
+   # macOS
+   brew tap beads-dev/tap
+   brew install beads
+
+   # Linux
+   curl -sSL https://raw.githubusercontent.com/beads-dev/beads/main/install.sh | bash
+
+   # Verify
+   bd --version
+   ```
+
 ### Typical Workflow
 
 ```bash
@@ -448,3 +461,71 @@ See `.claude/settings.json` for:
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
+
+## Reality-First Development
+
+**Principle:** Always verify actual code before following documentation.
+
+Based on analysis of 827 sessions, the #1 friction point is **documentation-code mismatch**. Workstream descriptions often don't match actual implementation.
+
+### Quick Reality Check (90 seconds)
+
+Before modifying any file based on documentation:
+
+```bash
+/reality-check <filename>
+```
+
+**Example:**
+```markdown
+User: Add validation to User model in models.py
+
+Claude: Let me reality-check first...
+[Reads src/sdp/quality/models.py]
+⚠️ Reality Check: models.py contains dataclasses, NOT validation logic
+Recommendation: Create separate validators.py instead
+```
+
+### Full Workstream Verification (5-10 minutes)
+
+Before executing workstreams:
+
+```bash
+/verify-workstream 00-001-01
+```
+
+**Validates:**
+- All scope_files exist
+- Functions/classes in docs actually present in code
+- File purpose matches documentation
+- Architectural layers correct
+
+**Output:**
+```markdown
+## Documentation vs Reality Analysis
+
+| File | Docs | Reality | Status |
+|------|------|---------|--------|
+| validators.py | Generic validation | Business logic | ❌ Mismatch |
+| models.py | Validation models | Dataclasses | ❌ Wrong layer |
+
+**Recommendation:** PAUSE - Update workstream to reflect reality
+```
+
+### Integration with Workflow
+
+Add to step 3 of Typical Workflow:
+
+```bash
+# 3. Verify workstream (Reality-First)
+/verify-workstream 00-001-01
+
+# 4. Execute workstream
+@build 00-001-01
+```
+
+**Success Metrics:**
+- Prevents "wrong_approach" friction (13% of sessions)
+- Reduces pragmatic adaptation overhead
+- Maintains architectural integrity
+
