@@ -66,9 +66,9 @@ func (m *Manager) Save(cp Checkpoint) error {
 		return fmt.Errorf("failed to marshal checkpoint: %w", err)
 	}
 
-	// Write to file
+	// Write to file with secure permissions (owner read/write only)
 	filename := filepath.Join(m.dir, fmt.Sprintf("%s.json", cp.ID))
-	if err := os.WriteFile(filename, data, 0644); err != nil {
+	if err := os.WriteFile(filename, data, 0600); err != nil {
 		return fmt.Errorf("failed to write checkpoint file: %w", err)
 	}
 

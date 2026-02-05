@@ -56,8 +56,8 @@ func (c *Collector) Record(event Event) error {
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
-	// Append to file
-	file, err := os.OpenFile(c.filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Append to file with secure permissions (owner read/write only)
+	file, err := os.OpenFile(c.filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open telemetry file: %w", err)
 	}
