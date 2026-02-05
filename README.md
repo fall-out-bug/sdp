@@ -5,6 +5,58 @@
 [![Python](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](tests/)
+[![Status](https://img.shields.io/badge/status-deprecated-red.svg)](#deprecation-notice)
+
+---
+
+## ⚠️ Deprecation Notice
+
+**This Python SDP implementation is deprecated in favor of the Go-based [SDP Plugin](https://github.com/ai-masters/sdp-plugin).**
+
+### What This Means
+
+- **Current Status:** This repository is in maintenance mode (no new features)
+- **Maintenance Period:** Until 2026-08-03 (6 months from plugin release)
+- **Recommended Action:** Migrate to the [SDP Plugin](https://github.com/ai-masters/sdp-plugin)
+- **Your Work is Safe:** All workstreams are compatible with the plugin
+
+### Why the Change?
+
+The Python SDP has been succeeded by a more capable, language-agnostic implementation:
+
+| Feature | Python SDP | SDP Plugin |
+|---------|-----------|------------|
+| **Languages** | Python only | Python, Java, Go (any) |
+| **Installation** | `pip install sdp` | Copy prompts (no dependencies) |
+| **Dependencies** | Python 3.10+, Poetry | None (optional Go binary) |
+| **Quality Checks** | Tool-based (pytest, mypy, ruff) | AI-based (language-agnostic) |
+| **Maintenance** | Deprecated | Active development |
+
+### Migration Guide
+
+**Migrating is easy** - your workstreams are compatible!
+
+See [docs/migrations/python-sdp-deprecation.md](docs/migrations/python-sdp-deprecation.md) for:
+- Step-by-step migration instructions
+- Feature parity comparison
+- Common questions and answers
+- Rollback plan (if needed)
+
+### Quick Migration
+
+```bash
+# 1. Install the plugin (no pip required)
+git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+cp -r ~/.claude/sdp/prompts/* .claude/
+
+# 2. Your existing workstreams work as-is
+@build 00-001-01  # Same command!
+
+# 3. Quality checks now use AI (works with any language)
+@review F01
+```
+
+**Need help?** See the [full migration guide](docs/migrations/python-sdp-deprecation.md).
 
 ---
 
@@ -263,6 +315,8 @@ sdp/
 
 **Current Version:** v0.6.0 (Unified Workflow)
 
+**Status:** ⚠️ **DEPRECATED** - See [Deprecation Notice](#deprecation-notice) above
+
 **Implemented:**
 - ✅ Multi-agent coordination (spawning, messaging, roles)
 - ✅ Telegram notifications (real + mock)
@@ -272,22 +326,33 @@ sdp/
 - ✅ Autonomous execution (@oneshot)
 - ✅ 309 tests (91% coverage)
 
-**In Progress:**
-- 🔄 PyPI package (sdp-cli)
-- 🔄 GitHub Actions CI/CD
-- 🔄 Documentation website
+**Maintenance Mode:**
+- ❌ No new features planned
+- ✅ Bug fixes only (until 2026-08-03)
+- ✅ Security updates (as needed)
+- ❌ PyPI package cancelled
+- ❌ CI/CD cancelled
+
+**Successor:**
+- ✅ [SDP Plugin (Go-based)](https://github.com/ai-masters/sdp-plugin)
+- ✅ Multi-language support (Python, Java, Go)
+- ✅ No dependencies required
+- ✅ Active development
 
 ---
 
 ## Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+**⚠️ This project is in maintenance mode.**
 
-**Development:**
-- Python 3.14+
-- Poetry for dependency management
-- TDD required (tests first, code second)
-- Quality gates enforced (coverage, mypy, ruff)
+For new contributions, please contribute to the [SDP Plugin](https://github.com/ai-masters/sdp-plugin) instead.
+
+**Maintenance contributions only:**
+- Bug fixes
+- Security patches
+- Documentation updates
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
