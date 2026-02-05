@@ -1,160 +1,267 @@
 ---
 name: oneshot
 description: Autonomous multi-agent execution with checkpoints, resume, and PR-less modes
-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 3.0.0
+tools: Task, Read, Bash
+version: 4.0.0
 ---
 
-# @oneshot - Multi-Agent Execution
+# @oneshot - Multi-Agent Feature Execution
 
-Execute all workstreams for a feature using multiple agents in parallel with checkpoint/resume.
+Execute all workstreams for a feature using autonomous orchestrator agent with checkpoint/resume.
 
 ## When to Use
 
-- Feature has multiple workstreams
+- Feature has multiple workstreams (5-30 WS)
 - Want autonomous execution with progress tracking
 - Need checkpoint/resume for long-running features
+- Parallel execution of independent workstreams
 
 ## Invocation
 
 ```bash
-@oneshot bd-0001                    # Standard (creates PR)
-@oneshot bd-0001 --agents 5         # Use 5 agents
-@oneshot bd-0001 --auto-approve     # Skip PR, deploy directly
-@oneshot bd-0001 --sandbox          # Deploy to sandbox only
-@oneshot bd-0001 --dry-run          # Preview changes
-@oneshot bd-0001 --resume <id>      # Resume from checkpoint
-@oneshot bd-0001 --background       # Run in background
+@oneshot F050                       # Execute feature F050
+@oneshot F050 --agents 5            # Use 5 builder agents (default: 3)
+@oneshot F050 --resume abc123       # Resume from checkpoint
+@oneshot F050 --background          # Run in background
 ```
 
-## Execution Modes
+## How It Works
 
-| Mode | PR | Production | Use Case |
-|------|-------|------------|----------|
-| **Standard** | Yes | Yes | Production releases |
-| **--auto-approve** | No | Yes | Trusted features, rapid iteration |
-| **--sandbox** | No | No | Testing, staging |
-| **--dry-run** | N/A | N/A | Preview changes |
+### Step 1: Identify Feature Workstreams
 
-All modes enforce quality gates: coverage ≥80%, LOC <200, type hints, no `except: pass`.
+```bash
+# Find all workstreams for this feature
+grep -l "^feature: F050" docs/workstreams/backlog/*.md
+```
 
-## Workflow
+### Step 2: Launch Orchestrator Agent
 
-### Step 1: Load Execution Graph
+**CRITICAL:** Use Task tool to spawn general-purpose agent with orchestrator instructions:
 
 ```python
-from sdp.beads import create_beads_client
-from sdp.design.graph import DependencyGraph
+# Gather workstreams for this feature
+ws_files = Glob("docs/workstreams/backlog/00-050-*.md")  # Adjust pattern for feature
+workstreams = []
+for f in ws_files:
+    ws_id = parse_ws_id(f)  # e.g., "00-050-01" from filename
+    # Get beads_id from mapping
+    beads_id = Bash(f'grep "{{sdp_id: \\"{ws_id}\\"}}" .beads-sdp-mapping.jsonl | grep -o \'beads_id": "[^"]*"\' | cut -d\'"\' -f4')
+    workstreams.append({"ws_id": ws_id, "beads_id": beads_id})
 
-client = create_beads_client()
-graph = DependencyGraph()
+# Launch orchestrator agent
+Task(
+    subagent_type="general-purpose",
+    prompt=f"""
+You are executing feature {feature_id} autonomously as an orchestrator.
 
-for task in client.list_tasks(parent_id=feature_id):
-    graph.add(WorkstreamNode(
-        ws_id=task.id,
-        depends_on=[d.task_id for d in task.dependencies],
-        oneshot_ready=task.sdp_metadata.get("oneshot_ready", True),
-    ))
+**READ FIRST:** Read(".claude/agents/orchestrator.md") - This is your specification
 
-execution_order = graph.topological_sort()
+**Workstreams to execute:**
+{chr(10).join([f"- {w['ws_id']}: {get_title(w['ws_id'])} ({w['beads_id']})" for w in workstreams])}
+
+**Your workflow:**
+1. Read .claude/agents/orchestrator.md - this defines your behavior
+2. Build dependency graph:
+   - For each WS, check dependencies in WS file
+   - Or use: `bd show {{beads_id}}` to see blocking relationships
+3. Execute in topological order:
+   - For each WS: @build {{ws_id}}
+   - @build handles: Beads status + TDD + quality gates + commit
+4. Update checkpoint after each WS
+5. On all complete: @review {feature_id}
+
+**Progress format (timestamps required):**
+[HH:MM] Executing {{ws_id}}...
+[HH:MM] ✅ COMPLETE (Xm, Y% coverage, commit: abc123)
+
+**Checkpoint file (.oneshot/{feature_id}-checkpoint.json):**
+{{
+  "feature": "{feature_id}",
+  "agent_id": "agent-{timestamp}",
+  "status": "in_progress",
+  "completed_ws": ["{{ws_id}}", ...],
+  "execution_order": ["{{ws_id}}", ...],
+  "started_at": "{datetime.now().isoformat()}"
+}}
+
+**Escalate to human if:**
+- CRITICAL errors (blockers)
+- Circular dependencies
+- Quality gate fails after retry
+
+**Auto-fix:**
+- HIGH/MEDIUM issues (max 2 retries per WS)
+- Implementation details within WS scope
+""",
+    run_in_background=background_flag
+)
 ```
 
-### Step 2: Initialize Checkpoint
+### Step 3: Monitor Progress
 
-```python
-checkpoint = {
-    "feature": feature_id,
-    "agent_id": f"agent-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}",
-    "status": "in_progress",
-    "completed_ws": [],
-    "execution_order": execution_order,
-}
-
-# Save to .oneshot/{feature_id}-checkpoint.json
+**Foreground mode** (default):
+```
+Agent provides real-time updates:
+→ [15:23] Executing 00-050-01...
+→ [15:45] ✅ COMPLETE (22m, 85% coverage, commit: a1b2c3d)
+→ [15:46] Executing 00-050-02...
+...
 ```
 
-### Step 3: Execute with Multi-Agent
+**Background mode** (`--background`):
+```bash
+# Agent runs in background, returns task_id
+task_id = "xyz789"
 
-```python
-from sdp.beads import MultiAgentExecutor
+# Check progress anytime
+Read("/tmp/agent_xyz789.log")
 
-executor = MultiAgentExecutor(client, num_agents=args.get("agents", 3))
-result = executor.execute_feature(feature_id, checkpoint=checkpoint)
-
-if result.success:
-    checkpoint["status"] = "completed"
-else:
-    checkpoint["status"] = "failed"
-    print(f"Resume with: @oneshot {feature_id} --resume {checkpoint['agent_id']}")
+# Or wait for completion
+TaskOutput(task_id="xyz789", block=True)
 ```
 
-### Step 4: Two-Stage Review
+### Step 4: Resume from Checkpoint
 
-After all WS complete:
-1. **Automated:** `@review {feature_id}`
-2. **Human UAT:** Manual testing (5-10 min)
+If execution interrupted:
+
+```bash
+@oneshot F050 --resume agent-20260205-152300
+```
+
+Agent reads checkpoint file `.oneshot/F050-checkpoint.json` and continues from last completed workstream.
 
 ## Output
 
 **Success:**
 ```
-✅ Feature complete! Executed 4 workstreams
-   Agents: 3, Rounds: 2, Duration: ~15 min
-   Checkpoint: .oneshot/bd-0001-checkpoint.json
+✅ Feature F050 Execution Complete
 
-Next: @review bd-0001 → Manual UAT → @deploy bd-0001
+Agent: agent-20260205-152300
+Duration: 3h 45m
+Workstreams: 13/13 completed
+Avg Coverage: 84%
+
+Checkpoint: .oneshot/F050-checkpoint.json
+
+Next Steps:
+1. Human UAT (5-10 min)
+2. @review F050 (automated)
+3. @deploy F050 (if UAT passes)
 ```
 
 **Failure:**
 ```
-❌ Execution failed: bd-0001.3
+❌ Execution Failed: 00-050-09
 
-Resume: @oneshot bd-0001 --resume agent-20260126-120000
+Error: Circular dependency detected
+Checkpoint saved: .oneshot/F050-checkpoint.json
+
+Resume: @oneshot F050 --resume agent-20260205-152300
+Or fix manually: @build 00-050-09
 ```
 
 ## Checkpoint Format
 
 ```json
 {
-  "feature": "bd-0001",
-  "agent_id": "agent-20260126-120000",
-  "status": "in_progress|completed|failed",
-  "completed_ws": ["bd-0001.1", "bd-0001.2"],
-  "execution_order": ["bd-0001.1", "bd-0001.2", "bd-0001.3"],
-  "started_at": "2026-01-26T12:00:00Z"
+  "feature": "F050",
+  "agent_id": "agent-20260205-152300",
+  "status": "in_progress",
+  "completed_ws": ["00-050-01", "00-050-02"],
+  "failed_ws": [],
+  "execution_order": ["00-050-01", "00-050-02", "00-050-03", ...],
+  "started_at": "2026-02-05T15:23:00Z"
 }
 ```
+
+## Orchestrator Agent Capabilities
+
+The orchestrator agent (`.claude/agents/orchestrator.md`) has:
+
+**Autonomous Decisions:**
+- Execution order based on dependencies
+- Implementation details within WS scope
+- Test strategy for each workstream
+- Auto-fix HIGH/MEDIUM issues (max 2 retries)
+
+**Human Escalation:**
+- CRITICAL errors that block feature
+- Circular dependencies
+- Scope overflow (>1500 LOC)
+- Quality gate failures after 2 retries
+- Architectural decisions not in spec
+
+**Quality Standards:**
+- All AC met ✅
+- Coverage ≥ 80%
+- All fast tests pass
+- Linters clean (ruff, mypy)
+- Clean Architecture compliance
 
 ## Key Features
 
 | Feature | Description |
 |---------|-------------|
 | **Auto dependencies** | Beads DAG tracks dependencies |
-| **Parallel execution** | Independent tasks run in parallel |
+| **Parallel execution** | Independent WS run in parallel |
 | **Checkpoint/resume** | Continue from interruption |
 | **Background mode** | Long-running features |
-| **Audit logging** | All --auto-approve logged to .sdp/audit.log |
+| **Progress tracking** | Real-time timestamps |
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| No tasks executing | `bd list --parent {id}` to check workstreams |
-| Agents not utilized | Increase with `--agents 5` |
-| Tasks failing | `bd show {id}` for details, then resume |
-| Wrong order | Check `graph.topological_sort()` |
+| No tasks executing | `bd list --parent {feature}` to check workstreams |
+| Agent not starting | Check `.claude/agents/orchestrator.md` exists |
+| Wrong execution order | Check dependency graph: `bd graph {feature}` |
+| Background agent silent | Read `/tmp/agent_{task_id}.log` |
+| Resume not working | Check checkpoint file: `.oneshot/{feature}-checkpoint.json` |
 
 ## Quick Reference
 
 | Command | Purpose |
 |---------|---------|
-| `@oneshot bd-0001` | Execute with 3 agents |
-| `@oneshot bd-0001 --resume <id>` | Resume from checkpoint |
+| `@oneshot F050` | Execute with 3 agents |
+| `@oneshot F050 --background` | Run in background |
+| `@oneshot F050 --resume <id>` | Resume from checkpoint |
 | `bd ready` | List ready tasks |
-| `bd graph {id}` | Show dependency graph |
-| `@review {feature}` | Automated review |
+| `bd graph F050` | Show dependency graph |
+| `@review F050` | Automated review |
+
+## Example Execution
+
+```bash
+User: @oneshot F050
+
+Claude:
+→ Launching orchestrator agent...
+→ Agent ID: agent-20260205-152300
+→ Task ID: xyz789
+
+[Agent Output]
+→ Reading feature spec: docs/drafts/F050.md
+→ Found 13 workstreams
+→ Building dependency graph from Beads...
+→ Execution order: 01→02→03→05→06→07→09→08→10→11→12→13→14
+
+→ [15:23] Executing 00-050-01: Workstream Parser...
+→ [15:45] ✅ COMPLETE (22m, 85% coverage, commit: a1b2c3d)
+→ [15:46] Executing 00-050-02: TDD Runner...
+→ [16:12] ✅ COMPLETE (26m, 82% coverage, commit: d4e5f6g)
+...
+
+→ All workstreams complete!
+→ Running @review F050...
+→ Review verdict: APPROVED
+
+→ Feature complete! Duration: 3h 45m
+→ Checkpoint: .oneshot/F050-checkpoint.json
+→ Ready for human UAT
+```
 
 ---
 
-**Version:** 3.0.0  
-**See Also:** `@idea`, `@design`, `@build`, `@review`
+**Version:** 4.0.0 (Task-based orchestration)
+**See Also:** `@idea`, `@design`, `@build`, `@review`, `@deploy`
+**Agent:** `.claude/agents/orchestrator.md`
