@@ -3,6 +3,8 @@ package parser
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 // ValidateFile validates a workstream file and returns any issues
@@ -84,7 +86,16 @@ func ValidateFile(wsPath string) ([]ValidationIssue, error) {
 
 // fileExists checks if a file exists
 func fileExists(path string) bool {
-	_, err := os.Stat(path)
+	// Clean the path to prevent traversal
+	cleanPath := filepath.Clean(path)
+
+	// Additional safety: ensure path doesn't escape expected directories
+	// Allow relative paths but block traversal attempts
+	if strings.Contains(cleanPath, "../") || strings.Contains(cleanPath, "..\\") {
+		return false
+	}
+
+	_, err := os.Stat(cleanPath)
 	return err == nil
 }
 

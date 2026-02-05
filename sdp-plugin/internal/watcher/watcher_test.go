@@ -3,6 +3,7 @@ package watcher
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -233,12 +234,15 @@ func TestWatcher_Debounce(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	changeCount := 0
+	var mu sync.Mutex
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns: []string{"*.go"},
 		DebounceInterval: 100 * time.Millisecond,
 		OnChange: func(path string) {
+			mu.Lock()
 			changeCount++
+			mu.Unlock()
 		},
 	})
 	if err != nil {
@@ -267,7 +271,11 @@ func TestWatcher_Debounce(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Should have fewer changes than writes due to debouncing
-	if changeCount > 3 {
-		t.Errorf("Debouncing not effective, got %d changes from 5 rapid writes", changeCount)
+	mu.Lock()
+	finalCount := changeCount
+	mu.Unlock()
+
+	if finalCount > 3 {
+		t.Errorf("Debouncing not effective, got %d changes from 5 rapid writes", finalCount)
 	}
 }

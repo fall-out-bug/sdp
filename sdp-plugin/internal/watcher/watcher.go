@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -36,6 +37,7 @@ type Watcher struct {
 	stopped   chan struct{}
 	timer     *time.Timer
 	lastFile  string
+	mu        sync.Mutex // Protects timer and lastFile
 }
 
 // NewWatcher creates a new file watcher
@@ -178,6 +180,9 @@ func (w *Watcher) matchesPatterns(path string) bool {
 }
 
 func (w *Watcher) debounce(path string) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
 	// Reset timer if same file
 	if w.timer != nil && w.lastFile == path {
 		w.timer.Stop()
