@@ -5,7 +5,7 @@
       "pytest tests/ --quiet --tb=no || echo '⚠️ Tests failed, fix before committing'"
     ],
     "beforeCommit": [
-      "echo '🔍 Pre-commit checks...' &&",
+      "echo '🔍 Pre-commit checks...'",
       "pytest tests/ --quiet --tb=no",
       "python -m mypy src/ --strict",
       "ruff check src/",
@@ -13,7 +13,7 @@
     ],
     "afterCommit": [
       "git status",
-      "echo '✅ Commit complete, syncing Beads...' &&",
+      "echo '✅ Commit complete, syncing Beads...'",
       "bd sync || true"
     ]
   },
