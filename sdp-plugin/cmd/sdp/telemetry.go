@@ -139,7 +139,8 @@ var telemetryDisableCmd = &cobra.Command{
 			return fmt.Errorf("failed to marshal config: %w", err)
 		}
 
-		if err := os.WriteFile(configFile, data, 0644); err != nil {
+		// Write config file with secure permissions (owner read/write only)
+		if err := os.WriteFile(configFile, data, 0600); err != nil {
 			return fmt.Errorf("failed to write config: %w", err)
 		}
 

@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"github.com/ai-masters/sdp/internal/drift"
 )
 
 type CheckResult struct {
@@ -13,7 +16,13 @@ type CheckResult struct {
 	Message string
 }
 
-func Run() []CheckResult {
+// RunOptions controls which checks are run
+type RunOptions struct {
+	DriftCheck bool // Run drift detection on recent workstreams
+}
+
+// RunWithOptions runs doctor checks with the given options
+func RunWithOptions(opts RunOptions) []CheckResult {
 	results := []CheckResult{}
 
 	// Check 1: Git
@@ -28,7 +37,20 @@ func Run() []CheckResult {
 	// Check 4: .claude/ directory
 	results = append(results, checkClaudeDir())
 
+	// Check 5: File permissions on sensitive data
+	results = append(results, checkFilePermissions())
+
+	// Check 6: Drift detection (if requested)
+	if opts.DriftCheck {
+		results = append(results, checkDrift())
+	}
+
 	return results
+}
+
+// Run runs all standard doctor checks
+func Run() []CheckResult {
+	return RunWithOptions(RunOptions{})
 }
 
 func checkGit() CheckResult {
@@ -124,5 +146,247 @@ func checkClaudeDir() CheckResult {
 		Name:    ".claude/ directory",
 		Status:  "ok",
 		Message: "SDP prompts installed",
+	}
+}
+
+func checkDrift() CheckResult {
+	// Find project root
+	projectRoot, err := findProjectRootForDrift()
+	if err != nil {
+		return CheckResult{
+			Name:    "Drift Detection",
+			Status:  "warning",
+			Message: fmt.Sprintf("Could not find project root: %v", err),
+		}
+	}
+
+	// Find recent workstreams
+	recentWorkstreams, err := findRecentWorkstreamsForDrift(projectRoot)
+	if err != nil {
+		return CheckResult{
+			Name:    "Drift Detection",
+			Status:  "warning",
+			Message: fmt.Sprintf("Could not find workstreams: %v", err),
+		}
+	}
+
+	if len(recentWorkstreams) == 0 {
+		return CheckResult{
+			Name:    "Drift Detection",
+			Status:  "ok",
+			Message: "No recent workstreams to check",
+		}
+	}
+
+	// Check drift for each workstream
+	detector := drift.NewDetector(projectRoot)
+	totalErrors := 0
+	totalWarnings := 0
+	checkedCount := 0
+
+	for _, wsPath := range recentWorkstreams {
+		// Detect drift
+		report, err := detector.DetectDrift(wsPath)
+		if err != nil {
+			continue // Skip workstreams with errors
+		}
+
+		checkedCount++
+
+		// Count issues
+		for _, issue := range report.Issues {
+			if issue.Status == drift.StatusError {
+				totalErrors++
+			} else if issue.Status == drift.StatusWarning {
+				totalWarnings++
+			}
+		}
+	}
+
+	// Generate result message
+	if checkedCount == 0 {
+		return CheckResult{
+			Name:    "Drift Detection",
+			Status:  "warning",
+			Message: "Could not check any workstreams",
+		}
+	}
+
+	message := fmt.Sprintf("Checked %d recent workstream(s)", checkedCount)
+	if totalErrors > 0 || totalWarnings > 0 {
+		message += fmt.Sprintf(" - %d error(s), %d warning(s) found", totalErrors, totalWarnings)
+		if totalErrors > 0 {
+			message += ". Run 'sdp drift detect <ws-id>' for details"
+		}
+	}
+
+	status := "ok"
+	if totalErrors > 0 {
+		status = "error"
+	} else if totalWarnings > 0 {
+		status = "warning"
+	}
+
+	return CheckResult{
+		Name:    "Drift Detection",
+		Status:  status,
+		Message: message,
+	}
+}
+
+// findProjectRootForDrift finds the project root by looking for docs or .beads directory
+func findProjectRootForDrift() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	// Check if we're in sdp-plugin directory
+	if _, err := os.Stat(filepath.Join(cwd, "go.mod")); err == nil {
+		// We're in sdp-plugin, go up one level
+		parent := filepath.Dir(cwd)
+		if _, err := os.Stat(filepath.Join(parent, "docs")); err == nil {
+			return parent, nil
+		}
+	}
+
+	// Check if we're already in project root
+	if _, err := os.Stat(filepath.Join(cwd, "docs")); err == nil {
+		return cwd, nil
+	}
+
+	// Check for .beads directory
+	if _, err := os.Stat(filepath.Join(cwd, ".beads")); err == nil {
+		return cwd, nil
+	}
+
+	// Traverse up looking for project root
+	current := cwd
+	for {
+		if _, err := os.Stat(filepath.Join(current, "docs")); err == nil {
+			return current, nil
+		}
+		if _, err := os.Stat(filepath.Join(current, ".beads")); err == nil {
+			return current, nil
+		}
+
+		parent := filepath.Dir(current)
+		if parent == current {
+			// Reached root, return current directory
+			return cwd, nil
+		}
+		current = parent
+	}
+}
+
+// findRecentWorkstreamsForDrift finds recent workstreams to check for drift
+func findRecentWorkstreamsForDrift(projectRoot string) ([]string, error) {
+	workstreams := []string{}
+
+	// Directories to check
+	dirs := []string{
+		filepath.Join(projectRoot, "docs", "workstreams", "in_progress"),
+		filepath.Join(projectRoot, "docs", "workstreams", "completed"),
+	}
+
+	for _, dir := range dirs {
+		// Check if directory exists
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			continue
+		}
+
+		// Read directory
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		// Skip if no entries
+		if len(entries) == 0 {
+			continue
+		}
+
+		// Add workstreams (limit to 10 most recent from each directory)
+		count := 0
+		for i := len(entries) - 1; i >= 0 && count < 10; i++ {
+			if i < 0 || i >= len(entries) {
+				continue
+			}
+			entry := entries[i]
+			if entry.IsDir() {
+				continue
+			}
+
+			// Check if it's a markdown file
+			if strings.HasSuffix(entry.Name(), ".md") {
+				wsPath := filepath.Join(dir, entry.Name())
+				workstreams = append(workstreams, wsPath)
+				count++
+			}
+		}
+	}
+
+	return workstreams, nil
+}
+
+func checkFilePermissions() CheckResult {
+	// List of sensitive files to check
+	sensitiveFiles := []string{
+		filepath.Join(os.Getenv("HOME"), ".sdp", "telemetry.jsonl"),
+		".beads/beads.db",
+		".oneshot",
+	}
+
+	insecureFiles := []string{}
+	for _, path := range sensitiveFiles {
+		info, err := os.Stat(path)
+		if err != nil {
+			// File doesn't exist, skip
+			continue
+		}
+
+		// Check if file or directory
+		if info.IsDir() {
+			// Check files in directory
+			entries, err := os.ReadDir(path)
+			if err != nil {
+				continue
+			}
+
+			for _, entry := range entries {
+				if entry.IsDir() {
+					continue
+				}
+
+				fullPath := filepath.Join(path, entry.Name())
+				fileInfo, err := os.Stat(fullPath)
+				if err != nil {
+					continue
+				}
+
+				// Check permissions (should be 0600 for files)
+				if fileInfo.Mode().Perm()&0077 != 0 {
+					insecureFiles = append(insecureFiles, fullPath)
+				}
+			}
+		} else {
+			// Check single file permissions
+			if info.Mode().Perm()&0077 != 0 {
+				insecureFiles = append(insecureFiles, path)
+			}
+		}
+	}
+
+	if len(insecureFiles) > 0 {
+		return CheckResult{
+			Name:    "File Permissions",
+			Status:  "warning",
+			Message: fmt.Sprintf("Sensitive files have insecure permissions: %s (run 'chmod 0600 <file>' to fix)", strings.Join(insecureFiles, ", ")),
+		}
+	}
+
+	return CheckResult{
+		Name:    "File Permissions",
+		Status:  "ok",
+		Message: "All sensitive files have secure permissions",
 	}
 }
