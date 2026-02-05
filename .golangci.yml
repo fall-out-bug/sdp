@@ -1,0 +1,60 @@
+run:
+  concurrency: 4
+  timeout: 5m
+  output:
+    format: colored-line-number
+    print-issued-lines: true
+    print-linter-name: true
+    uniq-by-line: true
+    sort-results: true
+  linters:
+    disable-all: true
+    enable:
+      - errcheck
+      - gosimple
+      - govet
+      - ineffassign
+      - staticcheck
+      - typecheck
+      - unused
+      - gofmt
+      - goimports
+      - misspell
+      - gocyclo
+      - gocognit
+      - prealloc
+  linters-settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocyclo:
+      min-complexity: 15
+    gocognit:
+      min-complexity: 20
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+  issues:
+    exclude-use-default: false
+    max-issues-per-linter: 0
+    max-same-issues: 0
+    exclude:
+      - "exported (\\w+) should have comment"
+      - "comment on exported (\\w+)"
+    exclude-rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+  run:
+    skip-dirs:
+      - vendor
+      - testdata
+      - examples
+    skip-files:
+      - ".*\\.pb\\.go"
