@@ -1,8 +1,8 @@
 ---
 name: review
-description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead)
+description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation)
 tools: Read, Bash, Grep, Task
-version: 5.0.0
+version: 6.0.0
 ---
 
 # @review - Multi-Agent Quality Review
@@ -183,11 +183,58 @@ If Beads enabled:
 """,
     description="Technical lead review"
 )
+
+# Agent 6: Documentation & Drift
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the DOCUMENTATION & DRIFT expert.
+
+FEATURE: {feature_id}
+WORKSTREAMS: {list of completed WS}
+
+Your task:
+1. Run drift detection on all completed workstreams
+2. Verify implementation matches specifications
+3. Check for missing files or entities
+4. Validate completeness of documentation
+
+For each workstream:
+```bash
+sdp drift detect {ws_id}
+```
+
+Check:
+- Do all scope_files exist? (NEW files allowed)
+- Are all declared entities implemented? (functions, classes, types)
+- Does file purpose match documentation?
+- Any TODO/FIXME/HACK comments in production code?
+
+Output:
+## Documentation & Drift Review
+- Workstreams checked: {N}
+- Drift percentage: {X%} (target: 0%)
+- Missing files: {count/list}
+- Missing entities: {count/list}
+- Documentation completeness: {assessment}
+- Verdict: {PASS/FAIL}
+
+Drift criteria:
+- PASS: ≤5% drift, all critical files present, no blocking gaps
+- FAIL: >10% drift, missing critical files, or incomplete documentation
+
+BEADS_INTEGRATION:
+If Beads enabled:
+- Block workstreams with high drift (>10%)
+- Create tasks for missing implementation
+- Update drift status in Beads
+""",
+    description="Documentation and drift review"
+)
 ```
 
 ### Step 3: Synthesize Verdict
 
-Wait for all 5 agents, then:
+Wait for all 6 agents, then:
 
 ```markdown
 ## Feature Review: {feature_id}
@@ -207,9 +254,12 @@ Wait for all 5 agents, then:
 ### Tech Lead Review
 {code quality, architecture, verdict}
 
+### Documentation & Drift Review
+{drift percentage, missing files, documentation completeness, verdict}
+
 ## Overall Verdict
 
-**APPROVED** if all 5 PASS
+**APPROVED** if all 6 PASS
 **CHANGES_REQUESTED** if any FAIL
 
 No middle ground.
@@ -244,6 +294,7 @@ No middle ground.
 ⚙️ DevOps: PASS (CI/CD validated)
 ⏱️ SRE: PASS (SLOs defined)
 👨‍💻 TechLead: PASS (code quality good)
+📚 Documentation: PASS (0% drift, complete)
 📌 Beads: {updated if enabled}
 ```
 
@@ -255,14 +306,15 @@ No middle ground.
 ⚙️ DevOps: FAIL (no rollback)
 ⏱️ SRE: PASS
 👨‍💻 TechLead: PASS
+📚 Documentation: FAIL (15% drift, missing files)
 
 Findings tracked: {N issues}
 ```
 
 ## Parallel Execution Pattern
 
-5 agents spawned simultaneously (via 5 Task calls) following `.claude/skills/think/SKILL.md` pattern.
+6 agents spawned simultaneously (via 6 Task calls) following `.claude/skills/think/SKILL.md` pattern.
 
 ## Version
 
-**5.0.0** - Multi-agent review (QA + Security + DevOps + SRE + TechLead)
+**6.0.0** - Multi-agent review (QA + Security + DevOps + SRE + TechLead + Documentation)
