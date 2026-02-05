@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ai-masters/sdp/internal/checkpoint"
+	"github.com/ai-masters/sdp/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -17,13 +18,28 @@ Commands:
   create   Create a new checkpoint
   resume   Resume from an existing checkpoint
   list     List all checkpoints
-  clean    Clean old checkpoints`,
+  clean    Clean old checkpoints
+
+Examples:
+  # Create a checkpoint for feature F042
+  sdp checkpoint create my-feature F042
+
+  # List all checkpoints
+  sdp checkpoint list
+
+  # Resume from checkpoint
+  sdp checkpoint resume my-feature
+
+  # Clean checkpoints older than 48 hours
+  sdp checkpoint clean --age 48`,
 }
 
 var checkpointCreateCmd = &cobra.Command{
 	Use:   "create <id> <feature-id>",
 	Short: "Create a new checkpoint",
-	Args:  cobra.ExactArgs(2),
+	Example: `  sdp checkpoint create feature-01 F042
+  sdp checkpoint create feature-01 F042 --dir /tmp/checkpoints`,
+	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := args[0]
 		featureID := args[1]
@@ -57,9 +73,9 @@ var checkpointCreateCmd = &cobra.Command{
 			return fmt.Errorf("failed to create checkpoint: %w", err)
 		}
 
-		fmt.Printf("✅ Checkpoint created: %s\n", id)
-		fmt.Printf("   Feature: %s\n", featureID)
-		fmt.Printf("   Location: %s/%s.json\n", dir, id)
+		ui.SuccessLine("Checkpoint created: %s", ui.BoldText(id))
+		fmt.Printf("   Feature:  %s\n", featureID)
+		fmt.Printf("   Location: %s/%s.json\n", ui.Dim(dir), id)
 
 		return nil
 	},
@@ -68,7 +84,9 @@ var checkpointCreateCmd = &cobra.Command{
 var checkpointResumeCmd = &cobra.Command{
 	Use:   "resume <id>",
 	Short: "Resume from an existing checkpoint",
-	Args:  cobra.ExactArgs(1),
+	Example: `  sdp checkpoint resume feature-01
+  sdp checkpoint resume feature-01 --dir /tmp/checkpoints`,
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := args[0]
 
@@ -91,13 +109,13 @@ var checkpointResumeCmd = &cobra.Command{
 			return fmt.Errorf("failed to resume checkpoint: %w", err)
 		}
 
-		fmt.Printf("✅ Resumed checkpoint: %s\n", cp.ID)
-		fmt.Printf("   Feature: %s\n", cp.FeatureID)
-		fmt.Printf("   Status: %s\n", cp.Status)
-		fmt.Printf("   Current Workstream: %s\n", cp.CurrentWorkstream)
+		ui.SuccessLine("Resumed checkpoint: %s", ui.BoldText(cp.ID))
+		fmt.Printf("   Feature:              %s\n", cp.FeatureID)
+		fmt.Printf("   Status:               %s\n", ui.Info(string(cp.Status)))
+		fmt.Printf("   Current Workstream:   %s\n", cp.CurrentWorkstream)
 		fmt.Printf("   Completed Workstreams: %d\n", len(cp.CompletedWorkstreams))
-		fmt.Printf("   Created: %s\n", cp.CreatedAt.Format(time.RFC3339))
-		fmt.Printf("   Updated: %s\n", cp.UpdatedAt.Format(time.RFC3339))
+		fmt.Printf("   Created:              %s\n", ui.Dim(cp.CreatedAt.Format(time.RFC3339)))
+		fmt.Printf("   Updated:              %s\n", ui.Dim(cp.UpdatedAt.Format(time.RFC3339)))
 
 		return nil
 	},
@@ -106,7 +124,9 @@ var checkpointResumeCmd = &cobra.Command{
 var checkpointListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all checkpoints",
-	Args:  cobra.NoArgs,
+	Example: `  sdp checkpoint list
+  sdp checkpoint list --dir /tmp/checkpoints`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, err := cmd.Flags().GetString("dir")
 		if err != nil {
@@ -128,20 +148,21 @@ var checkpointListCmd = &cobra.Command{
 		}
 
 		if len(checkpoints) == 0 {
-			fmt.Println("No checkpoints found")
+			ui.InfoLine("No checkpoints found")
 			return nil
 		}
 
-		fmt.Printf("Found %d checkpoint(s):\n\n", len(checkpoints))
+		ui.Header(fmt.Sprintf("Found %d checkpoint(s)", len(checkpoints)))
 		for _, cp := range checkpoints {
-			fmt.Printf("ID: %s\n", cp.ID)
-			fmt.Printf("  Feature: %s\n", cp.FeatureID)
-			fmt.Printf("  Status: %s\n", cp.Status)
-			fmt.Printf("  Current: %s\n", cp.CurrentWorkstream)
-			fmt.Printf("  Completed: %d/%d\n", len(cp.CompletedWorkstreams),
+			fmt.Printf("ID:        %s\n", ui.BoldText(cp.ID))
+			fmt.Printf("  Feature:  %s\n", cp.FeatureID)
+			fmt.Printf("  Status:   %s\n", ui.Info(string(cp.Status)))
+			fmt.Printf("  Current:  %s\n", cp.CurrentWorkstream)
+			fmt.Printf("  Progress: %d/%d workstreams\n",
+				len(cp.CompletedWorkstreams),
 				len(cp.CompletedWorkstreams)+1) // +1 for current
-			fmt.Printf("  Created: %s\n", cp.CreatedAt.Format(time.RFC3339))
-			fmt.Printf("  Updated: %s\n", cp.UpdatedAt.Format(time.RFC3339))
+			fmt.Printf("  Created:  %s\n", ui.Dim(cp.CreatedAt.Format(time.RFC3339)))
+			fmt.Printf("  Updated:  %s\n", ui.Dim(cp.UpdatedAt.Format(time.RFC3339)))
 			fmt.Println()
 		}
 
@@ -152,7 +173,19 @@ var checkpointListCmd = &cobra.Command{
 var checkpointCleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Clean old checkpoints",
-	Args:  cobra.NoArgs,
+	Long: `Remove checkpoints older than the specified age.
+
+This command permanently deletes checkpoint files that have not been modified
+within the specified time period. Use with caution.`,
+	Example: `  # Clean checkpoints older than 24 hours (default)
+  sdp checkpoint clean
+
+  # Clean checkpoints older than 48 hours
+  sdp checkpoint clean --age 48
+
+  # Clean checkpoints older than 7 days
+  sdp checkpoint clean --age 168`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, err := cmd.Flags().GetString("dir")
 		if err != nil {
@@ -180,9 +213,9 @@ var checkpointCleanCmd = &cobra.Command{
 		}
 
 		if deleted == 0 {
-			fmt.Println("No old checkpoints to clean")
+			ui.InfoLine("No old checkpoints to clean")
 		} else {
-			fmt.Printf("✅ Cleaned %d old checkpoint(s)\n", deleted)
+			ui.SuccessLine("Cleaned %d old checkpoint(s)", deleted)
 		}
 
 		return nil
