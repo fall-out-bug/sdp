@@ -58,9 +58,22 @@ Output:
 - Verdict: {PASS/FAIL}
 
 BEADS_INTEGRATION:
-If Beads enabled:
-- Block workstreams that fail gates
-- Update quality metrics in tasks
+If Beads enabled (bd --version &>/dev/null):
+1. Create issues for quality gaps:
+   ```bash
+   bd create --title="QA: Coverage {package} below 80%" --type=task --priority=2
+   bd create --title="QA: Add tests for {package}" --type=task --priority=1
+   ```
+
+2. Block workstreams failing gates:
+   ```bash
+   bd update beads-{ws-id} --status=blocked --notes="QA: Coverage {X}% < 80%"
+   ```
+
+3. Update quality metrics:
+   ```bash
+   bd update beads-{feature-id} --notes="QA: {coverage}%, {passing}/{total} tests"
+   ```
 """,
     description="QA review"
 )
@@ -88,9 +101,22 @@ Output:
 - Verdict: {PASS/FAIL}
 
 BEADS_INTEGRATION:
-If Beads enabled:
-- Create security tasks for gaps
-- Track compliance in Beads
+If Beads enabled (bd --version &>/dev/null):
+1. Create issues for security findings:
+   ```bash
+   bd create --title="SEC: {vulnerability}" --type=bug --priority=0
+   bd create --title="SEC: Hardening {component}" --type=task --priority=1
+   ```
+
+2. Track compliance:
+   ```bash
+   bd update beads-{feature-id} --notes="Security: {OWASP} compliance, {vuln} vulns"
+   ```
+
+3. Link security issues to feature:
+   ```bash
+   bd dep add beads-{sec-issue} beads-{feature-id}
+   ```
 """,
     description="Security review"
 )
@@ -118,8 +144,17 @@ Output:
 - Verdict: {PASS/FAIL}
 
 BEADS_INTEGRATION:
-If Beads enabled:
-- Track deployment status in tasks
+If Beads enabled (bd --version &>/dev/null):
+1. Track deployment status:
+   ```bash
+   bd update beads-{feature-id} --notes="DevOps: CI/CD {status}, deployment {safe/unsafe}"
+   ```
+
+2. Create deployment tasks:
+   ```bash
+   bd create --title="DevOps: Add missing CI workflow" --type=task --priority=2
+   bd create --title="DevOps: Fix Goreleaser config" --type=bug --priority=0
+   ```
 """,
     description="DevOps review"
 )
@@ -147,8 +182,17 @@ Output:
 - Verdict: {PASS/FAIL}
 
 BEADS_INTEGRATION:
-If Beads enabled:
-- Track SLO compliance in tasks
+If Beads enabled (bd --version &>/dev/null):
+1. Track SLO compliance:
+   ```bash
+   bd update beads-{feature-id} --notes="SRE: Monitoring {X}%, SLOs {defined/not}"
+   ```
+
+2. Create incident tasks:
+   ```bash
+   bd create --title="SRE: Add incident procedures" --type=task --priority=1
+   bd create --title="SRE: Implement alerting" --type=task --priority=2
+   ```
 """,
     description="SRE review"
 )
@@ -177,9 +221,24 @@ Output:
 - Verdict: {PASS/FAIL}
 
 BEADS_INTEGRATION:
-If Beads enabled:
-- Unblock stuck tasks
-- Update tasks with guidance
+If Beads enabled (bd --version &>/dev/null):
+1. Unblock stuck tasks:
+   ```bash
+   for task in $(bd blocked | grep "blocked by: {feature-id}"); do
+       bd update $task --status=ready --notes="Unblocked by tech lead review"
+   done
+   ```
+
+2. Create technical debt tasks:
+   ```bash
+   bd create --title="TechDebt: Refactor {component}" --type=task --priority=3
+   bd create --title="TechDebt: Add ADR for {decision}" --type=task --priority=2
+   ```
+
+3. Update tasks with guidance:
+   ```bash
+   bd update beads-{ws-id} --notes="TechLead: {guidance on architecture}"
+   ```
 """,
     description="Technical lead review"
 )
@@ -268,10 +327,29 @@ Criteria:
 - FAIL: Any level FAIL, >10% drift, or missing critical features
 
 BEADS_INTEGRATION:
-If Beads enabled:
-- Block workstreams with high drift (>10%)
-- Create tasks for missing implementation
-- Track gaps in Beads issues
+If Beads enabled (bd --version works):
+1. Create issues for gaps:
+   ```bash
+   bd create --title="Drift: {description}" --type=bug --priority=2
+   bd create --title="Missing: {file/function}" --type=task --priority=1
+   ```
+
+2. Block workstreams with >10% drift:
+   ```bash
+   for ws in $(sdp drift detect {ws_id} | grep "Drift: >10%"); do
+       bd dep add beads-{ws} beads-parent
+   done
+   ```
+
+3. Update drift status in issues:
+   ```bash
+   bd update beads-{id} --notes="Drift check: {X}% drift, {N} gaps"
+   ```
+
+4. Link findings to parent feature:
+   ```bash
+   bd dep add beads-{finding-id} beads-{feature-id}
+   ```
 """,
     description="Documentation and drift review"
 )
@@ -323,14 +401,29 @@ No middle ground.
 
 ### Step 4: Post-Review (MANDATORY if CHANGES_REQUESTED)
 
-**Track findings:**
-- Bugs → `@issue` → route to `/bugfix`
-- Planned work → Add WS to **same feature**
-- Tech debt → `@issue` for triage
+**Track findings in Beads (if enabled):**
+
+```bash
+# Bugs
+bd create --title="BUG: {description}" --type=bug --priority=1
+bd dep add beads-{bug-id} beads-{feature-id}
+
+# Planned work (new workstreams)
+bd create --title="WS: {workstream name}" --type=task --priority=2
+bd dep add beads-{ws-id} beads-{feature-id}
+
+# Tech debt
+bd create --title="TechDebt: {description}" --type=task --priority=3
+bd dep add beads-{debt-id} beads-{feature-id}
+
+# Sync to remote
+bd sync
+```
 
 **Rules:**
 - Never create new feature for follow-up
-- All findings tracked in Beads (if enabled)
+- All findings MUST be tracked in Beads (if enabled)
+- Use dependencies: findings depend on feature parent
 
 ## Output
 
