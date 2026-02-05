@@ -16,9 +16,11 @@ func main() {
 		Short: "Spec-Driven Protocol - AI workflow tools",
 		Long: `SDP provides convenience commands for Spec-Driven Protocol:
 
-  init     Initialize project with SDP prompts
-  doctor   Check environment (Git, Claude Code, .claude/)
-  hooks    Manage Git hooks for SDP
+  init       Initialize project with SDP prompts
+  doctor     Check environment (Git, Claude Code, .claude/)
+  hooks      Manage Git hooks for SDP
+  watch      Watch files for quality violations
+  checkpoint Manage checkpoints for long-running features
 
 These commands are optional convenience tools. The core SDP functionality
 is provided by the Claude Plugin prompts in .claude/.`,
@@ -47,7 +49,9 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(tddCmd())
 	rootCmd.AddCommand(driftCmd())
 	rootCmd.AddCommand(qualityCmd())
+	rootCmd.AddCommand(watchCmd())
 	rootCmd.AddCommand(telemetryCmd)
+	rootCmd.AddCommand(checkpointCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
