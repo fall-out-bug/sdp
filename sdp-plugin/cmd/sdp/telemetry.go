@@ -168,9 +168,67 @@ var telemetryEnableCmd = &cobra.Command{
 	},
 }
 
+var telemetryAnalyzeCmd = &cobra.Command{
+	Use:   "analyze",
+	Short: "Analyze telemetry data for insights",
+	Long: `Analyze telemetry data to generate insights.
+
+Calculates:
+  - Success rate by command
+  - Average execution time by command
+  - Top error categories
+  - Overall usage statistics`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return fmt.Errorf("failed to get config dir: %w", err)
+		}
+
+		telemetryFile := filepath.Join(configDir, "sdp", "telemetry.jsonl")
+		analyzer, err := telemetry.NewAnalyzer(telemetryFile)
+		if err != nil {
+			return fmt.Errorf("failed to create analyzer: %w", err)
+		}
+
+		// Generate report
+		report, err := analyzer.GenerateReport(nil, nil)
+		if err != nil {
+			return fmt.Errorf("failed to generate report: %w", err)
+		}
+
+		// Print report
+		fmt.Println("\n📊 Telemetry Analysis Report")
+		fmt.Println("==========================")
+		fmt.Printf("\nTotal Events: %d\n", report.TotalEvents)
+
+		if len(report.CommandStats) > 0 {
+			fmt.Println("\n📈 Command Statistics:")
+			fmt.Println("----------------------")
+			for cmd, stats := range report.CommandStats {
+				fmt.Printf("\n  %s:\n", cmd)
+				fmt.Printf("    Total Runs: %d\n", stats.TotalRuns)
+				fmt.Printf("    Success Rate: %.1f%%\n", stats.SuccessRate*100)
+				fmt.Printf("    Avg Duration: %dms\n", stats.AvgDuration)
+			}
+		}
+
+		if len(report.TopErrors) > 0 {
+			fmt.Println("\n❌ Top Errors:")
+			fmt.Println("-------------")
+			for i, err := range report.TopErrors {
+				fmt.Printf("  %d. %s (%d occurrences)\n", i+1, err.Message, err.Count)
+			}
+		}
+
+		fmt.Println()
+		return nil
+	},
+}
+
 func init() {
 	telemetryCmd.AddCommand(telemetryStatusCmd)
 	telemetryCmd.AddCommand(telemetryExportCmd)
 	telemetryCmd.AddCommand(telemetryDisableCmd)
 	telemetryCmd.AddCommand(telemetryEnableCmd)
+	telemetryCmd.AddCommand(telemetryAnalyzeCmd)
 }
