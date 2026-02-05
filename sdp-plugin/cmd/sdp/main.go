@@ -52,6 +52,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(watchCmd())
 	rootCmd.AddCommand(telemetryCmd)
 	rootCmd.AddCommand(checkpointCmd)
+	rootCmd.AddCommand(orchestrateCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
