@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/ai-masters/sdp/internal/hooks"
+	"github.com/spf13/cobra"
 )
 
 func hooksCmd() *cobra.Command {
