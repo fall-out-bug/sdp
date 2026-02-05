@@ -5,12 +5,15 @@ import (
 	"os"
 
 	"github.com/ai-masters/sdp/internal/telemetry"
+	"github.com/ai-masters/sdp/internal/ui"
 	"github.com/spf13/cobra"
 )
 
 var version = "dev"
 
 func main() {
+	var noColor bool
+
 	var rootCmd = &cobra.Command{
 		Use:   "sdp",
 		Short: "Spec-Driven Protocol - AI workflow tools",
@@ -21,11 +24,30 @@ func main() {
   hooks      Manage Git hooks for SDP
   watch      Watch files for quality violations
   checkpoint Manage checkpoints for long-running features
+  completion Generate shell completion script
 
 These commands are optional convenience tools. The core SDP functionality
 is provided by the Claude Plugin prompts in .claude/.`,
+		Example: `  # Initialize SDP in a project
+  sdp init .
+
+  # Check environment setup
+  sdp doctor
+
+  # Generate shell completion
+  sdp completion bash > ~/.bash_completion.d/sdp
+  sdp completion zsh > ~/.zsh/completion/_sdp
+
+  # Create a checkpoint
+  sdp checkpoint create my-feature F042
+
+  # List checkpoints
+  sdp checkpoint list`,
 		Version: version,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Set NoColor flag
+			ui.NoColor = noColor
+
 			// Track command start (skip telemetry commands to avoid infinite loops)
 			if cmd.Parent() == nil || cmd.Parent().Use != "telemetry" {
 				telemetry.TrackCommandStart(cmd.Name(), args)
@@ -41,6 +63,9 @@ is provided by the Claude Plugin prompts in .claude/.`,
 		},
 	}
 
+	// Global flags
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
+
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(doctorCmd())
 	rootCmd.AddCommand(hooksCmd())
@@ -53,6 +78,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(telemetryCmd)
 	rootCmd.AddCommand(checkpointCmd)
 	rootCmd.AddCommand(orchestrateCmd)
+	rootCmd.AddCommand(completionCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
