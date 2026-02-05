@@ -29,9 +29,12 @@ Review feature by validating workstreams against quality gates and traceability.
 ## Step 1-2: List & Check Traceability
 
 ```bash
-# List workstreams
-bd list --parent {feature-id}  # Beads
-ls docs/workstreams/completed/{feature-id}-*.md  # Markdown
+# List workstreams (Beads OR markdown)
+if bd --version &>/dev/null && [ -d .beads ]; then
+    bd list --parent {feature-id}  # Beads-enabled
+else
+    ls docs/workstreams/completed/{feature-id}-*.md  # Markdown-only
+fi
 
 # Check traceability
 sdp trace check {WS-ID}

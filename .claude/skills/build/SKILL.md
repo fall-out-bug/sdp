@@ -15,7 +15,7 @@ Accepts **both** formats:
 - `@build 00-001-01` — WS-ID (PP-FFF-SS), resolve beads_id from `.beads-sdp-mapping.jsonl`
 - `@build sdp-xxx` — Beads task ID directly
 
-## Beads Integration (when enabled)
+## Beads Integration (optional)
 
 **When Beads is enabled** (bd installed, `.beads/` exists):
 
@@ -26,22 +26,24 @@ Accepts **both** formats:
 5. **On failure:** `bd update {beads_id} --status blocked`
 6. **Before commit:** `bd sync`
 
-**When Beads NOT enabled:** Skip Beads steps. Use ws_id only.
+**When Beads NOT enabled:** Skip all Beads steps. Use ws_id only.
 
-**SDP repo:** Beads always enabled (see .cursorrules).
+**Detection:** Check if `bd --version` works and `.beads/` exists.
 
 ## Quick Reference
 
-| Step | Action | Gate |
-|------|--------|------|
-| 0 | Resolve beads_id | ws_id → mapping or use beads_id |
-| 1 | Beads IN_PROGRESS | `bd update {beads_id} --status in_progress` |
-| 2 | Activate guard | `sdp guard activate {ws_id}` |
-| 3 | Read WS spec | AC present and clear |
-| 4 | TDD cycle | `@tdd` for each AC |
-| 5 | Quality check | `sdp quality check` passes |
-| 6 | Beads CLOSED/blocked | `bd close` or `bd update --status blocked` |
-| 7 | Beads sync + Complete | `bd sync` then commit |
+| Step | Action | Gate | Beads? |
+|------|--------|------|--------|
+| 0 | Detect Beads | Check `bd --version` + `.beads/` | Detection |
+| 0a | Resolve beads_id | ws_id → mapping (if Beads) | Optional |
+| 0b | Beads IN_PROGRESS | `bd update --status in_progress` (if Beads) | Optional |
+| 1 | Activate guard | `sdp guard activate {ws_id}` | Always |
+| 2 | Read WS spec | AC present and clear | Always |
+| 3 | TDD cycle | `@tdd` for each AC | Always |
+| 4 | Quality check | `sdp quality check` passes | Always |
+| 5 | Beads CLOSED/blocked | `bd close` or `bd update --status blocked` (if Beads) | Optional |
+| 6 | Beads sync + commit | `bd sync` then commit (if Beads) | Optional |
+| 7 | Commit only | `git commit` (if no Beads) | Fallback |
 
 ## Workflow
 

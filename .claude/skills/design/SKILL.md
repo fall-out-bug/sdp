@@ -22,15 +22,12 @@ Analyze requirements and create workstreams with dependencies and scope.
 
 ### Step 1: Read Feature
 
-```bash
-bd show {feature-id}
-```
+**Priority order:**
 
-Or for markdown:
+1. **Markdown** (primary): `Read("docs/drafts/{feature}.md")`
+2. **Beads** (optional): `bd show {feature-id}` (if Beads enabled)
 
-```bash
-Read("docs/drafts/{feature}.md")
-```
+**Detection:** Check if `bd --version` works and `.beads/` exists.
 
 ### Step 2: Explore Codebase
 

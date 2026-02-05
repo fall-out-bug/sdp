@@ -1,13 +1,13 @@
 ---
 name: idea
-description: Interactive requirements gathering using Beads with deep interviewing
+description: Interactive requirements gathering with deep interviewing
 tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
-version: 3.0.0
+version: 3.1.0
 ---
 
 # @idea - Requirements Gathering
 
-Deep interviewing to capture comprehensive feature requirements. Creates Beads task with PRODUCT_VISION alignment.
+Deep interviewing to capture comprehensive feature requirements. Creates markdown spec, optionally creates Beads task if enabled.
 
 ## When to Use
 
