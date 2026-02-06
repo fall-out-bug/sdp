@@ -37,4 +37,4 @@ Thumbs.db
 *.log
 
 # SDP binary
-sdp
+/sdp

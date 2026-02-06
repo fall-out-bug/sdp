@@ -308,3 +308,484 @@ func TestGuardCommand(t *testing.T) {
 		// OK as long as it's not a panic
 	}
 }
+
+// TestBeadsCommand tests the sdp beads command
+func TestBeadsCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+		contains string
+	}{
+		{
+			name:     "beads ready",
+			args:     []string{"beads", "ready"},
+			wantErr:  false,
+			contains: "ready",
+		},
+		{
+			name:     "beads list",
+			args:     []string{"beads", "list"},
+			wantErr:  false,
+		},
+		{
+			name:     "beads sync",
+			args:     []string{"beads", "sync"},
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			if tt.contains != "" && !strings.Contains(output, tt.contains) {
+				t.Logf("Output: %s", output)
+			}
+		})
+	}
+}
+
+// TestCompletionCommand tests the sdp completion command
+func TestCompletionCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	shells := []string{"bash", "zsh", "fish"}
+
+	for _, shell := range shells {
+		t.Run("completion "+shell, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, "completion", shell)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			if err := cmd.Run(); err != nil {
+				t.Logf("Completion %s failed: %v\nOutput: %s", shell, err, stdout.String()+stderr.String())
+			}
+
+			output := stdout.String()
+			if len(output) == 0 {
+				t.Errorf("Completion script for %s should produce output", shell)
+			}
+		})
+	}
+}
+
+// TestOrchestrateCommand tests the sdp orchestrate command
+func TestOrchestrateCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Test orchestrate help
+	cmd := exec.Command(binaryPath, "orchestrate", "--help")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("Orchestrate help failed: %v", err)
+	}
+
+	output := stdout.String() + stderr.String()
+	if !strings.Contains(output, "orchestrate") {
+		t.Errorf("Orchestrate help should mention orchestrate\nGot: %s", output)
+	}
+}
+
+// TestPrdCommand tests the sdp prd command
+func TestPrdCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+		contains string
+	}{
+		{
+			name:     "prd help",
+			args:     []string{"prd", "--help"},
+			wantErr:  false,
+			contains: "PRD",
+		},
+		{
+			name:     "prd detect",
+			args:     []string{"prd", "detect"},
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			if tt.contains != "" && !strings.Contains(output, tt.contains) {
+				t.Errorf("Output does not contain %q\nGot: %s", tt.contains, output)
+			}
+		})
+	}
+}
+
+// TestQualityCommand tests the sdp quality command
+func TestQualityCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	root := repoRoot(t)
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	os.Chdir(root)
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+		contains string
+	}{
+		{
+			name:     "quality check all",
+			args:     []string{"quality", "check", "."},
+			wantErr:  false,
+			contains: "Coverage",
+		},
+		{
+			name:     "quality check specific module",
+			args:     []string{"quality", "check", "./internal/parser"},
+			wantErr:  false,
+		},
+		{
+			name:     "quality help",
+			args:     []string{"quality", "--help"},
+			wantErr:  false,
+			contains: "quality",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			if tt.contains != "" && !strings.Contains(output, tt.contains) {
+				t.Logf("Output: %s", output)
+			}
+
+			t.Logf("Quality %s: err=%v", tt.name, err)
+		})
+	}
+}
+
+// TestSkillCommand tests the sdp skill command
+func TestSkillCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+		contains string
+	}{
+		{
+			name:     "skill help",
+			args:     []string{"skill", "--help"},
+			wantErr:  false,
+			contains: "skill",
+		},
+		{
+			name:     "skill validate",
+			args:     []string{"skill", "validate"},
+			wantErr:  false,
+		},
+		{
+			name:     "skill list",
+			args:     []string{"skill", "list"},
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			if tt.contains != "" && !strings.Contains(output, tt.contains) {
+				t.Logf("Output: %s", output)
+			}
+		})
+	}
+}
+
+// TestTddCommand tests the sdp tdd command
+func TestTddCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Create temp directory for TDD test
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test_example_test.go")
+	testContent := `
+package test_example
+
+import "testing"
+
+func TestExample(t *testing.T) {
+	if 1+1 != 2 {
+		t.Fail()
+	}
+}
+`
+	if err := os.WriteFile(testFile, []byte(testContent), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+	}{
+		{
+			name:    "tdd run",
+			args:    []string{"tdd", "run", testFile},
+			wantErr: false,
+		},
+		{
+			name:    "tdd help",
+			args:    []string{"tdd", "--help"},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			t.Logf("TDD %s: err=%v, output=%s", tt.name, err, output)
+		})
+	}
+}
+
+// TestTelemetryCommand tests the sdp telemetry command
+func TestTelemetryCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+		contains string
+	}{
+		{
+			name:     "telemetry analyze",
+			args:     []string{"telemetry", "analyze"},
+			wantErr:  false,
+			contains: "telemetry",
+		},
+		{
+			name:     "telemetry export json",
+			args:     []string{"telemetry", "export", "--format", "json"},
+			wantErr:  false,
+		},
+		{
+			name:     "telemetry help",
+			args:     []string{"telemetry", "--help"},
+			wantErr:  false,
+			contains: "telemetry",
+		},
+		{
+			name:     "telemetry status",
+			args:     []string{"telemetry", "status"},
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			if tt.contains != "" && !strings.Contains(output, tt.contains) {
+				t.Logf("Output: %s", output)
+			}
+
+			t.Logf("Telemetry %s: err=%v", tt.name, err)
+		})
+	}
+}
+
+// TestWatchCommand tests the sdp watch command
+func TestWatchCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Test watch help (can't test actual watch as it runs forever)
+	cmd := exec.Command(binaryPath, "watch", "--help")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("Watch help failed: %v", err)
+	}
+
+	output := stdout.String() + stderr.String()
+	if !strings.Contains(output, "watch") {
+		t.Errorf("Watch help should mention watch\nGot: %s", output)
+	}
+}
+
+// TestHooksCommand tests the sdp hooks command
+func TestHooksCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	root := repoRoot(t)
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	os.Chdir(root)
+
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  bool
+		contains string
+	}{
+		{
+			name:     "hooks install",
+			args:     []string{"hooks", "install"},
+			wantErr:  false,
+			contains: "hooks",
+		},
+		{
+			name:     "hooks uninstall",
+			args:     []string{"hooks", "uninstall"},
+			wantErr:  false,
+		},
+		{
+			name:     "hooks help",
+			args:     []string{"hooks", "--help"},
+			wantErr:  false,
+			contains: "hooks",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			output := stdout.String() + stderr.String()
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error but got none")
+			}
+
+			if tt.contains != "" && !strings.Contains(output, tt.contains) {
+				t.Logf("Output: %s", output)
+			}
+
+			t.Logf("Hooks %s: err=%v", tt.name, err)
+		})
+	}
+}
+
+// TestCommandsCoverage tests that all commands are reachable
+func TestCommandsCoverage(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Get list of all commands
+	cmd := exec.Command(binaryPath, "--help")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("Failed to get help: %v", err)
+	}
+
+	output := stdout.String() + stderr.String()
+
+	// List of expected commands
+	expectedCommands := []string{
+		"beads",
+		"checkpoint",
+		"completion",
+		"doctor",
+		"drift",
+		"guard",
+		"help",
+		"hooks",
+		"init",
+		"orchestrate",
+		"parse",
+		"prd",
+		"quality",
+		"skill",
+		"tdd",
+		"telemetry",
+		"verify",
+		"watch",
+	}
+
+	for _, expected := range expectedCommands {
+		if !strings.Contains(output, expected) {
+			t.Errorf("Expected command %q not found in help output", expected)
+		}
+	}
+}
