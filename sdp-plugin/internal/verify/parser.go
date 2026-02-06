@@ -97,7 +97,10 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 			case "status":
 				data.Status = value
 			case "coverage_threshold":
-				fmt.Sscanf(value, "%f", &data.CoverageThreshold)
+				if _, err := fmt.Sscanf(value, "%f", &data.CoverageThreshold); err != nil {
+					// Use default value if parsing fails
+					data.CoverageThreshold = 80.0
+				}
 			case "scope_files":
 				inList = true
 				currentList = &data.ScopeFiles

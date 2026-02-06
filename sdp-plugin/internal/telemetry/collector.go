@@ -61,7 +61,12 @@ func (c *Collector) Record(event Event) error {
 	if err != nil {
 		return fmt.Errorf("failed to open telemetry file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			// Log but don't fail if close fails after successful write
+			fmt.Fprintf(os.Stderr, "warning: failed to close telemetry file: %v\n", cerr)
+		}
+	}()
 
 	if _, err := file.Write(append(data, '\n')); err != nil {
 		return fmt.Errorf("failed to write event: %w", err)

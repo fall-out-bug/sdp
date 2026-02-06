@@ -95,21 +95,21 @@ func guardCheck() *cobra.Command {
 			if result.Allowed {
 				fmt.Printf("✅ ALLOWED: %s\n", result.Reason)
 				fmt.Printf("   Active WS: %s\n", result.WSID)
-			} else {
-				fmt.Printf("❌ BLOCKED: %s\n", result.Reason)
-				if result.WSID != "" {
-					fmt.Printf("   Active WS: %s\n", result.WSID)
-				}
-				if len(result.ScopeFiles) > 0 {
-					fmt.Printf("   Scope files:\n")
-					for _, f := range result.ScopeFiles {
-						fmt.Printf("     - %s\n", f)
-					}
-				}
-				os.Exit(1)
+				return nil
 			}
 
-			return nil
+			// Not allowed
+			fmt.Printf("❌ BLOCKED: %s\n", result.Reason)
+			if result.WSID != "" {
+				fmt.Printf("   Active WS: %s\n", result.WSID)
+			}
+			if len(result.ScopeFiles) > 0 {
+				fmt.Printf("   Scope files:\n")
+				for _, f := range result.ScopeFiles {
+					fmt.Printf("     - %s\n", f)
+				}
+			}
+			return fmt.Errorf("file edit not allowed: %s", result.Reason)
 		},
 	}
 }

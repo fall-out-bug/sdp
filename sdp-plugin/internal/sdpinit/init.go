@@ -81,13 +81,21 @@ func copyPrompts(destDir string) error {
 		if err != nil {
 			return err
 		}
-		defer srcFile.Close()
+		defer func() {
+			if cerr := srcFile.Close(); cerr != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close source file %s: %v\n", path, cerr)
+			}
+		}()
 
 		dstFile, err := os.Create(destPath)
 		if err != nil {
 			return err
 		}
-		defer dstFile.Close()
+		defer func() {
+			if cerr := dstFile.Close(); cerr != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close destination file %s: %v\n", destPath, cerr)
+			}
+		}()
 
 		_, err = io.Copy(dstFile, srcFile)
 		return err

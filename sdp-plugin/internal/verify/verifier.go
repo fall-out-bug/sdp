@@ -36,7 +36,10 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 			// File exists
 			check.Passed = true
 			check.Message = filePath
-			absPath, _ := filepath.Abs(filePath)
+			absPath, err := filepath.Abs(filePath)
+			if err != nil {
+				absPath = filePath // Fall back to original path
+			}
 			check.Evidence = absPath
 		} else {
 			// File doesn't exist

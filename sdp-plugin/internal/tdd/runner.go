@@ -63,7 +63,9 @@ func (r *Runner) RunPhase(ctx context.Context, phase Phase, wsPath string) (*Pha
 	select {
 	case <-ctx.Done():
 		// Context cancelled - kill the process
-		cmd.Process.Kill()
+		if err := cmd.Process.Kill(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to kill process: %v\n", err)
+		}
 		return &PhaseResult{
 			Phase:    phase,
 			Success:  false,
