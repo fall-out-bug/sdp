@@ -84,3 +84,19 @@ archive/
 # Temporary status files
 *_STATUS.md
 *_PROGRESS.md
+
+# Python SDP (deprecated/archived 2026-02-06)
+src/sdp-deprecated/
+tests-deprecated/
+*.pyc
+__pycache__/
+.pytest_cache/
+mypy.ini
+.pytest_cache/
+.ruff_cache/
+.coverage.*
+coverage.json
+coverage.xml
+*.egg-info/
+.poetry_metadata/
+poetry.lock
