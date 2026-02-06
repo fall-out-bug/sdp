@@ -120,7 +120,14 @@ func checkGo() CheckResult {
 
 	// Get version
 	cmd := exec.Command("go", "version")
-	output, _ := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return CheckResult{
+			Name:    "Go",
+			Status:  "error",
+			Message: "Failed to get version",
+		}
+	}
 	version := strings.TrimSpace(string(output))
 
 	return CheckResult{

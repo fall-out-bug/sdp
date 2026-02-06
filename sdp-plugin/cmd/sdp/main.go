@@ -61,7 +61,11 @@ is provided by the Claude Plugin prompts in .claude/.`,
 						granted, err := telemetry.AskForConsent()
 						if err == nil {
 							// Save user's choice
-							telemetry.GrantConsent(configPath, granted)
+							func() {
+								if cerr := telemetry.GrantConsent(configPath, granted); cerr != nil {
+									fmt.Fprintf(os.Stderr, "warning: failed to save telemetry consent: %v\n", cerr)
+								}
+							}()
 							consentAsked = true
 						}
 					}
@@ -70,14 +74,22 @@ is provided by the Claude Plugin prompts in .claude/.`,
 
 			// Track command start (skip telemetry commands to avoid infinite loops)
 			if cmd.Parent() == nil || cmd.Parent().Use != "telemetry" {
-				telemetry.TrackCommandStart(cmd.Name(), args)
+				func() {
+					if cerr := telemetry.TrackCommandStart(cmd.Name(), args); cerr != nil {
+						fmt.Fprintf(os.Stderr, "warning: failed to track command start: %v\n", cerr)
+					}
+				}()
 			}
 			return nil
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			// Track command completion (skip telemetry commands)
 			if cmd.Parent() == nil || cmd.Parent().Use != "telemetry" {
-				telemetry.TrackCommandComplete(true, "")
+				func() {
+					if cerr := telemetry.TrackCommandComplete(true, ""); cerr != nil {
+						fmt.Fprintf(os.Stderr, "warning: failed to track command completion: %v\n", cerr)
+					}
+				}()
 			}
 			return nil
 		},
@@ -108,7 +120,11 @@ is provided by the Claude Plugin prompts in .claude/.`,
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
-		telemetry.TrackCommandComplete(false, err.Error())
+		func() {
+			if cerr := telemetry.TrackCommandComplete(false, err.Error()); cerr != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to track command failure: %v\n", cerr)
+			}
+		}()
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
