@@ -264,6 +264,13 @@ func TestTelemetryUploadCmd(t *testing.T) {
 	os.Setenv("XDG_CONFIG_HOME", parentDir)
 	defer os.Setenv("XDG_CONFIG_HOME", oldConfigDir)
 
+	// Change to tmpDir so upload files are created there
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
 	tests := []struct {
 		name        string
 		format      string
