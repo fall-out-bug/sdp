@@ -51,6 +51,11 @@ func (p *ProgressBar) Set(n int64) {
 
 // render updates the progress bar display
 func (p *ProgressBar) render() {
+	// Handle zero total gracefully
+	if p.total == 0 {
+		return
+	}
+
 	// Throttle updates to avoid flickering (max 10 updates per second)
 	now := time.Now()
 	if now.Sub(p.lastTime) < 100*time.Millisecond && p.current < p.total {
