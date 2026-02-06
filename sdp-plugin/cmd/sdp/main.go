@@ -89,6 +89,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(doctorCmd())
 	rootCmd.AddCommand(hooksCmd())
+	rootCmd.AddCommand(guardCmd())
 	rootCmd.AddCommand(parseCmd())
 	rootCmd.AddCommand(beadsCmd())
 	rootCmd.AddCommand(tddCmd())
