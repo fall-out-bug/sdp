@@ -1,2 +1,0 @@
-{"timestamp":"0001-01-01T00:00:00Z","type":"technical","feature_id":"F015","question":"Should we use JSONL for decision logging?","decision":"Yes, use JSONL format","rationale":"JSONL is append-only, easy to parse, and supports streaming","outcome":"","decision_maker":"claude"}
-{"timestamp":"2026-02-06T17:46:36.547534+03:00","type":"explicit","feature_id":"","question":"Test decision 2","decision":"Yes","rationale":"Testing timestamp","outcome":"","decision_maker":"user"}
