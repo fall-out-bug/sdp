@@ -6,11 +6,11 @@ import (
 
 // GuardResult represents the result of a guard check
 type GuardResult struct {
-	Allowed   bool     `json:"allowed"`
-	WSID      string   `json:"ws_id,omitempty"`
-	Reason    string   `json:"reason,omitempty"`
+	Allowed    bool     `json:"allowed"`
+	WSID       string   `json:"ws_id,omitempty"`
+	Reason     string   `json:"reason,omitempty"`
 	ScopeFiles []string `json:"scope_files,omitempty"`
-	Timestamp string   `json:"timestamp"`
+	Timestamp  string   `json:"timestamp"`
 }
 
 // GuardState represents the active workstream state

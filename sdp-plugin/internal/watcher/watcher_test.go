@@ -238,7 +238,7 @@ func TestWatcher_Debounce(t *testing.T) {
 	var mu sync.Mutex
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
-		IncludePatterns: []string{"*.go"},
+		IncludePatterns:  []string{"*.go"},
 		DebounceInterval: 100 * time.Millisecond,
 		OnChange: func(path string) {
 			mu.Lock()

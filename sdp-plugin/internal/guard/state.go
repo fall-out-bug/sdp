@@ -16,14 +16,14 @@ const (
 // StateManager manages guard state persistence
 type StateManager struct {
 	stateFile string
-	configDir  string
+	configDir string
 }
 
 // NewStateManager creates a new StateManager
 func NewStateManager(configDir string) *StateManager {
 	return &StateManager{
 		stateFile: GuardStateFile,
-		configDir:  configDir,
+		configDir: configDir,
 	}
 }
 
