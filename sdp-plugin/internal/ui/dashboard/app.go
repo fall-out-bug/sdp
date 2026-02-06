@@ -197,7 +197,7 @@ func (a *App) renderTabs() string {
 // renderContent renders the active tab content
 func (a *App) renderContent() string {
 	if a.state.Loading {
-		return matrixDimStyle.Render("Loading...")
+		return matrixBrightStyle.Render("Loading...")
 	}
 
 	switch TabType(a.state.ActiveTab) {
@@ -295,7 +295,7 @@ func (a *App) renderWorkstreams() string {
 		totalCount += len(wss)
 	}
 
-	content += matrixDimStyle.Render(fmt.Sprintf("Total: %d workstream(s)\n", totalCount))
+	content += matrixBaseStyle.Render(fmt.Sprintf("Total: %d workstream(s)\n", totalCount))
 
 	return content
 }
@@ -341,7 +341,7 @@ func (a *App) renderIdeas() string {
 
 		content += prefix + idea.Title + "\n"
 		content += "    " + idea.Path + "\n"
-		content += "    " + matrixDimStyle.Render("Last modified: "+dateStr) + "\n\n"
+		content += "    " + matrixBaseStyle.Render("Last modified: "+dateStr) + "\n\n"
 	}
 
 	return content
@@ -354,7 +354,7 @@ func (a *App) renderTests() string {
 	tr := a.state.TestResults
 	content += matrixBaseStyle.Render(fmt.Sprintf("Coverage: %s\n", tr.Coverage))
 	content += matrixBaseStyle.Render(fmt.Sprintf("Tests: %d/%d passing\n", tr.Passing, tr.Total))
-	content += matrixDimStyle.Render(fmt.Sprintf("Last run: %s\n\n", tr.LastRun.Format("2006-01-02 15:04:05")))
+	content += matrixBaseStyle.Render(fmt.Sprintf("Last run: %s\n\n", tr.LastRun.Format("2006-01-02 15:04:05")))
 
 	content += matrixBaseStyle.Render("Quality Gates:\n")
 	for i, gate := range tr.QualityGates {
