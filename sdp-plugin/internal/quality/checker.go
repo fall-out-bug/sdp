@@ -17,6 +17,7 @@ const (
 type Checker struct {
 	projectPath string
 	projectType Type
+	strictMode  bool
 }
 
 type CoverageResult struct {
@@ -49,11 +50,13 @@ type FileComplexity struct {
 }
 
 type FileSizeResult struct {
-	TotalFiles    int
-	Violators     []FileViolation
-	Threshold     int
-	Passed        bool
-	AverageLOC    int
+	TotalFiles int
+	Violators  []FileViolation
+	Warnings   []FileViolation
+	Threshold  int
+	Passed     bool
+	AverageLOC int
+	Strict     bool
 }
 
 type FileViolation struct {
@@ -142,4 +145,16 @@ func (c *Checker) detectProjectType() (Type, error) {
 
 	// Fallback to Python
 	return Python, nil
+}
+
+// SetStrictMode enables or disables strict quality gate checking
+// In strict mode, file size violations are errors
+// In pragmatic mode (default), file size violations are warnings
+func (c *Checker) SetStrictMode(strict bool) {
+	c.strictMode = strict
+}
+
+// IsStrictMode returns whether strict mode is enabled
+func (c *Checker) IsStrictMode() bool {
+	return c.strictMode
 }
