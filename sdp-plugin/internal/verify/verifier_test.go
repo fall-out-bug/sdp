@@ -245,7 +245,7 @@ func TestVerifyCoverage(t *testing.T) {
 
 	check := verifier.VerifyCoverage(data)
 	if check == nil {
-		t.Error("VerifyCoverage should return check when threshold set")
+		t.Fatal("VerifyCoverage should return check when threshold set")
 	}
 
 	if check.Name != "Coverage Check" {
@@ -334,9 +334,9 @@ func TestVerifierVerifyOutputFiles(t *testing.T) {
 
 func TestVerificationResultAllPassed(t *testing.T) {
 	result := &VerificationResult{
-		WSID:   "00-001-01",
+		WSID:   "00-001-01", //nolint:unused // Test fixture
 		Passed: true,
-		Checks: []CheckResult{
+		Checks: []CheckResult{ //nolint:unused // Test fixture
 			{Name: "Check1", Passed: true},
 			{Name: "Check2", Passed: true},
 		},
@@ -349,9 +349,9 @@ func TestVerificationResultAllPassed(t *testing.T) {
 
 func TestVerificationResultOneFailed(t *testing.T) {
 	result := &VerificationResult{
-		WSID:   "00-001-01",
+		WSID:   "00-001-01", //nolint:unused // Test fixture
 		Passed: true,
-		Checks: []CheckResult{
+		Checks: []CheckResult{ //nolint:unused // Test fixture
 			{Name: "Check1", Passed: true},
 			{Name: "Check2", Passed: false},
 		},

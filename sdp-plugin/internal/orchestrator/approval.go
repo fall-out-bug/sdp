@@ -159,7 +159,7 @@ func (am *ApprovalGateManager) Reject(gateID, approver, reason string) error {
 	}
 
 	// Check if approver has already approved
-	if approved, _ := gate.Approvers[approver]; approved {
+	if approved, exists := gate.Approvers[approver]; exists && approved {
 		return errors.New("cannot reject gate after approving")
 	}
 

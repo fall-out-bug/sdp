@@ -136,7 +136,10 @@ func (a *App) fetchIdeas() []IdeaSummary {
 		filename := filepath.Base(ideaFile)
 		title := strings.TrimSuffix(filename, ".md")
 		title = strings.ReplaceAll(title, "-", " ")
-		title = strings.Title(title)
+		// Capitalize first letter (strings.Title is deprecated)
+		if len(title) > 0 {
+			title = strings.ToUpper(title[:1]) + title[1:]
+		}
 
 		ideas = append(ideas, IdeaSummary{
 			Title: title,

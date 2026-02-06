@@ -30,7 +30,7 @@ func TestWatchCmd(t *testing.T) {
 
 	// Test that command can be created and flags work
 	if cmd == nil {
-		t.Error("watchCmd() returned nil")
+		t.Fatal("watchCmd() returned nil")
 	}
 
 	// We can't actually run the watch command because it blocks waiting for files

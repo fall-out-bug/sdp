@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+// contextKey is a custom type for context keys to avoid collisions
+type contextKey string
+
+const (
+	correlationIDKey contextKey = "correlation_id"
+)
+
 // OrchestratorLogger wraps slog.Logger with correlation ID support
 type OrchestratorLogger struct {
 	logger        *slog.Logger
@@ -44,7 +51,7 @@ func NewOrchestratorLoggerWithHandler(featureID string, handler slog.Handler) *O
 
 // WithContext adds correlation ID to context
 func (ol *OrchestratorLogger) WithContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, "correlation_id", ol.correlationID)
+	return context.WithValue(ctx, correlationIDKey, ol.correlationID)
 }
 
 // LogStart logs orchestration start event

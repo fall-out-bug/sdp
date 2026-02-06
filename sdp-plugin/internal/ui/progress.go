@@ -51,11 +51,6 @@ func (p *ProgressBar) Set(n int64) {
 
 // render updates the progress bar display
 func (p *ProgressBar) render() {
-	// Handle zero total gracefully
-	if p.total == 0 {
-		return
-	}
-
 	// Throttle updates to avoid flickering (max 10 updates per second)
 	now := time.Now()
 	if now.Sub(p.lastTime) < 100*time.Millisecond && p.current < p.total {
@@ -63,14 +58,24 @@ func (p *ProgressBar) render() {
 	}
 	p.lastTime = now
 
-	percent := float64(p.current) / float64(p.total)
-	if percent > 1.0 {
-		percent = 1.0
-	}
+	var percent float64
+	var filled int
+	var bar string
 
-	// Calculate filled width
-	filled := int(percent * float64(p.width))
-	bar := strings.Repeat("█", filled) + strings.Repeat("░", p.width-filled)
+	if p.total == 0 {
+		// Handle zero total - show empty bar with indeterminate status
+		percent = 0.0
+		filled = 0
+		bar = strings.Repeat("░", p.width)
+	} else {
+		percent = float64(p.current) / float64(p.total)
+		if percent > 1.0 {
+			percent = 1.0
+		}
+		// Calculate filled width
+		filled = int(percent * float64(p.width))
+		bar = strings.Repeat("█", filled) + strings.Repeat("░", p.width-filled)
+	}
 
 	// Format percentage
 	percentStr := fmt.Sprintf("%.1f%%", percent*100)
