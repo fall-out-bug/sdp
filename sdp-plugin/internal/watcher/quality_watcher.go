@@ -12,12 +12,12 @@ import (
 
 // QualityWatcher watches files and runs quality checks on changes
 type QualityWatcher struct {
-	watcher      *Watcher
-	checker      *quality.Checker
-	violations   []Violation
-	mu           sync.RWMutex
-	quiet        bool
-	watchPath    string
+	watcher    *Watcher
+	checker    *quality.Checker
+	violations []Violation
+	mu         sync.RWMutex
+	quiet      bool
+	watchPath  string
 }
 
 // Violation represents a quality violation
@@ -73,10 +73,10 @@ func NewQualityWatcher(watchPath string, config *QualityWatcherConfig) (*Quality
 
 	// Create file watcher
 	watcher, err := NewWatcher(watchPath, &WatcherConfig{
-		IncludePatterns: includePatterns,
-		ExcludePatterns: excludePatterns,
+		IncludePatterns:  includePatterns,
+		ExcludePatterns:  excludePatterns,
 		DebounceInterval: 100 * time.Millisecond,
-		OnChange:       qw.onFileChange,
+		OnChange:         qw.onFileChange,
 		OnError: func(err error) {
 			if !qw.quiet {
 				fmt.Fprintf(os.Stderr, "Watch error: %v\n", err)

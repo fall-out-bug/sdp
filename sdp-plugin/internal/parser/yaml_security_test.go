@@ -107,7 +107,7 @@ func TestYAMLFieldLengthLimit(t *testing.T) {
 			name:        "large_goal",
 			fieldName:   "goal",
 			fieldLength: MaxStringLength*10 + 1000, // Goal is in content, not YAML
-			shouldError: false, // Goal content can be larger
+			shouldError: false,                     // Goal content can be larger
 		},
 	}
 

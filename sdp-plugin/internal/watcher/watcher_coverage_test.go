@@ -120,12 +120,12 @@ func TestWatcher_PatternMatchEdgeCases(t *testing.T) {
 		expected bool
 	}{
 		{"my.go", true},
-		{"test.go", false},           // Excluded by test*
-		{"test_file.go", false},      // Excluded by test*
-		{"mytest.go", true},          // Not starting with test
-		{"README", false},            // Not *.go
-		{".git", false},              // Directory
-		{"", false},                  // Empty string
+		{"test.go", false},      // Excluded by test*
+		{"test_file.go", false}, // Excluded by test*
+		{"mytest.go", true},     // Not starting with test
+		{"README", false},       // Not *.go
+		{".git", false},         // Directory
+		{"", false},             // Empty string
 	}
 
 	for _, tt := range tests {
