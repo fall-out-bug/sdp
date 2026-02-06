@@ -38,3 +38,5 @@ Thumbs.db
 
 # SDP binary
 /sdp
+# Decision logs (local audit trail)
+docs/decisions/
