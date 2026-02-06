@@ -6,9 +6,14 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/fall-out-bug/sdp/internal/decision"
 	"github.com/spf13/cobra"
+)
+
+const (
+	maxFieldLength = 10 * 1024 // 10KB max per field
 )
 
 // decisionsCmd returns the decisions command
@@ -247,6 +252,50 @@ func decisionsLogCmd() *cobra.Command {
 				return fmt.Errorf("required flags: --question, --decision")
 			}
 
+			// Validate field lengths
+			if err := validateFieldLength("question", question, maxFieldLength); err != nil {
+				return err
+			}
+			if err := validateFieldLength("decision", decisionStr, maxFieldLength); err != nil {
+				return err
+			}
+			if rationale != "" {
+				if err := validateFieldLength("rationale", rationale, maxFieldLength); err != nil {
+					return err
+				}
+			}
+			if alternatives != "" {
+				if err := validateFieldLength("alternatives", alternatives, maxFieldLength); err != nil {
+					return err
+				}
+			}
+
+			// Strip control characters
+			question = stripControlChars(question)
+			decisionStr = stripControlChars(decisionStr)
+			rationale = stripControlChars(rationale)
+			alternatives = stripControlChars(alternatives)
+
+			// Validate decision type
+			if decisionType != "" {
+				validTypes := []string{
+					decision.DecisionTypeVision,
+					decision.DecisionTypeTechnical,
+					decision.DecisionTypeTradeoff,
+					decision.DecisionTypeExplicit,
+				}
+				valid := false
+				for _, t := range validTypes {
+					if decisionType == t {
+						valid = true
+						break
+					}
+				}
+				if !valid {
+					return fmt.Errorf("invalid decision type %q, must be one of: vision, technical, tradeoff, explicit", decisionType)
+				}
+			}
+
 			root, err := findProjectRoot()
 			if err != nil {
 				return err
@@ -334,4 +383,22 @@ func findProjectRoot() (string, error) {
 	}
 
 	return "", fmt.Errorf("not in a git repository")
+}
+
+// validateFieldLength validates field length
+func validateFieldLength(fieldName, value string, maxLen int) error {
+	if len(value) > maxLen {
+		return fmt.Errorf("%s exceeds maximum length of %d bytes (got %d)", fieldName, maxLen, len(value))
+	}
+	return nil
+}
+
+// stripControlChars removes control characters except newline/tab
+func stripControlChars(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) && r != '\n' && r != '\t' && r != '\r' {
+			return -1 // Remove control char
+		}
+		return r
+	}, s)
 }
