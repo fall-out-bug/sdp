@@ -166,8 +166,9 @@ func TestGateStatus(t *testing.T) {
 
 // Test DashboardState initialization with data
 func TestDashboardStateWithData(t *testing.T) {
+	//nolint:unusedwrite // Test fixture - fields not used
 	state := DashboardState{
-		ActiveTab: 2, //nolint:unusedwrite // Test fixture
+		ActiveTab: 2,
 		Workstreams: map[string][]WorkstreamSummary{
 			"open": {
 				{ID: "sdp-001", Title: "First task", Status: "open", Priority: "P1"},
@@ -181,7 +182,7 @@ func TestDashboardStateWithData(t *testing.T) {
 			Passing:  10,
 			Total:    10,
 		},
-		Loading: false, //nolint:unusedwrite // Test fixture
+		Loading: false,
 	}
 
 	// Verify workstreams

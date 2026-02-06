@@ -23,9 +23,10 @@ func TestEventTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			//nolint:unusedwrite // Test fixture - fields not used
 			event := Event{
 				Type:      tt.eventType,
-				Timestamp: time.Now(), //nolint:unusedwrite // Test fixture
+				Timestamp: time.Now(),
 			}
 
 			isValid := event.Type.IsValid()
