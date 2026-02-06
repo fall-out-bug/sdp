@@ -18,16 +18,16 @@ var requiredSections = []string{
 
 // ValidationResult represents validation results
 type ValidationResult struct {
-	IsValid  bool     `json:"is_valid"`
-	Errors   []string `json:"errors,omitempty"`
-	Warnings []string `json:"warnings,omitempty"`
-	LineCount int     `json:"line_count"`
+	IsValid   bool     `json:"is_valid"`
+	Errors    []string `json:"errors,omitempty"`
+	Warnings  []string `json:"warnings,omitempty"`
+	LineCount int      `json:"line_count"`
 }
 
 // Validator checks skill files against standards
 type Validator struct {
-	maxLines      int
-	warningLines  int
+	maxLines     int
+	warningLines int
 }
 
 // NewValidator creates a new skill validator
@@ -195,7 +195,11 @@ func CountLines(filePath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close file %s: %v\n", filePath, cerr)
+		}
+	}()
 
 	scanner := bufio.NewScanner(file)
 	count := 0

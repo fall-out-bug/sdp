@@ -276,7 +276,11 @@ func InstallCompletion(shell CompletionType) error {
 	switch shell {
 	case Bash:
 		scriptPath = homeDir + "/.bash_completion.d/sdp"
-		script, _ = generateBashCompletion()
+		var err error
+		script, err = generateBashCompletion()
+		if err != nil {
+			return fmt.Errorf("failed to generate bash completion: %w", err)
+		}
 	case Zsh:
 		// Try common zsh completion directories
 		completionDir := homeDir + "/.zsh/completion"
@@ -284,11 +288,19 @@ func InstallCompletion(shell CompletionType) error {
 			completionDir = homeDir + "/.zsh/completions"
 		}
 		scriptPath = completionDir + "/_sdp"
-		script, _ = generateZshCompletion()
+		var err error
+		script, err = generateZshCompletion()
+		if err != nil {
+			return fmt.Errorf("failed to generate zsh completion: %w", err)
+		}
 	case Fish:
 		completionDir := homeDir + "/.config/fish/completions"
 		scriptPath = completionDir + "/sdp.fish"
-		script, _ = generateFishCompletion()
+		var err error
+		script, err = generateFishCompletion()
+		if err != nil {
+			return fmt.Errorf("failed to generate fish completion: %w", err)
+		}
 	default:
 		return fmt.Errorf("unsupported shell: %s", shell)
 	}

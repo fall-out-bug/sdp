@@ -20,10 +20,10 @@ const (
 
 // DriftIssue represents a single drift issue found
 type DriftIssue struct {
-	File          string
-	Status        Status
-	Expected      string
-	Actual        string
+	File           string
+	Status         Status
+	Expected       string
+	Actual         string
 	Recommendation string
 }
 

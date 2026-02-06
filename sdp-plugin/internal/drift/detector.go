@@ -51,10 +51,10 @@ func (d *Detector) DetectDrift(wsPath string) (*DriftReport, error) {
 		// Check file existence
 		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 			report.AddIssue(DriftIssue{
-				File:          filePath,
-				Status:        StatusError,
-				Expected:      "File exists",
-				Actual:        "File not found",
+				File:           filePath,
+				Status:         StatusError,
+				Expected:       "File exists",
+				Actual:         "File not found",
 				Recommendation: fmt.Sprintf("Create file: %s", filePath),
 			})
 			continue
@@ -64,10 +64,10 @@ func (d *Detector) DetectDrift(wsPath string) (*DriftReport, error) {
 		entities := extractEntities(fullPath)
 		if len(entities) == 0 {
 			report.AddIssue(DriftIssue{
-				File:          filePath,
-				Status:        StatusWarning,
-				Expected:      "Contains functions/classes",
-				Actual:        "No entities found",
+				File:           filePath,
+				Status:         StatusWarning,
+				Expected:       "Contains functions/classes",
+				Actual:         "No entities found",
 				Recommendation: fmt.Sprintf("Add implementation to %s", filePath),
 			})
 			continue
