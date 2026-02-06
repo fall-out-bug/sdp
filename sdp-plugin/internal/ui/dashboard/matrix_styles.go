@@ -8,7 +8,7 @@ import (
 var (
 	// Matrix style - black background with green text
 	matrixBackground = lipgloss.Color("0")     // Black
-	matrixForeground = lipgloss.Color("34")    // Green (bright)
+	matrixForeground = lipgloss.Color("82")    // Bright green (better contrast)
 	matrixDim       = lipgloss.Color("28")    // Dark green
 	matrixAccent    = lipgloss.Color("46")    // Bright green accent
 	matrixHighlight = lipgloss.Color("226")   // Yellow for selection
@@ -24,7 +24,8 @@ var (
 			Bold(true).
 			Foreground(matrixAccent).
 			Background(matrixBackground).
-			Underline(true)
+			Underline(true).
+			Width(80)
 
 	// Active tab style
 	matrixActiveTabStyle = lipgloss.NewStyle().
@@ -90,7 +91,6 @@ var (
 
 	// Footer style
 	matrixFooterStyle = lipgloss.NewStyle().
-			Foreground(matrixDim).
-			Background(matrixBackground).
-			Faint(true)
+			Foreground(matrixForeground).
+			Background(matrixBackground)
 )

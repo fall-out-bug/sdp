@@ -71,28 +71,36 @@ func (a *App) fetchWorkstreams() map[string][]WorkstreamSummary {
 		}
 	}
 
-	// If Beads returned no data, fallback to docs/workstreams/
-	if len(summaries["open"]) == 0 && len(summaries["in_progress"]) == 0 {
-		wsFiles, err := filepath.Glob("docs/workstreams/*/backlog/*.md")
-		if err == nil && len(wsFiles) > 0 {
-			for _, wsFile := range wsFiles {
-				ws, err := parser.ParseWorkstream(wsFile)
-				if err != nil {
-					continue
-				}
+	// Always check docs/workstreams/ as additional source
+	// (even if Beads returned data, this might have different items)
+	wsFiles, err := filepath.Glob("docs/workstreams/*/backlog/*.md")
+	if err == nil && len(wsFiles) > 0 {
+		for _, wsFile := range wsFiles {
+			ws, err := parser.ParseWorkstream(wsFile)
+			if err != nil {
+				continue
+			}
 
-				status := strings.ToLower(ws.Status)
-				wsSummary := WorkstreamSummary{
-					ID:       ws.ID,
-					Title:    ws.Goal,
-					Status:   status,
-					Priority: "P2", // Default priority
-					Size:     ws.Size,
-				}
+			status := strings.ToLower(ws.Status)
+			wsSummary := WorkstreamSummary{
+				ID:       ws.ID,
+				Title:    ws.Goal,
+				Status:   status,
+				Priority: "P2", // Default priority
+				Size:     ws.Size,
+			}
 
-				if group, ok := summaries[status]; ok {
-					summaries[status] = append(group, wsSummary)
+			// Add to appropriate status group (avoiding duplicates by ID)
+			group := summaries[status]
+			alreadyExists := false
+			for _, existing := range group {
+				if existing.ID == wsSummary.ID {
+					alreadyExists = true
+					break
 				}
+			}
+			if !alreadyExists {
+				summaries[status] = append(group, wsSummary)
 			}
 		}
 	}

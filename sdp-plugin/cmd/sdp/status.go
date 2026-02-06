@@ -26,7 +26,13 @@ Keyboard shortcuts:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Create and run the dashboard
 			app := dashboard.New()
-			p := tea.NewProgram(app, tea.WithAltScreen()) // Use alt screen for full TUI experience
+
+			// Use full screen with alt screen + mouse support
+			p := tea.NewProgram(
+				app,
+				tea.WithAltScreen(),
+				tea.WithMouseCellMotion(),
+			)
 
 			if _, err := p.Run(); err != nil {
 				return err

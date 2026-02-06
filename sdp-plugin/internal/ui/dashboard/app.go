@@ -122,7 +122,7 @@ func (a *App) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if a.state.CursorPos > 0 {
 			a.state.CursorPos--
 		}
-		return a, nil
+		return a, nil // Return same model with updated state
 
 	case "down", "j":
 		// Move cursor down
@@ -130,7 +130,7 @@ func (a *App) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if a.state.CursorPos < maxItems-1 {
 			a.state.CursorPos++
 		}
-		return a, nil
+		return a, nil // Return same model with updated state
 
 	case "enter", " ":
 		// Open selected item
@@ -172,25 +172,6 @@ func (a *App) openSelectedItem() tea.Cmd {
 }
 
 // View renders the UI
-func (a *App) View() string {
-	if a.quit {
-		return ""
-	}
-
-	// Build the view
-	var view string
-
-	view += a.renderHeader()
-	view += "\n"
-	view += a.renderTabs()
-	view += "\n"
-	view += a.renderContent()
-	view += "\n"
-	view += a.renderFooter()
-
-	return view
-}
-
 // renderHeader renders the dashboard header
 func (a *App) renderHeader() string {
 	return matrixHeaderStyle.Render("🚀 SDP Dashboard [MATRIX MODE]")
