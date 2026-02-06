@@ -3,6 +3,7 @@ package watcher
 import (
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -79,12 +80,12 @@ func TestWatcher_HandleEvent_Create(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	createCount := 0
+	var createCount int64
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns: []string{"*.go"},
 		OnChange: func(path string) {
-			createCount++
+			atomic.AddInt64(&createCount, 1)
 		},
 	})
 	if err != nil {
@@ -103,7 +104,7 @@ func TestWatcher_HandleEvent_Create(t *testing.T) {
 	// Give debounce time to trigger
 	time.Sleep(200 * time.Millisecond)
 
-	if createCount != 1 {
+	if atomic.LoadInt64(&createCount) != 1 {
 		t.Errorf("Expected 1 create event, got %d", createCount)
 	}
 }
@@ -115,12 +116,12 @@ func TestWatcher_HandleEvent_Write(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	writeCount := 0
+	var writeCount int64
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns: []string{"*.go"},
 		OnChange: func(path string) {
-			writeCount++
+			atomic.AddInt64(&writeCount, 1)
 		},
 	})
 	if err != nil {
@@ -139,7 +140,7 @@ func TestWatcher_HandleEvent_Write(t *testing.T) {
 	// Give debounce time to trigger
 	time.Sleep(200 * time.Millisecond)
 
-	if writeCount != 1 {
+	if atomic.LoadInt64(&writeCount) != 1 {
 		t.Errorf("Expected 1 write event, got %d", writeCount)
 	}
 }
@@ -151,12 +152,12 @@ func TestWatcher_HandleEvent_Remove(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	removeCount := 0
+	var removeCount int64
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns: []string{"*.go"},
 		OnChange: func(path string) {
-			removeCount++
+			atomic.AddInt64(&removeCount, 1)
 		},
 	})
 	if err != nil {
@@ -174,7 +175,7 @@ func TestWatcher_HandleEvent_Remove(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if removeCount != 0 {
+	if atomic.LoadInt64(&removeCount) != 0 {
 		t.Errorf("Expected 0 events for remove, got %d", removeCount)
 	}
 }

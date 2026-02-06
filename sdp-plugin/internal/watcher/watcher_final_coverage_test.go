@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -110,8 +112,9 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
 
-	checkCount := 0
+	var checkCount int64
 	var checkedFiles []string
+	var mu sync.Mutex
 
 	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{
 		IncludePatterns: []string{"*.go"},
@@ -126,8 +129,10 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 	// Override OnChange to track which files are checked
 	originalOnChange := qw.watcher.config.OnChange
 	qw.watcher.config.OnChange = func(path string) {
-		checkCount++
+		atomic.AddInt64(&checkCount, 1)
+		mu.Lock()
 		checkedFiles = append(checkedFiles, filepath.Base(path))
+		mu.Unlock()
 		originalOnChange(path)
 	}
 
@@ -159,12 +164,17 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Should only check non-excluded files
-	if checkCount < 2 {
-		t.Errorf("Expected at least 2 checks, got %d", checkCount)
+	if atomic.LoadInt64(&checkCount) < 2 {
+		t.Errorf("Expected at least 2 checks, got %d", atomic.LoadInt64(&checkCount))
 	}
 
-	// Verify test files were excluded
-	for _, f := range checkedFiles {
+	// Verify test files were excluded (lock to read safely)
+	mu.Lock()
+	checkedFilesCopy := make([]string, len(checkedFiles))
+	copy(checkedFilesCopy, checkedFiles)
+	mu.Unlock()
+
+	for _, f := range checkedFilesCopy {
 		if strings.HasSuffix(f, "_test.go") || strings.HasPrefix(f, "generated_") {
 			t.Errorf("Excluded file was checked: %s", f)
 		}

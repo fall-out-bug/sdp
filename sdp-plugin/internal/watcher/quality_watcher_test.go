@@ -3,6 +3,7 @@ package watcher
 import (
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -54,7 +55,7 @@ func TestQualityWatcher_FileSizeViolation(t *testing.T) {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
 
-	checkCount := 0
+	var checkCount int64
 	checkDone := make(chan bool, 1)
 
 	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{
@@ -68,9 +69,9 @@ func TestQualityWatcher_FileSizeViolation(t *testing.T) {
 	// Override OnChange to detect when check runs
 	originalOnChange := qw.watcher.config.OnChange
 	qw.watcher.config.OnChange = func(path string) {
-		checkCount++
+		atomic.AddInt64(&checkCount, 1)
 		originalOnChange(path)
-		if checkCount >= 1 {
+		if atomic.LoadInt64(&checkCount) >= 1 {
 			select {
 			case checkDone <- true:
 			default:
@@ -110,7 +111,7 @@ func TestQualityWatcher_FileSizeViolation(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Verify that the check ran
-	if checkCount == 0 {
+	if atomic.LoadInt64(&checkCount) == 0 {
 		t.Error("Expected at least 1 check, got none")
 	}
 
@@ -132,7 +133,7 @@ func TestQualityWatcher_ExcludeTestFiles(t *testing.T) {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
 
-	checkCount := 0
+	var checkCount int64
 
 	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{
 		Quiet: true,
@@ -144,7 +145,7 @@ func TestQualityWatcher_ExcludeTestFiles(t *testing.T) {
 
 	// Override OnChange to count checks
 	qw.watcher.config.OnChange = func(path string) {
-		checkCount++
+		atomic.AddInt64(&checkCount, 1)
 	}
 
 	// Start watcher
@@ -172,8 +173,8 @@ func TestQualityWatcher_ExcludeTestFiles(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Should only check source file, not test file
-	if checkCount != 1 {
-		t.Errorf("Expected 1 check (excluded test file), got %d", checkCount)
+	if atomic.LoadInt64(&checkCount) != 1 {
+		t.Errorf("Expected 1 check (excluded test file), got %d", atomic.LoadInt64(&checkCount))
 	}
 }
 
