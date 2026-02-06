@@ -220,3 +220,58 @@ jq -r 'select(.success == false) | .type' telemetry.jsonl | sort | uniq -c
 - [OWASP SLOs](https://owasp.org/www-project-slo/)
 - [Google SRE Workbook](https://sre.google/sre-book/table-of-contents)
 - [GitHub Release Analytics](https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/getting-insights-about-your-repository)
+
+## Decision Logging SLOs
+
+### Performance Targets
+
+| Operation | Target (p95) | Max | Measurement |
+|-----------|--------------|-----|-------------|
+| `Log()` latency | 50ms | 100ms | Time from call to fsync completion |
+| `LogBatch()` latency | 200ms | 500ms | Time for 10 decisions batch |
+| `LoadAll()` latency | 100ms | 1s | Depends on file size |
+
+### Data Integrity
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Decision integrity | 100% | HMAC verification (future) |
+| Write durability | 100% | fsync() success rate |
+| Parse success rate | ≥95% | Valid JSON / total lines |
+
+### Capacity Limits
+
+| Resource | Limit | Action when exceeded |
+|----------|-------|----------------------|
+| decisions.jsonl size | 10MB | Trigger rotation |
+| decisions.jsonl decisions | 10,000 | Require pagination |
+| Decision field size | 10KB | Reject with validation error |
+
+### Availability
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Log() success rate | ≥99.9% | Failed writes / total writes |
+| LoadAll() success rate | ≥99% | Failed loads / total loads |
+
+### Monitoring
+
+**Key metrics to track:**
+- Decision logging rate (decisions/hour)
+- Average decision size (bytes)
+- File growth rate (bytes/day)
+- Parse error rate (errors/1000 lines)
+
+**Alerting thresholds:**
+- Log() failure rate > 0.1% → P1 alert
+- File size > 8MB → Warning
+- File size > 10MB → Critical (rotation needed)
+- Parse error rate > 5% → Warning
+
+### Error Budget
+
+**Decision logging is not user-facing**, so error budget is less strict. Target:
+- Monthly downtime: < 1 hour (99.86% uptime)
+- Data loss: 0% tolerated
+
+Escalation: P1 if data loss detected, P2 if logging degraded.
