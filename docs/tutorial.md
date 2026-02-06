@@ -6,10 +6,10 @@ Welcome to the SDP (Spec-Driven Protocol) tutorial! This guide will walk you thr
 
 Before starting, ensure you have:
 
-- Python 3.10 or higher
-- Poetry installed
 - Git initialized
-- SDP installed (`pip install sdp`)
+- Claude Code installed
+- SDP prompts installed in `.claude/`
+- (Optional) Go binary `sdp` for convenience features
 
 ## Quick Start (15 min)
 

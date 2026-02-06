@@ -5,13 +5,14 @@ All notable changes to the Spec-Driven Protocol (SDP) Claude Plugin will be docu
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-02-03
+## [1.0.0-go] - 2026-02-06
 
-### Added
+### Changed
 
-🎉 **Initial Release: Claude Plugin Distribution**
+🎉 **Go Migration Complete** - Python SDP deprecated, Go binary now primary
 
-#### Core Features
+#### Migration Highlights
+- ✅ **Complete Go Implementation** - All 13 workstreams migrated
 - ✅ **Language-Agnostic Design** - Works with Python, Java, Go, and any language
 - ✅ **18 Skills** - Complete workflow automation
   - `@feature` - Progressive feature development (unified entry point)
