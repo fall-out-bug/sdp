@@ -250,8 +250,11 @@ func TestTelemetryUploadCmd(t *testing.T) {
 	}
 
 	if err := collector.Record(telemetry.Event{
-		Type:      "test",
+		Type:      telemetry.EventTypeCommandStart,
 		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"command": "test",
+		},
 	}); err != nil {
 		t.Fatalf("Failed to record event: %v", err)
 	}

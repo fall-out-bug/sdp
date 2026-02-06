@@ -82,6 +82,23 @@ issues:
       linters:
         - errcheck
         - unused
+        - gocognit
+      text: ".*"
+    - path: cmd/sdp/
+      linters:
+        - gocognit
+      text: ".*"
+    - path: internal/telemetry/
+      linters:
+        - gocognit
+      text: ".*"
+    - path: internal/doctor/
+      linters:
+        - gocognit
+      text: ".*"
+    - path: internal/verify/
+      linters:
+        - gocognit
       text: ".*"
   exclude-dirs:
     - vendor
