@@ -1,3 +1,5 @@
+version: "2"
+
 linters:
   disable-all: true
   enable:
@@ -44,22 +46,23 @@ issues:
     - linters:
         - staticcheck
       text: "SA9003:"
+  exclusions:
+    paths:
+      - ".*\\.pb\\.go"
+      - vendor
+      - testdata
+      - examples
+      - golangci-lint
+      - builtin
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
 
 run:
   concurrency: 4
   timeout: 5m
-  output:
-    formats:
-      - format: colored-line-number
-    print-issued-lines: true
-    print-linter-name: true
-    uniq-by-line: true
-    sort-results: true
-  skip-dirs:
-    - vendor
-    - testdata
-    - examples
-    - golangci-lint
-    - builtin
-  skip-files:
-    - ".*\\.pb\\.go"
