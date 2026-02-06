@@ -43,6 +43,9 @@ issues:
         - gocognit
         - errcheck
     - linters:
+        - govet
+      text: "unusedwrite:"
+    - linters:
         - staticcheck
       text: "SA9003:"
     - path: internal/quality/
