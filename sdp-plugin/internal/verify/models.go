@@ -12,21 +12,21 @@ type CheckResult struct {
 
 // VerificationResult represents the complete verification result
 type VerificationResult struct {
-	WSID            string         `json:"ws_id"`
-	Passed          bool           `json:"passed"`
-	Checks          []CheckResult  `json:"checks"`
-	CoverageActual  float64        `json:"coverage_actual,omitempty"`
-	MissingFiles    []string       `json:"missing_files,omitempty"`
-	FailedCommands  []string       `json:"failed_commands,omitempty"`
-	Duration        time.Duration  `json:"duration"`
+	WSID           string        `json:"ws_id"`
+	Passed         bool          `json:"passed"`
+	Checks         []CheckResult `json:"checks"`
+	CoverageActual float64       `json:"coverage_actual,omitempty"`
+	MissingFiles   []string      `json:"missing_files,omitempty"`
+	FailedCommands []string      `json:"failed_commands,omitempty"`
+	Duration       time.Duration `json:"duration"`
 }
 
 // WorkstreamData represents parsed workstream frontmatter
 type WorkstreamData struct {
-	WSID                  string   `json:"ws_id" yaml:"ws_id"`
-	Title                 string   `json:"title" yaml:"title"`
-	Status                string   `json:"status" yaml:"status"`
-	ScopeFiles            []string `json:"scope_files" yaml:"scope_files"`
-	VerificationCommands  []string `json:"verification_commands" yaml:"verification_commands"`
-	CoverageThreshold     float64  `json:"coverage_threshold" yaml:"coverage_threshold"`
+	WSID                 string   `json:"ws_id" yaml:"ws_id"`
+	Title                string   `json:"title" yaml:"title"`
+	Status               string   `json:"status" yaml:"status"`
+	ScopeFiles           []string `json:"scope_files" yaml:"scope_files"`
+	VerificationCommands []string `json:"verification_commands" yaml:"verification_commands"`
+	CoverageThreshold    float64  `json:"coverage_threshold" yaml:"coverage_threshold"`
 }

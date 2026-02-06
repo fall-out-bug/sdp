@@ -50,11 +50,11 @@ type IdeaSummary struct {
 
 // TestSummary represents test results for display
 type TestSummary struct {
-	Coverage      string
-	Passing       int
-	Total         int
-	LastRun       time.Time
-	QualityGates  []GateStatus
+	Coverage     string
+	Passing      int
+	Total        int
+	LastRun      time.Time
+	QualityGates []GateStatus
 }
 
 // GateStatus represents a quality gate status

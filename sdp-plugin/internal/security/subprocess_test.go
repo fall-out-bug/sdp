@@ -166,27 +166,27 @@ func TestWhitelistedCommands(t *testing.T) {
 // isWhitelistedCommand checks if a command is in the whitelist
 func isWhitelistedCommand(cmd string) bool {
 	whitelist := map[string]bool{
-		"pytest":              true,
-		"pytest-3":            true,
-		"python -m pytest":    true,
-		"go test":             true,
-		"go vet":              true,
-		"go build":            true,
-		"mvn test":            true,
-		"mvnw test":           true,
-		"gradle test":         true,
-		"./gradlew test":      true,
-		"gradlew test":        true,
-		"npm test":            true,
-		"yarn test":           true,
-		"pnpm test":           true,
-		"jest":                true,
-		"mocha":               true,
-		"jasmine":             true,
-		"cargo test":          true,
-		"dart test":           true,
-		"flutter test":        true,
-		"git":                 true,
+		"pytest":           true,
+		"pytest-3":         true,
+		"python -m pytest": true,
+		"go test":          true,
+		"go vet":           true,
+		"go build":         true,
+		"mvn test":         true,
+		"mvnw test":        true,
+		"gradle test":      true,
+		"./gradlew test":   true,
+		"gradlew test":     true,
+		"npm test":         true,
+		"yarn test":        true,
+		"pnpm test":        true,
+		"jest":             true,
+		"mocha":            true,
+		"jasmine":          true,
+		"cargo test":       true,
+		"dart test":        true,
+		"flutter test":     true,
+		"git":              true,
 	}
 
 	return whitelist[cmd]
@@ -195,28 +195,28 @@ func isWhitelistedCommand(cmd string) bool {
 // TestArgumentsContainInjection tests argument validation
 func TestArgumentsContainInjection(t *testing.T) {
 	tests := []struct {
-		name        string
-		args        []string
+		name         string
+		args         []string
 		hasInjection bool
 	}{
 		{
-			name:        "safe_arguments",
-			args:        []string{"tests/", "-v", "--cov"},
+			name:         "safe_arguments",
+			args:         []string{"tests/", "-v", "--cov"},
 			hasInjection: false,
 		},
 		{
-			name:        "semicolon_injection",
-			args:        []string{"tests/; cat /etc/passwd"},
+			name:         "semicolon_injection",
+			args:         []string{"tests/; cat /etc/passwd"},
 			hasInjection: true,
 		},
 		{
-			name:        "pipe_injection",
-			args:        []string{"|", "sh"},
+			name:         "pipe_injection",
+			args:         []string{"|", "sh"},
 			hasInjection: true,
 		},
 		{
-			name:        "command_substitution",
-			args:        []string{"$(whoami)"},
+			name:         "command_substitution",
+			args:         []string{"$(whoami)"},
 			hasInjection: true,
 		},
 	}

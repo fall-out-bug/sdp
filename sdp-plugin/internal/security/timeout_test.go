@@ -9,10 +9,10 @@ import (
 // TestSafeCommandWhitelist tests that SafeCommand validates against whitelist
 func TestSafeCommandWhitelist(t *testing.T) {
 	tests := []struct {
-		name        string
-		command     string
-		args        []string
-		shouldPass  bool
+		name       string
+		command    string
+		args       []string
+		shouldPass bool
 	}{
 		{
 			name:       "safe_pytest",
@@ -70,9 +70,9 @@ func TestSafeCommandWhitelist(t *testing.T) {
 // TestSafeCommandInjectionDetection tests injection pattern detection
 func TestSafeCommandInjectionDetection(t *testing.T) {
 	tests := []struct {
-		name        string
-		command     string
-		args        []string
+		name         string
+		command      string
+		args         []string
 		hasInjection bool
 	}{
 		{
@@ -173,9 +173,9 @@ func TestSafeCommandCustomTimeout(t *testing.T) {
 // TestValidateTestCommand tests test command validation
 func TestValidateTestCommand(t *testing.T) {
 	tests := []struct {
-		name        string
-		testCmd     string
-		shouldPass  bool
+		name       string
+		testCmd    string
+		shouldPass bool
 	}{
 		{
 			name:       "valid_pytest",
