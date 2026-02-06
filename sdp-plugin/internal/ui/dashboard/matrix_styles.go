@@ -8,8 +8,7 @@ import (
 var (
 	// Matrix style - black background with green text
 	matrixBackground = lipgloss.Color("0")     // Black
-	matrixForeground = lipgloss.Color("82")    // Bright green (better contrast)
-	matrixDim       = lipgloss.Color("28")    // Dark green
+	matrixForeground = lipgloss.Color("82")    // Bright green
 	matrixAccent    = lipgloss.Color("46")    // Bright green accent
 	matrixHighlight = lipgloss.Color("226")   // Yellow for selection
 	matrixError     = lipgloss.Color("196")   // Red for errors/blockers
@@ -34,11 +33,10 @@ var (
 			Background(matrixBackground).
 			Underline(true)
 
-	// Inactive tab style
+	// Inactive tab style - BRIGHT green (not dim)
 	matrixInactiveTabStyle = lipgloss.NewStyle().
-			Foreground(matrixDim).
-			Background(matrixBackground).
-			Faint(true)
+			Foreground(matrixForeground).
+			Background(matrixBackground)
 
 	// Selected item style (for arrow key navigation)
 	matrixSelectedStyle = lipgloss.NewStyle().
@@ -46,12 +44,12 @@ var (
 			Foreground(matrixHighlight).
 			Background(matrixBackground)
 
-	// Dim style for secondary text
-	matrixDimStyle = lipgloss.NewStyle().
-			Foreground(matrixDim).
+	// NO dim style - everything is bright green
+	matrixBrightStyle = lipgloss.NewStyle().
+			Foreground(matrixAccent).
 			Background(matrixBackground)
 
-	// Status colors (matrix theme)
+	// Status colors (matrix theme) - ALL BRIGHT
 	statusOpenMatrixStyle = lipgloss.NewStyle().
 			Foreground(matrixForeground).
 			Background(matrixBackground)
@@ -61,15 +59,15 @@ var (
 			Background(matrixBackground) // Bright green
 
 	statusCompletedMatrixStyle = lipgloss.NewStyle().
-			Foreground(matrixDim).
-			Background(matrixBackground) // Dark green
+			Foreground(matrixForeground).
+			Background(matrixBackground) // Bright green (not dim!)
 
 	statusBlockedMatrixStyle = lipgloss.NewStyle().
 			Foreground(matrixError).
 			Background(matrixBackground).
 			Bold(true)
 
-	// Priority colors (matrix theme)
+	// Priority colors (matrix theme) - ALL BRIGHT
 	priorityP0MatrixStyle = lipgloss.NewStyle().
 			Foreground(matrixError).
 			Background(matrixBackground).
@@ -85,11 +83,10 @@ var (
 			Background(matrixBackground)
 
 	priorityP3MatrixStyle = lipgloss.NewStyle().
-			Foreground(matrixDim).
-			Background(matrixBackground).
-			Faint(true)
+			Foreground(matrixForeground).
+			Background(matrixBackground) // Bright green (not dim!)
 
-	// Footer style
+	// Footer style - BRIGHT GREEN (not dim)
 	matrixFooterStyle = lipgloss.NewStyle().
 			Foreground(matrixForeground).
 			Background(matrixBackground)
