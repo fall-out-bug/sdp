@@ -103,6 +103,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(checkpointCmd)
 	rootCmd.AddCommand(orchestrateCmd)
 	rootCmd.AddCommand(completionCmd)
+	rootCmd.AddCommand(statusCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
