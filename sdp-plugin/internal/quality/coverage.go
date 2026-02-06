@@ -2,12 +2,14 @@ package quality
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (c *Checker) CheckCoverage() (*CoverageResult, error) {
@@ -33,8 +35,11 @@ func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, 
 	// Check if .coverage file exists
 	covFile := filepath.Join(c.projectPath, ".coverage")
 	if _, err := os.Stat(covFile); os.IsNotExist(err) {
-		// Try running pytest with coverage
-		cmd := exec.Command("pytest", "--cov", "--cov-report=term-missing")
+		// Try running pytest with coverage (with 30s timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		cmd := exec.CommandContext(ctx, "pytest", "--cov", "--cov-report=term-missing")
 		cmd.Dir = c.projectPath
 		output, _ := cmd.CombinedOutput()
 
@@ -100,8 +105,11 @@ func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, 
 func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, error) {
 	result.ProjectType = "Go"
 
-	// Run go test with coverage
-	cmd := exec.Command("go", "test", "./...", "-cover", "-coverprofile=coverage.out")
+	// Run go test with coverage (with 30s timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "go", "test", "./...", "-cover", "-coverprofile=coverage.out")
 	cmd.Dir = c.projectPath
 	output, err := cmd.CombinedOutput()
 
@@ -147,8 +155,11 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 func (c *Checker) checkJavaCoverage(result *CoverageResult) (*CoverageResult, error) {
 	result.ProjectType = "Java"
 
-	// Run mvn test with jacoco
-	cmd := exec.Command("mvn", "test")
+	// Run mvn test with jacoco (with 30s timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "mvn", "test")
 	cmd.Dir = c.projectPath
 	_ = cmd.Run()
 
