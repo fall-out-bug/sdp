@@ -228,6 +228,121 @@ After @design completes workstream planning, optionally execute workstreams auto
 - `--update-vision` -- Update existing PRODUCT_VISION.md
 - `--spec PATH` -- Start from existing spec
 
+## Progressive Menu System
+
+The @feature workflow supports progressive disclosure, allowing users to skip phases or start from existing specifications.
+
+### Phase Selection Options
+
+1. **Full Workflow** (default)
+   - Phase 1: Vision Interview
+   - Phase 2: Generate PRODUCT_VISION.md
+   - Phase 3: Technical Interview
+   - Phase 4: Generate intent.json
+   - Phase 5: Create Requirements Draft
+   - Phase 6: Transition to @design
+   - Phase 7: Orchestrator Execution (optional)
+
+2. **Vision Only** (--vision-only flag)
+   - Phase 1: Vision Interview
+   - Phase 2: Generate PRODUCT_VISION.md
+   - Stops before technical interview
+
+3. **From Existing Spec** (--spec PATH flag)
+   - Loads existing draft from docs/drafts/
+   - Validates spec format
+   - Skips to Phase 6: Transition to @design
+   - Proceeds to Phase 7 if execution requested
+
+4. **No Interview** (--no-interview flag)
+   - Skips AskUserQuestion calls
+   - Uses defaults for all choices
+   - Logs decision: "Used defaults for {phase}"
+
+### Progress Display
+
+During execution, real-time progress updates are displayed:
+
+```
+[15:23] Phase 1: Vision Interview...
+[15:45] Phase 2: Generating PRODUCT_VISION.md...
+[15:50] Phase 3: Technical Interview...
+[16:20] Phase 4: Generating intent.json...
+[16:30] Phase 5: Creating requirements draft...
+[16:45] Phase 6: Calling @design...
+[17:00] Phase 7: Orchestrator executing...
+[17:05] → Executing WS-009 (1/3)...
+[17:27] → WS-009 complete (22m)
+[17:27] → Executing WS-010 (2/3)...
+[17:45] → WS-010 complete (18m)
+[17:45] → Executing WS-011 (3/3)...
+[18:00] → WS-011 complete (15m)
+[18:00] Feature execution complete: 3/3 workstreams, 57m total
+```
+
+### Checkpoint Progress
+
+When orchestrator is running, checkpoint progress is displayed:
+
+```
+📊 Phase: Execution (Phase 7/7)
+⏱️  Elapsed: 1h 23m
+📊 Progress: 3/26 workstreams (11.5%)
+💾 Last checkpoint: 2m ago
+🎯 Current: WS-011: Skill invocation
+```
+
+### Decision Logging
+
+All user choices and flags are logged for reproducibility:
+
+```bash
+# Flag usage logged
+sdp decisions log \
+  --type="user-choice" \
+  --question="Which workflow mode?" \
+  --decision="Full workflow with orchestrator" \
+  --flags="--execute" \
+  --feature-id="{FXXX}" \
+  --maker="user"
+
+# Spec import logged
+sdp decisions log \
+  --type="user-choice" \
+  --question="Load existing spec?" \
+  --decision="Loaded docs/drafts/idea-auth.md" \
+  --flags="--spec docs/drafts/idea-auth.md" \
+  --feature-id="{FXXX}" \
+  --maker="user"
+
+# Skip phase logged
+sdp decisions log \
+  --type="user-choice" \
+  --question="Skip vision interview?" \
+  --decision="Skipped via --vision-only flag" \
+  --flags="--vision-only" \
+  --feature-id="{FXXX}" \
+  --maker="user"
+```
+
+### Validation
+
+Before execution, flags are validated:
+
+- **--spec PATH**: File must exist at docs/drafts/{PATH}
+- **--vision-only**: Cannot combine with --spec
+- **--no-interview**: Warns that defaults will be used
+- **--execute**: Requires @design to complete first
+
+If validation fails:
+```
+❌ Validation Error: --spec flag requires existing draft file
+   File not found: docs/drafts/idea-missing.md
+   Available drafts:
+   - docs/drafts/idea-auth.md
+   - docs/drafts/idea-payments.md
+```
+
 ## Output
 
 - `PRODUCT_VISION.md` -- Project manifesto
