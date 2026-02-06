@@ -7,12 +7,13 @@ import (
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
-func runQualityCoverage() error {
+func runQualityCoverage(strict bool) error {
 	projectPath, _ := os.Getwd()
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
 	}
+	checker.SetStrictMode(strict)
 
 	result, err := checker.CheckCoverage()
 	if err != nil {
@@ -47,12 +48,13 @@ func runQualityCoverage() error {
 	return nil
 }
 
-func runQualityComplexity() error {
+func runQualityComplexity(strict bool) error {
 	projectPath, _ := os.Getwd()
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
 	}
+	checker.SetStrictMode(strict)
 
 	result, err := checker.CheckComplexity()
 	if err != nil {
@@ -83,12 +85,13 @@ func runQualityComplexity() error {
 	return nil
 }
 
-func runQualitySize() error {
+func runQualitySize(strict bool) error {
 	projectPath, _ := os.Getwd()
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
 	}
+	checker.SetStrictMode(strict)
 
 	result, err := checker.CheckFileSize()
 	if err != nil {
@@ -98,18 +101,35 @@ func runQualitySize() error {
 	fmt.Printf("Total Files: %d\n", result.TotalFiles)
 	fmt.Printf("Average LOC: %d\n", result.AverageLOC)
 	fmt.Printf("Threshold: %d LOC\n", result.Threshold)
-	fmt.Printf("Status: ")
+	fmt.Printf("Mode: ")
+	if result.Strict {
+		fmt.Println("STRICT (violations = errors)")
+	} else {
+		fmt.Println("PRAGMATIC (violations = warnings)")
+	}
+
+	// Show warnings (pragmatic mode)
+	if len(result.Warnings) > 0 {
+		fmt.Printf("\n⚠️  WARNINGS (%d):\n", len(result.Warnings))
+		for _, f := range result.Warnings {
+			fmt.Printf("  - %s: %d LOC (exceeds %d LOC threshold)\n", f.File, f.LOC, result.Threshold)
+		}
+	}
+
+	// Show errors (strict mode)
+	if len(result.Violators) > 0 {
+		fmt.Printf("\n✗ ERRORS (%d):\n", len(result.Violators))
+		for _, f := range result.Violators {
+			fmt.Printf("  - %s: %d LOC (exceeds %d LOC threshold)\n", f.File, f.LOC, result.Threshold)
+		}
+	}
+
+	// Show status
+	fmt.Printf("\nStatus: ")
 	if result.Passed {
 		fmt.Println("✓ PASSED")
 	} else {
 		fmt.Println("✗ FAILED")
-	}
-
-	if len(result.Violators) > 0 {
-		fmt.Printf("\n%d files exceed threshold:\n", len(result.Violators))
-		for _, f := range result.Violators {
-			fmt.Printf("  %s: %d LOC\n", f.File, f.LOC)
-		}
 	}
 
 	if !result.Passed {

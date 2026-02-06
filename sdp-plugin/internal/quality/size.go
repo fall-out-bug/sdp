@@ -10,6 +10,7 @@ import (
 func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 	result := &FileSizeResult{
 		Threshold: 200,
+		Strict:    c.strictMode,
 	}
 
 	var totalLOC int
@@ -69,10 +70,18 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 		if loc > result.Threshold {
 			// Make path relative to project path
 			relPath, _ := filepath.Rel(c.projectPath, path)
-			result.Violators = append(result.Violators, FileViolation{
+			violation := FileViolation{
 				File: relPath,
 				LOC:  loc,
-			})
+			}
+
+			// In strict mode, violations are errors
+			// In pragmatic mode, violations are warnings
+			if c.strictMode {
+				result.Violators = append(result.Violators, violation)
+			} else {
+				result.Warnings = append(result.Warnings, violation)
+			}
 		}
 
 		return nil
@@ -87,7 +96,14 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 	}
 
 	result.TotalFiles = totalFiles
-	result.Passed = len(result.Violators) == 0
+
+	// In strict mode, fail on violations
+	// In pragmatic mode, always pass (warnings are OK)
+	if c.strictMode {
+		result.Passed = len(result.Violators) == 0
+	} else {
+		result.Passed = true
+	}
 
 	return result, nil
 }

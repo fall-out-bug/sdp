@@ -7,12 +7,13 @@ import (
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
-func runQualityTypes() error {
+func runQualityTypes(strict bool) error {
 	projectPath, _ := os.Getwd()
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
 	}
+	checker.SetStrictMode(strict)
 
 	result, err := checker.CheckTypes()
 	if err != nil {
@@ -52,14 +53,20 @@ func runQualityTypes() error {
 	return nil
 }
 
-func runQualityAll() error {
+func runQualityAll(strict bool) error {
 	projectPath, _ := os.Getwd()
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
 	}
+	checker.SetStrictMode(strict)
 
 	fmt.Println("Running all quality checks...")
+	if strict {
+		fmt.Println("Mode: STRICT (violations = errors)")
+	} else {
+		fmt.Println("Mode: PRAGMATIC (violations = warnings)")
+	}
 	fmt.Println()
 
 	// Coverage
@@ -85,11 +92,14 @@ func runQualityAll() error {
 	// File Size
 	fmt.Println("\n=== File Size ===")
 	sizeResult, _ := checker.CheckFileSize()
-	fmt.Printf("Violators: %d (threshold: %d LOC) ", len(sizeResult.Violators), sizeResult.Threshold)
-	if sizeResult.Passed {
-		fmt.Println("✓")
-	} else {
-		fmt.Println("✗")
+	if len(sizeResult.Warnings) > 0 {
+		fmt.Printf("Warnings: %d (threshold: %d LOC) ⚠️\n", len(sizeResult.Warnings), sizeResult.Threshold)
+	}
+	if len(sizeResult.Violators) > 0 {
+		fmt.Printf("Errors: %d (threshold: %d LOC) ✗\n", len(sizeResult.Violators), sizeResult.Threshold)
+	}
+	if len(sizeResult.Warnings) == 0 && len(sizeResult.Violators) == 0 {
+		fmt.Println("No violations ✓")
 	}
 
 	// Types
