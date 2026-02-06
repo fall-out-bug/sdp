@@ -51,7 +51,12 @@ func (c *Collector) ExportCSV(exportPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create export file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			// Log but don't fail if close fails after successful write
+			fmt.Fprintf(os.Stderr, "warning: failed to close export file: %v\n", cerr)
+		}
+	}()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
@@ -154,15 +159,27 @@ func packAsArchive(events []Event, telemetryFile, outputPath string) (*UploadRes
 	if err != nil {
 		return nil, fmt.Errorf("failed to create archive: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close archive: %v\n", cerr)
+		}
+	}()
 
 	// Create gzip writer
 	gzWriter := gzip.NewWriter(file)
-	defer gzWriter.Close()
+	defer func() {
+		if cerr := gzWriter.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close gzip writer: %v\n", cerr)
+		}
+	}()
 
 	// Create tar writer
 	tarWriter := tar.NewWriter(gzWriter)
-	defer tarWriter.Close()
+	defer func() {
+		if cerr := tarWriter.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close tar writer: %v\n", cerr)
+		}
+	}()
 
 	// Add telemetry.jsonl to archive
 	data, err := os.ReadFile(telemetryFile)
