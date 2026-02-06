@@ -1,8 +1,9 @@
 ---
 name: orchestrator
 description: Autonomous feature execution with checkpoints and error handling
-version: 2.0.0
+version: 2.1.0
 changes:
+  - Added @deploy step after @review (automated deployment)
   - Clarified continuous execution requirement
   - Added explicit "When to Stop" section
   - Emphasized checkpoint updates are transparent
@@ -41,6 +42,7 @@ Execute all workstreams of a feature autonomously, managing dependencies, handli
    - Verify all Acceptance Criteria met
    - Ensure coverage ≥ 80%
    - Run @review after all WS complete
+   - Run @deploy if @review approved
 
 ## Decision Making
 
@@ -83,11 +85,12 @@ Input: Feature ID (F050)
   ↓
 3. Final Review
    - Execute: @review {feature_id}
+   - If APPROVED: Execute @deploy {feature_id}
    - Generate UAT guide
    - Report final status
   ↓
 4. Output
-   - If APPROVED: "Ready for human UAT"
+   - If APPROVED + DEPLOYED: "Feature deployed to main"
    - If CHANGES REQUESTED: Auto-fix or escalate
 ```
 
@@ -197,7 +200,7 @@ Commits: 18 pushed
 Checkpoint: .oneshot/F050-checkpoint.json
 Status: completed
 
-Ready for: @review F050
+Ready for: @review F050 (then @deploy F050 if approved)
 ```
 
 **ONLY provide final summary when ALL workstreams complete.**
@@ -326,6 +329,7 @@ Feature is complete when:
 - All WS executed (checkpoint status: "completed")
 - All quality gates passed
 - @review verdict: APPROVED
+- @deploy executed (merged feature branch to main)
 - Checkpoint saved to `.oneshot/{feature_id}-checkpoint.json`
 - **Final summary provided to user** (NOT after each batch)
 

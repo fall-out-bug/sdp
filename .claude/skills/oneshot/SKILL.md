@@ -2,7 +2,7 @@
 name: oneshot
 description: Autonomous multi-agent execution with checkpoints, resume, and PR-less modes
 tools: Task, Read, Bash
-version: 4.0.0
+version: 4.1.0
 ---
 
 # @oneshot - Multi-Agent Feature Execution
@@ -86,6 +86,7 @@ You are executing feature {feature_id} autonomously as an orchestrator.
 4. Update checkpoint after each WS
 5. **Continue until ALL workstreams are complete**
 6. On all complete: @review {feature_id}
+7. If review approved: @deploy {feature_id}
 
 **CRITICAL - DO NOT STOP UNTIL:**
 - ✅ ALL workstreams in execution_order are complete
@@ -169,8 +170,7 @@ Checkpoint: .oneshot/F050-checkpoint.json
 
 Next Steps:
 1. Human UAT (5-10 min)
-2. @review F050 (automated)
-3. @deploy F050 (if UAT passes)
+2. @review F050 (automated) - @deploy F050 runs automatically if approved
 ```
 
 **Failure:**
@@ -278,6 +278,8 @@ Claude:
 → All workstreams complete!
 → Running @review F050...
 → Review verdict: APPROVED
+→ Running @deploy F050...
+→ Deployment complete: feature分支 merged to main
 
 → Feature complete! Duration: 3h 45m
 → Checkpoint: .oneshot/F050-checkpoint.json
