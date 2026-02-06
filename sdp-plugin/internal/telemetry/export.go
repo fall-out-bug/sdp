@@ -27,8 +27,8 @@ func (c *Collector) ExportJSON(exportPath string) error {
 		return fmt.Errorf("failed to marshal events: %w", err)
 	}
 
-	// Write to export file
-	if err := os.WriteFile(exportPath, data, 0644); err != nil {
+	// Write to export file (restricted permissions for telemetry data)
+	if err := os.WriteFile(exportPath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write export file: %w", err)
 	}
 
@@ -46,8 +46,8 @@ func (c *Collector) ExportCSV(exportPath string) error {
 		return fmt.Errorf("failed to read events: %w", err)
 	}
 
-	// Create CSV file
-	file, err := os.Create(exportPath)
+	// Create CSV file (restricted permissions for telemetry data)
+	file, err := os.OpenFile(exportPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to create export file: %w", err)
 	}
