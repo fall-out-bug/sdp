@@ -50,7 +50,7 @@ func runQualityTypes(strict bool) error {
 	}
 
 	if !result.Passed {
-		os.Exit(1)
+		return fmt.Errorf("type check failed")
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func runQualityAll(strict bool) error {
 		fmt.Println("Overall: ✓ ALL CHECKS PASSED")
 	} else {
 		fmt.Println("Overall: ✗ SOME CHECKS FAILED")
-		os.Exit(1)
+		return fmt.Errorf("quality checks failed")
 	}
 
 	return nil

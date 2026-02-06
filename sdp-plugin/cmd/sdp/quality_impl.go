@@ -45,7 +45,7 @@ func runQualityCoverage(strict bool) error {
 	}
 
 	if !result.Passed {
-		os.Exit(1)
+		return fmt.Errorf("quality check failed")
 	}
 
 	return nil
@@ -85,7 +85,7 @@ func runQualityComplexity(strict bool) error {
 	}
 
 	if !result.Passed {
-		os.Exit(1)
+		return fmt.Errorf("quality check failed")
 	}
 
 	return nil
@@ -142,7 +142,7 @@ func runQualitySize(strict bool) error {
 	}
 
 	if !result.Passed {
-		os.Exit(1)
+		return fmt.Errorf("quality check failed")
 	}
 
 	return nil

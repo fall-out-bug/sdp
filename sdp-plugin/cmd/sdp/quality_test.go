@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 // TestQualityCmd tests the quality command structure
@@ -32,7 +34,19 @@ func TestQualityCmd(t *testing.T) {
 // TestQualityCoverageCmd tests the quality coverage command
 func TestQualityCoverageCmd(t *testing.T) {
 	cmd := qualityCmd()
-	coverageCmd := cmd.Commands()[0] // coverage is first
+
+	// Find the 'coverage' subcommand
+	var coverageCmd *cobra.Command
+	for _, subcmd := range cmd.Commands() {
+		if subcmd.Use == "coverage" {
+			coverageCmd = subcmd
+			break
+		}
+	}
+
+	if coverageCmd == nil {
+		t.Fatal("quality coverage command not found")
+	}
 
 	// Test command structure
 	if coverageCmd.Use != "coverage" {
@@ -52,7 +66,19 @@ func TestQualityCoverageCmd(t *testing.T) {
 // TestQualityComplexityCmd tests the quality complexity command
 func TestQualityComplexityCmd(t *testing.T) {
 	cmd := qualityCmd()
-	complexityCmd := cmd.Commands()[1] // complexity is second
+
+	// Find the 'complexity' subcommand
+	var complexityCmd *cobra.Command
+	for _, subcmd := range cmd.Commands() {
+		if subcmd.Use == "complexity" {
+			complexityCmd = subcmd
+			break
+		}
+	}
+
+	if complexityCmd == nil {
+		t.Fatal("quality complexity command not found")
+	}
 
 	if complexityCmd.Use != "complexity" {
 		t.Errorf("quality complexity command has wrong use: %s", complexityCmd.Use)
@@ -62,7 +88,19 @@ func TestQualityComplexityCmd(t *testing.T) {
 // TestQualitySizeCmd tests the quality size command
 func TestQualitySizeCmd(t *testing.T) {
 	cmd := qualityCmd()
-	sizeCmd := cmd.Commands()[2] // size is third
+
+	// Find the 'size' subcommand
+	var sizeCmd *cobra.Command
+	for _, subcmd := range cmd.Commands() {
+		if subcmd.Use == "size" {
+			sizeCmd = subcmd
+			break
+		}
+	}
+
+	if sizeCmd == nil {
+		t.Fatal("quality size command not found")
+	}
 
 	if sizeCmd.Use != "size" {
 		t.Errorf("quality size command has wrong use: %s", sizeCmd.Use)
@@ -72,7 +110,19 @@ func TestQualitySizeCmd(t *testing.T) {
 // TestQualityTypesCmd tests the quality types command
 func TestQualityTypesCmd(t *testing.T) {
 	cmd := qualityCmd()
-	typesCmd := cmd.Commands()[3] // types is fourth
+
+	// Find the 'types' subcommand
+	var typesCmd *cobra.Command
+	for _, subcmd := range cmd.Commands() {
+		if subcmd.Use == "types" {
+			typesCmd = subcmd
+			break
+		}
+	}
+
+	if typesCmd == nil {
+		t.Fatal("quality types command not found")
+	}
 
 	if typesCmd.Use != "types" {
 		t.Errorf("quality types command has wrong use: %s", typesCmd.Use)
@@ -82,7 +132,19 @@ func TestQualityTypesCmd(t *testing.T) {
 // TestQualityAllCmd tests the quality all command
 func TestQualityAllCmd(t *testing.T) {
 	cmd := qualityCmd()
-	allCmd := cmd.Commands()[4] // all is fifth
+
+	// Find the 'all' subcommand
+	var allCmd *cobra.Command
+	for _, subcmd := range cmd.Commands() {
+		if subcmd.Use == "all" {
+			allCmd = subcmd
+			break
+		}
+	}
+
+	if allCmd == nil {
+		t.Fatal("quality all command not found")
+	}
 
 	if allCmd.Use != "all" {
 		t.Errorf("quality all command has wrong use: %s", allCmd.Use)
