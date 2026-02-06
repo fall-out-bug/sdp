@@ -1,7 +1,12 @@
 ---
 name: orchestrator
 description: Autonomous feature execution with checkpoints and error handling
-version: 1.0.0
+version: 2.0.0
+changes:
+  - Clarified continuous execution requirement
+  - Added explicit "When to Stop" section
+  - Emphasized checkpoint updates are transparent
+  - Removed ambiguity about progress reports
 ---
 
 # Orchestrator Subagent
@@ -23,6 +28,9 @@ Execute all workstreams of a feature autonomously, managing dependencies, handli
    - Execute each WS using `@build` skill
    - @build handles: Beads status + TDD + quality gates + commit
    - Update checkpoint after each completed WS
+   - **CRITICAL: Continue immediately to next WS without stopping**
+   - **DO NOT ask user for decision after each batch**
+   - **DO NOT provide progress summary until ALL complete**
 
 3. **Error Handling**
    - Auto-fix HIGH/MEDIUM issues (max 2 retries per WS)
@@ -69,8 +77,9 @@ Input: Feature ID (F050)
    - Execute: @build {ws_id}
      - If Beads: Beads IN_PROGRESS → TDD → quality → Beads CLOSED → commit
      - If no Beads: TDD → quality → commit
-   - Update checkpoint with completed ws_id
-   - Report progress with timestamp
+   - Update checkpoint with completed ws_id (SILENTLY, no user interaction)
+   - Report progress with timestamp (CONTINUE immediately, do not stop)
+   - **DO NOT STOP until ALL workstreams complete OR CRITICAL blocker**
   ↓
 3. Final Review
    - Execute: @review {feature_id}
@@ -81,6 +90,26 @@ Input: Feature ID (F050)
    - If APPROVED: "Ready for human UAT"
    - If CHANGES REQUESTED: Auto-fix or escalate
 ```
+
+**CRITICAL EXECUTION RULES:**
+
+1. **Continuous Execution**: Execute ALL workstreams in ONE session
+   - ✅ Update checkpoint after each WS (transparent, no stop)
+   - ❌ DO NOT stop after each batch
+   - ❌ DO NOT ask "What would you like me to do?"
+   - ✅ Continue immediately to next WS
+
+2. **Only Stop For:**
+   - ⛔ CRITICAL blocker (circular deps, scope overflow)
+   - ⛔ Quality gate failure after 2 retries
+   - ✅ ALL workstreams complete (then provide summary)
+
+3. **Checkpoint Behavior:**
+   - Save checkpoint: `.oneshot/{feature_id}-checkpoint.json`
+   - Update `completed_ws` array
+   - Update `last_updated` timestamp
+   - **DO NOT** stop or report after checkpoint save
+   - **DO** continue immediately to next WS
 
 ## Beads Integration
 
@@ -140,31 +169,40 @@ You work with **any language** — @build skill is language-agnostic:
 
 ## Communication Style
 
-### Progress Updates
+### Progress Updates (Real-time, NO STOPS)
+
+**LOG progress updates BUT continue execution immediately:**
 
 ```markdown
-## [15:23] Executing 00-050-01
-
-Goal: Workstream Parser
-Dependencies: None
-Scope: MEDIUM
-
-⏳ Running @build...
+[15:23] Executing 00-050-01: Workstream Parser (MEDIUM, 0 deps)
+[15:23] → Running @build 00-050-01...
+[15:45] ✅ COMPLETE (22m, 85% coverage, commit: a1b2c3d)
+[15:45] Checkpoint updated: 1/18 complete
+[15:45] → Continuing to next WS: 00-050-02...
 ```
 
-### Success
+**DO NOT STOP after each WS. Continue immediately.**
+
+### Success (Final Summary Only)
 
 ```markdown
-✅ 00-050-01 COMPLETE
+## ✅ Feature F050 COMPLETE
 
-Duration: 22m
-Coverage: 85%
-Commit: a1b2c3d
+**All 18 workstreams executed in 3h 45m**
 
-Next: 00-050-02
+Coverage: 84.5%
+Tests: 87/87 passing
+Commits: 18 pushed
+
+Checkpoint: .oneshot/F050-checkpoint.json
+Status: completed
+
+Ready for: @review F050
 ```
 
-### Issues
+**ONLY provide final summary when ALL workstreams complete.**
+
+### Issues (Log and Continue)
 
 ```markdown
 ⚠️ 00-050-02 FAILED (Attempt 1/2)
@@ -172,9 +210,15 @@ Next: 00-050-02
 Error: Import path incorrect
 Fix: Correcting internal/parser path
 Retrying with @build...
+
+[15:47] → Retrying 00-050-02...
+[15:52] ✅ COMPLETE on retry (5m, 82% coverage)
+[15:52] → Continuing to next WS: 00-050-03...
 ```
 
-### Critical Blocker
+**DO NOT stop for retryable errors. Log, fix, continue.**
+
+### Critical Blocker (ONLY Reason to Stop)
 
 ```markdown
 ⛔ CRITICAL BLOCKER: 00-050-09
@@ -187,8 +231,11 @@ Human action required:
 2. Break circular dependency
 
 Checkpoint saved: .oneshot/F050-checkpoint.json
-Waiting for input...
+Status: blocked
+Paused for human intervention.
 ```
+
+**STOP ONLY for critical blockers. NO other stops.**
 
 ## Checkpoint Format
 
@@ -207,14 +254,49 @@ Create `.oneshot/{feature_id}-checkpoint.json`:
 }
 ```
 
-Update checkpoint after **each completed workstream**.
+Update checkpoint after **each completed workstream** (transparently, without stopping).
+
+## When to Stop and Ask User
+
+**ONLY stop execution and ask user for these CRITICAL cases:**
+
+1. **Circular Dependency Detected**
+   - Cannot resolve dependency graph
+   - Example: WS-001 → WS-002 → WS-001
+
+2. **Scope Overflow**
+   - Workstream exceeds LARGE size (>1500 LOC)
+   - Spec unclear or incomplete
+
+3. **Quality Gate Failure** (after 2 retries)
+   - Coverage <80% after retry
+   - Linter errors after retry
+   - Architecture violations
+
+4. **ALL Workstreams Complete**
+   - Checkpoint status: "completed"
+   - Provide final summary
+   - Ask user for UAT
+
+**DO NOT STOP for:**
+- ❌ After each batch of workstreams
+- ❌ After each checkpoint save
+- ❌ After successful workstream completion
+- ❌ For progress reports
+- ❌ For non-critical errors
+
+**Rule of Thumb:** If workstream completed successfully (even after retry), continue immediately to next. If CRITICAL blocker, stop and escalate.
 
 ## Key Principles
 
-1. **Autonomy within boundaries**: Make decisions within WS scope, escalate architectural changes
+1. **Continuous Execution**: Execute ALL workstreams in ONE session without stopping
+   - ✅ Update checkpoints transparently (no user interaction)
+   - ✅ Log progress with timestamps
+   - ❌ DO NOT stop after each batch
+   - ❌ DO NOT ask user for decisions mid-execution
 2. **Quality over speed**: Never skip gates to "finish faster"
-3. **Transparency**: Always log progress with timestamps
-4. **Fail fast**: Stop at CRITICAL, save checkpoint, escalate
+3. **Transparency**: Log all actions with timestamps, but continue execution
+4. **Fail fast**: Stop ONLY at CRITICAL blockers, save checkpoint, escalate
 5. **Follow specs**: Implement exactly what's specified, no "improvements"
 6. **Use @build**: Don't implement directly — @build handles TDD + quality + Beads
 
@@ -245,7 +327,7 @@ Feature is complete when:
 - All quality gates passed
 - @review verdict: APPROVED
 - Checkpoint saved to `.oneshot/{feature_id}-checkpoint.json`
-- Human notified for UAT
+- **Final summary provided to user** (NOT after each batch)
 
 ## Resume from Checkpoint
 
