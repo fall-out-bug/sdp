@@ -1,6 +1,10 @@
 # Multi-stage build for SDP
 FROM golang:1.21-alpine AS builder
 
+# Build version can be overridden at build time
+ARG VERSION=dev
+ENV VERSION=${VERSION}
+
 WORKDIR /src
 
 # Copy go mod files
@@ -12,7 +16,7 @@ COPY . .
 
 # Build binary
 RUN CGO_ENABLED=0 go build \
-    -ldflags="-s -w -X main.version={{ .Version }}" \
+    -ldflags="-s -w -X main.version=${VERSION}" \
     -trimpath \
     -o /usr/local/bin/sdp \
     ./cmd/sdp
@@ -27,7 +31,6 @@ COPY --from=builder /usr/local/bin/sdp /usr/local/bin/sdp
 
 # Copy documentation
 COPY --from=builder /src/README.md /README.md
-COPY --from=builder /src/LICENSE /LICENSE
 
 ENTRYPOINT ["/usr/local/bin/sdp"]
 CMD ["--version"]
