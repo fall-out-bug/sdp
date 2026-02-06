@@ -90,9 +90,10 @@ func TestGuardCheckCmd(t *testing.T) {
 			errorMsg:    "requires exactly 1 arg",
 		},
 		{
-			name:        "valid file path - allowed when no active WS",
+			name:        "valid file path - blocked when no active WS",
 			args:        []string{"internal/file.go"},
-			expectError: false, // No active WS means no restrictions
+			expectError: true, // No active WS means editing is blocked
+			errorMsg:    "No active WS",
 		},
 	}
 
