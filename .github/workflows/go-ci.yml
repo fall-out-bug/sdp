@@ -10,6 +10,9 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,13 +43,16 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.out
+          file: sdp-plugin/coverage.out
           fail_ci_if_error: false
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
