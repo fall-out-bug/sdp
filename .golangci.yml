@@ -59,7 +59,7 @@ run:
     - vendor
     - testdata
     - examples
-    golangci-lint
-    builtin
+    - golangci-lint
+    - builtin
   skip-files:
     - ".*\\.pb\\.go"
