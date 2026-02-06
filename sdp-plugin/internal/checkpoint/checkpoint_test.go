@@ -22,10 +22,10 @@ func TestCheckpointFormat(t *testing.T) {
 		},
 		CurrentWorkstream: "00-001-03",
 		Metadata: map[string]interface{}{
-			"agent_id":    "abc123",
-			"total_ws":    5,
-			"completed":   2,
-			"start_time":  time.Now().Format(time.RFC3339),
+			"agent_id":   "abc123",
+			"total_ws":   5,
+			"completed":  2,
+			"start_time": time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -59,14 +59,14 @@ func TestSaveCheckpoint(t *testing.T) {
 	manager := NewManager(tmpDir)
 
 	cp := Checkpoint{
-		ID:                 "test-save-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "test-save-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(cp); err != nil {
@@ -102,14 +102,14 @@ func TestLoadCheckpoint(t *testing.T) {
 
 	// Create a checkpoint
 	cp := Checkpoint{
-		ID:                 "test-load-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-02",
+		ID:                   "test-load-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-02",
 		CompletedWorkstreams: []string{"00-001-01"},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(cp); err != nil {
@@ -156,12 +156,12 @@ func TestResumeFromCheckpoint(t *testing.T) {
 
 	// Create a checkpoint with completed WS
 	cp := Checkpoint{
-		ID:                 "test-resume-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now().Add(-time.Hour),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-03",
+		ID:                   "test-resume-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now().Add(-time.Hour),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-03",
 		CompletedWorkstreams: []string{"00-001-01", "00-001-02"},
 		Metadata: map[string]interface{}{
 			"agent_id": "abc123",
@@ -257,25 +257,25 @@ func TestCleanOldCheckpoints(t *testing.T) {
 
 	// Create checkpoints with different ages
 	oldCheckpoint := Checkpoint{
-		ID:                 "old-feature",
-		FeatureID:          "F001",
-		CreatedAt:          now.Add(-48 * time.Hour), // 2 days old
-		UpdatedAt:          now.Add(-48 * time.Hour),
-		Status:             StatusCompleted,
-		CurrentWorkstream:  "",
+		ID:                   "old-feature",
+		FeatureID:            "F001",
+		CreatedAt:            now.Add(-48 * time.Hour), // 2 days old
+		UpdatedAt:            now.Add(-48 * time.Hour),
+		Status:               StatusCompleted,
+		CurrentWorkstream:    "",
 		CompletedWorkstreams: []string{"00-001-01"},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	recentCheckpoint := Checkpoint{
-		ID:                 "recent-feature",
-		FeatureID:          "F002",
-		CreatedAt:          now.Add(-2 * time.Hour), // 2 hours old
-		UpdatedAt:          now.Add(-2 * time.Hour),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-002-01",
+		ID:                   "recent-feature",
+		FeatureID:            "F002",
+		CreatedAt:            now.Add(-2 * time.Hour), // 2 hours old
+		UpdatedAt:            now.Add(-2 * time.Hour),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-002-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(oldCheckpoint); err != nil {
@@ -312,14 +312,14 @@ func TestUpdateCheckpoint(t *testing.T) {
 
 	// Create initial checkpoint
 	cp := Checkpoint{
-		ID:                 "test-update-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "test-update-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(cp); err != nil {
@@ -383,14 +383,14 @@ func TestCheckpointDirectory(t *testing.T) {
 	manager := NewManager(checkpointDir)
 
 	cp := Checkpoint{
-		ID:                 "test-dir-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "test-dir-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(cp); err != nil {
@@ -411,14 +411,14 @@ func TestSaveCheckpoint_CreateDirectory(t *testing.T) {
 	manager := NewManager(checkpointDir)
 
 	cp := Checkpoint{
-		ID:                 "test-mkdir-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "test-mkdir-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	// Directory doesn't exist yet
@@ -466,36 +466,36 @@ func TestListCheckpoints_SortsByNewest(t *testing.T) {
 
 	// Create checkpoints with different timestamps
 	old := Checkpoint{
-		ID:                 "old",
-		FeatureID:          "F001",
-		CreatedAt:          now.Add(-2 * time.Hour),
-		UpdatedAt:          now.Add(-2 * time.Hour),
-		Status:             StatusCompleted,
-		CurrentWorkstream:  "",
+		ID:                   "old",
+		FeatureID:            "F001",
+		CreatedAt:            now.Add(-2 * time.Hour),
+		UpdatedAt:            now.Add(-2 * time.Hour),
+		Status:               StatusCompleted,
+		CurrentWorkstream:    "",
 		CompletedWorkstreams: []string{"00-001-01"},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	new := Checkpoint{
-		ID:                 "new",
-		FeatureID:          "F002",
-		CreatedAt:          now.Add(-1 * time.Hour),
-		UpdatedAt:          now.Add(-1 * time.Hour),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-002-01",
+		ID:                   "new",
+		FeatureID:            "F002",
+		CreatedAt:            now.Add(-1 * time.Hour),
+		UpdatedAt:            now.Add(-1 * time.Hour),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-002-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	newest := Checkpoint{
-		ID:                 "newest",
-		FeatureID:          "F003",
-		CreatedAt:          now,
-		UpdatedAt:          now,
-		Status:             StatusPending,
-		CurrentWorkstream:  "",
+		ID:                   "newest",
+		FeatureID:            "F003",
+		CreatedAt:            now,
+		UpdatedAt:            now,
+		Status:               StatusPending,
+		CurrentWorkstream:    "",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	// Save in random order
@@ -537,14 +537,14 @@ func TestListCheckpoints_SkipsInvalidFiles(t *testing.T) {
 
 	// Create valid checkpoint
 	valid := Checkpoint{
-		ID:                 "valid",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "valid",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 	if err := manager.Save(valid); err != nil {
 		t.Fatalf("Failed to save valid checkpoint: %v", err)
@@ -583,26 +583,26 @@ func TestClean_OnlyCleansCompletedCheckpoints(t *testing.T) {
 
 	// Create old in-progress checkpoint
 	inProgress := Checkpoint{
-		ID:                 "in-progress",
-		FeatureID:          "F001",
-		CreatedAt:          now.Add(-48 * time.Hour),
-		UpdatedAt:          now.Add(-48 * time.Hour),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "in-progress",
+		FeatureID:            "F001",
+		CreatedAt:            now.Add(-48 * time.Hour),
+		UpdatedAt:            now.Add(-48 * time.Hour),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	// Create old completed checkpoint
 	completed := Checkpoint{
-		ID:                 "completed",
-		FeatureID:          "F002",
-		CreatedAt:          now.Add(-48 * time.Hour),
-		UpdatedAt:          now.Add(-48 * time.Hour),
-		Status:             StatusCompleted,
-		CurrentWorkstream:  "",
+		ID:                   "completed",
+		FeatureID:            "F002",
+		CreatedAt:            now.Add(-48 * time.Hour),
+		UpdatedAt:            now.Add(-48 * time.Hour),
+		Status:               StatusCompleted,
+		CurrentWorkstream:    "",
 		CompletedWorkstreams: []string{"00-002-01"},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(inProgress); err != nil {
@@ -642,26 +642,26 @@ func TestClean_RespectsAge(t *testing.T) {
 
 	// Create old completed checkpoint
 	old := Checkpoint{
-		ID:                 "old",
-		FeatureID:          "F001",
-		CreatedAt:          now.Add(-48 * time.Hour),
-		UpdatedAt:          now.Add(-48 * time.Hour),
-		Status:             StatusCompleted,
-		CurrentWorkstream:  "",
+		ID:                   "old",
+		FeatureID:            "F001",
+		CreatedAt:            now.Add(-48 * time.Hour),
+		UpdatedAt:            now.Add(-48 * time.Hour),
+		Status:               StatusCompleted,
+		CurrentWorkstream:    "",
 		CompletedWorkstreams: []string{"00-001-01"},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	// Create recent completed checkpoint
 	recent := Checkpoint{
-		ID:                 "recent",
-		FeatureID:          "F002",
-		CreatedAt:          now.Add(-2 * time.Hour),
-		UpdatedAt:          now.Add(-2 * time.Hour),
-		Status:             StatusCompleted,
-		CurrentWorkstream:  "",
+		ID:                   "recent",
+		FeatureID:            "F002",
+		CreatedAt:            now.Add(-2 * time.Hour),
+		UpdatedAt:            now.Add(-2 * time.Hour),
+		Status:               StatusCompleted,
+		CurrentWorkstream:    "",
 		CompletedWorkstreams: []string{"00-002-01"},
-		Metadata:           map[string]interface{}{},
+		Metadata:             map[string]interface{}{},
 	}
 
 	if err := manager.Save(old); err != nil {
@@ -732,19 +732,19 @@ func TestCheckpoint_MetadataPreserved(t *testing.T) {
 	manager := NewManager(tmpDir)
 
 	cp := Checkpoint{
-		ID:                 "test-meta-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-01",
+		ID:                   "test-meta-001",
+		FeatureID:            "F001",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+		Status:               StatusInProgress,
+		CurrentWorkstream:    "00-001-01",
 		CompletedWorkstreams: []string{},
 		Metadata: map[string]interface{}{
-			"agent_id":        "abc123",
-			"total_ws":        5,
-			"completed":       2,
-			"start_time":      time.Now().Format(time.RFC3339),
-			"custom_field":    "custom_value",
+			"agent_id":     "abc123",
+			"total_ws":     5,
+			"completed":    2,
+			"start_time":   time.Now().Format(time.RFC3339),
+			"custom_field": "custom_value",
 			"nested": map[string]interface{}{
 				"key": "value",
 			},
@@ -779,12 +779,12 @@ func TestCheckpoint_CompletedWorkstreamsPreserved(t *testing.T) {
 	manager := NewManager(tmpDir)
 
 	cp := Checkpoint{
-		ID:                 "test-ws-001",
-		FeatureID:          "F001",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		Status:             StatusInProgress,
-		CurrentWorkstream:  "00-001-04",
+		ID:                "test-ws-001",
+		FeatureID:         "F001",
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
+		Status:            StatusInProgress,
+		CurrentWorkstream: "00-001-04",
 		CompletedWorkstreams: []string{
 			"00-001-01",
 			"00-001-02",

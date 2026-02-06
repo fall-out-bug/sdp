@@ -51,7 +51,7 @@ func TestShowReturnsTaskDetails(t *testing.T) {
 		}
 
 		if task == nil {
-			t.Error("Expected task, got nil")
+			t.Fatal("Expected task, got nil")
 		}
 		if task.ID != tasks[0].ID {
 			t.Errorf("Expected ID %s, got %s", tasks[0].ID, task.ID)
@@ -64,7 +64,7 @@ func TestUpdateWhenBeadsNotInstalled(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -102,7 +102,7 @@ func TestShowWhenBeadsNotInstalled(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -152,7 +152,7 @@ func TestMapWSToBeads(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -183,7 +183,7 @@ func TestMappingNotFound(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -221,7 +221,7 @@ func TestClientWhenBeadsNotInstalled(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -286,7 +286,7 @@ func TestUpdateMapping(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -325,7 +325,7 @@ func TestShowParsing(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -350,7 +350,7 @@ func TestReadMappingWithInvalidData(t *testing.T) {
 	}
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 
@@ -369,7 +369,7 @@ func TestReadyWhenBeadsNotInstalled(t *testing.T) {
 	mappingPath := createTestMappingFile(tmpDir)
 
 	client := &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: false,
 	}
 

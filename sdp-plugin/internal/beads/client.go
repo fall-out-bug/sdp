@@ -10,7 +10,7 @@ import (
 
 // Client wraps the Beads CLI for task tracking
 type Client struct {
-	mappingPath     string
+	mappingPath    string
 	beadsInstalled bool
 }
 
@@ -38,7 +38,7 @@ func NewClient() (*Client, error) {
 	}
 
 	return &Client{
-		mappingPath:     mappingPath,
+		mappingPath:    mappingPath,
 		beadsInstalled: beadsInstalled,
 	}, nil
 }
@@ -139,7 +139,11 @@ func (c *Client) readMapping() ([]mappingEntry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open mapping file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close mapping file: %v\n", cerr)
+		}
+	}()
 
 	var entries []mappingEntry
 	scanner := bufio.NewScanner(file)
