@@ -59,13 +59,11 @@ func (p *ProgressBar) render() {
 	p.lastTime = now
 
 	var percent float64
-	var filled int
 	var bar string
 
 	if p.total == 0 {
 		// Handle zero total - show empty bar with indeterminate status
 		percent = 0.0
-		filled = 0
 		bar = strings.Repeat("░", p.width)
 	} else {
 		percent = float64(p.current) / float64(p.total)
@@ -73,7 +71,7 @@ func (p *ProgressBar) render() {
 			percent = 1.0
 		}
 		// Calculate filled width
-		filled = int(percent * float64(p.width))
+		filled := int(percent * float64(p.width))
 		bar = strings.Repeat("█", filled) + strings.Repeat("░", p.width-filled)
 	}
 
