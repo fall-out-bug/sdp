@@ -87,6 +87,37 @@ if err := security.ValidateTestCommand(testCmd); err != nil {
 }
 ```
 
+### 5. Path Traversal Protection
+
+All user-provided file paths are validated:
+
+```go
+import "github.com/ai-masters/sdp/internal/security"
+
+// Sanitize user input
+cleanPath, err := security.SanitizePath(userPath)
+if err != nil {
+    return fmt.Errorf("invalid path: %w", err)
+}
+
+// Safe path joining
+safePath, err := security.SafeJoinPath(baseDir, userPath)
+if err != nil {
+    return fmt.Errorf("path traversal attempt: %w", err)
+}
+
+// Validate path is within directory
+err = security.ValidatePathInDirectory(baseDir, targetPath)
+if err != nil {
+    return fmt.Errorf("path outside base: %w", err)
+}
+```
+
+**Blocked patterns:**
+- `../` and `..\\` (parent directory traversal)
+- Absolute paths (`/etc/passwd`, `C:\Windows\System32`)
+- Paths that escape base directory
+
 ## Security Checklist
 
 - ✅ All exec.Command calls use whitelisted commands
@@ -94,6 +125,7 @@ if err := security.ValidateTestCommand(testCmd); err != nil {
 - ✅ All subprocess calls have context with timeout
 - ✅ No shell execution (sh -c, cmd /c)
 - ✅ Environment variables sanitized if passed
+- ✅ All user-provided paths validated for traversal
 
 ## Examples
 
@@ -122,6 +154,27 @@ exec.Command("sh", "-c", userString) // ❌ Arbitrary code
 
 // No timeout
 exec.Command("go", "test").Run() // ❌ Can hang
+
+// Unsafe path handling
+userPath := "../../../etc/passwd"
+f, _ := os.Open(userPath) // ❌ Path traversal
+```
+
+### Safe Path Handling (✅)
+
+```go
+// Validate and sanitize user paths
+userPath := "docs/workstreams/00-001-01.md"
+safePath, err := security.SafeJoinPath(baseDir, userPath)
+if err != nil {
+    return err
+}
+f, err := os.Open(safePath) // ✅ Safe
+
+// Block traversal attempts
+userPath = "../../../etc/passwd"
+_, err = security.SafeJoinPath(baseDir, userPath)
+// Returns error: "path contains traversal pattern '../'"
 ```
 
 ## Testing
@@ -132,10 +185,16 @@ Security tests verify:
 2. Injection pattern detection
 3. Timeout application
 4. Context propagation
+5. Path traversal prevention
+6. Directory containment validation
 
 Run tests:
 ```bash
 go test ./internal/security/... -v
+
+# With coverage
+go test ./internal/security/... -cover -coverprofile=coverage.out
+go tool cover -html=coverage.out
 ```
 
 ## References
