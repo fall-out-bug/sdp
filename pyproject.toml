@@ -27,8 +27,9 @@ types-pyyaml = "^6.0.12.20250915"
 pip-audit = "^2.7"
 
 [tool.poetry.scripts]
-sdp = "sdp.cli:main"
-sdp-github = "sdp.github.cli:github"
+# REMOVED: Python CLI entry points (migrated to Go)
+# sdp = "sdp.cli:main"
+# sdp-github = "sdp.github.cli:github"
 
 [build-system]
 requires = ["poetry-core"]
