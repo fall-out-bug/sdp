@@ -9,12 +9,13 @@ import (
 
 // Common errors
 var (
-	ErrFeatureNotFound     = errors.New("feature not found")
-	ErrCheckpointNotFound  = errors.New("checkpoint not found")
-	ErrExecutionFailed     = errors.New("workstream execution failed")
-	ErrCircularDependency  = errors.New("circular dependency detected")
-	ErrMissingDependency   = errors.New("missing dependency")
-	ErrWorkstreamNotFound  = errors.New("workstream not found")
+	ErrFeatureNotFound        = errors.New("feature not found")
+	ErrCheckpointNotFound     = errors.New("checkpoint not found")
+	ErrExecutionFailed        = errors.New("workstream execution failed")
+	ErrCircularDependency     = errors.New("circular dependency detected")
+	ErrMissingDependency      = errors.New("missing dependency")
+	ErrWorkstreamNotFound     = errors.New("workstream not found")
+	ErrSkillInvocationFailed  = errors.New("skill invocation failed")
 )
 
 // WorkstreamNode represents a workstream in the dependency graph
