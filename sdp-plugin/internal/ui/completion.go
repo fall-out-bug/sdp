@@ -299,7 +299,7 @@ func InstallCompletion(shell CompletionType) error {
 		return fmt.Errorf("failed to create completion directory: %w", err)
 	}
 
-	// Write completion script
+	// Write completion script (0644: non-sensitive, sourced by shell)
 	if err := os.WriteFile(scriptPath, []byte(script), 0644); err != nil {
 		return fmt.Errorf("failed to write completion script: %w", err)
 	}
