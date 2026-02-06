@@ -29,6 +29,9 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
+      - name: Build binary for integration tests
+        run: go build -o sdp ./cmd/sdp
+
       - name: Run go vet
         run: go vet ./...
 
