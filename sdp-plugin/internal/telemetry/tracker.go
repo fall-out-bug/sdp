@@ -43,14 +43,14 @@ func GetTracker() *Tracker {
 
 		telemetryFile := filepath.Join(configDir, "sdp", "telemetry.jsonl")
 
-		// Check if telemetry is disabled
+		// Check if telemetry is enabled (opt-in)
 		configPath := filepath.Join(configDir, "sdp", "telemetry.json")
-		enabled := true
+		enabled := false // Opt-in: disabled by default
 		if data, err := os.ReadFile(configPath); err == nil {
 			var config map[string]bool
 			if err := json.Unmarshal(data, &config); err == nil {
-				if disabled, ok := config["disabled"]; ok && disabled {
-					enabled = false
+				if enabledVal, ok := config["enabled"]; ok && enabledVal {
+					enabled = true
 				}
 			}
 		}
