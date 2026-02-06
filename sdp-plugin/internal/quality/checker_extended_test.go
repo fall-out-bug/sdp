@@ -369,3 +369,148 @@ func TestDetectProjectTypeFallback(t *testing.T) {
 		t.Errorf("Expected default Python, got %d", pt)
 	}
 }
+
+// TestBasicGoComplexityFallback tests fallback when gocyclo not available
+func TestBasicGoComplexityFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a Go file that will exceed threshold (>100 LOC)
+	complexFile := filepath.Join(tmpDir, "complex.go")
+	var lines []string
+	lines = append(lines, "package main")
+	lines = append(lines, "")
+	for i := 0; i < 150; i++ {
+		lines = append(lines, "func function"+string(rune('0'+i%10))+"() {")
+		lines = append(lines, "\tfmt.Println(\"line\")")
+		lines = append(lines, "}")
+	}
+	content := strings.Join(lines, "\n")
+	if err := os.WriteFile(complexFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+	}
+
+	result := &ComplexityResult{
+		Threshold: 10,
+	}
+
+	// Run basic complexity check (gocyclo will not be available)
+	finalResult, err := checker.basicGoComplexity(result)
+	if err != nil {
+		t.Fatalf("basicGoComplexity() failed: %v", err)
+	}
+
+	// Should have detected complex file
+	if len(finalResult.ComplexFiles) == 0 {
+		t.Error("basicGoComplexity() should detect complex files")
+	}
+
+	// MaxCC should be set (estimated from LOC)
+	if finalResult.MaxCC == 0 {
+		t.Error("basicGoComplexity() should set MaxCC")
+	}
+
+	// Should fail because file exceeds threshold
+	if finalResult.Passed {
+		t.Error("basicGoComplexity() should fail when files exceed threshold")
+	}
+}
+
+// TestBasicPythonComplexityFallback tests fallback when radon not available
+func TestBasicPythonComplexityFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a Python file that will exceed threshold (>100 LOC)
+	complexFile := filepath.Join(tmpDir, "complex.py")
+	var lines []string
+	for i := 0; i < 150; i++ {
+		lines = append(lines, "def function"+string(rune('0'+i%10))+"():")
+		lines = append(lines, "    pass")
+	}
+	content := strings.Join(lines, "\n")
+	if err := os.WriteFile(complexFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+	}
+
+	result := &ComplexityResult{
+		Threshold: 10,
+	}
+
+	// Run basic complexity check (radon will not be available)
+	finalResult, err := checker.basicPythonComplexity(result)
+	if err != nil {
+		t.Fatalf("basicPythonComplexity() failed: %v", err)
+	}
+
+	// Should have detected complex file
+	if len(finalResult.ComplexFiles) == 0 {
+		t.Error("basicPythonComplexity() should detect complex files")
+	}
+
+	// Should fail because file exceeds threshold
+	if finalResult.Passed {
+		t.Error("basicPythonComplexity() should fail when files exceed threshold")
+	}
+}
+
+// TestCheckJavaCoverageNoJacocoCsv tests when jacoco.csv missing
+func TestCheckJavaCoverageNoJacocoCsv(t *testing.T) {
+	tmpDir := t.TempDir()
+	// No jacoco.csv
+
+	checker := &Checker{
+		projectPath: tmpDir,
+	}
+
+	result := &CoverageResult{
+		Threshold: 80.0,
+	}
+
+	// Run Java coverage check
+	finalResult, err := checker.checkJavaCoverage(result)
+	if err != nil {
+		t.Fatalf("checkJavaCoverage() failed: %v", err)
+	}
+
+	// Should return 0% coverage when file not found
+	if finalResult.Coverage != 0.0 {
+		t.Errorf("checkJavaCoverage() coverage = %f, want 0.0", finalResult.Coverage)
+	}
+}
+
+// TestCheckPythonCoverageNoCoverageFile tests when .coverage doesn't exist
+func TestCheckPythonCoverageNoCoverageFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create pyproject.toml
+	pyproject := filepath.Join(tmpDir, "pyproject.toml")
+	if err := os.WriteFile(pyproject, []byte("[tool.pytest]\n"), 0644); err != nil {
+		t.Fatalf("Failed to create pyproject.toml: %v", err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+	}
+
+	result := &CoverageResult{
+		Threshold: 80.0,
+	}
+
+	// Run Python coverage check
+	finalResult, err := checker.checkPythonCoverage(result)
+	if err != nil {
+		t.Fatalf("checkPythonCoverage() failed: %v", err)
+	}
+
+	// Should handle gracefully (coverage will be 0)
+	if finalResult.Coverage < 0 || finalResult.Coverage > 100 {
+		t.Errorf("checkPythonCoverage() coverage = %f, want [0, 100]", finalResult.Coverage)
+	}
+}
