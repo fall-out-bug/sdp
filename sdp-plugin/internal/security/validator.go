@@ -29,29 +29,29 @@ func NewCommandValidator() *CommandValidator {
 	return &CommandValidator{
 		whitelist: map[string]bool{
 			// Test runners
-			"pytest":              true,
-			"pytest-3":            true,
-			"python":              true, // When used with -m pytest
-			"go":                  true, // When used with test, vet, build
-			"mvn":                 true,
-			"mvnw":                true,
-			"gradle":              true,
-			"gradlew":             true,
-			"./gradlew":           true,
-			"npm":                 true,
-			"yarn":                true,
-			"pnpm":                true,
-			"jest":               true,
-			"mocha":               true,
-			"jasmine":             true,
-			"cargo":               true, // Rust
-			"dart":                true,
-			"flutter":            true,
+			"pytest":    true,
+			"pytest-3":  true,
+			"python":    true, // When used with -m pytest
+			"go":        true, // When used with test, vet, build
+			"mvn":       true,
+			"mvnw":      true,
+			"gradle":    true,
+			"gradlew":   true,
+			"./gradlew": true,
+			"npm":       true,
+			"yarn":      true,
+			"pnpm":      true,
+			"jest":      true,
+			"mocha":     true,
+			"jasmine":   true,
+			"cargo":     true, // Rust
+			"dart":      true,
+			"flutter":   true,
 
 			// Safe system tools
-			"git":                 true,
-			"claude":              true,
-			"gh":                  true, // GitHub CLI
+			"git":    true,
+			"claude": true,
+			"gh":     true, // GitHub CLI
 		},
 	}
 }
@@ -77,15 +77,15 @@ func (v *CommandValidator) ValidateArgs(args []string) error {
 // validateArg checks a single argument for injection patterns
 func (v *CommandValidator) validateArg(arg string) error {
 	injectionPatterns := []string{
-		";",   // Command separator
-		"|",   // Pipe
-		"&",   // Background command
-		"`",   // Command substitution (backtick)
-		"$(",  // Command substitution (dollar)
-		"\n",  // Newline
-		"\r",  // Carriage return
-		"\\",  // Escape character
-		"../", // Path traversal (partial)
+		";",      // Command separator
+		"|",      // Pipe
+		"&",      // Background command
+		"`",      // Command substitution (backtick)
+		"$(",     // Command substitution (dollar)
+		"\n",     // Newline
+		"\r",     // Carriage return
+		"\\",     // Escape character
+		"../",    // Path traversal (partial)
 		"../../", // Path traversal (double)
 	}
 

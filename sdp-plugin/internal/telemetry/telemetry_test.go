@@ -9,7 +9,7 @@ import (
 
 func TestEventTypes(t *testing.T) {
 	tests := []struct {
-		name     string
+		name      string
 		eventType EventType
 		wantValid bool
 	}{

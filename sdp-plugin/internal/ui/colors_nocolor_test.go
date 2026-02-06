@@ -15,58 +15,58 @@ func TestNoColorModeForAllFunctions(t *testing.T) {
 	NoColor = true
 
 	tests := []struct {
-		name     string
-		fn       func() string
+		name        string
+		fn          func() string
 		mustContain string
 	}{
 		{
-			name:     "Success with NoColor",
-			fn:       func() string { return Success("test") },
+			name:        "Success with NoColor",
+			fn:          func() string { return Success("test") },
 			mustContain: "test",
 		},
 		{
-			name:     "Error with NoColor",
-			fn:       func() string { return Error("test") },
+			name:        "Error with NoColor",
+			fn:          func() string { return Error("test") },
 			mustContain: "test",
 		},
 		{
-			name:     "Warning with NoColor",
-			fn:       func() string { return Warning("test") },
+			name:        "Warning with NoColor",
+			fn:          func() string { return Warning("test") },
 			mustContain: "test",
 		},
 		{
-			name:     "Info with NoColor",
-			fn:       func() string { return Info("test") },
+			name:        "Info with NoColor",
+			fn:          func() string { return Info("test") },
 			mustContain: "test",
 		},
 		{
-			name:     "Dim with NoColor",
-			fn:       func() string { return Dim("test") },
+			name:        "Dim with NoColor",
+			fn:          func() string { return Dim("test") },
 			mustContain: "test",
 		},
 		{
-			name:     "BoldText with NoColor",
-			fn:       func() string { return BoldText("test") },
+			name:        "BoldText with NoColor",
+			fn:          func() string { return BoldText("test") },
 			mustContain: "test",
 		},
 		{
-			name:     "Checkmark with NoColor",
-			fn:       func() string { return Checkmark() },
+			name:        "Checkmark with NoColor",
+			fn:          func() string { return Checkmark() },
 			mustContain: "[OK]",
 		},
 		{
-			name:     "XMark with NoColor",
-			fn:       func() string { return XMark() },
+			name:        "XMark with NoColor",
+			fn:          func() string { return XMark() },
 			mustContain: "[FAIL]",
 		},
 		{
-			name:     "WarningSymbol with NoColor",
-			fn:       func() string { return WarningSymbol() },
+			name:        "WarningSymbol with NoColor",
+			fn:          func() string { return WarningSymbol() },
 			mustContain: "[WARN]",
 		},
 		{
-			name:     "InfoSymbol with NoColor",
-			fn:       func() string { return InfoSymbol() },
+			name:        "InfoSymbol with NoColor",
+			fn:          func() string { return InfoSymbol() },
 			mustContain: "[INFO]",
 		},
 	}

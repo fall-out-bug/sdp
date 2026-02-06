@@ -20,19 +20,19 @@ var (
 
 	// Inactive tab style
 	inactiveTabStyle = lipgloss.NewStyle().
-			Faint(true)
+				Faint(true)
 
 	// Status colors
-	statusOpenStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("76")) // Green
+	statusOpenStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("76"))  // Green
 	statusInProgressStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("226")) // Yellow
-	statusCompletedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("69")) // Blue
-	statusBlockedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("196")) // Red
+	statusCompletedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("69"))  // Blue
+	statusBlockedStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("196")) // Red
 
 	// Priority colors
 	priorityP0Style = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true) // Red
 	priorityP1Style = lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true) // Orange
 	priorityP2Style = lipgloss.NewStyle().Foreground(lipgloss.Color("226"))            // Yellow
-	priorityP3Style = lipgloss.NewStyle().Faint(true)                                 // Gray
+	priorityP3Style = lipgloss.NewStyle().Faint(true)                                  // Gray
 
 	// Footer style
 	footerStyle = lipgloss.NewStyle().

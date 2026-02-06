@@ -99,7 +99,7 @@ func TestRunnerCommandInjection(t *testing.T) {
 				if err == nil && result.Success {
 					// Check if output indicates blocking
 					if !strings.Contains(result.Stdout, "Error: disallowed") &&
-					   !strings.Contains(result.Stderr, "Error: disallowed") {
+						!strings.Contains(result.Stderr, "Error: disallowed") {
 						t.Errorf("%s: malicious command was not blocked! Output: %s", tt.name, result.Stdout)
 					}
 				}

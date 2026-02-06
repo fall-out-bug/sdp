@@ -8,11 +8,11 @@ import (
 type EventType string
 
 const (
-	EventTypeCommandStart       EventType = "command_start"
-	EventTypeCommandComplete    EventType = "command_complete"
-	EventTypeWSStart            EventType = "ws_start"
-	EventTypeWSComplete         EventType = "ws_complete"
-	EventTypeQualityGateResult  EventType = "quality_gate_result"
+	EventTypeCommandStart      EventType = "command_start"
+	EventTypeCommandComplete   EventType = "command_complete"
+	EventTypeWSStart           EventType = "ws_start"
+	EventTypeWSComplete        EventType = "ws_complete"
+	EventTypeQualityGateResult EventType = "quality_gate_result"
 )
 
 // IsValid checks if the event type is valid

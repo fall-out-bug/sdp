@@ -225,10 +225,10 @@ func (a *App) renderWorkstreams() string {
 
 	statusOrder := []string{"open", "in_progress", "completed", "blocked"}
 	statusLabels := map[string]string{
-		"open":         "Open",
-		"in_progress":  "In Progress",
-		"completed":    "Completed",
-		"blocked":      "Blocked",
+		"open":        "Open",
+		"in_progress": "In Progress",
+		"completed":   "Completed",
+		"blocked":     "Blocked",
 	}
 
 	totalCount := 0
@@ -304,15 +304,15 @@ func (a *App) renderWorkstreams() string {
 func (a *App) renderPriorityMatrix(priority string) string {
 	switch priority {
 	case "P0":
-		return priorityP0MatrixStyle.Render("["+priority+"]")
+		return priorityP0MatrixStyle.Render("[" + priority + "]")
 	case "P1":
-		return priorityP1MatrixStyle.Render("["+priority+"]")
+		return priorityP1MatrixStyle.Render("[" + priority + "]")
 	case "P2":
-		return priorityP2MatrixStyle.Render("["+priority+"]")
+		return priorityP2MatrixStyle.Render("[" + priority + "]")
 	case "P3":
-		return priorityP3MatrixStyle.Render("["+priority+"]")
+		return priorityP3MatrixStyle.Render("[" + priority + "]")
 	default:
-		return matrixBaseStyle.Render("["+priority+"]")
+		return matrixBaseStyle.Render("[" + priority + "]")
 	}
 }
 

@@ -61,9 +61,9 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 
 	// Parse frontmatter fields
 	data := &WorkstreamData{
-		ScopeFiles:            []string{},
-		VerificationCommands:  []string{},
-		CoverageThreshold:     80.0, // Default threshold
+		ScopeFiles:           []string{},
+		VerificationCommands: []string{},
+		CoverageThreshold:    80.0, // Default threshold
 	}
 
 	lines := strings.Split(frontmatter, "\n")
