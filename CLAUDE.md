@@ -426,6 +426,7 @@ See `.claude/settings.json` for:
 |----------|---------|
 | [PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
 | [docs/PRINCIPLES.md](docs/PRINCIPLES.md) | Core principles |
+| [docs/SLOS.md](docs/SLOS.md) | SLOs/SLIs for CLI tool |
 | [CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) | Code patterns |
 | [MODELS.md](docs/reference/MODELS.md) | Model recommendations |
 | [prompts/commands/](prompts/commands/) | Skill instructions |
