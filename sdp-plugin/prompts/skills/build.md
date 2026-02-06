@@ -87,6 +87,17 @@ fi
 
 **If multiple build files exist, ask user to specify.**
 
+**Log the project type decision:**
+```bash
+sdp decisions log \
+  --type=technical \
+  --question="What project type should be used?" \
+  --decision="Detected as {PROJECT_TYPE}" \
+  --rationale="Found {build_file} in project root" \
+  --workstream-id="{WS-ID}" \
+  --maker=claude
+```
+
 ### Step 1: Beads IN_PROGRESS (when Beads enabled)
 
 **When Beads is enabled** (bd installed, `.beads/` exists):
@@ -270,6 +281,19 @@ bd close "$beads_id" --reason "WS completed" --suggest-next
 ```
 
 **On failure (any gate fails):**
+
+1. **Log the quality gate decision:**
+```bash
+sdp decisions log \
+  --type=tradeoff \
+  --question="Quality gate failed: {gate_name}" \
+  --decision="Block workstream until fixed" \
+  --rationale="{failure_reason}" \
+  --workstream-id="{WS-ID}" \
+  --maker=claude
+```
+
+2. **Update Beads:**
 ```bash
 bd update "$beads_id" --status blocked
 ```

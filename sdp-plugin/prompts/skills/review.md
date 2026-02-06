@@ -169,6 +169,23 @@ golint ./...
 
 **Note:** AI validators are PRIMARY. Tool-based validation is OPTIONAL supplementary check.
 
+## Step 3.5: Retrieve Architectural Decisions
+
+**Fetch all decisions related to this feature/workstream:**
+
+```bash
+# Get all decisions for the feature
+sdp decisions list | grep "{feature-id}"
+
+# Or export to markdown for full report
+sdp decisions export docs/reports/{feature-id}-decisions.md
+```
+
+**Include in review report:**
+1. Count of related decisions
+2. Key decisions with dates, types, and rationale
+3. Link to full decision export
+
 ## Step 4: Goal Achievement
 
 For each WS verify:
@@ -247,6 +264,25 @@ No middle ground. No "approved with notes."
 
 ✅ 100% AC coverage (42/42 ACs have tests)
 
+### Architectural Decisions
+
+**Related decisions:** 3
+
+1. **[2026-02-06] Use JSONL for decision logging**
+   - Type: technical
+   - Question: Should we use JSONL for decision logging?
+   - Rationale: JSONL is append-only, easy to parse, and supports streaming
+
+2. **[2026-02-05] Go for binary implementation**
+   - Type: technical
+   - Question: Which language for CLI binary?
+   - Rationale: Single binary, cross-compilation, Windows support
+
+3. **[2026-02-04] Quality gates use AI validation**
+   - Type: tradeoff
+   - Question: Tool-based or AI-based validation?
+   - Rationale: Language-agnostic, no tool dependencies
+
 ### Verdict
 
 **✅ APPROVED**
@@ -282,6 +318,15 @@ All quality gates pass. Feature ready for deployment.
    Empty catch block - add logging or re-throw
 
 ✅ **Complexity:** All files <200 LOC
+
+### Architectural Decisions
+
+**Related decisions:** 1
+
+1. **[2026-02-05] Use Spring Boot**
+   - Type: technical
+   - Question: Framework choice for Java backend?
+   - Rationale: Enterprise support, auto-configuration, ecosystem
 
 ### Verdict
 
