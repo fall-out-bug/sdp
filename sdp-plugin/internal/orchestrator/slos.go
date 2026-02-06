@@ -41,15 +41,15 @@ type Metric struct {
 
 // SLOStatus represents the current SLO status
 type SLOStatus struct {
-	CheckpointSaveLatency       float64 // p95 in seconds
-	CheckpointSaveLatencyOK     bool
-	WSExecutionTime             float64 // p95 in seconds
-	WSExecutionTimeOK           bool
-	GraphBuildTime              float64 // p95 in seconds
-	GraphBuildTimeOK            bool
-	RecoverySuccessRate         float64 // 0-1
-	RecoverySuccessRateOK       bool
-	OverallSLOCompliance        bool
+	CheckpointSaveLatency   float64 // p95 in seconds
+	CheckpointSaveLatencyOK bool
+	WSExecutionTime         float64 // p95 in seconds
+	WSExecutionTimeOK       bool
+	GraphBuildTime          float64 // p95 in seconds
+	GraphBuildTimeOK        bool
+	RecoverySuccessRate     float64 // 0-1
+	RecoverySuccessRateOK   bool
+	OverallSLOCompliance    bool
 }
 
 // SLOTracker tracks SLO measurements for orchestrator operations

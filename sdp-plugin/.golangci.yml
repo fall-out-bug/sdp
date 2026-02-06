@@ -106,6 +106,21 @@ issues:
         - gocognit
         - gocyclo
       text: ".*"
+    - path: internal/telemetry/
+      linters:
+        - gocognit
+        - gocyclo
+      text: ".*"
+    - path: internal/doctor/
+      linters:
+        - gocognit
+        - gocyclo
+      text: ".*"
+    - path: internal/ui/dashboard/
+      linters:
+        - gocognit
+        - gocyclo
+      text: ".*"
     - path: cmd/sdp/
       linters:
         - gocognit

@@ -79,12 +79,12 @@ func (m *mockCheckpointManager) Resume(id string) (checkpoint.Checkpoint, error)
 // AC1: Load workstreams from Beads
 func TestLoadWorkstreams(t *testing.T) {
 	tests := []struct {
-		name         string
-		featureID    string
+		name        string
+		featureID   string
 		workstreams []WorkstreamNode
-		loadError    error
-		wantCount    int
-		wantError    bool
+		loadError   error
+		wantCount   int
+		wantError   bool
 	}{
 		{
 			name:      "load workstreams successfully",
@@ -97,11 +97,11 @@ func TestLoadWorkstreams(t *testing.T) {
 			wantError: false,
 		},
 		{
-			name:      "empty feature",
-			featureID: "F999",
+			name:        "empty feature",
+			featureID:   "F999",
 			workstreams: []WorkstreamNode{},
-			wantCount: 0,
-			wantError: false,
+			wantCount:   0,
+			wantError:   false,
 		},
 		{
 			name:      "load error",
@@ -142,10 +142,10 @@ func TestLoadWorkstreams(t *testing.T) {
 // AC2: Build dependency graph
 func TestBuildDependencyGraph(t *testing.T) {
 	tests := []struct {
-		name         string
+		name        string
 		workstreams []WorkstreamNode
-		wantEdges    int
-		wantError    bool
+		wantEdges   int
+		wantError   bool
 	}{
 		{
 			name: "simple dependency chain",
@@ -217,10 +217,10 @@ func TestBuildDependencyGraph(t *testing.T) {
 // AC3: Topological sort execution order
 func TestTopologicalSort(t *testing.T) {
 	tests := []struct {
-		name         string
+		name        string
 		workstreams []WorkstreamNode
-		wantOrder    []string
-		wantError    bool
+		wantOrder   []string
+		wantError   bool
 	}{
 		{
 			name: "simple chain",
@@ -324,20 +324,20 @@ func TestTopologicalSort(t *testing.T) {
 func TestExecuteWorkstreams(t *testing.T) {
 	tests := []struct {
 		name         string
-		workstreams []string
+		workstreams  []string
 		executeFunc  func(wsID string) error
 		wantError    bool
 		wantExecuted []string
 	}{
 		{
 			name:         "all succeed",
-			workstreams: []string{"00-050-01", "00-050-02", "00-050-03"},
+			workstreams:  []string{"00-050-01", "00-050-02", "00-050-03"},
 			executeFunc:  func(wsID string) error { return nil },
 			wantError:    false,
 			wantExecuted: []string{"00-050-01", "00-050-02", "00-050-03"},
 		},
 		{
-			name:         "middle fails",
+			name:        "middle fails",
 			workstreams: []string{"00-050-01", "00-050-02", "00-050-03"},
 			executeFunc: func(wsID string) error {
 				if wsID == "00-050-02" {
@@ -349,7 +349,7 @@ func TestExecuteWorkstreams(t *testing.T) {
 			wantExecuted: []string{"00-050-01", "00-050-02", "00-050-02", "00-050-02"}, // Initial + 2 retries
 		},
 		{
-			name:         "first fails",
+			name:        "first fails",
 			workstreams: []string{"00-050-01", "00-050-02"},
 			executeFunc: func(wsID string) error {
 				if wsID == "00-050-01" {
@@ -403,21 +403,21 @@ func TestExecuteWorkstreams(t *testing.T) {
 // AC5: Checkpoint after each WS
 func TestCheckpointAfterExecution(t *testing.T) {
 	tests := []struct {
-		name         string
+		name        string
 		workstreams []string
-		executeFunc  func(wsID string) error
-		wantSaves    int
-		wantError    bool
+		executeFunc func(wsID string) error
+		wantSaves   int
+		wantError   bool
 	}{
 		{
-			name:         "checkpoint after each success",
+			name:        "checkpoint after each success",
 			workstreams: []string{"00-050-01", "00-050-02"},
-			executeFunc:  func(wsID string) error { return nil },
-			wantSaves:    5, // Before WS1, After WS1, Before WS2, After WS2, Final
-			wantError:    false,
+			executeFunc: func(wsID string) error { return nil },
+			wantSaves:   5, // Before WS1, After WS1, Before WS2, After WS2, Final
+			wantError:   false,
 		},
 		{
-			name:         "checkpoint on failure",
+			name:        "checkpoint on failure",
 			workstreams: []string{"00-050-01", "00-050-02", "00-050-03"},
 			executeFunc: func(wsID string) error {
 				if wsID == "00-050-02" {
@@ -439,9 +439,9 @@ func TestCheckpointAfterExecution(t *testing.T) {
 
 			// Create initial checkpoint
 			cp := checkpoint.Checkpoint{
-				ID:        "test-cp",
-				FeatureID: "F050",
-				Status:    checkpoint.StatusInProgress,
+				ID:                   "test-cp",
+				FeatureID:            "F050",
+				Status:               checkpoint.StatusInProgress,
 				CompletedWorkstreams: []string{},
 			}
 
@@ -478,19 +478,19 @@ func TestCheckpointAfterExecution(t *testing.T) {
 // AC6: Resume from checkpoint
 func TestResumeFromCheckpoint(t *testing.T) {
 	tests := []struct {
-		name              string
-		checkpoint        checkpoint.Checkpoint
-		allWorkstreams    []string
-		wantResume        []string
-		wantError         bool
+		name           string
+		checkpoint     checkpoint.Checkpoint
+		allWorkstreams []string
+		wantResume     []string
+		wantError      bool
 	}{
 		{
 			name: "resume from middle",
 			checkpoint: checkpoint.Checkpoint{
-				ID:        "test-cp",
-				FeatureID: "F050",
-				Status:    checkpoint.StatusInProgress,
-				CurrentWorkstream: "00-050-02",
+				ID:                   "test-cp",
+				FeatureID:            "F050",
+				Status:               checkpoint.StatusInProgress,
+				CurrentWorkstream:    "00-050-02",
 				CompletedWorkstreams: []string{"00-050-01"},
 			},
 			allWorkstreams: []string{"00-050-01", "00-050-02", "00-050-03"},
@@ -500,9 +500,9 @@ func TestResumeFromCheckpoint(t *testing.T) {
 		{
 			name: "resume from start",
 			checkpoint: checkpoint.Checkpoint{
-				ID:        "test-cp",
-				FeatureID: "F050",
-				Status:    checkpoint.StatusPending,
+				ID:                   "test-cp",
+				FeatureID:            "F050",
+				Status:               checkpoint.StatusPending,
 				CompletedWorkstreams: []string{},
 			},
 			allWorkstreams: []string{"00-050-01", "00-050-02"},
@@ -512,9 +512,9 @@ func TestResumeFromCheckpoint(t *testing.T) {
 		{
 			name: "already completed",
 			checkpoint: checkpoint.Checkpoint{
-				ID:        "test-cp",
-				FeatureID: "F050",
-				Status:    checkpoint.StatusCompleted,
+				ID:                   "test-cp",
+				FeatureID:            "F050",
+				Status:               checkpoint.StatusCompleted,
 				CompletedWorkstreams: []string{"00-050-01", "00-050-02"},
 			},
 			allWorkstreams: []string{"00-050-01", "00-050-02"},
@@ -561,9 +561,9 @@ func TestResumeFromCheckpoint(t *testing.T) {
 // AC7: Handle dependencies correctly
 func TestDependencyHandling(t *testing.T) {
 	tests := []struct {
-		name         string
+		name        string
 		workstreams []WorkstreamNode
-		wantError    bool
+		wantError   bool
 	}{
 		{
 			name: "valid dependency chain",
@@ -638,11 +638,11 @@ func TestDependencyHandling(t *testing.T) {
 // Integration tests for Run and Resume methods
 func TestOrchestratorRun(t *testing.T) {
 	tests := []struct {
-		name         string
-		featureID    string
+		name        string
+		featureID   string
 		workstreams []WorkstreamNode
-		executeFunc  func(wsID string) error
-		wantError    bool
+		executeFunc func(wsID string) error
+		wantError   bool
 	}{
 		{
 			name:      "run complete feature",
@@ -655,8 +655,8 @@ func TestOrchestratorRun(t *testing.T) {
 			wantError:   false,
 		},
 		{
-			name:      "feature not found",
-			featureID: "F999",
+			name:        "feature not found",
+			featureID:   "F999",
 			workstreams: []WorkstreamNode{},
 			executeFunc: func(wsID string) error { return nil },
 			wantError:   true,
@@ -719,10 +719,10 @@ func TestOrchestratorResume(t *testing.T) {
 			name:         "resume from middle",
 			checkpointID: "test-cp",
 			checkpoint: checkpoint.Checkpoint{
-				ID:        "test-cp",
-				FeatureID: "F050",
-				Status:    checkpoint.StatusInProgress,
-				CurrentWorkstream: "00-050-02",
+				ID:                   "test-cp",
+				FeatureID:            "F050",
+				Status:               checkpoint.StatusInProgress,
+				CurrentWorkstream:    "00-050-02",
 				CompletedWorkstreams: []string{"00-050-01"},
 			},
 			workstreams: []WorkstreamNode{
@@ -737,9 +737,9 @@ func TestOrchestratorResume(t *testing.T) {
 			name:         "already completed",
 			checkpointID: "test-cp",
 			checkpoint: checkpoint.Checkpoint{
-				ID:        "test-cp",
-				FeatureID: "F050",
-				Status:    checkpoint.StatusCompleted,
+				ID:                   "test-cp",
+				FeatureID:            "F050",
+				Status:               checkpoint.StatusCompleted,
 				CompletedWorkstreams: []string{"00-050-01", "00-050-02"},
 			},
 			workstreams: []WorkstreamNode{

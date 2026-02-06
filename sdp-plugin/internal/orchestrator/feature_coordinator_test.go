@@ -262,13 +262,13 @@ func TestFeatureCoordinator_ResumeFeature(t *testing.T) {
 
 	// Create a checkpoint showing WS-001 is complete
 	existingCheckpoint := checkpoint.Checkpoint{
-		ID:          "F001",
-		FeatureID:   "F001",
-		Status:      checkpoint.StatusInProgress,
+		ID:                   "F001",
+		FeatureID:            "F001",
+		Status:               checkpoint.StatusInProgress,
 		CompletedWorkstreams: []string{"WS-001"},
-		CurrentWorkstream: "WS-002",
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CurrentWorkstream:    "WS-002",
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
 	}
 	saver.Save(existingCheckpoint)
 
