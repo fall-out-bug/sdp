@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
 // Logger handles logging decisions to JSONL file
 type Logger struct {
 	filePath string
+	mu       sync.Mutex
 }
 
 // NewLogger creates a new decision logger
@@ -31,6 +33,9 @@ func NewLogger(baseDir string) (*Logger, error) {
 
 // Log logs a decision to the JSONL file
 func (l *Logger) Log(decision Decision) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	// Set timestamp if not set
 	if decision.Timestamp.IsZero() {
 		decision.Timestamp = time.Now()
@@ -54,11 +59,19 @@ func (l *Logger) Log(decision Decision) error {
 		return fmt.Errorf("failed to write decision: %w", err)
 	}
 
+	// Sync to disk for durability
+	if err := file.Sync(); err != nil {
+		return fmt.Errorf("failed to sync decision: %w", err)
+	}
+
 	return nil
 }
 
 // LogBatch logs multiple decisions at once
 func (l *Logger) LogBatch(decisions []Decision) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	// Open file in append mode
 	file, err := os.OpenFile(l.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -75,6 +88,11 @@ func (l *Logger) LogBatch(decisions []Decision) error {
 		if _, err := file.Write(append(data, '\n')); err != nil {
 			return fmt.Errorf("failed to write decision: %w", err)
 		}
+	}
+
+	// Sync to disk for durability
+	if err := file.Sync(); err != nil {
+		return fmt.Errorf("failed to sync decisions: %w", err)
 	}
 
 	return nil

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fall-out-bug/sdp/internal/decision"
 	"github.com/spf13/cobra"
@@ -160,7 +161,19 @@ func decisionsExportCmd() *cobra.Command {
 			// Determine output path
 			outputPath := filepath.Join(root, "docs", "decisions", "DECISIONS.md")
 			if len(args) > 0 {
-				outputPath = args[0]
+				// Validate path is within project root
+				userPath := args[0]
+				if filepath.IsAbs(userPath) {
+					return fmt.Errorf("absolute paths not allowed: %s", userPath)
+				}
+				// Clean path to resolve any ".." elements
+				cleanPath := filepath.Clean(userPath)
+				// Ensure path doesn't escape root
+				fullPath := filepath.Join(root, cleanPath)
+				if !strings.HasPrefix(fullPath, root) {
+					return fmt.Errorf("path escapes project root: %s", userPath)
+				}
+				outputPath = fullPath
 			}
 
 			// Create output directory if needed
@@ -172,7 +185,7 @@ func decisionsExportCmd() *cobra.Command {
 			// Create markdown
 			var md string
 			md += "# Architectural Decisions\n\n"
-			md += fmt.Sprintf("**Generated:** %s\n\n", "2026-02-06")
+			md += fmt.Sprintf("**Generated:** %s\n\n", time.Now().Format("2006-01-02"))
 			md += fmt.Sprintf("**Total:** %d decisions\n\n", len(decisions))
 
 			for i, d := range decisions {
