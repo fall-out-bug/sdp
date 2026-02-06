@@ -4,6 +4,8 @@
 
 **Plugin Version:** Language-agnostic (Python, Java, Go)
 
+> **🎯 Documentation Navigation:** See [NAVIGATION.md](NAVIGATION.md) for the complete documentation index with decision trees and progressive disclosure.
+
 ---
 
 ## Quick Start

@@ -6,25 +6,19 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 ## TL;DR
 
-Use **skills** to execute SDP commands:
+> **🎯 New to SDP?** Start with [docs/NAVIGATION.md](docs/NAVIGATION.md) - Single entry point for all documentation.
 
-> **⚠️ Migration Notice:** **Upgrading from a previous version?** See [Breaking Changes Migration Guide](docs/migrations/breaking-changes.md) for:
-> - Consensus → Slash Commands migration
-> - Workstream ID format changes (WS-FFF-SS → PP-FFF-SS)
-> - 4-Phase → Slash Commands workflow
-> - QualityGateValidator removal
-> - And more...
+### Quick Start (3 Commands)
 
-```
-@feature "Add user authentication"    # ✅ RECOMMENDED: Beads-first workflow
-@idea "Add user authentication"       # ⚠️ ALTERNATIVE: Traditional markdown workflow
-@design idea-user-auth                # Plan workstreams
-@build 00-001-01                      # Execute workstream (PP-FFF-SS format)
+```bash
+@feature "Add user authentication"    # Plan feature
+@build 00-001-01                      # Execute workstream
 @review F01                           # Quality check
-@deploy F01                           # Deploy to production
 ```
 
-**📋 Workflow Decision:** See [docs/workflow-decision.md](docs/workflow-decision.md) for detailed comparison of Beads-first vs Traditional markdown workflows.
+> **⚠️ Migration Notice:** Upgrading from a previous version? See [Breaking Changes Guide](docs/migrations/breaking-changes.md).
+
+**📋 Decision Trees:** See [docs/NAVIGATION.md](docs/NAVIGATION.md#decision-trees) to choose the right workflow.
 
 **⚠️ Workstream ID Format:** Use `PP-FFF-SS` (e.g., `00-001-01`), NOT legacy `WS-FFF-SS`
 
