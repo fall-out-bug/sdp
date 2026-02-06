@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/fall-out-bug/sdp/internal/skill"
 	"github.com/spf13/cobra"
@@ -55,6 +54,9 @@ Checks:
 - References resolve`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("requires skill file argument")
+			}
 			skillPath := args[0]
 			validator := skill.NewValidator()
 
@@ -84,7 +86,7 @@ Checks:
 
 			// Exit with error if not valid or strict mode with warnings
 			if !result.IsValid || (strict && len(result.Warnings) > 0) {
-				os.Exit(1)
+				return fmt.Errorf("skill validation failed")
 			}
 
 			return nil
@@ -137,13 +139,14 @@ against SDP standards.`,
 
 			fmt.Printf("\nSummary: %d/%d skills valid\n", total-failed, total)
 			if failed > 0 {
-				os.Exit(1)
+				return fmt.Errorf("skill validation failed")
 			}
 
 			return nil
 		},
 	}
 
+	cmd.Flags().String("skills-dir", "", "Skills directory")
 	return cmd
 }
 
@@ -184,6 +187,9 @@ func skillShow() *cobra.Command {
 		Long: `Display the full content of a skill file (SKILL.md)`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("requires skill name argument")
+			}
 			skillName := args[0]
 			skillsDir, _ := cmd.Flags().GetString("skills-dir")
 

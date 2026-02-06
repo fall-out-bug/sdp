@@ -18,13 +18,32 @@ func TestSkillValidateCmd(t *testing.T) {
 
 	// Create a valid skill file
 	validSkill := filepath.Join(skillsDir, "test.md")
-	skillContent := `# Test Skill
+	skillContent := `---
+name: test
+description: Test skill file
+---
+
+# Test Skill
 
 This is a test skill.
 
 ## Usage
 
 Use this skill for testing.
+
+## Quick Reference
+
+- Test command
+- Test option
+
+## Workflow
+
+1. Step 1
+2. Step 2
+
+## See Also
+
+- Other skill
 `
 	if err := os.WriteFile(validSkill, []byte(skillContent), 0644); err != nil {
 		t.Fatalf("Failed to create skill file: %v", err)

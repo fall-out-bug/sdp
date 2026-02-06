@@ -296,6 +296,7 @@ func TestCheckFileSizeWithViolations(t *testing.T) {
 		projectPath: tmpDir,
 		projectType: Python,
 	}
+	checker.SetStrictMode(true)
 
 	result, err := checker.CheckFileSize()
 	if err != nil {
