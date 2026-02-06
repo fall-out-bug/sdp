@@ -41,7 +41,7 @@ func runQualityCoverage() error {
 	}
 
 	if !result.Passed {
-		return fmt.Errorf("coverage check failed: %.1f%% < %.1f%%", result.Coverage, result.Threshold)
+		os.Exit(1)
 	}
 
 	return nil
@@ -77,7 +77,7 @@ func runQualityComplexity() error {
 	}
 
 	if !result.Passed {
-		return fmt.Errorf("complexity check failed: max CC %d > threshold %d", result.MaxCC, result.Threshold)
+		os.Exit(1)
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func runQualitySize() error {
 	}
 
 	if !result.Passed {
-		return fmt.Errorf("file size check failed: %d files exceed threshold", len(result.Violators))
+		os.Exit(1)
 	}
 
 	return nil

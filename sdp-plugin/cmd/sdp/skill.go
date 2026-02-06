@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/fall-out-bug/sdp/internal/skill"
 	"github.com/spf13/cobra"
@@ -81,9 +82,9 @@ Checks:
 				fmt.Printf("✅ %s: valid (%d lines)\n", skillPath, result.LineCount)
 			}
 
-			// Return error if not valid or strict mode with warnings
+			// Exit with error if not valid or strict mode with warnings
 			if !result.IsValid || (strict && len(result.Warnings) > 0) {
-				return fmt.Errorf("validation failed")
+				os.Exit(1)
 			}
 
 			return nil
@@ -136,7 +137,7 @@ against SDP standards.`,
 
 			fmt.Printf("\nSummary: %d/%d skills valid\n", total-failed, total)
 			if failed > 0 {
-				return fmt.Errorf("%d skills failed validation", failed)
+				os.Exit(1)
 			}
 
 			return nil
