@@ -13,8 +13,8 @@ type SkillTool interface {
 
 // IdeaResult represents the result of @idea skill invocation
 type IdeaResult struct {
-	Problem          string   `json:"problem"`
-	Users            []string `json:"users"`
+	Problem         string   `json:"problem"`
+	Users           []string `json:"users"`
 	SuccessCriteria []string `json:"success_criteria"`
 }
 

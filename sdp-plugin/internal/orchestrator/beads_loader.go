@@ -92,9 +92,9 @@ func (b *BeadsLoader) extractDependencies(ws *parser.Workstream) []string {
 
 		// Check for Dependencies section (### or ** or plain)
 		if strings.HasPrefix(trimmed, "Dependencies:") ||
-		   strings.HasPrefix(trimmed, "**Dependencies:**") ||
-		   strings.HasPrefix(trimmed, "### Dependencies") ||
-		   strings.HasPrefix(trimmed, "###Dependencies") {
+			strings.HasPrefix(trimmed, "**Dependencies:**") ||
+			strings.HasPrefix(trimmed, "### Dependencies") ||
+			strings.HasPrefix(trimmed, "###Dependencies") {
 			inDepsSection = true
 			continue
 		}

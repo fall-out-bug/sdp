@@ -9,15 +9,15 @@ import (
 
 // Common errors
 var (
-	ErrFeatureNotFound        = errors.New("feature not found")
-	ErrCheckpointNotFound     = errors.New("checkpoint not found")
-	ErrExecutionFailed        = errors.New("workstream execution failed")
-	ErrCircularDependency     = errors.New("circular dependency detected")
-	ErrMissingDependency      = errors.New("missing dependency")
-	ErrWorkstreamNotFound     = errors.New("workstream not found")
-	ErrSkillInvocationFailed  = errors.New("skill invocation failed")
-	ErrAgentSpawnFailed       = errors.New("agent spawn failed")
-	ErrAgentNotFound          = errors.New("agent not found")
+	ErrFeatureNotFound       = errors.New("feature not found")
+	ErrCheckpointNotFound    = errors.New("checkpoint not found")
+	ErrExecutionFailed       = errors.New("workstream execution failed")
+	ErrCircularDependency    = errors.New("circular dependency detected")
+	ErrMissingDependency     = errors.New("missing dependency")
+	ErrWorkstreamNotFound    = errors.New("workstream not found")
+	ErrSkillInvocationFailed = errors.New("skill invocation failed")
+	ErrAgentSpawnFailed      = errors.New("agent spawn failed")
+	ErrAgentNotFound         = errors.New("agent not found")
 )
 
 // WorkstreamNode represents a workstream in the dependency graph
@@ -314,11 +314,11 @@ func (o *Orchestrator) Run(featureID string) error {
 
 	// Create initial checkpoint
 	cp := &checkpoint.Checkpoint{
-		ID:                    featureID,
-		FeatureID:             featureID,
-		Status:                checkpoint.StatusPending,
-		CompletedWorkstreams:  []string{},
-		CurrentWorkstream:     "",
+		ID:                   featureID,
+		FeatureID:            featureID,
+		Status:               checkpoint.StatusPending,
+		CompletedWorkstreams: []string{},
+		CurrentWorkstream:    "",
 	}
 
 	// Execute with checkpointing

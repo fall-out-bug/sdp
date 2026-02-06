@@ -168,10 +168,10 @@ func TestDriftReportString(t *testing.T) {
 		Verdict:      "WARNING",
 		Issues: []drift.DriftIssue{
 			{
-				Status:        drift.StatusWarning,
-				File:          "internal/file.go",
-				Expected:      "File contains implementation",
-				Actual:        "Found TODO comments",
+				Status:         drift.StatusWarning,
+				File:           "internal/file.go",
+				Expected:       "File contains implementation",
+				Actual:         "Found TODO comments",
 				Recommendation: "Remove TODO comments",
 			},
 		},

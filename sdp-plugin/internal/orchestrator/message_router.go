@@ -11,10 +11,10 @@ import (
 type MessageType string
 
 const (
-	MessageTypeProgress   MessageType = "progress"
-	MessageTypeError      MessageType = "error"
-	MessageTypeCommand    MessageType = "command"
-	MessageTypeResponse   MessageType = "response"
+	MessageTypeProgress MessageType = "progress"
+	MessageTypeError    MessageType = "error"
+	MessageTypeCommand  MessageType = "command"
+	MessageTypeResponse MessageType = "response"
 )
 
 // Message represents a message between orchestrator and agents
@@ -114,10 +114,10 @@ func (mr *MessageRouter) Receive(agentID string) (Message, error) {
 // SendProgress sends a progress update from agent to orchestrator
 func (mr *MessageRouter) SendProgress(from string, progress float64, message string) error {
 	msg := Message{
-		ID:      generateMessageID(),
-		Type:    MessageTypeProgress,
-		From:    from,
-		To:      "orchestrator",
+		ID:   generateMessageID(),
+		Type: MessageTypeProgress,
+		From: from,
+		To:   "orchestrator",
 		Content: map[string]interface{}{
 			"progress": progress,
 			"message":  message,
@@ -129,10 +129,10 @@ func (mr *MessageRouter) SendProgress(from string, progress float64, message str
 // SendError sends an error from agent to orchestrator
 func (mr *MessageRouter) SendError(from string, errMsg string) error {
 	msg := Message{
-		ID:      generateMessageID(),
-		Type:    MessageTypeError,
-		From:    from,
-		To:      "orchestrator",
+		ID:   generateMessageID(),
+		Type: MessageTypeError,
+		From: from,
+		To:   "orchestrator",
 		Content: map[string]interface{}{
 			"error": errMsg,
 		},
@@ -143,10 +143,10 @@ func (mr *MessageRouter) SendError(from string, errMsg string) error {
 // SendCommand sends a command from orchestrator to agent
 func (mr *MessageRouter) SendCommand(to string, command string, args map[string]interface{}) error {
 	msg := Message{
-		ID:      generateMessageID(),
-		Type:    MessageTypeCommand,
-		From:    "orchestrator",
-		To:      to,
+		ID:   generateMessageID(),
+		Type: MessageTypeCommand,
+		From: "orchestrator",
+		To:   to,
 		Content: map[string]interface{}{
 			"command": command,
 			"args":    args,

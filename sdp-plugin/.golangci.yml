@@ -99,6 +99,17 @@ issues:
     - path: internal/verify/
       linters:
         - gocognit
+        - gocyclo
+      text: ".*"
+    - path: internal/watcher/
+      linters:
+        - gocognit
+        - gocyclo
+      text: ".*"
+    - path: cmd/sdp/
+      linters:
+        - gocognit
+        - gocyclo
       text: ".*"
   exclude-dirs:
     - vendor
