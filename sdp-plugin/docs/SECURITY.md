@@ -113,7 +113,34 @@ sdp doctor
 # Warns if permissions > 0600
 ```
 
-### 7. Path Traversal Protection
+### 8. YAML Injection Protection
+
+All YAML parsing uses secure decoder with limits:
+
+```go
+import "github.com/ai-masters/sdp/internal/parser"
+
+// Safe YAML unmarshaling with limits
+content, _ := os.ReadFile("workstream.md")
+var fm frontmatter
+if err := SafeYAMLUnmarshal(content, &fm); err != nil {
+    return err
+}
+```
+
+**Security limits:**
+- **Max file size:** 1MB for workstream files
+- **Max field length:** 10KB for YAML string fields
+- **Max content length:** 1MB for markdown content
+- **Max YAML depth:** 100 nesting levels
+
+**Protected against:**
+- YAML bombs (exponential expansion aliases)
+- Recursive anchors (stack overflow)
+- Oversized files (DoS via memory exhaustion)
+- Excessively long field values
+
+### 9. Path Traversal Protection
 
 All user-provided file paths are validated:
 
