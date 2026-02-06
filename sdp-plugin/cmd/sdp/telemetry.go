@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/fall-out-bug/sdp/internal/telemetry"
@@ -238,6 +239,67 @@ Calculates:
 	},
 }
 
+var telemetryUploadCmd = &cobra.Command{
+	Use:   "upload --format json|archive",
+	Short: "Package telemetry data for sharing",
+	Long: `Package telemetry data for voluntary sharing.
+
+This command packages your telemetry data into a file that you can:
+  - Attach to a GitHub Issue
+  - Send via email
+  - Share for debugging
+
+🔒 Privacy: Review the packaged file before sharing to ensure no sensitive data.
+
+Formats:
+  json    - Structured JSON with metadata (default)
+  archive - tar.gz archive with raw telemetry.jsonl`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		format, _ := cmd.Flags().GetString("format")
+
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return fmt.Errorf("failed to get config dir: %w", err)
+		}
+
+		telemetryFile := filepath.Join(configDir, "sdp", "telemetry.jsonl")
+
+		// Generate filename with timestamp
+		timestamp := time.Now().Format("2006-01-02")
+		var outputPath string
+		if format == "archive" {
+			outputPath = fmt.Sprintf("telemetry_upload_%s.tar.gz", timestamp)
+		} else {
+			outputPath = fmt.Sprintf("telemetry_upload_%s.json", timestamp)
+		}
+
+		// Package telemetry data
+		result, err := telemetry.PackForUpload(telemetryFile, outputPath, format)
+		if err != nil {
+			return fmt.Errorf("failed to package telemetry: %w", err)
+		}
+
+		// Print summary
+		fmt.Printf("✓ Collected %d events\n", result.EventCount)
+		fmt.Printf("✓ Packaged into: %s\n", result.File)
+		fmt.Printf("  Size: %.2f KB\n", float64(result.Size)/1024)
+
+		// Privacy reminder
+		fmt.Println("\n🔒 Privacy Reminder:")
+		fmt.Println("  Review the file before sharing to ensure no sensitive data.")
+		fmt.Println("\n  You can now:")
+		fmt.Println("  - Attach to GitHub Issue")
+		fmt.Println("  - Send via email")
+		fmt.Println("  - Share for debugging")
+
+		return nil
+	},
+}
+
+func init() {
+	telemetryUploadCmd.Flags().String("format", "json", "Output format: json or archive")
+}
+
 var telemetryConsentCmd = &cobra.Command{
 	Use:   "consent",
 	Short: "Manage telemetry consent",
@@ -275,6 +337,7 @@ Telemetry is opt-in by default. Use this command to:
 func init() {
 	telemetryCmd.AddCommand(telemetryStatusCmd)
 	telemetryCmd.AddCommand(telemetryExportCmd)
+	telemetryCmd.AddCommand(telemetryUploadCmd)
 	telemetryCmd.AddCommand(telemetryDisableCmd)
 	telemetryCmd.AddCommand(telemetryEnableCmd)
 	telemetryCmd.AddCommand(telemetryAnalyzeCmd)
