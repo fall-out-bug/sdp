@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
 	"github.com/fall-out-bug/sdp/internal/ui/dashboard"

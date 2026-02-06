@@ -25,7 +25,7 @@ func TestEventTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			event := Event{
 				Type:      tt.eventType,
-				Timestamp: time.Now(),
+				Timestamp: time.Now(), //nolint:unused // Test fixture
 			}
 
 			isValid := event.Type.IsValid()
