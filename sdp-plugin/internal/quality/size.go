@@ -25,12 +25,12 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 
 		// Skip certain directories
 		if strings.Contains(path, "vendor/") ||
-		   strings.Contains(path, "node_modules/") ||
-		   strings.Contains(path, ".git/") ||
-		   strings.Contains(path, "target/") ||
-		   strings.Contains(path, "__pycache__/") ||
-		   strings.Contains(path, ".venv/") ||
-		   strings.Contains(path, "venv/") {
+			strings.Contains(path, "node_modules/") ||
+			strings.Contains(path, ".git/") ||
+			strings.Contains(path, "target/") ||
+			strings.Contains(path, "__pycache__/") ||
+			strings.Contains(path, ".venv/") ||
+			strings.Contains(path, "venv/") {
 			return nil
 		}
 
@@ -51,7 +51,7 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 
 		// Skip test files for size check (they can be longer)
 		if strings.Contains(filepath.Base(path), "test") ||
-		   strings.Contains(filepath.Base(path), "_test") {
+			strings.Contains(filepath.Base(path), "_test") {
 			return nil
 		}
 
