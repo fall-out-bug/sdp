@@ -22,21 +22,98 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 **⚠️ Workstream ID Format:** Use `PP-FFF-SS` (e.g., `00-001-01`), NOT legacy `WS-FFF-SS`
 
+## Decision Tree: @feature vs @oneshot
+
+### Mental Model
+
+**SDP has two independent orchestrators for different phases:**
+
+```
+Planning Phase                  Execution Phase
+┌──────────────────┐           ┌──────────────────┐
+│   @feature       │           │   @oneshot       │
+│  (planning)      │           │  (execution)     │
+└──────────────────┘           └──────────────────┘
+         │                              │
+         ▼                              ▼
+    @idea ──────────────────────▶ @build (all WS)
+    (gather requirements)              (implement)
+         │                              │
+         ▼                              ▼
+    @design ──────────────────────▶ @review
+    (create workstreams)              (quality check)
+         │                              │
+         ▼                              ▼
+   workstreams                     @deploy
+   (00-FFF-SS.md)                  (merge to main)
+```
+
+### Key Differences
+
+| Aspect | @feature | @oneshot |
+|--------|----------|----------|
+| **Purpose** | Planning: gather requirements + design workstreams | Execution: implement all workstreams |
+| **Input** | Feature description ("Add X") | Feature ID (F01) or list of WS |
+| **Output** | Workstream files (00-FFF-SS.md) | Implemented code + deployed feature |
+| **Phases** | Discovery (@idea) → Design (@design) | Build (@build) → Review (@review) → Deploy (@deploy) |
+| **When to Use** | Starting new feature from scratch | Workstreams exist, ready to implement |
+| **Human Interaction** | Heavy (AskUserQuestion, ExitPlanMode) | Minimal (only for critical blockers) |
+
+### When to Use Which
+
+**Use @feature when:**
+- ✅ You have a feature idea but no workstreams
+- ✅ You need to explore requirements (@idea)
+- ✅ You need to design architecture (@design)
+- ✅ You want interactive planning (questions, tradeoffs)
+
+**Use @oneshot when:**
+- ✅ Workstreams already exist (from @feature or @design)
+- ✅ You want autonomous execution (no human interaction)
+- ✅ You have 5-30 workstreams to execute
+- ✅ You want checkpoint/resume capability
+
+**Typical Flow:**
+```bash
+# Day 1: Planning phase (interactive)
+@feature "Add payment processing"
+# → @idea gathers requirements
+# → @design creates workstreams
+# → Result: 00-050-01.md, 00-050-02.md, ... in docs/workstreams/backlog/
+
+# Day 2-5: Execution phase (autonomous)
+@oneshot F050
+# → @build executes all workstreams
+# → @review checks quality
+# → @deploy merges to main
+# → Result: Feature shipped
+```
+
+**Skip @feature if:**
+- Workstreams already exist (from previous @design)
+- You created workstreams manually
+- You just want to execute existing WS
+
+**Skip @oneshot if:**
+- Only 1-2 workstreams (use @build directly)
+- You want manual control over each WS
+- You're learning the system (use @build to understand workflow)
+
 ## Available Skills
 
-| Skill | Purpose | Example |
-|-------|---------|---------|
-| `@feature` | **Unified feature development** (progressive disclosure) | `@feature "Add payment processing"` |
-| `@idea` | **Interactive requirements** (AskUserQuestion) | `@idea "Add payment processing"` |
-| `@design` | **Interactive planning** (EnterPlanMode) | `@design idea-payments` |
-| `@build` | Execute workstream (TodoWrite tracking) | `@build 00-001-01` |
-| `/debug` | **Systematic debugging** (scientific method) | `/debug "Test fails unexpectedly"` |
-| `@review` | Quality check | `@review F01` |
-| `@deploy` | Production deployment | `@deploy F01` |
-| `@issue` | Debug and route bugs | `@issue "Login fails on Firefox"` |
-| `@hotfix` | Emergency fix (P0) | `@hotfix "Critical API outage"` |
-| `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
-| `@oneshot` | **Autonomous execution** (Task-based) | `@oneshot F01` or `@oneshot F01 --background` |
+| Skill | Purpose | Phase | Example |
+|-------|---------|-------|---------|
+| `@feature` | **Planning orchestrator** (interactive) | Planning | `@feature "Add payment processing"` |
+| `@idea` | **Requirements gathering** (AskUserQuestion) | Planning | `@idea "Add payment processing"` |
+| `@design` | **Workstream design** (EnterPlanMode) | Planning | `@design idea-payments` |
+| `@oneshot` | **Execution orchestrator** (autonomous) | Execution | `@oneshot F01` or `@oneshot F01 --background` |
+| `@build` | Execute single workstream (TDD) | Execution | `@build 00-001-01` |
+| `@review` | Multi-agent quality review | Execution | `@review F01` |
+| `@deploy` | Merge feature branch to main | Execution | `@deploy F01` |
+| `/debug` | **Systematic debugging** (scientific method) | Debug | `/debug "Test fails unexpectedly"` |
+| `@issue` | Debug and route bugs | Debug | `@issue "Login fails on Firefox"` |
+| `@hotfix` | Emergency fix (P0) | Debug | `@hotfix "Critical API outage"` |
+| `@bugfix` | Quality fix (P1/P2) | Debug | `@bugfix "Incorrect totals"` |
 
 **Internal skills** (not called directly by users):
 | Skill | Purpose | Called By |
@@ -46,10 +123,12 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 **Claude Code Integration Highlights:**
+- `@feature` — Planning orchestrator: @idea (requirements) → @design (workstreams)
 - `@idea` — Deep interviewing via AskUserQuestion (no obvious questions, explores tradeoffs)
 - `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
+- `@oneshot` — Execution orchestrator: @build (all WS) → @review → @deploy
 - `@build` — TodoWrite real-time progress tracking through TDD cycle
-- `@oneshot` — Task tool spawns isolated orchestrator agent with background execution support
+- `@review` — Multi-agent quality check (QA + Security + DevOps + SRE + TechLead + Documentation)
 
 ## Quick Reference
 
@@ -86,44 +165,53 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 ### Typical Workflow
 
+**Option A: Interactive Planning (recommended for new features)**
+
 ```bash
-# 1. Gather requirements (Interactive interviewing)
-@idea "User can reset password via email"
-# Claude asks deep questions via AskUserQuestion:
-# - Technical approach (email service, token storage)
-# - UI/UX (where in app, error messages)
-# - Security (token expiry, rate limiting)
-# - Concerns (complexity, failure modes)
-# Result: comprehensive spec in docs/drafts/
+# 1. Planning phase: @feature (combines @idea + @design)
+@feature "User can reset password via email"
+# → @idea gathers requirements (AskUserQuestion)
+# → @design creates workstreams (ExitPlanMode)
+# Result: 00-050-01.md, 00-050-02.md, ... in docs/workstreams/backlog/
 
-# 2. Design workstreams (Interactive planning)
-@design idea-password-reset
-# Claude enters Plan Mode:
-# - Explores codebase (existing auth, email infrastructure)
-# - Asks architecture questions (JWT vs sessions, etc.)
-# - Designs WS decomposition
-# - Requests approval via ExitPlanMode
-# Result: WS-XXX-01, WS-XXX-02, etc. in docs/workstreams/backlog/
-# If WS created manually: sdp beads migrate docs/workstreams/backlog/ --real
+# 2. Execution phase: @oneshot (autonomous)
+@oneshot F050
+# → @build executes all workstreams
+# → @review checks quality
+# → @deploy merges to main
+# Result: Feature shipped
+```
 
-# 3. Execute each workstream
-@build 00-001-01
-# Claude shows TodoWrite progress tracking:
-#   [in_progress] Pre-build validation
-#   [pending] Write failing test (Red)
-#   [pending] Implement minimum code (Green)
-#   [pending] Refactor implementation
-#   ... (updates in real-time)
+**Option B: Manual Planning (skip @feature)**
 
-@build 00-001-02
-# ... or use autonomous mode:
-@oneshot F01
+```bash
+# 1. Create workstreams manually
+# Edit docs/workstreams/backlog/00-050-01.md, etc.
 
-# 4. Review quality
-@review F01
+# 2. Execute manually one by one
+@build 00-050-01
+@build 00-050-02
+# ...
 
-# 5. Deploy to production
-@deploy F01
+# 3. Review and deploy
+@review F050
+@deploy F050
+```
+
+**Option C: Hybrid (plan interactively, execute manually)**
+
+```bash
+# 1. Use @feature for planning
+@feature "Add payment processing"
+# → Creates workstreams
+
+# 2. Execute manually (for learning or debugging)
+@build 00-050-01  # Execute first WS manually
+@build 00-050-02  # Execute second WS manually
+# ...
+
+# 3. Use @oneshot for remaining WS
+@oneshot F050  # Continues from checkpoint
 ```
 
 ### Progress Tracking
