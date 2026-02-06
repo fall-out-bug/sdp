@@ -59,14 +59,14 @@ var checkpointCreateCmd = &cobra.Command{
 		manager := checkpoint.NewManager(dir)
 
 		cp := checkpoint.Checkpoint{
-			ID:                  id,
-			FeatureID:           featureID,
-			CreatedAt:           time.Now(),
-			UpdatedAt:           time.Now(),
-			Status:              checkpoint.StatusPending,
-			CurrentWorkstream:   "",
+			ID:                   id,
+			FeatureID:            featureID,
+			CreatedAt:            time.Now(),
+			UpdatedAt:            time.Now(),
+			Status:               checkpoint.StatusPending,
+			CurrentWorkstream:    "",
 			CompletedWorkstreams: []string{},
-			Metadata:            map[string]interface{}{},
+			Metadata:             map[string]interface{}{},
 		}
 
 		if err := manager.Save(cp); err != nil {

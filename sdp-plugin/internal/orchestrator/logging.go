@@ -10,9 +10,9 @@ import (
 
 // OrchestratorLogger wraps slog.Logger with correlation ID support
 type OrchestratorLogger struct {
-	logger         *slog.Logger
-	correlationID  string
-	featureID      string
+	logger        *slog.Logger
+	correlationID string
+	featureID     string
 }
 
 // NewOrchestratorLogger creates a new logger with correlation ID
@@ -25,9 +25,9 @@ func NewOrchestratorLogger(featureID string) *OrchestratorLogger {
 	}
 
 	return &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  correlationID,
-		featureID:      featureID,
+		logger:        logger,
+		correlationID: correlationID,
+		featureID:     featureID,
 	}
 }
 
@@ -36,9 +36,9 @@ func NewOrchestratorLoggerWithHandler(featureID string, handler slog.Handler) *O
 	correlationID := fmt.Sprintf("%s-%d", featureID, time.Now().UnixNano())
 
 	return &OrchestratorLogger{
-		logger:         slog.New(handler),
-		correlationID:  correlationID,
-		featureID:      featureID,
+		logger:        slog.New(handler),
+		correlationID: correlationID,
+		featureID:     featureID,
 	}
 }
 

@@ -68,4 +68,3 @@ func TestDoctorCmdWithDriftFlag(t *testing.T) {
 		t.Errorf("doctorCmd() with drift failed: %v", err)
 	}
 }
-

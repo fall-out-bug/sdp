@@ -154,7 +154,7 @@ func skillList() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all available skills",
-		Long: `List all skill directories found in .claude/skills/`,
+		Long:  `List all skill directories found in .claude/skills/`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			skillsDir, _ := cmd.Flags().GetString("skills-dir") //nolint:errcheck // String flag never errors
 
@@ -184,8 +184,8 @@ func skillShow() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show <skill-name>",
 		Short: "Show skill file content",
-		Long: `Display the full content of a skill file (SKILL.md)`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Display the full content of a skill file (SKILL.md)`,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return fmt.Errorf("requires skill name argument")

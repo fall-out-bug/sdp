@@ -9,10 +9,10 @@ import (
 
 // ProgressUpdate represents a progress update during execution
 type ProgressUpdate struct {
-	Timestamp time.Time
-	Message   string
+	Timestamp    time.Time
+	Message      string
 	WorkstreamID string
-	Status    string
+	Status       string
 }
 
 // ProgressCallback is called for progress updates

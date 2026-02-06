@@ -21,7 +21,7 @@ func decisionsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "decisions",
 		Short: "Manage decision audit trail",
-		Long:  `View and search decision log for architectural and product decisions.
+		Long: `View and search decision log for architectural and product decisions.
 
 Decisions are automatically logged during @feature skill interviews
 and can be queried using this command.`,

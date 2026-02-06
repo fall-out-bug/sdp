@@ -328,14 +328,14 @@ func TestBeadsCommand(t *testing.T) {
 			contains: "ready",
 		},
 		{
-			name:     "beads list",
-			args:     []string{"beads", "list"},
-			wantErr:  false,
+			name:    "beads list",
+			args:    []string{"beads", "list"},
+			wantErr: false,
 		},
 		{
-			name:     "beads sync",
-			args:     []string{"beads", "sync"},
-			wantErr:  false,
+			name:    "beads sync",
+			args:    []string{"beads", "sync"},
+			wantErr: false,
 		},
 	}
 
@@ -422,9 +422,9 @@ func TestPrdCommand(t *testing.T) {
 			contains: "PRD",
 		},
 		{
-			name:     "prd detect",
-			args:     []string{"prd", "detect"},
-			wantErr:  false,
+			name:    "prd detect",
+			args:    []string{"prd", "detect"},
+			wantErr: false,
 		},
 	}
 
@@ -471,9 +471,9 @@ func TestQualityCommand(t *testing.T) {
 			contains: "Coverage",
 		},
 		{
-			name:     "quality coverage",
-			args:     []string{"quality", "coverage"},
-			wantErr:  false,
+			name:    "quality coverage",
+			args:    []string{"quality", "coverage"},
+			wantErr: false,
 		},
 		{
 			name:     "quality help",
@@ -523,14 +523,14 @@ func TestSkillCommand(t *testing.T) {
 			contains: "skill",
 		},
 		{
-			name:     "skill validate",
-			args:     []string{"skill", "validate"},
-			wantErr:  false,
+			name:    "skill validate",
+			args:    []string{"skill", "validate"},
+			wantErr: false,
 		},
 		{
-			name:     "skill list",
-			args:     []string{"skill", "list"},
-			wantErr:  false,
+			name:    "skill list",
+			args:    []string{"skill", "list"},
+			wantErr: false,
 		},
 	}
 
@@ -578,9 +578,9 @@ func TestExample(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		args     []string
-		wantErr  bool
+		name    string
+		args    []string
+		wantErr bool
 	}{
 		{
 			name:    "tdd run",
@@ -630,9 +630,9 @@ func TestTelemetryCommand(t *testing.T) {
 			contains: "telemetry",
 		},
 		{
-			name:     "telemetry export json",
-			args:     []string{"telemetry", "export", "--format", "json"},
-			wantErr:  false,
+			name:    "telemetry export json",
+			args:    []string{"telemetry", "export", "--format", "json"},
+			wantErr: false,
 		},
 		{
 			name:     "telemetry help",
@@ -641,9 +641,9 @@ func TestTelemetryCommand(t *testing.T) {
 			contains: "telemetry",
 		},
 		{
-			name:     "telemetry status",
-			args:     []string{"telemetry", "status"},
-			wantErr:  false,
+			name:    "telemetry status",
+			args:    []string{"telemetry", "status"},
+			wantErr: false,
 		},
 	}
 
@@ -712,9 +712,9 @@ func TestHooksCommand(t *testing.T) {
 			contains: "hooks",
 		},
 		{
-			name:     "hooks uninstall",
-			args:     []string{"hooks", "uninstall"},
-			wantErr:  false,
+			name:    "hooks uninstall",
+			args:    []string{"hooks", "uninstall"},
+			wantErr: false,
 		},
 		{
 			name:     "hooks help",
