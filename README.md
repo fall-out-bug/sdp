@@ -284,6 +284,7 @@ sdp/
 - [docs/reference/quality-gates.md](docs/reference/quality-gates.md) - Quality standards
 - [docs/reference/configuration.md](docs/reference/configuration.md) - Config files
 - [docs/reference/skills.md](docs/reference/skills.md) - Skill system
+- [docs/SLOS.md](docs/SLOS.md) - SLOs/SLIs for CLI tool
 
 ### Internals (Maintainer Docs)
 **Extending SDP or contributing?**
