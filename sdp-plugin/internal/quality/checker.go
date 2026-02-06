@@ -21,12 +21,12 @@ type Checker struct {
 }
 
 type CoverageResult struct {
-	ProjectType  string
-	Coverage     float64
-	Threshold    float64
-	Passed       bool
-	Report       string
-	FilesBelow   []FileCoverage
+	ProjectType string
+	Coverage    float64
+	Threshold   float64
+	Passed      bool
+	Report      string
+	FilesBelow  []FileCoverage
 }
 
 type FileCoverage struct {
@@ -43,9 +43,9 @@ type ComplexityResult struct {
 }
 
 type FileComplexity struct {
-	File            string
-	AverageCC       float64
-	MaxCC           int
+	File             string
+	AverageCC        float64
+	MaxCC            int
 	ExceedsThreshold bool
 }
 
@@ -60,15 +60,15 @@ type FileSizeResult struct {
 }
 
 type FileViolation struct {
-	File    string
-	LOC     int
+	File string
+	LOC  int
 }
 
 type TypeResult struct {
-	ProjectType  string
-	Passed       bool
-	Errors       []TypeError
-	Warnings     []TypeError
+	ProjectType string
+	Passed      bool
+	Errors      []TypeError
+	Warnings    []TypeError
 }
 
 type TypeError struct {

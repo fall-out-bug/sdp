@@ -47,6 +47,6 @@ type DecisionLog struct {
 const (
 	DecisionTypeVision    = "vision"
 	DecisionTypeTechnical = "technical"
-	DecisionTypeTradeoff   = "tradeoff"
+	DecisionTypeTradeoff  = "tradeoff"
 	DecisionTypeExplicit  = "explicit"
 )

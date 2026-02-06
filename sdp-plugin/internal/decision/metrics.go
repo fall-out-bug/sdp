@@ -9,15 +9,15 @@ import (
 // Metrics for decision logging
 var (
 	// Counters
-	logCounter      = expvar.NewInt("decision_log_total")
+	logCounter        = expvar.NewInt("decision_log_total")
 	logSuccessCounter = expvar.NewInt("decision_log_success")
 	logErrorCounter   = expvar.NewInt("decision_log_errors")
 
-	batchLogCounter      = expvar.NewInt("decision_batch_log_total")
+	batchLogCounter        = expvar.NewInt("decision_batch_log_total")
 	batchLogSuccessCounter = expvar.NewInt("decision_batch_log_success")
 	batchLogErrorCounter   = expvar.NewInt("decision_batch_log_errors")
 
-	loadCounter      = expvar.NewInt("decision_load_total")
+	loadCounter        = expvar.NewInt("decision_load_total")
 	loadSuccessCounter = expvar.NewInt("decision_load_success")
 	loadErrorCounter   = expvar.NewInt("decision_load_errors")
 
@@ -26,9 +26,9 @@ var (
 	parseErrorCount = expvar.NewInt("decision_parse_errors")
 
 	// Histograms (manual)
-	logDurationMs = expvar.NewInt("decision_log_duration_ms")
+	logDurationMs      = expvar.NewInt("decision_log_duration_ms")
 	batchLogDurationMs = expvar.NewInt("decision_batch_log_duration_ms")
-	loadDurationMs = expvar.NewInt("decision_load_duration_ms")
+	loadDurationMs     = expvar.NewInt("decision_load_duration_ms")
 )
 
 // MetricsRecorder tracks operation metrics

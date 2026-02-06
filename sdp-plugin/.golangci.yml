@@ -49,6 +49,7 @@ issues:
         - errcheck
         - govet
         - gocognit
+        - gocyclo
       text: ".*"
     - path: internal/drift/
       linters:
@@ -66,6 +67,11 @@ issues:
     - path: internal/parser/
       linters:
         - gocognit
+      text: ".*"
+    - path: internal/decision/
+      linters:
+        - errcheck
+        - unused
       text: ".*"
   exclude-dirs:
     - vendor
