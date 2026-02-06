@@ -109,17 +109,47 @@ SDP telemetry is **opt-in by default**. This means:
 - Your privacy is respected from the first run
 - No data is collected without your consent
 
-**To enable telemetry:**
+**First Run Experience:**
+
+On your first SDP command, you'll see:
+
+```
+============================================================
+📊 Telemetry Consent
+============================================================
+
+SDP может собирать анонимную статистику использования
+для улучшения качества и надежности.
+
+🔒 Что собирается:
+  • Команды (@build, @review, @oneshot)
+  • Время выполнения команд
+  • Успех/ошибки выполнения
+
+❌ Что НЕ собирается:
+  • PII (имена, email, логины)
+  • Содержимое кода
+  • Пути к файлам
+  • Данные остаются локальными (не отправляются)
+
+📜 Политика конфиденциальности: docs/PRIVACY.md
+
+Помочь улучшить SDP? (y/n):
+```
+
+Enter `y` to enable or `n` to disable.
+
+**To enable/disable manually:**
 
 ```bash
-sdp telemetry enable
+sdp telemetry enable   # Grant consent
+sdp telemetry disable  # Revoke consent
 ```
 
-You will see:
-```
-✓ Telemetry enabled
-  Thank you for helping improve SDP!
-  To disable: sdp telemetry disable
+**To check your status:**
+
+```bash
+sdp telemetry status
 ```
 
 **To disable telemetry:**
