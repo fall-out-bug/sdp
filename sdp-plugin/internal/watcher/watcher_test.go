@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -76,13 +77,13 @@ func TestWatcher_FileChange(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	changeCount := 0
+	var changeCount int64
 	changeChan := make(chan string, 10)
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns: []string{"*.go"},
 		OnChange: func(path string) {
-			changeCount++
+			atomic.AddInt64(&changeCount, 1)
 			changeChan <- path
 		},
 	})
@@ -115,7 +116,7 @@ func TestWatcher_FileChange(t *testing.T) {
 		t.Error("Did not receive file change event within timeout")
 	}
 
-	if changeCount != 1 {
+	if atomic.LoadInt64(&changeCount) != 1 {
 		t.Errorf("Expected 1 change, got %d", changeCount)
 	}
 }
@@ -127,13 +128,13 @@ func TestWatcher_ExcludePatterns(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	changeCount := 0
+	var changeCount int64
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
 		IncludePatterns: []string{"*.go"},
 		ExcludePatterns: []string{"*_test.go"},
 		OnChange: func(path string) {
-			changeCount++
+			atomic.AddInt64(&changeCount, 1)
 		},
 	})
 	if err != nil {
@@ -165,8 +166,8 @@ func TestWatcher_ExcludePatterns(t *testing.T) {
 	// Wait for change event
 	time.Sleep(500 * time.Millisecond)
 
-	if changeCount != 1 {
-		t.Errorf("Expected 1 change (excluded test file), got %d", changeCount)
+	if atomic.LoadInt64(&changeCount) != 1 {
+		t.Errorf("Expected 1 change (excluded test file), got %d", atomic.LoadInt64(&changeCount))
 	}
 }
 
@@ -233,7 +234,7 @@ func TestWatcher_Debounce(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	changeCount := 0
+	var changeCount int64
 	var mu sync.Mutex
 
 	watcher, err := NewWatcher(tmpDir, &WatcherConfig{
@@ -241,7 +242,7 @@ func TestWatcher_Debounce(t *testing.T) {
 		DebounceInterval: 100 * time.Millisecond,
 		OnChange: func(path string) {
 			mu.Lock()
-			changeCount++
+			atomic.AddInt64(&changeCount, 1)
 			mu.Unlock()
 		},
 	})
