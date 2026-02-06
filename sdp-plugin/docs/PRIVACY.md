@@ -100,7 +100,29 @@ To disable auto-cleanup:
 
 ## Your Privacy Options
 
-### Opt-Out (Disable Telemetry)
+### Opt-In (Enable Telemetry)
+
+**Default: DISABLED** 🔒
+
+SDP telemetry is **opt-in by default**. This means:
+- Telemetry is DISABLED until you explicitly enable it
+- Your privacy is respected from the first run
+- No data is collected without your consent
+
+**To enable telemetry:**
+
+```bash
+sdp telemetry enable
+```
+
+You will see:
+```
+✓ Telemetry enabled
+  Thank you for helping improve SDP!
+  To disable: sdp telemetry disable
+```
+
+**To disable telemetry:**
 
 **Method 1: Configuration file**
 ```bash

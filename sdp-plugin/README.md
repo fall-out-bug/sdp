@@ -108,10 +108,10 @@ SDP collects **anonymized usage telemetry** to improve reliability and performan
 - Secrets or credentials
 
 **Key privacy features:**
+- ✅ **Opt-in by default** (disabled until you enable it)
 - ✅ Data stored **locally only** (`~/.sdp/telemetry.jsonl`)
 - ✅ No remote transmission
 - ✅ Auto-cleanup after 90 days
-- ✅ Opt-out available: `sdp telemetry disable`
 
 **Manage telemetry:**
 ```bash
