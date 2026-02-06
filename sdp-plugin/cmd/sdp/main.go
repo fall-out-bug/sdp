@@ -104,6 +104,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(orchestrateCmd)
 	rootCmd.AddCommand(completionCmd)
 	rootCmd.AddCommand(statusCmd())
+	rootCmd.AddCommand(decisionsCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure

@@ -61,12 +61,40 @@ Format:
 - [Not doing Y]
 ```
 
+**After creating Strategic Tradeoffs table:** Log each tradeoff as a decision:
+
+```bash
+# Find project root (look for .git)
+root_dir=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
+# For each row in Strategic Tradeoffs:
+sdp decisions log --type="tradeoff" \
+  --question="Aspect: [Aspect]" \
+  --decision="[Decision]" \
+  --rationale="[Rationale]" \
+  --feature-id="{FXXX}" \
+  --maker="user"
+```
+
 ### Phase 3: Technical Interview (5-8 questions)
 
 AskUserQuestion about:
 - Technical approach (architecture, storage, failure mode)
 - Tradeoffs (security vs performance, complexity vs speed)
 - Integration points
+
+**After each technical decision:** Log the decision:
+
+```bash
+sdp decisions log \
+  --type=technical \
+  --question="[What was the question?]" \
+  --decision="[What was decided?]" \
+  --rationale="[Why this choice?]" \
+  --alternatives="[Option 1],[Option 2]" \
+  --feature-id="{FXXX}" \
+  --maker=user
+```
 
 ### Phase 4: Generate intent.json
 
