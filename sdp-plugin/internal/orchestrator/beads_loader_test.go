@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ai-masters/sdp/internal/parser"
+	"github.com/fall-out-bug/sdp/internal/parser"
 )
 
 func TestBeadsLoader_LoadWorkstreams(t *testing.T) {

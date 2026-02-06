@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ai-masters/sdp/internal/telemetry"
-	"github.com/ai-masters/sdp/internal/ui"
+	"github.com/fall-out-bug/sdp/internal/telemetry"
+	"github.com/fall-out-bug/sdp/internal/ui"
 	"github.com/spf13/cobra"
 )
 

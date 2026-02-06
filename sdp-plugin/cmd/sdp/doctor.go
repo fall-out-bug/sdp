@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/ai-masters/sdp/internal/doctor"
+	"github.com/fall-out-bug/sdp/internal/doctor"
 	"github.com/spf13/cobra"
 )
 

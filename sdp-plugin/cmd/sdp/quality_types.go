@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ai-masters/sdp/internal/quality"
+	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
 func runQualityTypes() error {

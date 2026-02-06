@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ai-masters/sdp/internal/drift"
+	"github.com/fall-out-bug/sdp/internal/drift"
 )
 
 type CheckResult struct {

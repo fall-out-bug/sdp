@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/ai-masters/sdp/internal/sdpinit"
+	"github.com/fall-out-bug/sdp/internal/sdpinit"
 	"github.com/spf13/cobra"
 )
 

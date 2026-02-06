@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ai-masters/sdp/internal/tdd"
+	"github.com/fall-out-bug/sdp/internal/tdd"
 )
 
 // TestRunnerCommandInjection tests that runner.go blocks injection attempts

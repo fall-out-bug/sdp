@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ai-masters/sdp/internal/drift"
+	"github.com/fall-out-bug/sdp/internal/drift"
 	"github.com/spf13/cobra"
 )
 
