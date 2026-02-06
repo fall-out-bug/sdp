@@ -33,9 +33,7 @@ jobs:
         run: go vet ./...
 
       - name: Run govnulncheck
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govnulncheck ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
@@ -50,9 +48,6 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    defaults:
-      run:
-        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,11 +57,13 @@ jobs:
         with:
           go-version: '1.21'
           cache: true
+          cache-dependency-path: sdp-plugin/go.sum
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          working-directory: sdp-plugin
           args: --timeout=5m
 
   cross-platform:
