@@ -87,7 +87,33 @@ if err := security.ValidateTestCommand(testCmd); err != nil {
 }
 ```
 
-### 5. Path Traversal Protection
+### 6. File Permissions
+
+Sensitive data files must have restrictive permissions:
+
+```go
+// Sensitive files (owner read/write only)
+os.WriteFile(filename, data, 0600)  // Checkpoint files
+os.WriteFile(filename, data, 0600)  // Telemetry files
+
+// Executable files (owner execute)
+os.WriteFile(filename, data, 0755)  // Git hooks
+```
+
+**Protected files:**
+- `.beads/beads.db` - Issue tracker data
+- `.oneshot` - Execution state
+- `~/.sdp/telemetry.jsonl` - Usage telemetry
+- Checkpoint files - Feature execution state
+
+**Doctor check:**
+```bash
+sdp doctor
+# Checks file permissions on sensitive data
+# Warns if permissions > 0600
+```
+
+### 7. Path Traversal Protection
 
 All user-provided file paths are validated:
 
