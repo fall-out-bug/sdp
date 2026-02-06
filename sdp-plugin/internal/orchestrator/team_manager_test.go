@@ -8,9 +8,9 @@ import (
 // TestRoleStatus tests role status constants
 func TestRoleStatus(t *testing.T) {
 	tests := []struct {
-		name  string
+		name   string
 		status RoleStatus
-		want  string
+		want   string
 	}{
 		{"Active status", RoleStatusActive, "active"},
 		{"Dormant status", RoleStatusDormant, "dormant"},

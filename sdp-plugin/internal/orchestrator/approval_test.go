@@ -8,9 +8,9 @@ import (
 // TestApprovalStatus tests approval status constants
 func TestApprovalStatus(t *testing.T) {
 	tests := []struct {
-		name  string
+		name   string
 		status ApprovalStatus
-		want  string
+		want   string
 	}{
 		{"Pending status", StatusPending, "pending"},
 		{"Approved status", StatusApproved, "approved"},

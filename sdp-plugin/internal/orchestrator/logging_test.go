@@ -42,8 +42,8 @@ func TestLogStart(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-123",
+		logger:        logger,
+		correlationID: "test-correlation-123",
 	}
 
 	ol.LogStart("test-feature")
@@ -65,8 +65,8 @@ func TestLogWSStart(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-123",
+		logger:        logger,
+		correlationID: "test-correlation-123",
 	}
 
 	ol.LogWSStart("00-001-01")
@@ -88,8 +88,8 @@ func TestLogWSComplete(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-123",
+		logger:        logger,
+		correlationID: "test-correlation-123",
 	}
 
 	ol.LogWSComplete("00-001-01", 5*time.Minute, 85.5)
@@ -114,8 +114,8 @@ func TestLogWSCheckpoint(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-123",
+		logger:        logger,
+		correlationID: "test-correlation-123",
 	}
 
 	ol.LogWSCheckpoint("00-001-01", ".oneshot/test-checkpoint.json")
@@ -137,8 +137,8 @@ func TestLogWSError(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-123",
+		logger:        logger,
+		correlationID: "test-correlation-123",
 	}
 
 	ol.LogWSError("00-001-01", 1, errors.New("test error"))
@@ -163,8 +163,8 @@ func TestLogOrchestrationComplete(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-123",
+		logger:        logger,
+		correlationID: "test-correlation-123",
 	}
 
 	ol.LogOrchestrationComplete("test-feature", 2*time.Hour, 18, true)
@@ -195,8 +195,8 @@ func TestStructuredFields(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	ol := &OrchestratorLogger{
-		logger:         logger,
-		correlationID:  "test-correlation-456",
+		logger:        logger,
+		correlationID: "test-correlation-456",
 	}
 
 	ol.LogWSStart("00-001-01")
