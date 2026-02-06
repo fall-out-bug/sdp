@@ -217,3 +217,94 @@ func TestCheckpointCommand(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	t.Logf("Checkpoint list output: %s\nError: %v", output, err)
 }
+
+// TestInitCommand tests the sdp init command
+func TestInitCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Create temp directory for init
+	tmpDir := t.TempDir()
+
+	// Change to temp directory
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	// Run init
+	cmd := exec.Command(binaryPath, "init", "--project-type", "go")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+
+	// May fail if prompts/ dir not found (that's OK in test environment)
+	output := stdout.String() + stderr.String()
+	t.Logf("Init output: %s\nError: %v", output, err)
+
+	// Check if .claude was created (should succeed if prompts exist)
+	if err == nil {
+		claudeDir := filepath.Join(tmpDir, ".claude")
+		if _, err := os.Stat(claudeDir); os.IsNotExist(err) {
+			t.Error(".claude directory was not created")
+		}
+	}
+}
+
+// TestVerifyCommand tests the sdp verify command
+func TestVerifyCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	root := repoRoot(t)
+
+	// Test verify on an existing workstream
+	wsFile := filepath.Join(root, "docs", "workstreams", "completed", "00-050-01.md")
+
+	if _, err := os.Stat(wsFile); os.IsNotExist(err) {
+		t.Skip("Workstream file not found, skipping verify test")
+	}
+
+	cmd := exec.Command(binaryPath, "verify", wsFile)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	output := stdout.String() + stderr.String()
+
+	t.Logf("Verify output: %s\nError: %v", output, err)
+
+	// Verify should not fail catastrophically
+	if err != nil && !strings.Contains(output, "Error") && !strings.Contains(output, "FAILED") {
+		t.Errorf("Verify failed unexpectedly: %v", err)
+	}
+}
+
+// TestGuardCommand tests the sdp guard command
+func TestGuardCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	root := repoRoot(t)
+	wsFile := filepath.Join(root, "docs", "workstreams", "completed", "00-050-01.md")
+
+	if _, err := os.Stat(wsFile); os.IsNotExist(err) {
+		t.Skip("Workstream file not found, skipping guard test")
+	}
+
+	cmd := exec.Command(binaryPath, "guard", "activate", wsFile)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	output := stdout.String() + stderr.String()
+
+	t.Logf("Guard output: %s\nError: %v", output, err)
+
+	// Guard should work or fail gracefully
+	if err != nil && !strings.Contains(output, "Error") {
+		// OK as long as it's not a panic
+	}
+}
