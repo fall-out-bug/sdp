@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ai-masters/sdp/internal/telemetry"
 	"github.com/ai-masters/sdp/internal/ui"
@@ -10,6 +11,8 @@ import (
 )
 
 var version = "dev"
+
+var consentAsked = false // Track if we've asked for consent this session
 
 func main() {
 	var noColor bool
@@ -47,6 +50,23 @@ is provided by the Claude Plugin prompts in .claude/.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Set NoColor flag
 			ui.NoColor = noColor
+
+			// Check for first-run consent (only once per session)
+			if !consentAsked && cmd.Name() != "telemetry" {
+				configDir, err := os.UserConfigDir()
+				if err == nil {
+					configPath := filepath.Join(configDir, "sdp", "telemetry.json")
+					if telemetry.IsFirstRun(configPath) {
+						// Ask for consent on first run
+						granted, err := telemetry.AskForConsent()
+						if err == nil {
+							// Save user's choice
+							telemetry.GrantConsent(configPath, granted)
+							consentAsked = true
+						}
+					}
+				}
+			}
 
 			// Track command start (skip telemetry commands to avoid infinite loops)
 			if cmd.Parent() == nil || cmd.Parent().Use != "telemetry" {
