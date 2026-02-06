@@ -115,6 +115,6 @@ func createSettings(claudeDir string, cfg Config) error {
 	return os.WriteFile(
 		filepath.Join(claudeDir, "settings.json"),
 		[]byte(settings),
-		0644,
+		0600,
 	)
 }
