@@ -1,8 +1,10 @@
 package telemetry
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -35,8 +37,10 @@ func TestFirstRunConsentPrompt(t *testing.T) {
 		t.Fatalf("CheckConsent failed: %v", err)
 	}
 
-	// Should prompt for consent (in real implementation)
-	// For now, just verify it defaults to false
+	// Verify IsFirstRun returns true
+	if !IsFirstRun(configFile) {
+		t.Error("Should detect first run")
+	}
 }
 
 // TestConsentGranted tests that granted consent is persisted
@@ -64,6 +68,11 @@ func TestConsentGranted(t *testing.T) {
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		t.Error("Config file should exist after granting consent")
 	}
+
+	// Verify IsFirstRun returns false after consent
+	if IsFirstRun(configFile) {
+		t.Error("Should not be first run after consent is saved")
+	}
 }
 
 // TestConsentDenied tests that denied consent is persisted
@@ -85,6 +94,11 @@ func TestConsentDenied(t *testing.T) {
 
 	if granted {
 		t.Error("Consent should be denied")
+	}
+
+	// Verify IsFirstRun returns false after denial
+	if IsFirstRun(configFile) {
+		t.Error("Should not be first run after consent is saved")
 	}
 }
 
@@ -126,5 +140,38 @@ func TestRevokeConsent(t *testing.T) {
 	granted, _ := CheckConsent(configFile)
 	if granted {
 		t.Error("Consent should be revoked")
+	}
+}
+
+// TestConsentConfigStructure tests that consent config has proper structure
+func TestConsentConfigStructure(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "telemetry.json")
+
+	// Grant consent
+	err := GrantConsent(configFile, true)
+	if err != nil {
+		t.Fatalf("GrantConsent failed: %v", err)
+	}
+
+	// Read config file
+	data, err := os.ReadFile(configFile)
+	if err != nil {
+		t.Fatalf("Failed to read config: %v", err)
+	}
+
+	// Verify JSON structure
+	configStr := string(data)
+	requiredFields := []string{"\"enabled\": true"}
+	for _, field := range requiredFields {
+		if !strings.Contains(configStr, field) {
+			t.Errorf("Config missing required field: %s", field)
+		}
+	}
+
+	// Verify it's valid JSON (unmarshal to check)
+	var config map[string]interface{}
+	if err := json.Unmarshal(data, &config); err != nil {
+		t.Errorf("Config is not valid JSON: %v", err)
 	}
 }
