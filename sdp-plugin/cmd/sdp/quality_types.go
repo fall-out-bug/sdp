@@ -8,7 +8,10 @@ import (
 )
 
 func runQualityTypes(strict bool) error {
-	projectPath, _ := os.Getwd()
+	projectPath, err := os.Getwd()
+	if err != nil {
+		projectPath = "." // Fall back to current directory
+	}
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
@@ -54,7 +57,10 @@ func runQualityTypes(strict bool) error {
 }
 
 func runQualityAll(strict bool) error {
-	projectPath, _ := os.Getwd()
+	projectPath, err := os.Getwd()
+	if err != nil {
+		projectPath = "." // Fall back to current directory
+	}
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
 		return fmt.Errorf("failed to create checker: %w", err)
