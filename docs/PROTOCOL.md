@@ -243,7 +243,42 @@ Claude explores codebase and creates workstreams:
 
 → Creates: `docs/workstreams/beads-sdp-XXX.md`
 
-### 3. Execution (@build skill)
+### 3. Contract Tests (@test skill)
+
+```bash
+@test WS-XXX.01
+```
+
+Generate contract tests that define **immutable interfaces**:
+
+- **Function signatures** - Stable API contracts
+- **Input/output contracts** - Data format specifications
+- **Error conditions** - Expected failure modes
+- **Invariants** - Business rules that must hold
+
+**Workflow:**
+1. Analyze interface requirements from spec
+2. Design test contracts (signatures, I/O, errors, invariants)
+3. Create contract test file: `tests/contract/test_{component}.py`
+4. Get stakeholder approval
+5. **Lock contracts** - once approved, they CANNOT be modified during /build
+
+**⚠️ Contract Immutability:**
+- ✅ `/build` CAN implement code to pass contracts
+- ❌ `/build` CANNOT modify contract test files
+- ❌ `/build` CANNOT change function signatures
+- ❌ `/build` CANNOT relax error conditions
+
+**If interface change is needed:**
+1. Stop `/build`
+2. Create new workstream: "Update contract for {Component}"
+3. Run `/test` with revised contracts
+4. Get explicit approval
+5. Resume `/build`
+
+Creates: `tests/contract/test_{component}.py`
+
+### 4. Implementation (@build skill)
 
 ```bash
 @build WS-XXX.01
@@ -258,7 +293,11 @@ Claude follows TDD:
 → Runs tests, mypy, ruff
 → Commits when complete
 
-### 4. Autonomous Execution (@oneshot skill)
+**⚠️ Contract Test Enforcement:**
+- Guard prevents editing contract test files during `/build`
+- Interface changes require new `/test` cycle
+
+### 5. Autonomous Execution (@oneshot skill)
 
 ```bash
 @oneshot sdp-XXX
@@ -270,7 +309,7 @@ Orchestrator agent:
 - Sends Telegram notifications
 - Resumes from interruption
 
-### 5. Quality Review (@review skill)
+### 6. Quality Review (@review skill)
 
 ```bash
 @review sdp-XXX
@@ -284,7 +323,7 @@ Validates:
 
 → Returns: APPROVED / CHANGES_REQUESTED
 
-### 6. Deployment (@deploy skill)
+### 7. Deployment (@deploy skill)
 
 ```bash
 @deploy sdp-XXX
