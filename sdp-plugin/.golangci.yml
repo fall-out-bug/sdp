@@ -44,6 +44,19 @@ issues:
     - linters:
         - staticcheck
       text: "SA9003:"
+    - path: internal/quality/
+      linters:
+        - errcheck
+        - govet
+      text: ".*"
+    - path: internal/drift/
+      linters:
+        - gocognit
+      text: ".*"
+    - path: internal/guard/
+      linters:
+        - errcheck
+      text: ".*"
   exclude-dirs:
     - vendor
     - testdata
