@@ -255,7 +255,7 @@ Formats:
   json    - Structured JSON with metadata (default)
   archive - tar.gz archive with raw telemetry.jsonl`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		format, _ := cmd.Flags().GetString("format")
+		format, _ := cmd.Flags().GetString("format") //nolint:errcheck // String flag never errors
 
 		configDir, err := os.UserConfigDir()
 		if err != nil {

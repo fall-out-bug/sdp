@@ -40,6 +40,7 @@ issues:
     - path: _test\.go
       linters:
         - gocyclo
+        - gocognit
         - errcheck
     - linters:
         - staticcheck
@@ -80,6 +81,7 @@ issues:
     - path: internal/ui/
       linters:
         - errcheck
+        - unused
       text: ".*"
   exclude-dirs:
     - vendor

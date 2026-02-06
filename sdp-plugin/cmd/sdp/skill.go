@@ -105,7 +105,7 @@ func skillCheckAll() *cobra.Command {
 		Long: `Validate all skill files in the .claude/skills/ directory
 against SDP standards.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			skillsDir, _ := cmd.Flags().GetString("skills-dir")
+			skillsDir, _ := cmd.Flags().GetString("skills-dir") //nolint:errcheck // String flag never errors
 			validator := skill.NewValidator()
 
 			results, err := validator.ValidateAll(skillsDir)
@@ -156,7 +156,7 @@ func skillList() *cobra.Command {
 		Short: "List all available skills",
 		Long: `List all skill directories found in .claude/skills/`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			skillsDir, _ := cmd.Flags().GetString("skills-dir")
+			skillsDir, _ := cmd.Flags().GetString("skills-dir") //nolint:errcheck // String flag never errors
 
 			skills, err := skill.ListSkills(skillsDir)
 			if err != nil {
@@ -191,7 +191,7 @@ func skillShow() *cobra.Command {
 				return fmt.Errorf("requires skill name argument")
 			}
 			skillName := args[0]
-			skillsDir, _ := cmd.Flags().GetString("skills-dir")
+			skillsDir, _ := cmd.Flags().GetString("skills-dir") //nolint:errcheck // String flag never errors
 
 			content, err := skill.ReadSkillContent(skillsDir, skillName)
 			if err != nil {
