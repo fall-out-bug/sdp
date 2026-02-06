@@ -1,34 +1,19 @@
-run:
-  concurrency: 4
-  timeout: 5m
-  output:
-    format: colored-line-number
-    print-issued-lines: true
-    print-linter-name: true
-    uniq-by-line: true
-    sort-results: true
-  linters:
-    disable-all: true
-    enable:
-      - errcheck
-      - gosimple
-      - govet
-      - ineffassign
-      - staticcheck
-      - typecheck
-      - unused
-      - gofmt
-      - goimports
-      - misspell
-      - gocyclo
-      - gocognit
-      - prealloc
-  skip-dirs:
-    - vendor
-    - testdata
-    - examples
-  skip-files:
-    - ".*\\.pb\\.go"
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - gocyclo
+    - gocognit
+    - prealloc
 
 linters-settings:
   errcheck:
@@ -59,3 +44,22 @@ issues:
     - linters:
         - staticcheck
       text: "SA9003:"
+
+run:
+  concurrency: 4
+  timeout: 5m
+  output:
+    formats:
+      - format: colored-line-number
+    print-issued-lines: true
+    print-linter-name: true
+    uniq-by-line: true
+    sort-results: true
+  skip-dirs:
+    - vendor
+    - testdata
+    - examples
+    golangci-lint
+    builtin
+  skip-files:
+    - ".*\\.pb\\.go"
