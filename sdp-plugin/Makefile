@@ -1,7 +1,7 @@
 VERSION := $(shell git describe --tags --always 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 
-.PHONY: build build-all clean test install
+.PHONY: build build-all clean test install deps fmt lint version
 
 # Build for current platform
 build:
@@ -49,22 +49,11 @@ deps:
 fmt:
 	go fmt ./...
 
-# Run linter
+# Run linter (golangci-lint)
 lint:
-	@echo "Running linter..."
-	go vet ./...
-	@echo "✓ No issues"
+	@echo "Running golangci-lint..."
+	@golangci-lint run ./...
 
 # Show version
 version:
 	@echo "$(VERSION)"
-
-.PHONY: lint
-lint: ## Run golangci-lint
-	@echo "Running golangci-lint..."
-	@golangci-lint run ./...
-
-.PHONY: lint
-lint: ## Run golangci-lint
-	@echo "Running golangci-lint..."
-	@golangci-lint run ./...
