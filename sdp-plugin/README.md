@@ -89,6 +89,40 @@ AI-based quality validation:
 - [Python Examples](docs/examples/python/)
 - [Java Examples](docs/examples/java/)
 - [Go Examples](docs/examples/go/)
+- [Privacy Policy](docs/PRIVACY.md)
+
+## Telemetry
+
+SDP collects **anonymized usage telemetry** to improve reliability and performance:
+
+🔒 **What's collected:**
+- Command invocations (`@build`, `@review`, etc.)
+- Execution duration
+- Success/failure rates
+- Quality gate results
+
+❌ **What's NOT collected:**
+- PII (names, emails, usernames)
+- File paths or project names
+- Code content or commit messages
+- Secrets or credentials
+
+**Key privacy features:**
+- ✅ Data stored **locally only** (`~/.sdp/telemetry.jsonl`)
+- ✅ No remote transmission
+- ✅ Auto-cleanup after 90 days
+- ✅ Opt-out available: `sdp telemetry disable`
+
+**Manage telemetry:**
+```bash
+sdp telemetry status    # Check if enabled
+sdp telemetry disable   # Opt-out
+sdp telemetry enable    # Opt-in
+sdp telemetry clear     # Delete all data
+sdp telemetry export    # Export your data
+```
+
+📖 **See [PRIVACY.md](docs/PRIVACY.md)** for complete privacy policy
 
 ## Migration from Python SDP
 
