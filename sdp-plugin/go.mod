@@ -1,4 +1,4 @@
-module github.com/ai-masters/sdp
+module github.com/fall-out-bug/sdp
 
 go 1.21
 

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ai-masters/sdp/internal/quality"
+	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
 // QualityWatcher watches files and runs quality checks on changes

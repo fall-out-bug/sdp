@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/ai-masters/sdp/internal/telemetry"
+	"github.com/fall-out-bug/sdp/internal/telemetry"
 )
 
 var telemetryCmd = &cobra.Command{

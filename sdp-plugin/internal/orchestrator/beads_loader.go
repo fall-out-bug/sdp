@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ai-masters/sdp/internal/parser"
+	"github.com/fall-out-bug/sdp/internal/parser"
 )
 
 // BeadsLoader loads workstreams from Beads and workstream files

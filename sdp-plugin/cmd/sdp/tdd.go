@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ai-masters/sdp/internal/tdd"
+	"github.com/fall-out-bug/sdp/internal/tdd"
 	"github.com/spf13/cobra"
 )
 

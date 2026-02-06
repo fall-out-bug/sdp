@@ -277,8 +277,8 @@ We may update this privacy policy from time to time. We will notify users of sig
 
 If you have questions about SDP telemetry or privacy:
 
-- **GitHub Issues:** https://github.com/ai-masters/sdp/issues
-- **Email:** privacy@ai-masters.com (hypothetical)
+- **GitHub Issues:** https://github.com/fall-out-bug/sdp/issues
+- **Email:** Create an issue on GitHub repository
 
 ### Data Access Requests
 

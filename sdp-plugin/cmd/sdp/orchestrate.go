@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/ai-masters/sdp/internal/checkpoint"
-	"github.com/ai-masters/sdp/internal/orchestrator"
+	"github.com/fall-out-bug/sdp/internal/checkpoint"
+	"github.com/fall-out-bug/sdp/internal/orchestrator"
 	"github.com/spf13/cobra"
 )
 

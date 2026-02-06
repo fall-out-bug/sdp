@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ai-masters/sdp/internal/hooks"
+	"github.com/fall-out-bug/sdp/internal/hooks"
 	"github.com/spf13/cobra"
 )
 

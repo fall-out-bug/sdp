@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ai-masters/sdp/internal/watcher"
+	"github.com/fall-out-bug/sdp/internal/watcher"
 	"github.com/spf13/cobra"
 )
 

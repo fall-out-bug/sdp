@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ai-masters/sdp/internal/checkpoint"
+	"github.com/fall-out-bug/sdp/internal/checkpoint"
 )
 
 // Common errors

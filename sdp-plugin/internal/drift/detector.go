@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ai-masters/sdp/internal/parser"
+	"github.com/fall-out-bug/sdp/internal/parser"
 )
 
 // Detector detects documentation-code drift
