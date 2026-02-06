@@ -40,3 +40,5 @@ Thumbs.db
 /sdp
 # Decision logs (local audit trail)
 docs/decisions/
+# Checkpoint files (may contain sensitive execution state)
+.oneshot/
