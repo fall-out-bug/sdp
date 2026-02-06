@@ -36,7 +36,8 @@ func (b *BeadsLoader) LoadWorkstreams(featureID string) ([]WorkstreamNode, error
 		return nil, fmt.Errorf("%w: no workstreams found in %s", ErrFeatureNotFound, b.workstreamDir)
 	}
 
-	var workstreams []WorkstreamNode
+	// Pre-allocate slice with known capacity
+	workstreams := make([]WorkstreamNode, 0, len(matches))
 
 	for _, match := range matches {
 		// Parse workstream file

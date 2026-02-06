@@ -334,9 +334,9 @@ func TestVerifierVerifyOutputFiles(t *testing.T) {
 
 func TestVerificationResultAllPassed(t *testing.T) {
 	result := &VerificationResult{
-		WSID:   "00-001-01", //nolint:unused // Test fixture
+		WSID:   "00-001-01", //nolint:unusedwrite // Test fixture
 		Passed: true,
-		Checks: []CheckResult{ //nolint:unused // Test fixture
+		Checks: []CheckResult{ //nolint:unusedwrite // Test fixture
 			{Name: "Check1", Passed: true},
 			{Name: "Check2", Passed: true},
 		},
@@ -349,9 +349,9 @@ func TestVerificationResultAllPassed(t *testing.T) {
 
 func TestVerificationResultOneFailed(t *testing.T) {
 	result := &VerificationResult{
-		WSID:   "00-001-01", //nolint:unused // Test fixture
+		WSID:   "00-001-01", //nolint:unusedwrite // Test fixture
 		Passed: true,
-		Checks: []CheckResult{ //nolint:unused // Test fixture
+		Checks: []CheckResult{ //nolint:unusedwrite // Test fixture
 			{Name: "Check1", Passed: true},
 			{Name: "Check2", Passed: false},
 		},

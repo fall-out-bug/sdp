@@ -115,7 +115,8 @@ func (m *Manager) List() ([]Checkpoint, error) {
 		return nil, fmt.Errorf("failed to read checkpoint directory: %w", err)
 	}
 
-	var checkpoints []Checkpoint
+	// Pre-allocate slice with capacity (we filter, so won't use all)
+	checkpoints := make([]Checkpoint, 0, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue

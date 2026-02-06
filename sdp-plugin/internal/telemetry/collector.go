@@ -124,8 +124,8 @@ func (c *Collector) readEvents() ([]Event, error) {
 	}
 
 	// Parse JSONL
-	var events []Event
 	lines := splitLines(data)
+	events := make([]Event, 0, len(lines))
 	for _, line := range lines {
 		if len(line) == 0 {
 			continue
