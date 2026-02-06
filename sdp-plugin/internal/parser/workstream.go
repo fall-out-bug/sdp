@@ -6,8 +6,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 // ParseWorkstream parses a workstream markdown file with YAML frontmatter
@@ -23,15 +21,20 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 		return nil, fmt.Errorf("file is empty: %s", wsPath)
 	}
 
+	// Validate file size
+	if err := ValidateFileSize(content); err != nil {
+		return nil, fmt.Errorf("file size validation failed: %w", err)
+	}
+
 	// Extract frontmatter (delimited by ---)
 	parts := bytes.SplitN(content, []byte("---"), 3)
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid frontmatter format: expected --- delimiters")
 	}
 
-	// Parse YAML frontmatter
+	// Parse YAML frontmatter with security checks
 	var fm frontmatter
-	if err := yaml.Unmarshal(parts[1], &fm); err != nil {
+	if err := SafeYAMLUnmarshal(parts[1], &fm); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML frontmatter: %w", err)
 	}
 
@@ -45,6 +48,11 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 
 	// Extract main content
 	mainContent := string(parts[2])
+
+	// Validate content length
+	if err := ValidateContentLength(mainContent); err != nil {
+		return nil, fmt.Errorf("content validation failed: %w", err)
+	}
 
 	// Parse goal section
 	goal := extractSection(mainContent, "Goal")
