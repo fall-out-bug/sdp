@@ -1,32 +1,184 @@
 ---
 name: feature
-description: Feature development with multi-agent discovery
-tools: Read, Write, Edit, Bash, AskUserQuestion, Task
-version: 5.0.0
+description: Feature planning orchestrator (idea → design → workstreams)
+tools: Read, Write, Edit, Bash, AskUserQuestion, Skill
+version: 6.0.0
+changes:
+  - Refactored to orchestrate @idea and @design skills
+  - Removed duplicate agent spawning logic
+  - Reduced from 227 LOC to ~100 LOC
 ---
 
-# @feature - Multi-Agent Feature Development
+# @feature - Feature Planning Orchestrator
 
-Spawn expert agents for discovery → analysis → planning.
+**Orchestrate requirements gathering and workstream design.**
+
+## Mental Model
+
+```
+@feature (Planning Orchestrator)
+    │
+    ├─► @idea (Requirements)
+    │     ├─► Deep interviewing (AskUserQuestion)
+    │     ├─► User stories
+    │     └─► Success metrics
+    │
+    └─► @design (Workstream Planning)
+          ├─► Codebase exploration
+          ├─► Architecture decisions
+          └─► Workstream files (00-FFF-SS.md)
+```
 
 ## When to Use
 
-- New feature development
-- Product ideation
-- Requirements gathering
-- Feature planning
+- Starting new feature from scratch
+- Need to gather requirements (@idea phase)
+- Need to design workstreams (@design phase)
+- Want interactive planning (questions, tradeoffs)
+
+## What @feature Does
+
+**@feature is an ORCHESTRATOR, not a duplicate:**
+
+| Aspect | Old @feature | New @feature |
+|--------|--------------|--------------|
+| **Role** | Spawns 4 agents directly | Calls Skill('@idea') + Skill('@design') |
+| **Logic** | Duplicates interview/discovery | Delegates to specialized skills |
+| **Lines of Code** | ~227 LOC | ~100 LOC |
+| **Maintainability** | Changes in 2 places | Single source of truth |
 
 ## Workflow
 
 ### Step 1: Quick Interview (3-5 questions)
 
-AskUserQuestion:
-- What problem do we solve?
-- Who are the users?
-- Success metrics?
-- Timeline/urgency?
+Before spawning agents, ask quick questions to understand scope:
 
-### Step 2: Spawn Discovery Agents (PARALLEL)
+```python
+AskUserQuestion(
+    questions=[{
+        "question": "What problem does this feature solve?",
+        "header": "Problem",
+        "options": [
+            {"label": "User pain point", "description": "Fixes existing user friction"},
+            {"label": "New capability", "description": "Enables new user workflows"},
+            {"label": "Technical debt", "description": "Improves code quality/performance"}
+        ],
+        "multiSelect": false
+    }, {
+        "question": "Who are the primary users?",
+        "header": "Users",
+        "options": [
+            {"label": "End users", "description": "External customers or users"},
+            {"label": "Internal", "description": "Internal tools/operations"},
+            {"label": "Developers", "description": "Developer experience/API"}
+        ],
+        "multiSelect": true
+    }, {
+        "question": "What defines success?",
+        "header": "Success",
+        "options": [
+            {"label": "Adoption", "description": "% of users using the feature"},
+            {"label": "Efficiency", "description": "Time savings, automation"},
+            {"label": "Quality", "description": "Bug reduction, reliability"}
+        ],
+        "multiSelect": true
+    }]
+)
+```
+
+**Gate:** If description is vague (< 200 words, unclear scope), ask for clarification before proceeding.
+
+### Step 2: Requirements Gathering (@idea)
+
+```python
+# Delegate to @idea skill for deep requirements gathering
+Skill(
+    skill="idea",
+    args=feature_description  # e.g., "Add payment processing"
+)
+```
+
+**What @idea does:**
+- Deep interviewing via AskUserQuestion
+- Explores technical approach
+- Identifies tradeoffs and concerns
+- Generates comprehensive spec in `docs/drafts/idea-{feature_name}.md`
+
+**Output:**
+- `docs/drafts/idea-{feature_name}.md` with requirements
+- User stories, acceptance criteria
+- Success metrics, stakeholders
+
+### Step 3: Workstream Design (@design)
+
+```python
+# Delegate to @design skill for workstream planning
+Skill(
+    skill="design",
+    args=idea_file  # e.g., "idea-payment-processing"
+)
+```
+
+**What @design does:**
+- EnterPlanMode for codebase exploration
+- Asks architecture questions
+- Designs workstream decomposition
+- Requests approval via ExitPlanMode
+- Creates `docs/workstreams/backlog/00-FFF-SS.md` files
+
+**Output:**
+- Workstream files (e.g., `00-050-01.md`, `00-050-02.md`)
+- Dependency graph
+- Architecture decisions
+
+### Step 4: Verify Outputs
+
+```bash
+# Check that @idea created spec
+ls docs/drafts/idea-{feature_name}.md
+
+# Check that @design created workstreams
+ls docs/workstreams/backlog/00-FFF-*.md
+
+# Count workstreams
+ws_count=$(ls docs/workstreams/backlog/00-FFF-*.md | wc -l)
+echo "Created $ws_count workstreams"
+```
+
+## Output
+
+**Success:**
+```
+✅ Feature planning complete
+📄 Requirements: docs/drafts/idea-{feature_name}.md
+📊 Workstreams: N created in docs/workstreams/backlog/00-FFF-*.md
+🎯 Next step: @oneshot F{FF} or @build 00-FFF-01
+```
+
+**Example:**
+```bash
+User: @feature "Add payment processing"
+
+Claude:
+→ Step 1: Quick Interview (3 questions)
+→ Step 2: @idea "Add payment processing"
+   → Interviewing requirements...
+   → Created: docs/drafts/idea-payment-processing.md
+→ Step 3: @design idea-payment-processing
+   → Exploring codebase...
+   → Designing workstreams...
+   → Created: 00-050-01.md, 00-050-02.md, 00-050-03.md
+→ Step 4: Verification
+   → ✅ 3 workstreams created
+
+✅ Feature F050 planning complete
+📄 docs/drafts/idea-payment-processing.md
+📊 docs/workstreams/backlog/00-050-*.md (3 files)
+
+Next: @oneshot F050 or @build 00-050-01
+```
+
+## Beads Integration
 
 **Detect Beads:**
 ```bash
@@ -37,190 +189,49 @@ else
 fi
 ```
 
-**Spawn 4 agents in parallel (single message with multiple Task calls):**
+**Beads operations:**
+- @idea creates feature task if enabled
+- @design creates workstream tasks if enabled
+- @feature itself does NOT create Beads tasks (delegates)
 
-```python
-# Agent 1: Business Analyst
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the BUSINESS ANALYST expert.
+## Key Differences from @oneshot
 
-Read .claude/agents/business-analyst.md for your specification.
+| Aspect | @feature | @oneshot |
+|--------|----------|----------|
+| **Phase** | Planning | Execution |
+| **Input** | Feature description | Feature ID or workstreams |
+| **Output** | Workstream files | Implemented code |
+| **Skills used** | @idea, @design | @build, @review, @deploy |
+| **Human interaction** | Heavy (interviewing) | Minimal (only blockers) |
+| **When to use** | Starting new feature | Workstreams exist |
 
-FEATURE: {feature_description}
+## Skip @feature If...
 
-Your task:
-1. Discover user needs
-2. Write user stories (Given/When/Then)
-3. Define success metrics (KPIs)
-4. Identify stakeholders
+**Use @idea directly when:**
+- You already have workstreams
+- Only need requirements gathering
+- Skip workstream design
 
-Output format (as per business-analyst.md):
-## Business Requirements
-{stakeholders, problem, user stories, KPIs}
+**Use @design directly when:**
+- You have requirements (idea file)
+- Only need workstream planning
+- Requirements already gathered
 
-BEADS_INTEGRATION:
-If Beads enabled ($BEADS_ENABLED=true):
-- Create feature task: `bd create "Feature: {title}" --parent {project}`
-- Link user stories to task
-- Otherwise: Skip Beads operations
-""",
-    description="Business analysis"
-)
-
-# Agent 2: Product Manager
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the PRODUCT MANAGER expert.
-
-Read .claude/agents/product-manager.md for your specification.
-
-FEATURE: {feature_description}
-
-Your task:
-1. Define product vision
-2. Prioritize features (RICE framework)
-3. Create roadmap (quarterly)
-4. Define success metrics
-
-Output format:
-## Product Requirements
-{vision, prioritization, roadmap, KPIs}
-
-BEADS_INTEGRATION:
-If Beads enabled:
-- Update feature task with roadmap
-- Create child tasks for high-priority features
-- Otherwise: Skip
-""",
-    description="Product management"
-)
-
-# Agent 3: Systems Analyst
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the SYSTEMS ANALYST expert.
-
-Read .claude/agents/systems-analyst.md for your specification.
-
-FEATURE: {feature_description}
-
-Your task:
-1. Define functional requirements
-2. Specify APIs/interfaces
-3. Design data models
-4. Document use cases
-
-Output format:
-## Functional Specification
-{FRs, APIs, data models, use cases}
-
-BEADS_INTEGRATION:
-If Beads enabled:
-- Note: Workstreams will be created by Technical Decomposition agent
-- Otherwise: Skip
-""",
-    description="Systems analysis"
-)
-
-# Agent 4: Technical Decomposition
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the TECHNICAL DECOMPOSITION expert.
-
-Read .claude/agents/technical-decomposition.md for your specification.
-
-FEATURE: {feature_description}
-INPUT FROM:
-- Business Analyst (user stories)
-- Product Manager (priorities)
-- Systems Analyst (functional specs)
-
-Your task:
-1. Break into workstreams
-2. Define dependencies
-3. Estimate effort (T-shirt sizing)
-4. Identify critical path
-
-Output format:
-## Workstream Breakdown
-{workstreams with AC, dependencies, estimates}
-
-BEADS_INTEGRATION:
-If Beads enabled:
-- Create task per workstream: `bd create "WS-XXX: {title}" --parent {feature}`
-- Set dependencies: `bd update {ws} --blocks {other_ws}`
-- Update .beads-sdp-mapping.jsonl with ws_id → beads_id
-- Otherwise: Skip Beads operations
-""",
-    description="Technical decomposition"
-)
-```
-
-### Step 3: Synthesize Results
-
-Wait for all 4 agents to complete, then:
-
-```markdown
-## Feature Specification: {feature_name}
-
-### Vision (from Product Manager)
-{vision statement}
-
-### User Stories (from Business Analyst)
-{prioritized stories with acceptance criteria}
-
-### Functional Requirements (from Systems Analyst)
-{FRs, APIs, data models}
-
-### Workstreams (from Technical Decomposition)
-| WS | Title | Size | Dependencies | Priority |
-|----|-------|------|--------------|----------|
-| WS-001 | {title} | M | None | P0 |
-
-### Success Metrics (from BA + PM)
-{KPIs with targets}
-
-### Next Steps
-- Review workstreams
-- Execute: @design {feature_id} or @oneshot {feature_id}
-```
-
-### Step 4: Save Outputs
-
-```bash
-# Save feature spec
-mkdir -p docs/drafts
-cat > docs/drafts/{feature_id}.md << 'EOF'
-{synthesized specification}
-EOF
-
-# If Beads enabled: Update parent feature task
-if [ "$BEADS_ENABLED" = true ]; then
-  bd show {feature_id}  # Verify parent exists
-fi
-```
-
-## Output
-
-**Success:**
-```
-✅ Feature specification created
-📄 docs/drafts/FXXX.md
-📊 Workstreams: N defined (P0: X, P1: Y)
-📌 Beads: {N tasks created if enabled}
-```
-
-## Beads Detection
-
-All agents check `$BEADS_ENABLED` before Beads operations:
-- If enabled: Create/update/link tasks
-- If disabled: Markdown-only workflow
-
-## Parallel Execution Pattern
-
-Spawning 4 agents simultaneously (via 4 Task calls in one response) follows the `.claude/skills/think/SKILL.md` pattern for parallel expert analysis.
+**Use @oneshot when:**
+- Workstreams already exist
+- Ready to implement
+- Want autonomous execution
 
 ## Version
 
-**5.0.0** - Multi-agent discovery (BA + PM + SA + TD)
+**6.0.0** - Orchestrator refactoring
+- Delegates to Skill('@idea') for requirements
+- Delegates to Skill('@design') for workstreams
+- Reduced from 227 LOC to ~100 LOC
+- Removed duplicate agent spawning logic
+
+**See Also:**
+- `.claude/skills/idea/SKILL.md` — Requirements gathering
+- `.claude/skills/design/SKILL.md` — Workstream planning
+- `.claude/skills/oneshot/SKILL.md` — Execution orchestrator
+- `CLAUDE.md` — Decision tree: @feature vs @oneshot
