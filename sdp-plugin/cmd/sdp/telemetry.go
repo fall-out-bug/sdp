@@ -15,10 +15,17 @@ var telemetryCmd = &cobra.Command{
 	Short: "Manage telemetry collection",
 	Long: `Manage telemetry collection for SDP.
 
-Telemetry tracks usage metrics to help improve SDP:
+Telemetry tracks anonymized usage metrics to help improve SDP:
   - Command invocations
   - Execution duration
   - Success/failure rates
+
+🔒 Privacy Policy:
+  - No PII (names, emails, usernames) collected
+  - No data transmitted remotely (stored locally)
+  - Opt-out available: sdp telemetry disable
+  - Auto-cleanup after 90 days
+  - See docs/PRIVACY.md for details
 
 All data is stored locally in ~/.sdp/telemetry.jsonl`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -64,6 +71,15 @@ var telemetryStatusCmd = &cobra.Command{
 		fmt.Printf("  Enabled: %v\n", status.Enabled)
 		fmt.Printf("  Events: %d\n", status.EventCount)
 		fmt.Printf("  File: %s\n", status.FilePath)
+
+		if status.Enabled {
+			fmt.Println("\n🔒 Privacy:")
+			fmt.Println("  - No PII collected")
+			fmt.Println("  - Data stays local")
+			fmt.Println("  - Auto-cleanup after 90 days")
+			fmt.Println("  - See: docs/PRIVACY.md")
+			fmt.Println("\n  To disable: sdp telemetry disable")
+		}
 
 		return nil
 	},
