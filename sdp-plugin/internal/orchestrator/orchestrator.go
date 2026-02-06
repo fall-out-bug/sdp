@@ -16,6 +16,8 @@ var (
 	ErrMissingDependency      = errors.New("missing dependency")
 	ErrWorkstreamNotFound     = errors.New("workstream not found")
 	ErrSkillInvocationFailed  = errors.New("skill invocation failed")
+	ErrAgentSpawnFailed       = errors.New("agent spawn failed")
+	ErrAgentNotFound          = errors.New("agent not found")
 )
 
 // WorkstreamNode represents a workstream in the dependency graph
