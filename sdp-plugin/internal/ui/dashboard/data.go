@@ -1,0 +1,163 @@
+package dashboard
+
+import (
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/fall-out-bug/sdp/internal/beads"
+	"github.com/fall-out-bug/sdp/internal/parser"
+)
+
+// fetchWorkstreams fetches workstream data from Beads and docs/workstreams/
+func (a *App) fetchWorkstreams() map[string][]WorkstreamSummary {
+	// Try to fetch from Beads first
+	summaries := make(map[string][]WorkstreamSummary)
+
+	// Initialize all status groups
+	summaries["open"] = []WorkstreamSummary{}
+	summaries["in_progress"] = []WorkstreamSummary{}
+	summaries["completed"] = []WorkstreamSummary{}
+	summaries["blocked"] = []WorkstreamSummary{}
+
+	// Try to get data from Beads (if available)
+	client, err := beads.NewClient()
+	if err == nil {
+		// Beads is available, fetch tasks
+		tasks, err := client.Ready()
+		if err == nil && len(tasks) > 0 {
+			for _, task := range tasks {
+				status := strings.ToLower(task.Status)
+				if status == "ready" || status == "open" {
+					status = "open"
+				}
+
+				// Map Beads priority to our format
+				priority := task.Priority
+				if strings.HasPrefix(priority, "P") {
+					// Already in P0-P4 format
+				} else {
+					// Convert numeric to P format
+					switch priority {
+					case "0":
+						priority = "P0"
+					case "1":
+						priority = "P1"
+					case "2":
+						priority = "P2"
+					case "3":
+						priority = "P3"
+					case "4":
+						priority = "P4"
+					default:
+						priority = "P2" // Default
+					}
+				}
+
+				ws := WorkstreamSummary{
+					ID:       task.ID,
+					Title:    task.Title,
+					Status:   status,
+					Priority: priority,
+					Assignee: "", // Task doesn't have Assignee field
+				}
+
+				if group, ok := summaries[status]; ok {
+					summaries[status] = append(group, ws)
+				}
+			}
+		}
+	}
+
+	// If Beads returned no data, fallback to docs/workstreams/
+	if len(summaries["open"]) == 0 && len(summaries["in_progress"]) == 0 {
+		wsFiles, err := filepath.Glob("docs/workstreams/*/backlog/*.md")
+		if err == nil && len(wsFiles) > 0 {
+			for _, wsFile := range wsFiles {
+				ws, err := parser.ParseWorkstream(wsFile)
+				if err != nil {
+					continue
+				}
+
+				status := strings.ToLower(ws.Status)
+				wsSummary := WorkstreamSummary{
+					ID:       ws.ID,
+					Title:    ws.Goal,
+					Status:   status,
+					Priority: "P2", // Default priority
+					Size:     ws.Size,
+				}
+
+				if group, ok := summaries[status]; ok {
+					summaries[status] = append(group, wsSummary)
+				}
+			}
+		}
+	}
+
+	// Sort each group by ID
+	for status := range summaries {
+		sort.Slice(summaries[status], func(i, j int) bool {
+			return summaries[status][i].ID < summaries[status][j].ID
+		})
+	}
+
+	return summaries
+}
+
+// fetchIdeas fetches ideas from docs/drafts/
+func (a *App) fetchIdeas() []IdeaSummary {
+	ideas := []IdeaSummary{}
+
+	// Find all markdown files in docs/drafts/
+	ideaFiles, err := filepath.Glob("docs/drafts/*.md")
+	if err != nil {
+		return ideas
+	}
+
+	for _, ideaFile := range ideaFiles {
+		// Get file info for modification time
+		info, err := os.Stat(ideaFile)
+		if err != nil {
+			continue
+		}
+
+		// Extract title from filename
+		filename := filepath.Base(ideaFile)
+		title := strings.TrimSuffix(filename, ".md")
+		title = strings.ReplaceAll(title, "-", " ")
+		title = strings.Title(title)
+
+		ideas = append(ideas, IdeaSummary{
+			Title: title,
+			Path:  ideaFile,
+			Date:  info.ModTime(),
+		})
+	}
+
+	// Sort by date (newest first)
+	sort.Slice(ideas, func(i, j int) bool {
+		return ideas[i].Date.After(ideas[j].Date)
+	})
+
+	return ideas
+}
+
+// fetchTestResults fetches test results
+func (a *App) fetchTestResults() TestSummary {
+	// TODO: Actually run tests or read coverage files
+	// For now, return placeholder data
+	return TestSummary{
+		Coverage: "N/A",
+		Passing:  0,
+		Total:    0,
+		LastRun:  time.Now(),
+		QualityGates: []GateStatus{
+			{Name: "Coverage", Passed: false},
+			{Name: "Type Hints", Passed: false},
+			{Name: "Linting", Passed: false},
+		},
+	}
+}
