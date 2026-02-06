@@ -9,6 +9,9 @@ type DashboardState struct {
 	// Current active tab (0-indexed)
 	ActiveTab int
 
+	// Cursor position for arrow key navigation (0-indexed)
+	CursorPos int
+
 	// Workstreams grouped by status
 	Workstreams map[string][]WorkstreamSummary
 
