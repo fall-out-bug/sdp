@@ -306,6 +306,24 @@ func TestFindRecentWorkstreamsForDrift_NoneFound(t *testing.T) {
 	}
 }
 
+func TestFindRecentWorkstreamsForDrift_EmptyDirectories(t *testing.T) {
+	// Create temp directory with empty workstreams directories
+	tmpDir := t.TempDir()
+	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
+	if err := os.MkdirAll(wsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	workstreams, err := findRecentWorkstreamsForDrift(tmpDir)
+	if err != nil {
+		t.Errorf("findRecentWorkstreamsForDrift() should not fail: %v", err)
+	}
+
+	if len(workstreams) != 0 {
+		t.Errorf("Expected 0 workstreams from empty directories, got %d", len(workstreams))
+	}
+}
+
 // Helper function
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
@@ -393,5 +411,155 @@ func TestCheckFilePermissions_NoSensitiveFiles(t *testing.T) {
 	// Should be OK if no sensitive files exist
 	if result.Status != "ok" {
 		t.Errorf("Expected status ok when no sensitive files, got %s", result.Status)
+	}
+}
+
+func TestCheckFilePermissions_InsecureFilesInDirectory(t *testing.T) {
+	// Create .oneshot directory with insecure file
+	tmpDir := t.TempDir()
+	oneshotDir := filepath.Join(tmpDir, ".oneshot")
+	if err := os.MkdirAll(oneshotDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	// Create file with world-readable permissions (insecure)
+	testFile := filepath.Join(oneshotDir, "test.json")
+	if err := os.WriteFile(testFile, []byte("{}"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	result := checkFilePermissions()
+
+	// Should detect insecure files in directory
+	if result.Status != "warning" {
+		t.Errorf("Expected warning for insecure directory files, got %s: %s", result.Status, result.Message)
+	}
+	if !contains(result.Message, "insecure permissions") {
+		t.Errorf("Expected insecure permissions message, got: %s", result.Message)
+	}
+}
+
+func TestCheckDrift_NoWorkstreamsFound(t *testing.T) {
+	// Create temp directory with docs/workstreams/completed but empty
+	tmpDir := t.TempDir()
+	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
+	if err := os.MkdirAll(wsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	// Add go.mod to make it a valid project root
+	goMod := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(goMod, []byte("module test\n"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	result := checkDrift()
+
+	// Should return OK with "no recent workstreams" message
+	if result.Status != "ok" {
+		t.Errorf("Expected ok status when no workstreams, got %s: %s", result.Status, result.Message)
+	}
+	if !contains(result.Message, "No recent workstreams") {
+		t.Errorf("Expected 'No recent workstreams' message, got: %s", result.Message)
+	}
+}
+
+func TestCheckDrift_CouldNotCheckAny(t *testing.T) {
+	// Create temp directory with invalid workstream files (can't be parsed)
+	tmpDir := t.TempDir()
+	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
+	if err := os.MkdirAll(wsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	// Create files that look like workstreams but have invalid content
+	for i := 1; i <= 3; i++ {
+		wsFile := filepath.Join(wsDir, "00-050-0"+string(rune('0'+i))+".md")
+		// Empty file will fail parsing
+		if err := os.WriteFile(wsFile, []byte(""), 0644); err != nil {
+			t.Fatalf("WriteFile: %v", err)
+		}
+	}
+
+	// Add go.mod to make it a valid project root
+	goMod := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(goMod, []byte("module test\n"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	result := checkDrift()
+
+	// Should return warning when can't check any
+	if result.Status != "warning" {
+		t.Errorf("Expected warning status when can't check workstreams, got %s: %s", result.Status, result.Message)
+	}
+	if !contains(result.Message, "Could not check") {
+		t.Errorf("Expected 'Could not check' message, got: %s", result.Message)
+	}
+}
+
+func TestCheckDrift_WithValidWorkstreams(t *testing.T) {
+	// Use existing test that has valid workstreams
+	// This test just ensures checkDrift doesn't crash when called
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+
+	// Change to a directory with actual workstreams (the sdp repo)
+	tmpDir := t.TempDir()
+	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
+	if err := os.MkdirAll(wsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	// Create a minimal valid workstream
+	wsContent := `---
+ws_id: 00-050-01
+title: Test
+scope_files: []
+---
+
+# Test
+`
+	wsFile := filepath.Join(wsDir, "00-050-01-test.md")
+	if err := os.WriteFile(wsFile, []byte(wsContent), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	// Add go.mod
+	goMod := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(goMod, []byte("module test\n"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	result := checkDrift()
+
+	// Just verify it doesn't crash and has valid fields
+	if result.Name == "" {
+		t.Error("Expected non-empty name")
+	}
+	if result.Status == "" {
+		t.Error("Expected non-empty status")
 	}
 }
