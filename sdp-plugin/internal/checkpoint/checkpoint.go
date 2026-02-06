@@ -13,7 +13,7 @@ import (
 type Status string
 
 const (
-	StatusPending     Status = "pending"
+	StatusPending    Status = "pending"
 	StatusInProgress Status = "in_progress"
 	StatusCompleted  Status = "completed"
 	StatusFailed     Status = "failed"
@@ -31,14 +31,14 @@ func (s Status) IsValid() bool {
 
 // Checkpoint represents a saved state of feature execution
 type Checkpoint struct {
-	ID                  string                 `json:"id"`
-	FeatureID           string                 `json:"feature_id"`
-	CreatedAt           time.Time              `json:"created_at"`
-	UpdatedAt           time.Time              `json:"updated_at"`
-	Status              Status                 `json:"status"`
-	CompletedWorkstreams []string              `json:"completed_workstreams"`
-	CurrentWorkstream   string                 `json:"current_workstream,omitempty"`
-	Metadata            map[string]interface{} `json:"metadata,omitempty"`
+	ID                   string                 `json:"id"`
+	FeatureID            string                 `json:"feature_id"`
+	CreatedAt            time.Time              `json:"created_at"`
+	UpdatedAt            time.Time              `json:"updated_at"`
+	Status               Status                 `json:"status"`
+	CompletedWorkstreams []string               `json:"completed_workstreams"`
+	CurrentWorkstream    string                 `json:"current_workstream,omitempty"`
+	Metadata             map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // Manager handles checkpoint operations

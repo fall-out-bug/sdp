@@ -64,7 +64,14 @@ func checkGit() CheckResult {
 
 	// Get version
 	cmd := exec.Command("git", "--version")
-	output, _ := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return CheckResult{
+			Name:    "Git",
+			Status:  "error",
+			Message: "Failed to get version",
+		}
+	}
 	version := strings.TrimSpace(string(output))
 
 	return CheckResult{
@@ -85,7 +92,14 @@ func checkClaudeCode() CheckResult {
 
 	// Get version
 	cmd := exec.Command("claude", "--version")
-	output, _ := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return CheckResult{
+			Name:    "Claude Code",
+			Status:  "ok", // Don't fail if version check fails
+			Message: "Installed (version unknown)",
+		}
+	}
 	version := strings.TrimSpace(string(output))
 
 	return CheckResult{

@@ -46,7 +46,11 @@ func (c *Client) writeMapping(entries []mappingEntry) error {
 	if err != nil {
 		return fmt.Errorf("failed to create mapping file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close mapping file: %v\n", cerr)
+		}
+	}()
 
 	for _, entry := range entries {
 		data, err := json.Marshal(entry)
