@@ -158,6 +158,69 @@ Create `docs/drafts/idea-{slug}.md` with full specification:
 
 Call `/design` with full context (vision + intent).
 
+### Phase 7: Orchestrator Execution (OPTIONAL)
+
+After @design completes workstream planning, optionally execute workstreams autonomously:
+
+```bash
+# Option 1: Interactive execution
+@feature "Add user authentication"
+# ... phases 1-6 complete ...
+# Claude asks: "Execute workstreams now? (y/n)"
+
+# Option 2: Immediate execution
+@feature "Add user authentication" --execute
+
+# Option 3: Resume from checkpoint
+@feature "Add user authentication" --resume F001
+```
+
+**Orchestrator capabilities:**
+- Executes workstreams in dependency order (topological sort)
+- Saves checkpoints to `.oneshot/{feature}-checkpoint.json`
+- Auto-retry on failures (max 2 retries)
+- Real-time progress updates: `[HH:MM] Executing WS-XXX...`
+- Resumable from interruptions
+
+**Checkpoint format:**
+```json
+{
+  "id": "F001",
+  "feature_id": "F001",
+  "status": "in_progress",
+  "completed_workstreams": ["WS-001", "WS-002"],
+  "current_workstream": "WS-003",
+  "created_at": "2026-02-06T15:23:00Z",
+  "updated_at": "2026-02-06T15:46:00Z"
+}
+```
+
+**Progress tracking example:**
+```
+[15:23] Starting feature execution: F001
+[15:23] Loading workstreams...
+[15:23] Building dependency graph...
+[15:23] Execution order: [WS-001 WS-002 WS-003]
+[15:24] Executing WS-001 (1/3)...
+[15:46] WS-001 complete (22m)
+[15:46] Executing WS-002 (2/3)...
+[16:05] WS-002 complete (19m)
+[16:05] Executing WS-003 (3/3)...
+[16:20] WS-003 complete (15m)
+[16:20] Feature execution complete: 3/3 workstreams, 57m total
+```
+
+**Error handling:**
+- HIGH/MEDIUM issues: Auto-retry (max 2), log context
+- CRITICAL errors: Pause and escalate to human
+- Workstream blocked: Mark checkpoint as failed, save state
+
+**Integration with @build skill:**
+- Each workstream executed via `@build {ws_id}`
+- Beads integration: `bd update {ws_id} --status in_progress`
+- On success: `bd close {ws_id} --reason "WS completed"`
+- On failure: `bd update {ws_id} --status blocked`
+
 ## Power User Flags
 
 - `--vision-only` -- Only create vision, skip planning
