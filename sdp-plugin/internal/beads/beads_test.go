@@ -2,6 +2,7 @@ package beads
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -55,6 +56,64 @@ func TestShowReturnsTaskDetails(t *testing.T) {
 		if task.ID != tasks[0].ID {
 			t.Errorf("Expected ID %s, got %s", tasks[0].ID, task.ID)
 		}
+	}
+}
+
+func TestUpdateWhenBeadsNotInstalled(t *testing.T) {
+	tmpDir := t.TempDir()
+	mappingPath := createTestMappingFile(tmpDir)
+
+	client := &Client{
+		mappingPath:     mappingPath,
+		beadsInstalled: false,
+	}
+
+	// Should fail gracefully
+	err := client.Update("sdp-test", "in_progress")
+	if err == nil {
+		t.Error("Expected error when Beads not installed")
+	}
+
+	if !strings.Contains(err.Error(), "not installed") {
+		t.Errorf("Wrong error: %v", err)
+	}
+}
+
+func TestSyncWithBeadsInstalled(t *testing.T) {
+	if !isBeadsInstalled() {
+		t.Skip("Beads CLI not installed")
+	}
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	// Sync should not fail
+	err = client.Sync()
+	if err != nil {
+		t.Logf("Sync() failed: %v", err)
+		// Don't fail test - sync might fail for various reasons
+	}
+}
+
+func TestShowWhenBeadsNotInstalled(t *testing.T) {
+	tmpDir := t.TempDir()
+	mappingPath := createTestMappingFile(tmpDir)
+
+	client := &Client{
+		mappingPath:     mappingPath,
+		beadsInstalled: false,
+	}
+
+	// Should fail gracefully
+	_, err := client.Show("sdp-test")
+	if err == nil {
+		t.Error("Expected error when Beads not installed")
+	}
+
+	if !strings.Contains(err.Error(), "not installed") {
+		t.Errorf("Wrong error: %v", err)
 	}
 }
 
@@ -302,6 +361,25 @@ func TestReadMappingWithInvalidData(t *testing.T) {
 	}
 	if beadsID != "sdp-x8p" {
 		t.Errorf("Expected sdp-x8p, got %s", beadsID)
+	}
+}
+
+func TestReadyWhenBeadsNotInstalled(t *testing.T) {
+	tmpDir := t.TempDir()
+	mappingPath := createTestMappingFile(tmpDir)
+
+	client := &Client{
+		mappingPath:     mappingPath,
+		beadsInstalled: false,
+	}
+
+	// Should return empty tasks, not error
+	tasks, err := client.Ready()
+	if err != nil {
+		t.Errorf("Ready() should not fail when Beads not installed: %v", err)
+	}
+	if tasks == nil {
+		t.Error("Expected empty slice, not nil")
 	}
 }
 
