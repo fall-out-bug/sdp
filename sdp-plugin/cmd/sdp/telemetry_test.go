@@ -232,9 +232,10 @@ func TestTelemetryAnalyzeCmd(t *testing.T) {
 
 // TestTelemetryUploadCmd tests the upload/packaging command
 func TestTelemetryUploadCmd(t *testing.T) {
-	// Create temp config directory
+	// Use parent of TempDir as XDG_CONFIG_HOME to avoid duplicate paths
 	tmpDir := t.TempDir()
-	configDir := filepath.Join(tmpDir, "sdp")
+	parentDir := filepath.Dir(tmpDir) // This avoids the duplicate /001/001 issue
+	configDir := filepath.Join(parentDir, "sdp")
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
@@ -248,21 +249,16 @@ func TestTelemetryUploadCmd(t *testing.T) {
 		t.Fatalf("Failed to create collector: %v", err)
 	}
 
-	collector.Record(telemetry.Event{
+	if err := collector.Record(telemetry.Event{
 		Type:      "test",
 		Timestamp: time.Now(),
-	})
-
-	// Change to temp directory
-	originalWd, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(originalWd) })
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("Failed to chdir: %v", err)
+	}); err != nil {
+		t.Fatalf("Failed to record event: %v", err)
 	}
 
-	// Set config dir env
+	// Set config dir env to parent directory
 	oldConfigDir := os.Getenv("XDG_CONFIG_HOME")
-	os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	os.Setenv("XDG_CONFIG_HOME", parentDir)
 	defer os.Setenv("XDG_CONFIG_HOME", oldConfigDir)
 
 	tests := []struct {

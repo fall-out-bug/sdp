@@ -77,7 +77,7 @@ func runQualityAll(strict bool) error {
 
 	// Coverage
 	fmt.Println("=== Coverage ===")
-	covResult, _ := checker.CheckCoverage()
+	covResult, _ := checker.CheckCoverage() //nolint:errcheck // UI display, error is non-critical
 	fmt.Printf("Coverage: %.1f%% (threshold: %.1f%%) ", covResult.Coverage, covResult.Threshold)
 	if covResult.Passed {
 		fmt.Println("✓")
@@ -87,7 +87,7 @@ func runQualityAll(strict bool) error {
 
 	// Complexity
 	fmt.Println("\n=== Complexity ===")
-	ccResult, _ := checker.CheckComplexity()
+	ccResult, _ := checker.CheckComplexity() //nolint:errcheck // UI display, error is non-critical
 	fmt.Printf("Max CC: %d (threshold: %d) ", ccResult.MaxCC, ccResult.Threshold)
 	if ccResult.Passed {
 		fmt.Println("✓")
@@ -97,7 +97,7 @@ func runQualityAll(strict bool) error {
 
 	// File Size
 	fmt.Println("\n=== File Size ===")
-	sizeResult, _ := checker.CheckFileSize()
+	sizeResult, _ := checker.CheckFileSize() //nolint:errcheck // UI display, error is non-critical
 	if len(sizeResult.Warnings) > 0 {
 		fmt.Printf("Warnings: %d (threshold: %d LOC) ⚠️\n", len(sizeResult.Warnings), sizeResult.Threshold)
 	}
@@ -110,7 +110,7 @@ func runQualityAll(strict bool) error {
 
 	// Types
 	fmt.Println("\n=== Types ===")
-	typeResult, _ := checker.CheckTypes()
+	typeResult, _ := checker.CheckTypes() //nolint:errcheck // UI display, error is non-critical
 	fmt.Printf("Errors: %d ", len(typeResult.Errors))
 	if typeResult.Passed {
 		fmt.Println("✓")
