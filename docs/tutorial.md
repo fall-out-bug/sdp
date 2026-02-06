@@ -100,7 +100,42 @@ Break features into atomic, executable workstreams.
 
 ---
 
-### 5. Workstream Execution
+### 5. Contract Test Generation
+
+Generate and approve **immutable interface contracts** before implementation.
+
+```bash
+@test WS-XXX-YY
+```
+
+**Process:**
+1. Analyze interface requirements (functions, APIs, data structures)
+2. Design test contracts:
+   - Function signatures (stable API)
+   - Input/output formats
+   - Error conditions
+   - Business invariants
+3. Generate contract test file: `tests/contract/test_{component}.py`
+4. Get stakeholder approval
+5. **Lock contracts** - cannot be modified during `/build`
+
+**⚠️ Contract Immutability:**
+- ✅ `/build` CAN implement code to pass contracts
+- ❌ `/build` CANNOT modify contract test files
+- ❌ `/build` CANNOT change function signatures
+
+**If interface changes needed:**
+1. Stop `/build`
+2. Create new workstream: "Update contract for {Component}"
+3. Run `/test` with revised contracts
+4. Get explicit approval
+5. Resume `/build`
+
+**Documentation:** [.claude/skills/test/SKILL.md](../.claude/skills/test/SKILL.md)
+
+---
+
+### 6. Workstream Execution
 
 Implement workstreams using Test-Driven Development.
 
@@ -141,7 +176,7 @@ Implement workstreams using Test-Driven Development.
 
 ---
 
-### 6. Autonomous Execution
+### 7. Autonomous Execution
 
 Execute entire features automatically with multi-agent orchestration.
 
@@ -250,16 +285,22 @@ sdp init
 # 3. Design workstreams
 @design idea-user-auth
 
-# 4. Execute each workstream
+# 4. Generate contract tests for each workstream
+@test WS-F01-01  # Domain model contracts
+@test WS-F01-02  # Database schema contracts
+@test WS-F01-03  # Repository layer contracts
+@test WS-F01-04  # Service layer contracts
+
+# 5. Execute each workstream
 @build WS-F01-01
 @build WS-F01-02
 @build WS-F01-03
 @build WS-F01-04
 
-# 5. Review quality
+# 6. Review quality
 @review F01
 
-# 6. Deploy to production
+# 7. Deploy to production
 @deploy F01
 ```
 
