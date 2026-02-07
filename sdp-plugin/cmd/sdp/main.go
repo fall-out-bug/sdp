@@ -113,6 +113,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(watchCmd())
 	rootCmd.AddCommand(telemetryCmd)
 	rootCmd.AddCommand(checkpointCmd)
+	rootCmd.AddCommand(contractCmd())
 	rootCmd.AddCommand(orchestrateCmd)
 	rootCmd.AddCommand(completionCmd)
 	rootCmd.AddCommand(statusCmd())
