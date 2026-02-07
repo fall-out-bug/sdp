@@ -2,17 +2,14 @@ name: Go CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.25.6'
           cache: true
 
       - name: Download dependencies
@@ -41,11 +38,16 @@ jobs:
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
+      - name: Check coverage threshold
+        run: |
+          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 80.0) {print "Coverage " $3 " is below 80% threshold"; exit 1}}'
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: sdp-plugin/coverage.out
-          fail_ci_if_error: false
+          file: coverage.out
+          fail_ci_if_error: true
+          min_coverage: 80
 
   lint:
     name: Lint
@@ -58,15 +60,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.25.6'
           cache: true
-          cache-dependency-path: sdp-plugin/go.sum
+          cache-dependency-path: go.sum
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          working-directory: sdp-plugin
           args: --timeout=5m
 
   cross-platform:
@@ -97,11 +98,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.25.6'
           cache: true
 
       - name: Build
-        working-directory: ./sdp-plugin
         run: |
           $env:GOOS="${{ matrix.goos }}"
           $env:GOARCH="${{ matrix.goarch }}"
@@ -116,4 +116,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sdp-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: sdp-plugin/dist/sdp-*
+          path: dist/sdp-*
