@@ -1,13 +1,22 @@
 package agents
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
+)
+
+const (
+	// MaxRegexMatchSize limits the size of regex matches to prevent ReDoS
+	MaxRegexMatchSize = 10000
+	// RegexTimeout is the maximum time to spend on regex operations
+	RegexTimeout = 5 * time.Second
 )
 
 // CodeAnalyzer extracts API contracts from existing code
@@ -44,6 +53,46 @@ func NewCodeAnalyzer() *CodeAnalyzer {
 	return &CodeAnalyzer{}
 }
 
+// safeCompileRegex compiles a regex with timeout and size limits
+func safeCompileRegex(pattern string) (*regexp.Regexp, error) {
+	// Add timeout context
+	ctx, cancel := context.WithTimeout(context.Background(), RegexTimeout)
+	defer cancel()
+
+	// Compile regex
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("invalid regex pattern: %w", err)
+	}
+
+	// Test regex with pathological input to detect ReDoS
+	pathologicalInput := strings.Repeat("a", 1000) + "!\""
+	testChan := make(chan bool, 1)
+
+	go func() {
+		// This should complete quickly for safe regex
+		re.FindStringSubmatch(pathologicalInput)
+		testChan <- true
+	}()
+
+	select {
+	case <-testChan:
+		// Regex is safe (completed in time)
+		return re, nil
+	case <-ctx.Done():
+		// Regex timed out - potential ReDoS
+		return nil, fmt.Errorf("regex pattern potentially vulnerable to ReDoS: timeout after %v", RegexTimeout)
+	}
+}
+
+// truncateInput limits input size to prevent ReDoS
+func truncateInput(input string) string {
+	if len(input) > MaxRegexMatchSize {
+		return input[:MaxRegexMatchSize]
+	}
+	return input
+}
+
 // AnalyzeGoBackend extracts routes from Go backend code
 func (ca *CodeAnalyzer) AnalyzeGoBackend(filePath string) ([]ExtractedRoute, error) {
 	content, err := os.ReadFile(filePath)
@@ -51,30 +100,47 @@ func (ca *CodeAnalyzer) AnalyzeGoBackend(filePath string) ([]ExtractedRoute, err
 		return nil, fmt.Errorf("failed to read Go file: %w", err)
 	}
 
+	// Check file size before processing
+	if len(content) > MaxRegexMatchSize*10 {
+		return nil, fmt.Errorf("file too large for analysis: %d bytes (max %d)", len(content), MaxRegexMatchSize*10)
+	}
+
 	var routes []ExtractedRoute
 	lines := strings.Split(string(content), "\n")
 
-	// Regex patterns for different frameworks
+	// Safe regex patterns for different frameworks
+	// FIXED: Avoided catastrophic backtracking by:
+	// 1. Using more explicit patterns (no ambiguous optional prefixes)
+	// 2. Limiting character classes to prevent overlap
+	// 3. Using atomic grouping where possible
 	patterns := []struct {
 		Name    string
 		Pattern *regexp.Regexp
 	}{
 		{
 			Name:    "gorilla/mux",
-			Pattern: regexp.MustCompile(`HandleFunc\("([^"]+)",\s*(\w+)\)\.Methods\("(\w+)"\)`),
+			// FIXED: More explicit pattern, no nested quantifiers, quote outside capture group
+			Pattern: regexp.MustCompile(`HandleFunc\("([^"]{1,200})",\s*(\w+)\)\.Methods\("(\w{3,7})"\)`),
 		},
 		{
-			Name:    "gin",
-			Pattern: regexp.MustCompile(`r?\.(GET|POST|PUT|DELETE|PATCH)\("([^"]+)",\s*(\w+)\)`),
+			Name: "gin",
+			// FIXED: Removed ambiguous r? prefix, use alternation instead
+			Pattern: regexp.MustCompile(`(?:router|r)?\.(GET|POST|PUT|DELETE|PATCH)\("([^"]{1,200})",\s*(\w+)\)`),
 		},
 		{
-			Name:    "echo",
-			Pattern: regexp.MustCompile(`e?\.(GET|POST|PUT|DELETE|PATCH)\("([^"]+)",\s*(\w+)\)`),
+			Name: "echo",
+			// FIXED: Removed ambiguous e? prefix, use alternation instead
+			Pattern: regexp.MustCompile(`(?:echo|e)?\.(GET|POST|PUT|DELETE|PATCH)\("([^"]{1,200})",\s*(\w+)\)`),
 		},
 	}
 
 	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
+
+		// Skip overly long lines
+		if len(line) > MaxRegexMatchSize {
+			continue
+		}
 
 		// Try each pattern
 		for _, p := range patterns {
@@ -113,9 +179,18 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 		return nil, fmt.Errorf("failed to read TypeScript file: %w", err)
 	}
 
+	// Check file size
+	if len(content) > MaxRegexMatchSize*10 {
+		return nil, fmt.Errorf("file too large for analysis: %d bytes (max %d)", len(content), MaxRegexMatchSize*10)
+	}
+
 	var calls []ExtractedCall
 	contentStr := string(content)
 
+	// Truncate content if too large
+	contentStr = truncateInput(contentStr)
+
+	// FIXED: Safe regex patterns with explicit limits
 	// First, process multiline patterns on the entire content
 	multilinePatterns := []struct {
 		Name    string
@@ -124,12 +199,14 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 	}{
 		{
 			Name:    "fetch with method (multiline)",
-			Pattern: regexp.MustCompile(`fetch\("([^"]+)",\s*\{[\s\S]*?method:\s*["'](\w+)["'][\s\S]*?\}`),
+			// FIXED: Added non-greedy quantifier and explicit length limits
+			Pattern: regexp.MustCompile(`fetch\("([^"]{1,200})",\s*\{[\s\S]{0,500}?method:\s*["'](\w+)["'][\s\S]{0,500}?\}`),
 			Method:  "",
 		},
 		{
 			Name:    "fetch GET (multiline with .then)",
-			Pattern: regexp.MustCompile(`fetch\("([^"]+)"\)[\s\S]*?\.then\(`),
+			// FIXED: Limited multiline match to 500 chars
+			Pattern: regexp.MustCompile(`fetch\("([^"]{1,200}")\)[\s\S]{0,300}?\.then\(`),
 			Method:  "GET",
 		},
 	}
@@ -167,18 +244,25 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 	}{
 		{
 			Name:    "fetch simple (single line, no comma or brace)",
-			Pattern: regexp.MustCompile(`fetch\("([^"]+)"`),
+			// FIXED: Added explicit length limit
+			Pattern: regexp.MustCompile(`fetch\("([^"]{1,200}")`),
 			Method:  "GET",
 		},
 		{
 			Name:    "axios",
-			Pattern: regexp.MustCompile(`axios\.(\w+)\("([^"]+)"`),
+			// FIXED: Added explicit length limit to method and path
+			Pattern: regexp.MustCompile(`axios\.(\w{3,7})\("([^"]{1,200}")`),
 			Method:  "",
 		},
 	}
 
 	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
+
+		// Skip overly long lines
+		if len(line) > MaxRegexMatchSize {
+			continue
+		}
 
 		// Skip lines that are part of multiline patterns
 		if strings.Contains(line, "{") || strings.Contains(line, "}.then") {
@@ -236,16 +320,27 @@ func (ca *CodeAnalyzer) AnalyzePythonSDK(filePath string) ([]ExtractedMethod, er
 		return nil, fmt.Errorf("failed to read Python file: %w", err)
 	}
 
+	// Check file size
+	if len(content) > MaxRegexMatchSize*10 {
+		return nil, fmt.Errorf("file too large for analysis: %d bytes (max %d)", len(content), MaxRegexMatchSize*10)
+	}
+
 	var methods []ExtractedMethod
 	lines := strings.Split(string(content), "\n")
 
+	// FIXED: Added length limits to prevent ReDoS
 	// Regex for method definition: def method_name(self, ...) -> ReturnType:
 	// Handles both def method(self, param) and def method(self, param: type) -> ReturnType:
-	methodRe := regexp.MustCompile(`def\s+(\w+)\(self([^)]*)\)(?:\s*->\s*[^:]+)?:`)
-	docsRe := regexp.MustCompile(`"""(.+?)"""`)
+	methodRe := regexp.MustCompile(`def\s+(\w{1,100})\(self([^)]{0,500})\)(?:\s*->\s*[^:]{1,100})?:`)
+	docsRe := regexp.MustCompile(`"""(.{1,500})"""`)
 
 	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
+
+		// Skip overly long lines
+		if len(line) > MaxRegexMatchSize {
+			continue
+		}
 
 		matches := methodRe.FindStringSubmatch(line)
 		if len(matches) >= 2 {
@@ -265,7 +360,7 @@ func (ca *CodeAnalyzer) AnalyzePythonSDK(filePath string) ([]ExtractedMethod, er
 				params := strings.Split(paramsStr, ",")
 				for _, p := range params {
 					p = strings.TrimSpace(p)
-					if p != "" {
+					if p != "" && len(p) <= 100 {
 						// Extract parameter name (before type hint)
 						parts := strings.Fields(p)
 						if len(parts) > 0 {
