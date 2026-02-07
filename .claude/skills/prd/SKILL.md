@@ -48,8 +48,8 @@ Generate and maintain PROJECT_MAP.md PRD documents with automatic diagram genera
 
 The following limits are enforced during validation:
 
-- **"Назначение"**: max 500 characters
-- **"Модель БД"**: 1 line per field (max 120 chars per line)
+- **"Purpose"**: max 500 characters
+- **"Data Model"**: 1 line per field (max 120 chars per line)
 - Other sections: format-specific limits
 
 ## Diagram Generation
@@ -108,7 +108,7 @@ The skill uses the following modules:
 Before considering a PRD complete:
 
 - [ ] All 7 sections filled for detected project type
-- [ ] "Назначение" section ≤ 500 characters
+- [ ] "Purpose" section ≤ 500 characters
 - [ ] Frontmatter contains project_type, prd_version, last_updated
 - [ ] diagrams_hash set (after diagram generation)
 - [ ] All diagrams generated and saved to docs/diagrams/
@@ -132,15 +132,15 @@ Analyzing project structure...
 
 I'll create a PRD with 7 sections for a service profile:
 
-1. Назначение (max 500 chars)
-2. Глоссарий
-3. Внешний API
-4. Модель БД
+1. Purpose (max 500 chars)
+2. Glossary
+3. External API
+4. Data Model
 5. Sequence Flows
-6. Внешние зависимости
-7. Мониторинги
+6. External Dependencies
+7. Monitoring
 
-Let's start with section 1: Назначение
+Let's start with section 1: Purpose
 
 What is the primary purpose of hw-checker? Please describe in 1-2 sentences.
 

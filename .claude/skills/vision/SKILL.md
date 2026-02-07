@@ -10,10 +10,10 @@ version: 1.0.0
 **Transform project ideas into product vision, PRD, and roadmap.**
 
 ## When to Use
-- **Initial project setup** - "Что мы строим?"
+- **Initial project setup** - "What are we building?"
 - **Quarterly review** - `@vision --review` - update vision based on progress
-- **Major pivot** - "Меняется направление?"
-- **New market entry** - "Выходим на новый рынок?"
+- **Major pivot** - "Is the direction changing?"
+- **New market entry** - "Entering a new market?"
 
 ## Workflow
 
