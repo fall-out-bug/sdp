@@ -140,12 +140,26 @@ func (cs *ContractSynthesizer) AnalyzeRequirements(reqPath string) (*ContractReq
 	}, nil
 }
 
+const (
+	// MaxContentLength limits content size to prevent ReDoS
+	MaxContentLength = 100000
+	// MaxFieldCount limits number of fields to prevent resource exhaustion
+	MaxFieldCount = 100
+)
+
 // parseEndpointsFromMarkdown extracts endpoint specifications from markdown
 func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]EndpointSpec, error) {
 	var endpoints []EndpointSpec
 
+	// Check content size before processing
+	if len(content) > MaxContentLength {
+		return nil, fmt.Errorf("content too large for parsing: %d bytes (max %d)", len(content), MaxContentLength)
+	}
+
+	// FIXED: Added length limits to prevent ReDoS attacks
 	// Regex to match endpoint headers: ### POST /api/v1/telemetry/events or - POST /api/v1/telemetry/events
-	endpointRe := regexp.MustCompile(`(?:###|-)\s+(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)`)
+	// Limit path length to 500 chars to prevent catastrophic backtracking
+	endpointRe := regexp.MustCompile(`(?:###|-)\s+(GET|POST|PUT|DELETE|PATCH)\s+([^\s]{1,500})`)
 	matches := endpointRe.FindAllStringSubmatch(content, -1)
 
 	for _, match := range matches {
@@ -180,8 +194,9 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 				inRequestSection = true
 				inResponseSection = false
 
+				// FIXED: Limited field content to 500 chars to prevent ReDoS
 				// Parse inline field specification: {field1, field2}
-				inlineRe := regexp.MustCompile(`Request:\s*\{([^}]+)\}`)
+				inlineRe := regexp.MustCompile(`Request:\s*\{([^}]{1,500})\}`)
 				if inlineMatches := inlineRe.FindStringSubmatch(line); len(inlineMatches) > 1 {
 					fields := strings.Split(inlineMatches[1], ",")
 					for _, f := range fields {
@@ -202,8 +217,9 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 				inRequestSection = false
 				inResponseSection = true
 
+				// FIXED: Limited field content to 500 chars to prevent ReDoS
 				// Parse inline field specification
-				inlineRe := regexp.MustCompile(`Response:\s*\{([^}]+)\}`)
+				inlineRe := regexp.MustCompile(`Response:\s*\{([^}]{1,500})\}`)
 				if inlineMatches := inlineRe.FindStringSubmatch(line); len(inlineMatches) > 1 {
 					fields := strings.Split(inlineMatches[1], ",")
 					for _, f := range fields {
@@ -222,8 +238,14 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 
 			// Parse bullet point fields: - field_name: type
 			if strings.HasPrefix(line, "-") {
-				fieldRe := regexp.MustCompile(`-\s*(\w+):\s*(\w+)`)
+				// FIXED: Added length limits to prevent ReDoS
+				fieldRe := regexp.MustCompile(`-\s*(\w{1,100}):\s*(\w{1,50})`)
 				if fieldMatches := fieldRe.FindStringSubmatch(line); len(fieldMatches) > 2 {
+					// Enforce field count limit
+					if len(endpoint.Request.Fields) >= MaxFieldCount || len(endpoint.Response.Fields) >= MaxFieldCount {
+						return nil, fmt.Errorf("too many fields (max %d)", MaxFieldCount)
+					}
+
 					field := FieldSpec{
 						Name: fieldMatches[1],
 						Type: fieldMatches[2],
