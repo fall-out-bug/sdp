@@ -128,6 +128,11 @@ func (cs *ContractSynthesizer) AnalyzeRequirements(reqPath string) (*ContractReq
 	featureName := strings.TrimSuffix(filepath.Base(reqPath), "-requirements.md")
 	featureName = strings.TrimPrefix(featureName, "sdp-")
 
+	// Validate feature name to prevent injection attacks
+	if err := validateFeatureName(featureName); err != nil {
+		return nil, fmt.Errorf("invalid feature name in path %q: %w", reqPath, err)
+	}
+
 	// Parse endpoints from markdown
 	endpoints, err := cs.parseEndpointsFromMarkdown(string(content))
 	if err != nil {
@@ -147,6 +152,100 @@ const (
 	MaxFieldCount = 100
 )
 
+var (
+	// allowedHTTPMethods is a whitelist of permitted HTTP methods
+	allowedHTTPMethods = map[string]bool{
+		"GET":     true,
+		"POST":    true,
+		"PUT":     true,
+		"DELETE":  true,
+		"PATCH":   true,
+		"HEAD":    true,
+		"OPTIONS": true,
+	}
+)
+
+// validateFeatureName checks if a feature name is valid
+func validateFeatureName(name string) error {
+	// Feature names must be lowercase alphanumeric with dashes only
+	// This prevents injection attacks via malicious feature names
+	matched, err := regexp.MatchString(`^[a-z0-9-]+$`, name)
+	if err != nil {
+		return fmt.Errorf("feature name validation failed: %w", err)
+	}
+	if !matched {
+		return fmt.Errorf("invalid feature name %q: must contain only lowercase letters, numbers, and dashes", name)
+	}
+	return nil
+}
+
+// validateHTTPMethod checks if an HTTP method is allowed
+func validateHTTPMethod(method string) error {
+	// Method must contain only uppercase letters (no special characters, no spaces)
+	if !regexp.MustCompile(`^[A-Z]+$`).MatchString(method) {
+		return fmt.Errorf("invalid HTTP method %q: must contain only uppercase letters", method)
+	}
+
+	// Normalize to uppercase for whitelist check
+	normalizedMethod := strings.ToUpper(method)
+	if !allowedHTTPMethods[normalizedMethod] {
+		return fmt.Errorf("invalid HTTP method %q: must be one of %v", method, getAllowedMethods())
+	}
+	return nil
+}
+
+// getAllowedMethods returns the list of allowed HTTP methods
+func getAllowedMethods() []string {
+	methods := make([]string, 0, len(allowedHTTPMethods))
+	for method := range allowedHTTPMethods {
+		methods = append(methods, method)
+	}
+	return methods
+}
+
+// validateEndpointPath checks if an endpoint path is valid
+func validateEndpointPath(path string) error {
+	// Paths must start with /
+	if !strings.HasPrefix(path, "/") {
+		return fmt.Errorf("invalid endpoint path %q: must start with /", path)
+	}
+
+	// Paths should not contain .. to prevent directory traversal
+	if strings.Contains(path, "..") {
+		return fmt.Errorf("invalid endpoint path %q: must not contain ..", path)
+	}
+
+	// Limit path length to prevent DoS
+	if len(path) > 500 {
+		return fmt.Errorf("invalid endpoint path %q: too long (max 500 chars)", path)
+	}
+
+	// Paths should only contain safe characters
+	// Allow: /, alphanumeric, -, _, :, {}, * (for path params and wildcards)
+	matched, err := regexp.MatchString(`^/[a-zA-Z0-9\-_{}/*.:]+$`, path)
+	if err != nil {
+		return fmt.Errorf("endpoint path validation failed: %w", err)
+	}
+	if !matched {
+		return fmt.Errorf("invalid endpoint path %q: contains invalid characters", path)
+	}
+
+	return nil
+}
+
+// sanitizeFieldName sanitizes field names to prevent injection
+func sanitizeFieldName(name string) (string, error) {
+	// Field names must be alphanumeric with underscores
+	matched, err := regexp.MatchString(`^[a-zA-Z_][a-zA-Z0-9_]*$`, name)
+	if err != nil {
+		return "", fmt.Errorf("field name validation failed: %w", err)
+	}
+	if !matched {
+		return "", fmt.Errorf("invalid field name %q: must be alphanumeric with underscores, starting with letter or underscore", name)
+	}
+	return name, nil
+}
+
 // parseEndpointsFromMarkdown extracts endpoint specifications from markdown
 func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]EndpointSpec, error) {
 	var endpoints []EndpointSpec
@@ -159,7 +258,9 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 	// FIXED: Added length limits to prevent ReDoS attacks
 	// Regex to match endpoint headers: ### POST /api/v1/telemetry/events or - POST /api/v1/telemetry/events
 	// Limit path length to 500 chars to prevent catastrophic backtracking
-	endpointRe := regexp.MustCompile(`(?:###|-)\s+(GET|POST|PUT|DELETE|PATCH)\s+([^\s]{1,500})`)
+	// Capture method as non-slash, non-space characters on the same line
+	// Use [^/\s]+ to ensure we only capture word-like characters
+	endpointRe := regexp.MustCompile(`(?:###|-)\s+([^/\s]{1,20})\s+(/[^\s]{1,500})`)
 	matches := endpointRe.FindAllStringSubmatch(content, -1)
 
 	for _, match := range matches {
@@ -167,9 +268,30 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 			continue
 		}
 
+		// Validate HTTP method (whitelist check) and normalize to uppercase
+		// match[1] is the raw method string from the regex
+		rawMethod := match[1]
+		method := strings.ToUpper(rawMethod)
+
+		// Strict validation: the raw method must be exactly the same as the uppercased version
+		// This prevents "GET; DROP TABLE users" from being accepted as "GET"
+		if rawMethod != method {
+			return nil, fmt.Errorf("invalid HTTP method %q: must be uppercase only, got mixed case or special characters", rawMethod)
+		}
+
+		if err := validateHTTPMethod(method); err != nil {
+			return nil, fmt.Errorf("invalid HTTP method in endpoint: %w", err)
+		}
+
+		// Validate endpoint path format
+		path := match[2]
+		if err := validateEndpointPath(path); err != nil {
+			return nil, fmt.Errorf("invalid endpoint path: %w", err)
+		}
+
 		endpoint := EndpointSpec{
-			Path:   match[2],
-			Method: match[1],
+			Path:   path,
+			Method: method,
 			Request:  SchemaSpec{Fields: []FieldSpec{}},
 			Response: SchemaSpec{Fields: []FieldSpec{}},
 		}
@@ -202,8 +324,13 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 					for _, f := range fields {
 						f = strings.TrimSpace(f)
 						if f != "" {
+							// Sanitize field name to prevent injection
+							sanitized, err := sanitizeFieldName(f)
+							if err != nil {
+								return nil, fmt.Errorf("invalid request field name: %w", err)
+							}
 							endpoint.Request.Fields = append(endpoint.Request.Fields, FieldSpec{
-								Name:     f,
+								Name:     sanitized,
 								Type:     "string",
 								Required: true,
 							})
@@ -225,8 +352,13 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 					for _, f := range fields {
 						f = strings.TrimSpace(f)
 						if f != "" {
+							// Sanitize field name to prevent injection
+							sanitized, err := sanitizeFieldName(f)
+							if err != nil {
+								return nil, fmt.Errorf("invalid response field name: %w", err)
+							}
 							endpoint.Response.Fields = append(endpoint.Response.Fields, FieldSpec{
-								Name:     f,
+								Name:     sanitized,
 								Type:     "string",
 								Required: true,
 							})
@@ -246,8 +378,15 @@ func (cs *ContractSynthesizer) parseEndpointsFromMarkdown(content string) ([]End
 						return nil, fmt.Errorf("too many fields (max %d)", MaxFieldCount)
 					}
 
+					// Sanitize field name
+					fieldName := fieldMatches[1]
+					sanitizedName, err := sanitizeFieldName(fieldName)
+					if err != nil {
+						return nil, fmt.Errorf("invalid field name in bullet point: %w", err)
+					}
+
 					field := FieldSpec{
-						Name: fieldMatches[1],
+						Name: sanitizedName,
 						Type: fieldMatches[2],
 					}
 
