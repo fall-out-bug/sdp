@@ -195,3 +195,15 @@ func (cb *CircuitBreaker) calculateBackoff() time.Duration {
 
 	return backoff
 }
+
+// Restore restores the circuit breaker state from a snapshot
+func (cb *CircuitBreaker) Restore(snapshot *CircuitBreakerSnapshot) {
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+
+	cb.state = CircuitState(snapshot.State)
+	cb.failureCount = snapshot.FailureCount
+	cb.successCount = snapshot.SuccessCount
+	cb.consecutiveOpens = snapshot.ConsecutiveOpens
+	cb.lastFailureTime = snapshot.LastFailureTime
+}
