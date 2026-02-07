@@ -625,8 +625,59 @@ func TestDispatcher_WithCheckpoint_RestoresFromCheckpoint(t *testing.T) {
 
 // TestDispatcher_RestoresCircuitBreakerState verifies that circuit breaker state is restored from checkpoint
 func TestDispatcher_RestoresCircuitBreakerState(t *testing.T) {
-	// Arrange - create dispatcher with checkpoint
-	cm := graph.NewCheckpointManager("F052")
-	cm.SetCheckpointDir(t.TempDir())
-	dispatcher := graph.NewDispatcher(3)
+	// Arrange
+	tempDir := t.TempDir()
+	featureID := "F052"
+
+	// Create a checkpoint with circuit breaker in OPEN state
+	depGraph := graph.NewDependencyGraph()
+	depGraph.AddNode("00-052-01", []string{})
+	depGraph.AddNode("00-052-02", []string{"00-052-01"})
+
+	cm := graph.NewCheckpointManager(featureID)
+	cm.SetCheckpointDir(tempDir)
+
+	// Mark first node as completed
+	depGraph.MarkComplete("00-052-01")
+
+	// Create checkpoint with circuit breaker in OPEN state
+	checkpoint := cm.CreateCheckpoint(depGraph, featureID, []string{"00-052-01"}, []string{})
+	checkpoint.CircuitBreaker = &graph.CircuitBreakerSnapshot{
+		State:            1, // OPEN
+		FailureCount:     3,
+		SuccessCount:     0,
+		ConsecutiveOpens: 1,
+		LastFailureTime:  time.Now().UTC(),
+	}
+
+	if err := cm.Save(checkpoint); err != nil {
+		t.Fatalf("Failed to save checkpoint: %v", err)
+	}
+
+	// Create dispatcher that will restore from this checkpoint
+	dispatcher := graph.NewDispatcherWithCheckpoint(depGraph, 1, featureID, true)
+	dispatcher.SetCheckpointDir(tempDir)
+
+	// Act - execute should restore circuit breaker state
+	var executed []string
+	execFn := func(wsID string) error {
+		executed = append(executed, wsID)
+		return nil
+	}
+
+	_ = dispatcher.Execute(execFn)
+
+	// Assert - verify circuit breaker state was restored
+	metrics := dispatcher.GetCircuitBreakerMetrics()
+	if metrics.State != graph.StateOpen {
+		t.Errorf("Expected circuit breaker state to be OPEN (1), got %d", metrics.State)
+	}
+
+	if metrics.FailureCount != 3 {
+		t.Errorf("Expected failure count 3, got %d", metrics.FailureCount)
+	}
+
+	if metrics.ConsecutiveOpens != 1 {
+		t.Errorf("Expected consecutive opens 1, got %d", metrics.ConsecutiveOpens)
+	}
 }
