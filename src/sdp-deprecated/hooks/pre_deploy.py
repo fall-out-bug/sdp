@@ -92,7 +92,72 @@ def main() -> int:  # noqa: C901  # pragma: no cover
     else:
         print("✅ Linting passed")
 
-    # 5. Production checks
+    # 5. Contract validation
+    print("\n=== 5. Contract Validation ===")
+    contracts_dir = repo_root / ".contracts"
+    if contracts_dir.exists() and contracts_dir.is_dir():
+        # Find contract YAML files
+        contract_files = list(contracts_dir.glob("*.yaml"))
+
+        if len(contract_files) == 0:
+            print("  Skipped (no contracts found)")
+        elif len(contract_files) < 2:
+            print(f"  Skipped (need at least 2 contracts, found {len(contract_files)})")
+        else:
+            # Build SDP CLI
+            print("  Building SDP CLI...")
+            build_proc = subprocess.run(
+                ["go", "build", "-o", "sdp", "./cmd/sdp"],
+                cwd=repo_root,
+                capture_output=True,
+                text=True,
+            )
+            if build_proc.returncode != 0:
+                print("⚠️ Failed to build SDP CLI, skipping contract validation")
+                print(build_proc.stderr[:500])
+            else:
+                # Run contract validation
+                sdp_path = repo_root / "sdp"
+                cmd = [str(sdp_path), "contract", "validate"] + [str(f) for f in contract_files] + ["--output", "validation-report.md"]
+
+                proc = subprocess.run(
+                    cmd,
+                    cwd=repo_root,
+                    capture_output=True,
+                    text=True,
+                )
+
+                # Parse validation report
+                report_path = repo_root / "validation-report.md"
+                if report_path.exists():
+                    report_content = report_path.read_text()
+                    error_count = report_content.count("|")
+                    warning_count = report_content.count("WARNING")
+
+                    # Count actual errors (lines with | ERROR)
+                    error_count = report_content.count("ERROR")
+                    warning_count = report_content.count("WARNING")
+
+                    print(f"  Validation complete: {error_count} errors, {warning_count} warnings")
+
+                    if error_count > 0:
+                        print("❌ Contract validation failed")
+                        print("  Report contents:")
+                        print(report_content[:1000])
+                        return 1
+                    elif warning_count > 0:
+                        print("✅ Contract validation passed (with warnings)")
+                    else:
+                        print("✅ Contract validation passed")
+
+                    # Clean up report
+                    report_path.unlink()
+                else:
+                    print("⚠️ Validation report not generated")
+    else:
+        print("  Skipped (no .contracts directory)")
+
+    # 6. Production checks
     if environment == "prod":
         print("\n=== 5. Production Readiness ===")
         for py_file in (repo_root / "src").rglob("*.py"):
