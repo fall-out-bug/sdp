@@ -61,6 +61,61 @@ Multi-agent system design (Arch + Security + SRE) with progressive discovery blo
 - Deployment?
 - Rollback strategy?
 
+### Phase 5: Contract Synthesis (CRITICAL - Before Implementation)
+
+**Purpose:** Multi-agent contract agreement BEFORE parallel implementation begins.
+
+**Why Now:** Prevents component integration failures (404 Not Found) when agents work in parallel.
+
+**Workflow:**
+
+1. **Architect Proposes Initial Contract**
+   ```bash
+   sdp contract synthesize \
+     --feature=<feature-name> \
+     --requirements=<idea-doc> \
+     --output=.contracts/<feature-name>.yaml
+   ```
+   - Analyzes requirements from @idea
+   - Proposes OpenAPI 3.0 contract
+   - Defines endpoints, methods, request/response schemas
+
+2. **Multi-Agent Review (Parallel)**
+   - Frontend Agent: "Need /batch endpoint"
+   - Backend Agent: "Works for us"
+   - SDK Agent: "Matches our method naming"
+   - Security Agent: "Add authentication headers"
+
+3. **Synthesizer Resolves Conflicts**
+   - Unanimous agreement → Contract locked
+   - Domain expertise veto → Escalate to human
+   - Merge suggestions → Update contract
+   - Escalation → Human decides
+
+4. **Lock Contract**
+   ```bash
+   sdp contract lock \
+     --contract=.contracts/<feature-name>.yaml \
+     --reason="Multi-agent agreement complete"
+   ```
+   - Creates .lock file
+   - Stores SHA256 checksum
+   - Prevents modifications during implementation
+
+5. **Create Validation Workstreams**
+   - Add WS: Contract validation (post-implementation)
+   - Add WS: Integration testing
+
+**Exit Criteria:**
+- [ ] Contract file exists: `.contracts/<feature-name>.yaml`
+- [ ] Contract locked: `.contracts/<feature-name>.yaml.lock`
+- [ ] No ERROR-level conflicts
+- [ ] Validation workstream created
+
+**Skip Only If:**
+- Feature has NO API contracts (pure computation)
+- Feature has single component (no integration risk)
+
 ### After Each Block: Trigger Point
 
 ```markdown
@@ -106,11 +161,13 @@ Minimal blocks (2 blocks, 6 questions):
 ## Next Steps
 
 ```bash
+@oneshot <feature>  # Execute all workstreams (includes contract validation)
 @build <ws_id>      # Execute workstream
-@oneshot <feature>  # Execute all workstreams
 ```
+
+**Note:** Contract validation workstream (created in Phase 5) runs AFTER implementation to detect drift.
 
 ---
 
-**Version:** 4.0.0 (Progressive Disclosure)
+**Version:** 5.0.0 (Contract Synthesis Phase)
 **See Also:** `@idea`, `@build`, `@oneshot`
