@@ -1,6 +1,7 @@
 package agents
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -324,4 +325,191 @@ func findEndpointByPath(endpoints []EndpointSpec, path string) *EndpointSpec {
 		}
 	}
 	return nil
+}
+
+// TestInjectionPrevention_InvalidFeatureName verifies that invalid feature names are rejected
+func TestInjectionPrevention_InvalidFeatureName(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	testCases := []struct {
+		name        string
+		featureName string
+		shouldFail  bool
+	}{
+		{"valid name", "telemetry-api", false},
+		{"valid name with numbers", "api-v2", false},
+		{"uppercase rejected", "Telemetry", true},
+		{"spaces rejected", "telemetry api", true},
+		{"special chars rejected", "telemetry@api", true},
+		{"path traversal attempt", "../../../etc/passwd", true},
+		{"shell injection attempt", "feature; rm -rf /", true},
+		{"null byte attempt", "telemetry\x00", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// For path traversal and shell injection, the filename itself is invalid
+			// so we test the validation logic directly instead of file creation
+			if strings.Contains(tc.featureName, "../") || strings.Contains(tc.featureName, ";") {
+				// The feature name validation should catch these
+				err := validateFeatureName(tc.featureName)
+				if tc.shouldFail {
+					if err == nil {
+						t.Errorf("Expected error for feature name %q, but got none", tc.featureName)
+					}
+				} else {
+					if err != nil {
+						t.Errorf("Expected no error for feature name %q, got: %v", tc.featureName, err)
+					}
+				}
+				return
+			}
+
+			reqPath := filepath.Join(tmpDir, tc.featureName+"-requirements.md")
+			reqContent := "# Requirements\n\n### POST /api/test\n- Request: {field}\n"
+			if err := os.WriteFile(reqPath, []byte(reqContent), 0644); err != nil {
+				t.Fatalf("Failed to create requirements file: %v", err)
+			}
+
+			agent := NewContractSynthesizer()
+			_, err := agent.AnalyzeRequirements(reqPath)
+
+			if tc.shouldFail {
+				if err == nil {
+					t.Errorf("Expected error for feature name %q, but got none", tc.featureName)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error for feature name %q, got: %v", tc.featureName, err)
+				}
+			}
+		})
+	}
+}
+
+// TestInjectionPrevention_InvalidHTTPMethods verifies that only whitelisted HTTP methods are accepted
+func TestInjectionPrevention_InvalidHTTPMethods(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	testCases := []struct {
+		name       string
+		method     string
+		shouldFail bool
+	}{
+		{"valid GET", "GET", false},
+		{"valid POST", "POST", false},
+		{"valid PUT", "PUT", false},
+		{"valid DELETE", "DELETE", false},
+		{"invalid lowercase", "get", true},
+		{"invalid method", "INVALID", true},
+		{"injection attempt", "GET; DROP TABLE users", true},
+		{"script injection", "<script>alert('xss')</script>", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reqPath := filepath.Join(tmpDir, "test-requirements.md")
+			reqContent := fmt.Sprintf("# Requirements\n\n### %s /api/test\n- Request: {field}\n", tc.method)
+			if err := os.WriteFile(reqPath, []byte(reqContent), 0644); err != nil {
+				t.Fatalf("Failed to create requirements file: %v", err)
+			}
+
+			agent := NewContractSynthesizer()
+			_, err := agent.AnalyzeRequirements(reqPath)
+
+			if tc.shouldFail {
+				if err == nil {
+					t.Errorf("Expected error for HTTP method %q, but got none", tc.method)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error for HTTP method %q, got: %v", tc.method, err)
+				}
+			}
+		})
+	}
+}
+
+// TestInjectionPrevention_InvalidEndpointPaths verifies that invalid paths are rejected
+func TestInjectionPrevention_InvalidEndpointPaths(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	testCases := []struct {
+		name       string
+		path       string
+		shouldFail bool
+	}{
+		{"valid path", "/api/v1/telemetry", false},
+		{"valid path with param", "/api/v1/telemetry/{id}", false},
+		{"valid wildcard", "/api/v1/telemetry/*", false},
+		{"missing leading slash", "api/v1/telemetry", true},
+		{"path traversal", "../../../etc/passwd", true},
+		{"null byte injection", "/api/test\x00secret", true},
+		{"shell injection", "/api/test; rm -rf /", true},
+		{"too long path", strings.Repeat("/a", 300), true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reqPath := filepath.Join(tmpDir, "test-requirements.md")
+			reqContent := fmt.Sprintf("# Requirements\n\n### POST %s\n- Request: {field}\n", tc.path)
+			if err := os.WriteFile(reqPath, []byte(reqContent), 0644); err != nil {
+				t.Fatalf("Failed to create requirements file: %v", err)
+			}
+
+			agent := NewContractSynthesizer()
+			_, err := agent.AnalyzeRequirements(reqPath)
+
+			if tc.shouldFail {
+				if err == nil {
+					t.Errorf("Expected error for path %q, but got none", tc.path)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error for path %q, got: %v", tc.path, err)
+				}
+			}
+		})
+	}
+}
+
+// TestInjectionPrevention_InvalidFieldNames verifies that invalid field names are rejected
+func TestInjectionPrevention_InvalidFieldNames(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	testCases := []struct {
+		name       string
+		fieldName  string
+		shouldFail bool
+	}{
+		{"valid name", "event_name", false},
+		{"valid name with underscore", "_private_field", false},
+		{"sql injection attempt", "name; DROP TABLE users", true},
+		{"xss attempt", "<script>alert('xss')</script>", true},
+		{"starts with number", "1field", true},
+		{"shell metacharacters", "field|cat /etc/passwd", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reqPath := filepath.Join(tmpDir, "test-requirements.md")
+			reqContent := fmt.Sprintf("# Requirements\n\n### POST /api/test\n- Request: {%s}\n", tc.fieldName)
+			if err := os.WriteFile(reqPath, []byte(reqContent), 0644); err != nil {
+				t.Fatalf("Failed to create requirements file: %v", err)
+			}
+
+			agent := NewContractSynthesizer()
+			_, err := agent.AnalyzeRequirements(reqPath)
+
+			if tc.shouldFail {
+				if err == nil {
+					t.Errorf("Expected error for field name %q, but got none", tc.fieldName)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error for field name %q, got: %v", tc.fieldName, err)
+				}
+			}
+		})
+	}
 }
