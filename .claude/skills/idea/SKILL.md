@@ -1,13 +1,13 @@
 ---
 name: idea
-description: Interactive requirements gathering with deep interviewing
+description: Interactive requirements gathering with progressive disclosure
 tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
-version: 3.1.0
+version: 4.0.0
 ---
 
-# @idea - Requirements Gathering
+# @idea - Requirements Gathering with Progressive Disclosure
 
-Deep interviewing to capture comprehensive feature requirements. Creates markdown spec, optionally creates Beads task if enabled.
+Deep interviewing to capture comprehensive feature requirements using progressive disclosure (3-question cycles). Creates markdown spec, optionally creates Beads task.
 
 ## When to Use
 
@@ -19,10 +19,23 @@ Deep interviewing to capture comprehensive feature requirements. Creates markdow
 
 ```bash
 @idea "feature description"
+@idea "feature description" --quiet    # Minimal questions (core only)
 @idea "feature description" --spec path/to/SPEC.md  # with existing spec
 ```
 
-## Workflow
+## Progressive Disclosure Workflow
+
+### Overview
+
+**Question Target:**
+- Minimum: 12 questions (bounded exploration)
+- Maximum: 27 questions (deep analysis)
+- Average: 18-20 questions per feature
+
+**3-Question Cycles:**
+1. Ask 3 focused questions
+2. Offer trigger point after each cycle
+3. User chooses: continue / deep design / skip to @design
 
 ### Step 1: Read Context
 
@@ -31,9 +44,9 @@ Read(PRODUCT_VISION.md)  # Align with project goals
 Glob("docs/specs/**/*")   # Similar features
 ```
 
-### Step 2: Vision Interview (AskUserQuestion)
+### Step 2: Vision Interview (Cycle 1 - 3 Questions)
 
-Ask product-level questions first:
+AskUserQuestion with trigger point:
 
 ```markdown
 AskUserQuestion({
@@ -49,29 +62,76 @@ AskUserQuestion({
        {"label": "Core to mission", "description": "Directly supports vision"},
        {"label": "Enables mission", "description": "Supporting capability"},
        {"label": "New direction", "description": "May need vision update"}
+     ]},
+    {"question": "Who are the primary users?", "header": "Users",
+     "options": [
+       {"label": "End users", "description": "Direct consumers"},
+       {"label": "Developers", "description": "Internal tooling"},
+       {"label": "Admins", "description": "Management/ops"}
+     ]}
+  ],
+  "multiSelect": false
+})
+
+# TRIGGER POINT (after 3 questions)
+AskUserQuestion({
+  "questions": [
+    {"question": "Continue exploring requirements? (3-question cycle complete)",
+     "header": "Depth",
+     "multiSelect": false,
+     "options": [
+       {"label": "Continue (Recommended)", "description": "More questions to understand requirements"},
+       {"label": "Deep design", "description": "Jump to @design with detailed architectural exploration"},
+       {"label": "Skip to @design", "description": "Move to workstream decomposition with current info"}
      ]}
   ]
 })
 ```
 
-### Step 3: Deep Dive Interview
+### Step 3: Technical Interview (Cycles 2-5)
 
-Continue with technical questions until complete:
+Continue 3-question cycles based on user choice:
 
-**Topics to cover:**
-- Problem & users
-- Technical approach (storage, failure modes)
-- UI/UX specifics
-- Security & performance
-- Testing strategy
-- Edge cases & tradeoffs
+**Cycle 2 - Problem & Users (3 questions):**
+- What problem does this solve?
+- What are the user pain points?
+- What happens if we don't build this?
 
-**DON'T ask obvious questions.** Instead ask about:
-- Ambiguities and hidden assumptions
-- Tradeoffs between approaches
-- Failure modes and edge cases
+**Cycle 3 - Technical Approach (3 questions):**
+- Storage/data requirements?
+- Failure modes to handle?
+- Integration points?
 
-### Step 4: Create Beads Task
+**Cycle 4 - UI/UX & Quality (3 questions):**
+- UI/UX requirements?
+- Performance targets?
+- Security considerations?
+
+**Cycle 5 - Testing & Edge Cases (3 questions):**
+- Testing strategy?
+- Edge cases to handle?
+- Success metrics?
+
+After each cycle, offer trigger point (Continue / Deep design / Skip).
+
+### Step 4: TMI Detection
+
+If user provides extensive detail upfront (indicators):
+
+```markdown
+# TMI Indicators:
+- "detailed spec", "full implementation", "complete architecture"
+- "here's the full code", "let me describe everything"
+- User writes >500 characters in initial prompt
+
+# Response:
+"I notice you've provided detailed context. Would you like me to:
+- Continue with targeted questions (recommended)
+- Skip to @design with your detailed spec
+- Use --quiet mode for minimal questions"
+```
+
+### Step 5: Create Beads Task
 
 ```python
 from sdp.beads import create_beads_client, BeadsTaskCreate, BeadsPriority
@@ -97,26 +157,21 @@ task = client.create_task(BeadsTaskCreate(
         "feature_type": "idea",
         "mission": mission_answer,
         "product_vision_alignment": alignment_answer,
+        "question_count": len(interview_answers),
     }
 ))
 
 print(f"✅ Created: {task.id}")
 ```
 
-### Step 5: Create Intent File
+## --quiet Mode
 
-```python
-import json
+Minimal questions (3-5 core questions only):
+1. Mission?
+2. Users?
+3. Core requirement?
 
-with open(f"docs/intent/{task.id}.json", "w") as f:
-    json.dump({
-        "task_id": task.id,
-        "title": task.title,
-        "mission": mission_answer,
-        "alignment": alignment_answer,
-        "interview_answers": all_answers,
-    }, f, indent=2)
-```
+Skip deep-dive cycles, move directly to @design.
 
 ## Output
 
@@ -124,7 +179,7 @@ with open(f"docs/intent/{task.id}.json", "w") as f:
 
 **Secondary:**
 - `docs/intent/{task_id}.json` — Machine-readable intent
-- Optional: `docs/drafts/beads-{task_id}.md` — Human-readable export
+- Question count included in metadata
 
 ## Next Steps
 
@@ -136,23 +191,37 @@ bd ready             # Check ready tasks
 
 ## Key Principles
 
-1. **Start broad, go deep** — foundational questions first
-2. **Product vision first** — align before technical details
-3. **No obvious questions** — explore tradeoffs, not yes/no
-4. **Continue until complete** — no ambiguities remain
+1. **Progressive disclosure** — 3 questions at a time
+2. **User-controlled depth** — trigger points after each cycle
+3. **Respect brevity** --quiet mode for experienced users
+4. **No obvious questions** — explore tradeoffs, not yes/no
+5. **TMI detection** — offer shortcuts when user over-explains
 
 ## Example Session
 
 ```bash
 @idea "Add user authentication"
 
-# Vision interview...
-# Technical interview...
+# Cycle 1: Vision (3 questions)
+# [Mission] What is the core mission?
+# [Alignment] How does this align with vision?
+# [Users] Who are the primary users?
+
+# TRIGGER: Continue? (yes/deep design/skip)
+# User selects: Continue
+
+# Cycle 2: Problem (3 questions)
+# ...
+
+# TRIGGER: Continue? (yes/deep design/skip)
+# User selects: Deep design
+
+# Jump to @design with architectural exploration
 
 ✅ Created Beads task: bd-0001
    Title: Add user authentication
+   Questions asked: 6
    Priority: HIGH
-   Intent: docs/intent/bd-0001.json
 
 # Next:
 @design bd-0001
@@ -162,12 +231,13 @@ bd ready             # Check ready tasks
 
 | Command | Purpose |
 |---------|---------|
-| `@idea "feature"` | Create task with requirements |
+| `@idea "feature"` | Create task with progressive interview |
+| `@idea "feature" --quiet` | Minimal questions (3-5 core only) |
 | `@think "complex"` | Deep analysis before @idea |
 | `bd show {id}` | View task details |
 | `@design {id}` | Decompose into workstreams |
 
 ---
 
-**Version:** 3.0.0  
+**Version:** 4.0.0 (Progressive Disclosure)
 **See Also:** `@design`, `@build`, `@think`
