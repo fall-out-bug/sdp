@@ -25,15 +25,15 @@ During SDP-assisted feature implementation, agents ignored component integration
 - Clean architecture layers
 
 **Missing critical aspects:**
-- API contract definition (OpenAPI/Swagger/protobuf)
-- Integration point specification
-- Endpoint alignment validation
-- Contract-first design methodology
+- Automated code analysis to extract existing contracts
+- Integration point discovery from codebase
+- Endpoint mismatch detection
+- Automated contract generation/validation
 
 **Why this happens:**
-1. @idea asks about requirements but NOT integration contracts
-2. @design creates workstreams but NOT API specifications
-3. @build implements in isolation without contract validation
+1. @design creates NEW code but doesn't analyze EXISTING integration points
+2. No automated scanning of backend routes/frontend calls/SDK methods
+3. No cross-component validation during design phase
 4. @review checks code quality but NOT integration compatibility
 
 ## Impact Assessment
@@ -59,33 +59,40 @@ Result: 404 Not Found
 
 ### Phase 1: Contract-First Design (00-053-01 to 00-053-04)
 
-**1.1 Update @idea Skill**
-Add contract-focused questions:
-- "What are the API contracts between components?"
-- "Which components need to communicate?"
-- "Are there existing contracts to extend?"
-- "Will this use REST, gRPC, WebSocket, or message queue?"
+**1.1 Update @design Skill**
+Add code analysis workstreams (NO manual questions to user):
+- Scan existing backend code → extract routes/endpoints
+- Scan frontend code → extract API calls
+- Scan SDK code → extract public methods
+- Compare and find mismatches
+- Generate integration report
 
-**1.2 Update @design Skill**
-Add contract specification workstreams:
-- Generate OpenAPI/Swagger specs
-- Define protobuf messages if using gRPC
-- Document integration points
-- Create sequence diagrams for component interaction
+**1.2 Contract Extraction Agent**
+Implement automated contract discovery:
+```bash
+sdp contract extract --component=backend
+# Analyzes Go/Python/Node code
+# Extracts: routes, handlers, request/response types
+# Generates: openapi.yaml
+```
 
-**1.3 Add Contract Validation**
-Create `sdp contract validate` command:
-- Check OpenAPI spec completeness
-- Validate endpoint consistency across components
-- Verify request/response schemas match
-- Ensure all integration points are documented
+**1.3 Contract Validation Agent**
+Implement automated contract validation:
+```bash
+sdp contract validate
+# Cross-references:
+# - Frontend fetch() calls vs backend routes
+# - SDK methods vs backend endpoints
+# - Request/response schema consistency
+# Reports mismatches with file locations
+```
 
 **1.4 Update @review Checklist**
-Add contract compliance checks:
-- [ ] API contract exists (OpenAPI/protobuf)
-- [ ] All endpoints match contract
-- [ ] Request/response schemas documented
-- [ ] Integration points validated
+Add automated contract compliance checks:
+- [ ] Contract extraction ran successfully
+- [ ] No endpoint mismatches found
+- [ ] All integration points documented
+- [ ] Frontend-backend alignment verified
 
 ### Phase 2: Tooling Support (00-053-05 to 00-053-07)
 
@@ -118,32 +125,34 @@ sdp contract mock --port=8080
 
 ### Workstreams
 
-**WS 00-053-01:** Update @idea skill - add contract questions  
-**WS 00-053-02:** Update @design skill - add contract spec generation  
-**WS 00-053-03:** Implement `sdp contract validate` command  
-**WS 00-053-04:** Update @review - add contract compliance checks  
-**WS 00-053-05:** Implement contract generator  
-**WS 00-053-06:** Implement contract linter  
-**WS 00-053-07:** Implement mock server generator  
+**WS 00-053-01:** Code analysis agent - extract endpoints from existing code
+**WS 00-053-02:** Contract generation agent - create OpenAPI/protobuf from code
+**WS 00-053-03:** Contract validation agent - cross-reference components
+**WS 00-053-04:** Update @design skill - add contract analysis phase
+**WS 00-053-05:** Implement `sdp contract extract` CLI command
+**WS 00-053-06:** Implement `sdp contract validate` CLI command
+**WS 00-053-07:** Update @review skill - add contract validation
 
 ### Dependencies
-- 00-053-01 → 00-053-02 (design depends on idea)
-- 00-053-02 → 00-053-03 (validate needs specs)
-- 00-053-03 → 00-053-04 (review uses validation)
-- 00-053-03 → 00-053-05, 00-053-06, 00-053-07 (parallel tooling)
+- 00-053-01 → 00-053-02 (extraction before generation)
+- 00-053-02 → 00-053-03 (generation before validation)
+- 00-053-03 → 00-053-04 (validation logic used in @design)
+- 00-053-01 → 00-053-05 (extraction agent used by CLI)
+- 00-053-03 → 00-053-06 (validation agent used by CLI)
 
 ## Success Criteria
 
 **Functional:**
-1. @idea asks about integration contracts
-2. @design generates OpenAPI/protobuf specs
-3. @review validates contract compliance
-4. No more integration mismatches
+1. Agents automatically extract contracts from existing code
+2. @design analyzes integration points without human input
+3. `sdp contract validate` detects endpoint mismatches
+4. @review enforces contract compliance
 
 **Quality:**
-- Contract completeness ≥ 90%
-- Integration validation coverage 100%
+- Contract extraction accuracy ≥ 95%
+- Integration mismatch detection 100%
 - Rework due to contract issues reduced by 80%
+- Zero manual contract maintenance required
 
 ## Migration Guide
 
