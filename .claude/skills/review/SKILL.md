@@ -1,13 +1,13 @@
 ---
 name: review
-description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation)
+description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + Contract Validation)
 tools: Read, Bash, Grep, Task
-version: 6.0.0
+version: 7.0.0
 ---
 
 # @review - Multi-Agent Quality Review
 
-Spawn specialist agents for comprehensive quality review.
+Spawn specialist agents for comprehensive quality review including contract validation.
 
 ## Invocation
 
@@ -439,6 +439,7 @@ bd sync
    - L1 (Vision → Specs): PASS (100% coverage)
    - L2 (Specs → Code): PASS (0% drift)
    - L3 (Vision → Code): PASS (all delivered)
+📝 Contract: PASS (0 mismatches)
 📌 Beads: {updated if enabled}
 ```
 
@@ -458,11 +459,85 @@ bd sync
 Findings tracked: {N issues}
 ```
 
+### Step 5: Contract Validation (NEW - CRITICAL QUALITY GATE)
+
+**Purpose:** Ensure implementation matches agreed contract before approval.
+
+**Run contract validation:**
+```bash
+# Check if contract exists
+if [ -f ".contracts/{feature_id}.yaml" ]; then
+  echo "✓ Contract found"
+
+  # Run contract validation
+  sdp contract validate \
+    --contracts .contracts/{feature_id}.yaml \
+    --contracts .contracts/{component}-backend.yaml \
+    --output .contracts/validation-report.md
+
+  # Check validation result
+  error_count=$(grep -c "^|.*ERROR" .contracts/validation-report.md || echo "0")
+  warning_count=$(grep -c "^|.*WARNING" .contracts/validation-report.md || echo "0")
+
+  if [ "$error_count" -gt 0 ]; then
+    echo "✗ Contract validation failed: $error_count errors found"
+    echo "Review: .contracts/validation-report.md"
+    return 1  # Block review
+  fi
+
+  if [ "$warning_count" -gt 0 ]; then
+    echo "⚠ Contract warnings: $warning_count warnings (check report)"
+  fi
+
+  echo "✓ Contract validation passed"
+else
+  echo "⚠ No contract found - skipping validation"
+fi
+```
+
+**Review contract compliance:**
+```bash
+# Verify contract lock exists (if contract was synthesized)
+if [ -f ".contracts/{feature_id}.yaml" ]; then
+  if [ ! -f ".contracts/{feature_id}.yaml.lock" ]; then
+    echo "⚠ Contract exists but not locked - consider locking"
+  else
+    echo "✓ Contract locked"
+  fi
+fi
+```
+
+**Checklist:**
+- [ ] Contract validation passed (if contract exists)
+- [ ] No endpoint mismatches
+- [ ] No schema incompatibilities
+- [ ] All integration points verified
+- [ ] Contract locked (if synthesized)
+
+**Output:**
+```
+## Contract Validation
+- Contract: {feature_id}.yaml
+- Validation: {PASS/SKIP}
+- Errors: {count}
+- Warnings: {count}
+- Verdict: {PASS/FAIL}
+```
+
+**CRITICAL:** Contract validation with ERRORs blocks review approval.
+
 ## Parallel Execution Pattern
 
 6 agents spawned simultaneously (via 6 Task calls) following `.claude/skills/think/SKILL.md` pattern.
 
 ## Version
+
+**7.0.0** - Contract Validation Integration
+- Added Step 5: Contract Validation (CRITICAL QUALITY GATE)
+- Validates implementation matches agreed contract
+- Checks for endpoint mismatches and schema incompatibilities
+- Blocks review if contract validation fails
+- Integrates with `sdp contract validate` command
 
 **6.0.0** - Multi-agent review (QA + Security + DevOps + SRE + TechLead + Documentation & Drift)
 - Agent 6 checks drift at 3 levels: Vision → Specs → Code
