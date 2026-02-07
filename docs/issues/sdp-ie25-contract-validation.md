@@ -25,16 +25,32 @@ During SDP-assisted feature implementation, agents ignored component integration
 - Clean architecture layers
 
 **Missing critical aspects:**
-- Automated code analysis to extract existing contracts
-- Integration point discovery from codebase
-- Endpoint mismatch detection
-- Automated contract generation/validation
+- PRE-CODE contract agreement (before parallel implementation)
+- Multi-agent contract synthesis
+- Conflict resolution for integration points
+- Contract-first parallel execution workflow
 
 **Why this happens:**
-1. @design creates NEW code but doesn't analyze EXISTING integration points
-2. No automated scanning of backend routes/frontend calls/SDK methods
-3. No cross-component validation during design phase
-4. @review checks code quality but NOT integration compatibility
+1. @design creates workstreams but doesn't specify contracts
+2. Agents implement components in PARALLEL without coordination
+3. No contract agreement phase BEFORE writing code
+4. Each agent "implements as they see it"
+5. Integration validation only happens AFTER code is written (too late!)
+
+**Real-world example (user's project):**
+```
+Time T0: Requirements gathered via @idea
+Time T1: 4 agents start implementation in parallel:
+  - Frontend agent:  → implements POST /api/v1/telemetry/submit
+  - Backend agent:   → implements POST /api/v1/telemetry/events
+  - SDK agent:       → implements telemetryClient.submit(data)
+  - Infra agent:     → implements collector setup
+Time T2: All components report "complete"
+Time T3: Integration test → 404 Not Found
+
+Problem: No contract agreement at T0-T1, agents diverged
+Solution: Contract synthesis MUST happen BEFORE T1
+```
 
 ## Impact Assessment
 
@@ -57,7 +73,73 @@ Result: 404 Not Found
 
 ## Proposed Solution
 
-### Phase 1: Contract-First Design (00-053-01 to 00-053-04)
+### Phase 0: Contract Synthesis (BEFORE Implementation)
+
+**Critical insight:** Contract agreement MUST happen BEFORE agents write code.
+
+**Workflow:**
+```
+@feature "Add telemetry"
+  ↓
+@idea (gather requirements)
+  ↓
+@design creates workstreams
+  ↓
+**NEW: Contract Synthesis Phase**
+  ↓
+Architect Agent proposes initial contract
+  ↓
+Multi-Agent Review (parallel):
+  - Frontend Agent: "Need /batch endpoint"
+  - Backend Agent:  "Works for us"
+  - SDK Agent:      "Matches our method naming"
+  ↓
+Synthesizer Agent resolves conflicts
+  ↓
+All agents agree → FIXED CONTRACT
+  ↓
+Now parallel implementation can begin
+```
+
+**0.1 Contract Synthesis Agent** (NEW)
+```bash
+sdp contract synthesize --feature=telemetry
+
+# Analyzes requirements
+# Proposes openapi.yaml
+# Sends to frontend/backend/sdk agents
+# Collects feedback
+# Resolves conflicts via synthesis rules
+# Outputs: agreed_contract.yaml
+```
+
+**0.2 Contract Agreement Protocol**
+```yaml
+phase: contract_synthesis
+participants:
+  - architect: proposes initial contract
+  - frontend: reviews from client perspective
+  - backend: reviews from server perspective
+  - sdk: reviews from library perspective
+  - synthesizer: resolves conflicts
+
+synthesis_rules:
+  - domain_expertise: frontend/backend/sdk have veto
+  - quality_gate: all must agree
+  - merge: combine suggestions
+  - escalate: human if unresolved
+```
+
+**0.3 Contract Lock**
+```bash
+# Once agreed, contract is locked
+sdp contract lock --feature=telemetry --sha=abc123
+
+# Implementation must match locked contract
+# @build checks compliance automatically
+```
+
+### Phase 1: Contract Extraction & Validation (POST-Implementation)
 
 **1.1 Update @design Skill**
 Add code analysis workstreams (NO manual questions to user):
@@ -123,36 +205,52 @@ sdp contract mock --port=8080
 
 ## Implementation Plan
 
-### Workstreams
+### Phase 0: Contract Synthesis (PRE-Implementation)
+
+**WS 00-053-00:** Contract synthesis agent - multi-agent agreement
+- Analyzes requirements from @idea
+- Architect agent proposes initial contract
+- Frontend/backend/sdk agents review in parallel
+- Synthesizer resolves conflicts
+- Outputs locked contract (YAML/protobuf)
+- MUST complete before parallel implementation
+
+### Phase 1: Contract Extraction & Validation (POST-Implementation)
 
 **WS 00-053-01:** Code analysis agent - extract endpoints from existing code
 **WS 00-053-02:** Contract generation agent - create OpenAPI/protobuf from code
 **WS 00-053-03:** Contract validation agent - cross-reference components
-**WS 00-053-04:** Update @design skill - add contract analysis phase
-**WS 00-053-05:** Implement `sdp contract extract` CLI command
-**WS 00-053-06:** Implement `sdp contract validate` CLI command
-**WS 00-053-07:** Update @review skill - add contract validation
+**WS 00-053-04:** Update @design skill - add contract synthesis phase
+**WS 00-053-05:** Implement `sdp contract synthesize` CLI command
+**WS 00-053-06:** Implement `sdp contract lock` CLI command
+**WS 00-053-07:** Update @review skill - add contract compliance checks
 
 ### Dependencies
+**Phase 0 (Critical Path):**
+- 00-053-00 MUST complete before any component implementation starts
+- Contract lock prevents agent divergence
+
+**Phase 1:**
 - 00-053-01 → 00-053-02 (extraction before generation)
 - 00-053-02 → 00-053-03 (generation before validation)
 - 00-053-03 → 00-053-04 (validation logic used in @design)
-- 00-053-01 → 00-053-05 (extraction agent used by CLI)
-- 00-053-03 → 00-053-06 (validation agent used by CLI)
+- 00-053-00 → 00-053-05 (synthesis agent used by CLI)
+- 00-053-00 → 00-053-06 (synthesis outputs lockable contract)
 
 ## Success Criteria
 
 **Functional:**
-1. Agents automatically extract contracts from existing code
-2. @design analyzes integration points without human input
-3. `sdp contract validate` detects endpoint mismatches
-4. @review enforces contract compliance
+1. **PRE-CODE:** Contract synthesis happens BEFORE implementation
+2. Multi-agent agreement via synthesis rules (domain expertise veto)
+3. Locked contract guides parallel implementation
+4. POST-CODE: Validation detects implementation drift
+5. Zero integration mismatches in shipped features
 
 **Quality:**
-- Contract extraction accuracy ≥ 95%
-- Integration mismatch detection 100%
-- Rework due to contract issues reduced by 80%
-- Zero manual contract maintenance required
+- Contract synthesis success rate ≥ 95% (auto-resolution without human)
+- Contract compliance 100% (implementation matches contract)
+- Rework due to contract issues reduced by 90%
+- Parallel agent implementation synchronized from day 1
 
 ## Migration Guide
 
