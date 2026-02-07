@@ -11,6 +11,7 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 ### Quick Start (3 Commands)
 
 ```bash
+@vision "AI-powered task manager"     # Strategic planning
 @feature "Add user authentication"    # Plan feature
 @build 00-001-01                      # Execute workstream
 @review F01                           # Quality check
@@ -22,7 +23,103 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 **⚠️ Workstream ID Format:** Use `PP-FFF-SS` (e.g., `00-001-01`), NOT legacy `WS-FFF-SS`
 
-## Decision Tree: @feature vs @oneshot
+## Decision Tree: @vision vs @feature vs @oneshot
+
+### Three-Level Planning Model
+
+**SDP has three orchestrators for different planning levels:**
+
+```
+Strategic Level                 Feature Level                Execution Level
+┌──────────────────┐           ┌──────────────────┐         ┌──────────────────┐
+│     @vision      │           │    @feature      │         │    @oneshot      │
+│  (strategic)     │           │   (planning)     │         │   (execution)    │
+└──────────────────┘           └──────────────────┘         └──────────────────┘
+         │                              │                             │
+         ▼                              ▼                             ▼
+  7 Expert Agents                @idea + @design            @build (all WS)
+  (deep analysis)               (requirements + WS)         (implement)
+         │                              │                             │
+         ▼                              ▼                             ▼
+  Product Artifacts              workstreams                 @review + @deploy
+  (VISION, PRD, ROADMAP)        (00-FFF-SS.md)              (quality + merge)
+```
+
+### Level Comparison
+
+| Aspect | @vision | @feature | @oneshot |
+|--------|---------|----------|----------|
+| **Purpose** | Strategic product planning | Feature planning (requirements + workstreams) | Execute workstreams |
+| **Input** | Product idea ("AI task manager") | Feature description ("Add OAuth") | Feature ID (F01) or WS list |
+| **Output** | PRODUCT_VISION.md, PRD.md, ROADMAP.md | Workstream files (00-FFF-SS.md) | Implemented code + deployed feature |
+| **Duration** | Quarterly/annual review | Per feature | Per feature |
+| **Agents** | 7 experts (product, market, technical, UX, business, growth, risk) | @idea + @design | @build + @review + @deploy |
+| **When to Use** | New project, major pivot, quarterly planning | Starting new feature from scratch | Workstreams exist, ready to implement |
+| **Human Interaction** | Medium (3-5 interview cycles) | Heavy (AskUserQuestion, ExitPlanMode) | Minimal (only critical blockers) |
+
+### When to Use Each Level
+
+**Use @vision when:**
+- ✅ Starting a new project or product
+- ✅ Quarterly strategic review
+- ✅ Major pivot or direction change
+- ✅ Need comprehensive product analysis
+- ✅ Want expert analysis across 7 dimensions (product, market, technical, UX, business, growth, risk)
+
+**Use @feature when:**
+- ✅ You have a feature idea but no workstreams
+- ✅ You need to explore requirements (@idea)
+- ✅ You need to design architecture (@design)
+- ✅ You want interactive planning (questions, tradeoffs)
+- ✅ Product vision already exists
+
+**Use @oneshot when:**
+- ✅ Workstreams already exist (from @feature or @design)
+- ✅ You want autonomous execution (no human interaction)
+- ✅ You have 5-30 workstreams to execute
+- ✅ You want checkpoint/resume capability
+
+### Typical Full Flow
+
+```bash
+# Step 1: Strategic planning (quarterly or new project)
+@vision "AI-powered task manager for remote teams"
+# → 7 expert agents analyze product, market, technical, UX, business, growth, risk
+# → Generates: PRODUCT_VISION.md, PRD.md, ROADMAP.md
+# → Result: Clear strategic direction
+
+# Step 2: Feature planning (per feature)
+@feature "Add OAuth2 authentication"
+# → @idea gathers requirements
+# → @design creates workstreams
+# → Result: 00-001-01.md, 00-001-02.md, ... in docs/workstreams/backlog/
+
+# Step 3: Execution (autonomous)
+@oneshot F01
+# → @build executes all workstreams
+# → @review checks quality
+# → @deploy merges to main
+# → Result: Feature shipped
+```
+
+### Skip @vision if:
+- Product vision already exists (PRODUCT_VISION.md present)
+- Working on existing product (not new project)
+- Incremental feature (not major pivot)
+
+### Skip @feature if:
+- Workstreams already exist (from previous @design)
+- You created workstreams manually
+- You just want to execute existing WS
+
+### Skip @oneshot if:
+- Only 1-2 workstreams (use @build directly)
+- You want manual control over each WS
+- You're learning the system (use @build to understand workflow)
+
+## Decision Tree: @feature vs @oneshot (Legacy)
+
+> **Note:** This section preserved for historical context. See above for updated three-level model.
 
 ### Mental Model
 
@@ -103,6 +200,7 @@ Planning Phase                  Execution Phase
 
 | Skill | Purpose | Phase | Example |
 |-------|---------|-------|---------|
+| `@vision` | **Strategic product planning** (7 expert agents) | Strategic | `@vision "AI-powered task manager"` |
 | `@feature` | **Planning orchestrator** (interactive) | Planning | `@feature "Add payment processing"` |
 | `@idea` | **Requirements gathering** (AskUserQuestion) | Planning | `@idea "Add payment processing"` |
 | `@design` | **Workstream design** (EnterPlanMode) | Planning | `@design idea-payments` |
@@ -123,6 +221,7 @@ Planning Phase                  Execution Phase
 Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 **Claude Code Integration Highlights:**
+- `@vision` — Strategic planning: 7 expert agents (product, market, technical, UX, business, growth, risk) → PRODUCT_VISION.md, PRD.md, ROADMAP.md
 - `@feature` — Planning orchestrator: @idea (requirements) → @design (workstreams)
 - `@idea` — Deep interviewing via AskUserQuestion (no obvious questions, explores tradeoffs)
 - `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
@@ -165,7 +264,30 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 ### Typical Workflow
 
-**Option A: Interactive Planning (recommended for new features)**
+**Option A: Full Strategic Planning (recommended for new projects)**
+
+```bash
+# 1. Strategic phase: @vision (quarterly or new project)
+@vision "AI-powered task manager for remote teams"
+# → 7 expert agents analyze across all dimensions
+# → Generates: PRODUCT_VISION.md, PRD.md, ROADMAP.md
+# Result: Clear strategic direction and feature roadmap
+
+# 2. Planning phase: @feature (per feature)
+@feature "User can reset password via email"
+# → @idea gathers requirements (AskUserQuestion)
+# → @design creates workstreams (ExitPlanMode)
+# Result: 00-050-01.md, 00-050-02.md, ... in docs/workstreams/backlog/
+
+# 3. Execution phase: @oneshot (autonomous)
+@oneshot F050
+# → @build executes all workstreams
+# → @review checks quality
+# → @deploy merges to main
+# Result: Feature shipped
+```
+
+**Option B: Interactive Feature Planning (skip @vision)**
 
 ```bash
 # 1. Planning phase: @feature (combines @idea + @design)
