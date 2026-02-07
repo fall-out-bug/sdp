@@ -792,3 +792,82 @@ Add to step 3 of Typical Workflow:
 - Reduces pragmatic adaptation overhead
 - Maintains architectural integrity
 
+
+## Multi-Agent Architecture (v4.0)
+
+SDP now uses a **four-level planning model** with multi-agent synthesis:
+
+### Planning Levels
+
+| Level | Orchestrator | Purpose | Output |
+|-------|-------------|---------|--------|
+| **Strategic** | @vision (7 agents) | Product planning | VISION, PRD, ROADMAP |
+| **Analysis** | @reality (8 agents) | Codebase analysis | Reality report |
+| **Feature** | @feature (@idea + @design) | Requirements + WS | Workstreams |
+| **Execution** | @oneshot (@build) | Parallel execution | Implemented code |
+
+### When to Use Each Level
+
+**Use @vision when:**
+- Starting new project or product
+- Quarterly strategic review
+- Major pivot or direction change
+- Need comprehensive product analysis (7 dimensions)
+
+**Use @reality when:**
+- New to project (what's actually here?)
+- Before @feature (what can we build on?)
+- Quarterly review (track tech debt)
+- Want 8-expert codebase analysis
+
+**Use @feature when:**
+- You have a feature idea but no workstreams
+- Need interactive planning (@idea → @design)
+- Want progressive discovery blocks
+
+**Use @oneshot when:**
+- Workstreams exist, ready to execute
+- Want autonomous execution (no human interaction)
+- Have 5-30 workstreams to execute
+
+### Decision Tree
+
+```
+New project?
+├─ Yes → @vision (strategic) → @reality (analysis)
+└─ No → Working on existing project?
+    ├─ Yes → What's the state?
+    │   ├─ Don't know → @reality --quick
+    │   └─ Know state → @feature "add feature"
+    └─ No → Workstreams exist?
+        ├─ Yes → @oneshot F050
+        └─ No → @feature "plan feature"
+```
+
+### Progressive Disclosure
+
+All skills use progressive disclosure to reduce question fatigue:
+
+**@idea:** 3-question cycles with trigger points
+- Min: 12 questions | Max: 27 questions | Avg: 18 questions
+- Trigger: Continue / Deep design / Skip
+
+**@design:** 3-5 discovery blocks
+- Each block: 3 questions
+- Trigger: Continue / Skip block / Done
+
+### Multi-Agent Synthesis
+
+When multiple agents propose different solutions, the **Synthesizer** resolves conflicts:
+
+1. **Unanimous** (Priority 1) - All agents agree
+2. **Domain Expertise** (Priority 2) - Highest confidence wins
+3. **Quality Gate** (Priority 3) - Best quality score
+4. **Merge** (Priority 4) - Combine best parts
+5. **Escalate** (Priority 5) - Ask human
+
+See `docs/reference/agent-catalog.md` for complete agent documentation.
+
+---
+
+**Version:** 4.0.0 (Multi-Agent SDP)
