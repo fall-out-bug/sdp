@@ -1,186 +1,116 @@
 ---
 name: design
-description: Multi-agent system design (Arch + Security + SRE)
-tools: Read, Write, Bash, AskUserQuestion, Task
+description: System design with progressive disclosure
+tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 version: 4.0.0
 ---
 
-# @design - Multi-Agent System Design
+# @design - System Design with Progressive Disclosure
 
-Spawn expert agents for architecture + security + reliability design.
+Multi-agent system design (Arch + Security + SRE) with progressive discovery blocks.
 
 ## When to Use
 
-- After @feature (requirements complete)
-- Before implementation
-- Architecture decisions needed
-- Security/reliability requirements
+- After @idea requirements gathering
+- Need architecture decisions
+- Creating workstream breakdown
 
-## Workflow
+## Invocation
 
-### Step 1: Read Feature Spec
-
-**Priority:**
-1. Markdown: `Read("docs/drafts/{feature}.md")`
-2. Beads (optional): `bd show {feature-id}`
-
-**Detect Beads:**
 ```bash
-if bd --version &>/dev/null && [ -d .beads ]; then
-  BEADS_ENABLED=true
-else
-  BEADS_ENABLED=false
-fi
+@design <task_id>
+@design <task_id> --quiet    # Minimal design blocks
+@design "feature description"  # Skip @idea, design directly
 ```
 
-### Step 2: Spawn Design Agents (PARALLEL)
+## Progressive Discovery Workflow
 
-```python
-# Agent 1: System Architect
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the SYSTEM ARCHITECT expert.
+### Overview
 
-Read .claude/agents/system-architect.md for your specification.
+**Discovery Blocks:** 3-5 focused blocks (not one big questionnaire)
 
-FEATURE: {feature_spec}
+**Block Structure:**
+- Each block: 3 questions
+- After each block: trigger point (Continue / Skip block / Done)
+- User can skip blocks not relevant to feature
 
-Your task:
-1. Design system architecture (pattern, components)
-2. Select technology stack
-3. Define quality attributes (performance, scalability)
-4. Document ADRs (Architecture Decision Records)
+### Discovery Blocks
 
-Output format:
-## System Architecture
-{pattern, components, tech stack, quality attributes, ADRs}
+**Block 1: Data & Storage (3 questions)**
+- Data models?
+- Storage requirements?
+- Persistence strategy?
 
-BEADS_INTEGRATION:
-If Beads enabled:
-- Review architecture in feature Beads task
-- Link ADRs to workstreams
-- Otherwise: Skip
-""",
-    description="System architecture"
-)
+**Block 2: API & Integration (3 questions)**
+- API endpoints?
+- External integrations?
+- Authentication/authorization?
 
-# Agent 2: Security
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the SECURITY expert.
+**Block 3: Architecture (3 questions)**
+- Component structure?
+- Layer boundaries?
+- Error handling strategy?
 
-Read .claude/agents/security.md for your specification.
+**Block 4: Security (3 questions)**
+- Input validation?
+- Sensitive data handling?
+- Rate limiting?
 
-FEATURE: {feature_spec}
+**Block 5: Operations (3 questions)**
+- Monitoring?
+- Deployment?
+- Rollback strategy?
 
-Your task:
-1. Identify threats (threat modeling)
-2. Design authentication/authorization
-3. Define data protection (encryption)
-4. Ensure compliance (GDPR/SOC2/etc)
-
-Output format:
-## Security Assessment
-{threat model, auth design, data protection, compliance}
-
-BEADS_INTEGRATION:
-If Beads enabled:
-- Create security tasks for gaps
-- Track compliance in Beads
-- Otherwise: Skip
-""",
-    description="Security design"
-)
-
-# Agent 3: SRE
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the SRE expert.
-
-Read .claude/agents/sre.md for your specification.
-
-FEATURE: {feature_spec}
-
-Your task:
-1. Define SLOs/SLIs
-2. Design monitoring strategy (metrics, logs, traces)
-3. Plan incident response
-4. Define disaster recovery
-
-Output format:
-## Reliability Strategy
-{SLOs, monitoring, incidents, DR}
-
-BEADS_INTEGRATION:
-If Beads enabled:
-- Create reliability tasks
-- Track SLO compliance in Beads
-- Otherwise: Skip
-""",
-    description="Reliability engineering"
-)
-```
-
-### Step 3: Synthesize Design
-
-Wait for all 3 agents, then combine:
+### After Each Block: Trigger Point
 
 ```markdown
-## System Design: {feature_name}
-
-### Architecture (from System Architect)
-{pattern, components, tech stack, ADRs}
-
-### Security (from Security)
-{threats, auth, data protection, compliance}
-
-### Reliability (from SRE)
-{SLOs, monitoring, incident response}
-
-### Tradeoffs Analysis
-| Aspect | Decision | Rationale |
-|--------|----------|-----------|
-| Performance | {choice} | {why} |
-| Security | {choice} | {why} |
-| Scalability | {choice} | {why} |
-
-### Open Questions
-{What remains to be decided}
-
-### Next Steps
-- Review design
-- Execute: @oneshot {feature_id}
+AskUserQuestion({
+  "questions": [
+    {"question": "Block complete. Continue to next block?",
+     "header": "Discovery",
+     "options": [
+       {"label": "Continue (Recommended)", "description": "Next discovery block"},
+       {"label": "Skip block", "description": "Skip remaining blocks"},
+       {"label": "Done", "description": "Generate workstreams with current info"}
+     ]}
+  ]
+})
 ```
 
-### Step 4: Update Workstreams
+## Integration with @idea
 
-```bash
-# Detailed workstreams (with scope_files)
-sdp ws create {feature} --detailed
+```python
+# Uses requirements from @idea
+idea_result = load_idea_result(task_id)
 
-# If Beads enabled: Update with design artifacts
-if [ "$BEADS_ENABLED" = true ]; then
-  # Design agents already updated Beads
-  bd list --parent {feature}  # Verify
-fi
+# Skip already covered topics
+skip_topics = idea_result.covered_topics
+
+# Focus on design-specific questions
+design_blocks = filter_blocks(skip_topics)
 ```
+
+## --quiet Mode
+
+Minimal blocks (2 blocks, 6 questions):
+1. Data & Storage
+2. Core Architecture
 
 ## Output
 
-**Success:**
+**Primary:** Workstream files in `docs/workstreams/backlog/`
+
+**Secondary:**
+- `docs/drafts/<task_id>-design.md` - Design document
+
+## Next Steps
+
+```bash
+@build <ws_id>      # Execute workstream
+@oneshot <feature>  # Execute all workstreams
 ```
-✅ System design complete
-🏗️ Architecture: {pattern}
-🔒 Security: {threats mitigated}
-⏱️ Reliability: {SLOs defined}
-📄 docs/designs/{feature}.md
-📌 Beads: {N design tasks if enabled}
-```
 
-## Parallel Execution Pattern
+---
 
-3 agents spawned simultaneously (via 3 Task calls) following `.claude/skills/think/SKILL.md` pattern.
-
-## Version
-
-**4.0.0** - Multi-agent design (Arch + Security + SRE)
+**Version:** 4.0.0 (Progressive Disclosure)
+**See Also:** `@idea`, `@build`, `@oneshot`
