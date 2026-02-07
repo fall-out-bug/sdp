@@ -10,11 +10,11 @@ version: 1.0.0
 **Analyze what's actually in your codebase (vs. what's documented).**
 
 ## When to Use
-- **New to project** - "Что тут вообще есть?" (What's actually here?)
-- **Before @feature** - "На что можно опираться?" (What can we build on?)
-- **After @vision** - "Как docs соотносятся с кодом?" (How do docs match code?)
+- **New to project** - "What's actually here?"
+- **Before @feature** - "What can we build on?"
+- **After @vision** - "How do docs match code?"
 - **Quarterly review** - `@reality --review` - track tech debt and quality trends
-- **Debugging mysteries** - "Почему это не работает?" (Why doesn't this work?)
+- **Debugging mysteries** - "Why doesn't this work?"
 
 ## Modes
 

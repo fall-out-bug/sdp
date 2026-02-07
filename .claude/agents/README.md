@@ -494,8 +494,7 @@ assert state_mgr.is_active("my-role")
 
 ## See Also
 
-- `PROTOCOL.md` - Full SDP specification (English)
-- `PROTOCOL_RU.md` - Полная спецификация (Русский)
+- `PROTOCOL.md` - Full SDP specification
 - `docs/TUTORIAL.md` - 15-minute quick start
 - `src/sdp/unified/agent/README.md` - Agent system internals
 
