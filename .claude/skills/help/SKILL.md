@@ -113,5 +113,5 @@ Always provide:
 
 ## See Also
 
-- [Skill Registry](../../src/sdp/cli/skills/registry.py) - All skill definitions
-- [SDP Skills Command](../../src/sdp/cli/skill.py) - CLI implementation
+- [.claude/skills/](../../.claude/skills/) - All skill definitions
+- [CLAUDE.md](../../CLAUDE.md) - Claude Code integration guide
