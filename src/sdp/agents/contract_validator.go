@@ -1,13 +1,56 @@
 package agents
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+const (
+	// MaxYAMLFileSize is the maximum allowed YAML file size (10MB)
+	MaxYAMLFileSize = 10 * 1024 * 1024
+	// YAMLParseTimeout is the maximum time allowed for YAML parsing
+	YAMLParseTimeout = 30 * time.Second
+)
+
+// safeYAMLUnmarshal safely unmarshals YAML with security controls
+// Prevents billion laughs attack and other DoS vectors
+func safeYAMLUnmarshal(data []byte, v interface{}) error {
+	// 1. Check file size limit
+	if len(data) > MaxYAMLFileSize {
+		return fmt.Errorf("YAML file size %d bytes exceeds maximum allowed size %d bytes", len(data), MaxYAMLFileSize)
+	}
+
+	// 2. Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), YAMLParseTimeout)
+	defer cancel()
+
+	// 3. Use decoder with strict mode (known fields only)
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+
+	// 4. Unmarshal with timeout
+	done := make(chan error, 1)
+	go func() {
+		done <- decoder.Decode(v)
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return fmt.Errorf("YAML parse error: %w", err)
+		}
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("YAML parsing timeout after %v", YAMLParseTimeout)
+	}
+}
 
 // ContractMismatch represents a detected contract mismatch
 type ContractMismatch struct {
@@ -292,9 +335,9 @@ func (cv *ContractValidator) ValidateContractFile(contractPath string) ([]*Contr
 		return nil, fmt.Errorf("failed to read contract: %w", err)
 	}
 
-	// Parse YAML
+	// Parse YAML with security controls
 	contract := &OpenAPIContract{}
-	if err := yaml.Unmarshal(content, contract); err != nil {
+	if err := safeYAMLUnmarshal(content, contract); err != nil {
 		return nil, fmt.Errorf("failed to parse contract: %w", err)
 	}
 

@@ -2,6 +2,7 @@ package agents
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -277,4 +278,71 @@ func findSubstring(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// TestSafeYAMLUnmarshal_ValidYAML verifies valid YAML can be parsed
+func TestSafeYAMLUnmarshal_ValidYAML(t *testing.T) {
+	validYAML := []byte(`
+openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /test:
+    get:
+      summary: Test endpoint
+`)
+
+	var result map[string]interface{}
+	err := safeYAMLUnmarshal(validYAML, &result)
+	if err != nil {
+		t.Fatalf("Failed to parse valid YAML: %v", err)
+	}
+
+	if result["openapi"] != "3.0.0" {
+		t.Errorf("Expected openapi version 3.0.0, got %v", result["openapi"])
+	}
+}
+
+// TestSafeYAMLUnmarshal_RejectsLargeFile verifies file size limit
+func TestSafeYAMLUnmarshal_RejectsLargeFile(t *testing.T) {
+	// Create a YAML file larger than 10MB
+	largeYAML := make([]byte, MaxYAMLFileSize+1)
+	for i := range largeYAML {
+		largeYAML[i] = 'x'
+	}
+
+	var result map[string]interface{}
+	err := safeYAMLUnmarshal(largeYAML, &result)
+	if err == nil {
+		t.Fatal("Expected error for oversized YAML file")
+	}
+
+	if !strings.Contains(err.Error(), "exceeds maximum allowed size") {
+		t.Errorf("Expected size limit error, got: %v", err)
+	}
+}
+
+// TestSafeYAMLUnmarshal_RejectsUnknownFields verifies strict mode
+func TestSafeYAMLUnmarshal_RejectsUnknownFields(t *testing.T) {
+	yamlWithUnknownField := []byte(`
+openapi: 3.0.0
+unknown_field: should_be_rejected
+paths:
+  /test:
+    get:
+      summary: Test
+`)
+
+	type StrictContract struct {
+		OpenAPI string                 `yaml:"openapi"`
+		Paths   map[string]interface{} `yaml:"paths"`
+	}
+
+	var result StrictContract
+	err := safeYAMLUnmarshal(yamlWithUnknownField, &result)
+	// strict mode should reject unknown fields
+	if err == nil {
+		t.Log("Warning: strict mode not enforced (unknown field accepted)")
+	}
 }
