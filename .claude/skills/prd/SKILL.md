@@ -90,19 +90,6 @@ The following validation checks are performed:
 2. **Section limits**: Character counts and format rules
 3. **Diagram freshness**: diagrams_hash matches current annotations
 
-## Implementation
-
-The skill uses the following modules:
-
-- `sdp.src.sdp.prd.profiles` - PRD profiles and sections
-- `sdp.src.sdp.prd.detector` - Project type auto-detection
-- `sdp.src.sdp.prd.scaffold` - PRD template generation
-- `sdp.src.sdp.prd.validator` - Section validation
-- `sdp.src.sdp.prd.parser_python` - Python annotation parser
-- `sdp.src.sdp.prd.parser_bash` - Bash annotation parser
-- `sdp.src.sdp.prd.generator_mermaid` - Mermaid diagram generator
-- `sdp.src.sdp.prd.generator_plantuml` - PlantUML diagram generator
-
 ## Quality Gates
 
 Before considering a PRD complete:
