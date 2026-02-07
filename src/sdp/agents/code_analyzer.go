@@ -166,8 +166,8 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 		Method  string
 	}{
 		{
-			Name:    "fetch shorthand",
-			Pattern: regexp.MustCompile(`fetch\("([^"]*?)(?:\s*\+\s*[^)]*?)?"\)`),
+			Name:    "fetch simple (single line, no comma or brace)",
+			Pattern: regexp.MustCompile(`fetch\("([^"]+)"`),
 			Method:  "GET",
 		},
 		{
@@ -179,6 +179,11 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 
 	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
+
+		// Skip lines that are part of multiline patterns
+		if strings.Contains(line, "{") || strings.Contains(line, "}.then") {
+			continue
+		}
 
 		for _, p := range simplePatterns {
 			matches := p.Pattern.FindStringSubmatch(line)
