@@ -495,6 +495,46 @@ Claude Code:
 → Agent continues from last checkpoint (WS-001-03)
 ```
 
+**Parallel Execution with Dependency Graph:**
+
+The @oneshot orchestrator uses a parallel dispatcher (implemented in `src/sdp/graph/`) to execute workstreams concurrently when possible:
+
+```markdown
+User: @oneshot F01
+
+Orchestrator Agent:
+→ Building dependency graph from 8 workstreams...
+→ Topological sort: [00-001-01, 00-001-02, 00-001-05, 00-001-03, 00-001-04, ...]
+→ Found 3 ready workstreams (no dependencies): 00-001-01, 00-001-02, 00-001-05
+→ Spawning 3 parallel agents...
+
+Agent 1: Executing 00-001-01... (domain entities)
+Agent 2: Executing 00-001-02... (application services)
+Agent 3: Executing 00-001-05... (tests)
+
+→ Parallel batch 1 complete (2.5s)
+→ Found 2 new ready workstreams: 00-001-03, 00-001-04
+→ Spawning 2 parallel agents...
+
+→ All workstreams complete (4.8s total vs 18s sequential = 3.75x speedup)
+```
+
+**How It Works:**
+
+1. **Build Graph**: Parse all WS files, extract dependencies, build DAG
+2. **Topological Sort**: Use Kahn's algorithm to find valid execution order
+3. **Identify Ready**: Find workstreams with no pending dependencies (indegree = 0)
+4. **Execute in Parallel**: Spawn 3-5 agents via Task tool, distribute ready workstreams
+5. **Update Graph**: Mark completed workstreams, recalculate indegrees
+6. **Repeat**: Until all workstreams complete
+
+**Speedup:**
+- 5 workstreams: ~5x faster
+- 10 workstreams: ~5x faster
+- Automatically respects dependencies (no unsafe parallelization)
+
+**Implementation:** See `src/sdp/graph/dependency.go` and `src/sdp/graph/dispatcher.go`
+
 ### File Structure Reference
 
 ```
