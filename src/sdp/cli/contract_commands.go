@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/fall-out-bug/sdp/src/sdp/agents"
 	"github.com/spf13/cobra"
@@ -87,10 +90,21 @@ func init() {
 func runContractSynthesize(cmd *cobra.Command, args []string) error {
 	feature := synthesizeFeature
 
+	// Validate feature name (alphanumeric and dash only)
+	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(feature) {
+		return fmt.Errorf("invalid feature name %q: must contain only lowercase letters, numbers, and dashes", feature)
+	}
+
 	// Determine requirements path
 	reqPath := synthesizeRequirements
 	if reqPath == "" {
 		reqPath = filepath.Join("docs", "drafts", feature+"-requirements.md")
+	}
+
+	// Sanitize requirements path
+	safeReqPath, err := sanitizePath(reqPath, []string{"docs", "docs/drafts"})
+	if err != nil {
+		return fmt.Errorf("invalid requirements path: %w", err)
 	}
 
 	// Determine output path
@@ -99,20 +113,26 @@ func runContractSynthesize(cmd *cobra.Command, args []string) error {
 		outputPath = filepath.Join(".contracts", feature+".yaml")
 	}
 
+	// Sanitize output path
+	safeOutputPath, err := sanitizePath(outputPath, []string{".contracts"})
+	if err != nil {
+		return fmt.Errorf("invalid output path: %w", err)
+	}
+
 	// Print progress
-	fmt.Printf("✓ Analyzing requirements from %s\n", reqPath)
+	fmt.Printf("✓ Analyzing requirements from %s\n", safeReqPath)
 
 	// Create synthesizer
 	synthesizer := agents.NewContractSynthesizer()
 
 	// Perform synthesis
-	result, err := synthesizer.SynthesizeContract(feature, reqPath, outputPath)
+	result, err := synthesizer.SynthesizeContract(feature, safeReqPath, safeOutputPath)
 	if err != nil {
 		return fmt.Errorf("synthesis failed: %w", err)
 	}
 
 	// Print success
-	fmt.Printf("✓ Contract agreed: %s\n", outputPath)
+	fmt.Printf("✓ Contract agreed: %s\n", safeOutputPath)
 	fmt.Printf("\nResolution method: %s\n", result.Rule)
 
 	if result.WinningAgent != "" {
@@ -122,25 +142,58 @@ func runContractSynthesize(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// sanitizePath validates and sanitizes file paths to prevent directory traversal attacks
+func sanitizePath(path string, allowedDirs []string) (string, error) {
+	// Clean the path to remove any ".." or "." components
+	cleanPath := filepath.Clean(path)
+
+	// Convert to absolute path
+	absPath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path: %w", err)
+	}
+
+	// Check if path is within allowed directories
+	for _, allowedDir := range allowedDirs {
+		absAllowedDir, err := filepath.Abs(allowedDir)
+		if err != nil {
+			continue
+		}
+
+		// Check if the absolute path starts with the allowed directory
+		if strings.HasPrefix(absPath, absAllowedDir+string(filepath.Separator)) {
+			return absPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("path %q is outside allowed directories %v", path, allowedDirs)
+}
+
 func runContractLock(cmd *cobra.Command, args []string) error {
 	contractPath := lockContract
 
+	// Sanitize path to prevent directory traversal
+	safePath, err := sanitizePath(contractPath, []string{".contracts", "docs"})
+	if err != nil {
+		return fmt.Errorf("invalid contract path: %w", err)
+	}
+
 	// Read contract
-	content, err := os.ReadFile(contractPath)
+	content, err := os.ReadFile(safePath)
 	if err != nil {
 		return fmt.Errorf("failed to read contract: %w", err)
 	}
 
 	// Create lock file
-	lockPath := contractPath + ".lock"
+	lockPath := safePath + ".lock"
 	lockContent := fmt.Sprintf("# Contract Lock\n\nlocked: true\nreason: %s\ncontract_sha256: %x\n",
-		lockReason, content)
+		lockReason, sha256.Sum256(content))
 
-	if err := os.WriteFile(lockPath, []byte(lockContent), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(lockContent), 0600); err != nil {
 		return fmt.Errorf("failed to create lock file: %w", err)
 	}
 
-	fmt.Printf("✓ Contract locked: %s\n", contractPath)
+	fmt.Printf("✓ Contract locked: %s\n", safePath)
 	fmt.Printf("✓ Lock file created: %s\n", lockPath)
 
 	return nil
@@ -153,16 +206,32 @@ func runContractValidate(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("✓ Validating %d contracts...\n", len(validateContracts))
 
+	// Sanitize all contract paths
+	safeContracts := make([]string, len(validateContracts))
+	for i, contractPath := range validateContracts {
+		safePath, err := sanitizePath(contractPath, []string{".contracts", "docs"})
+		if err != nil {
+			return fmt.Errorf("invalid contract path %q: %w", contractPath, err)
+		}
+		safeContracts[i] = safePath
+	}
+
+	// Sanitize output path
+	safeOutput, err := sanitizePath(validateOutput, []string{".contracts", "docs"})
+	if err != nil {
+		return fmt.Errorf("invalid output path: %w", err)
+	}
+
 	// Load contracts
 	validator := agents.NewContractValidator()
 
 	// For now, just validate the first two
-	contract1, err := loadContract(validateContracts[0])
+	contract1, err := loadContract(safeContracts[0])
 	if err != nil {
 		return fmt.Errorf("failed to load contract 1: %w", err)
 	}
 
-	contract2, err := loadContract(validateContracts[1])
+	contract2, err := loadContract(safeContracts[1])
 	if err != nil {
 		return fmt.Errorf("failed to load contract 2: %w", err)
 	}
@@ -171,8 +240,8 @@ func runContractValidate(cmd *cobra.Command, args []string) error {
 	mismatches, err := validator.CompareContracts(
 		contract1,
 		contract2,
-		validateContracts[0],
-		validateContracts[1],
+		safeContracts[0],
+		safeContracts[1],
 	)
 	if err != nil {
 		return fmt.Errorf("comparison failed: %w", err)
@@ -182,12 +251,12 @@ func runContractValidate(cmd *cobra.Command, args []string) error {
 	report := validator.GenerateReport(mismatches)
 
 	// Write report
-	if err := validator.WriteReport(report, validateOutput); err != nil {
+	if err := validator.WriteReport(report, safeOutput); err != nil {
 		return fmt.Errorf("failed to write report: %w", err)
 	}
 
 	// Print summary
-	fmt.Printf("✓ Validation report: %s\n", validateOutput)
+	fmt.Printf("✓ Validation report: %s\n", safeOutput)
 	fmt.Printf("\nSummary:\n")
 	fmt.Printf("- Total issues: %d\n", len(mismatches))
 
