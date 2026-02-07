@@ -45,6 +45,19 @@ A **breaking change** is any modification that breaks backward compatibility, re
 | **5. JSON → Message Router** | v0.4 | v0.5.0 | Medium | Agent messaging API |
 | **6. Beads Integration** | N/A | v0.5.0 | Low | Optional feature |
 | **7. QualityGateValidator Removal** | v0.4.9 | v0.5.0 | Low | Code validation |
+| **8. Python CLI → Go Binary (v0.9.0)** | 2026-02-07 | N/A | Medium | Multi-agent architecture |
+
+**⚠️ IMPORTANT: Python→Go Migration (v0.9.0)**
+
+SDP v0.9.0 migrated from Python CLI to Go binary with multi-agent orchestration.
+
+**Key changes:**
+- Installation: `pip install sdp` → `go install github.com/fall-out-bug/sdp@latest`
+- Multi-agent system: 19 specialized agents for autonomous execution
+- Parallel execution: 4.96x speedup with dependency-aware dispatcher
+- Four-level planning: @vision → @reality → @feature → @oneshot
+
+**See [Multi-Agent Migration Guide](multi-agent-migration.md) for complete migration instructions.**
 
 ---
 
@@ -59,6 +72,51 @@ For detailed migration instructions, see:
 5. [JSON → Message Router](bc-005-json-to-message-router.md)
 6. [Beads Integration](bc-006-beads-integration.md)
 7. [QualityGateValidator Removal](bc-007-qualitygate-validator-removal.md)
+8. **[Multi-Agent Migration (v0.9.0)](multi-agent-migration.md)** ⚠️ **IMPORTANT**
+
+---
+
+## ⚠️ Python CLI → Go Binary Migration (v0.9.0)
+
+**SDP migrated from Python CLI to Go binary with multi-agent orchestration.**
+
+### Why?
+
+The Python implementation had limitations:
+- Language-specific (Python-only tooling)
+- Heavy dependencies (Python 3.10+, Poetry, pytest, mypy, ruff)
+- Manual workstream execution
+- No parallel execution
+
+The Go implementation addresses these:
+- Language-agnostic protocol (works with any project)
+- Single binary with zero dependencies
+- Multi-agent orchestration (19 specialized agents)
+- Parallel execution (4.96x speedup)
+- Fault tolerance (circuit breaker + checkpoint/resume)
+
+### Migration
+
+**Your existing workstreams are compatible!** No conversion needed.
+
+**Quick migration:**
+```bash
+# 1. Install Go 1.25.6+
+brew install go  # macOS
+# OR download from golang.org
+
+# 2. Install SDP v0.9.0
+go install github.com/fall-out-bug/sdp@latest
+
+# 3. Your workstreams work as-is
+@build 00-001-01  # Same command!
+```
+
+**See the [complete migration guide](multi-agent-migration.md) for:**
+- Four-level planning model (@vision/@reality/@feature/@oneshot)
+- Agent catalog (19 specialized agents)
+- Progressive disclosure workflow
+- Parallel execution with checkpoint/resume
 
 ---
 

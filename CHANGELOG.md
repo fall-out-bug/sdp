@@ -4,6 +4,128 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 > **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
 
+## [0.9.0] - 2026-02-07
+
+### Major Release - Multi-Agent Architecture + Go Implementation
+
+**🎯 Theme:** From Python CLI to Intelligent Orchestration System
+
+This release transforms SDP from a Python-centric CLI tool into a multi-agent orchestration system with autonomous execution, strategic planning, and codebase analysis capabilities.
+
+### Added - Feature F052: Multi-Agent SDP + @vision + @reality
+
+**Phase 0: Preparation**
+- **00-052-00:** Backup & worktree setup
+
+**Phase 1A: @vision Skill (Strategic Planning)**
+- **00-052-01:** @vision skill structure (7 expert agents)
+- **00-052-02:** Vision extractor implementation (Go)
+- **00-052-03:** CLAUDE.md update with @vision
+
+**Phase 1B: @reality Skill (Codebase Analysis)**
+- **00-052-04:** @reality skill structure (8 expert agents)
+- **00-052-05:** Project scanner implementation (Go)
+- **00-052-06:** CLAUDE.md update with @reality
+- **00-052-07:** @vision + @reality integration tests
+
+**Phase 2: Two-Stage Review (Quality Lock-in)**
+- **00-052-08:** Implementer agent specification
+- **00-052-09:** Spec compliance reviewer agent
+- **00-052-10:** @build update for two-stage review workflow
+- **00-052-11:** End-to-end two-stage review tests
+
+**Phase 3: Speed Track (Parallel Execution)**
+- **00-052-12:** Parallel dispatcher for @oneshot (Kahn's algorithm)
+- **00-052-13:** Circuit breaker implementation
+- **00-052-14:** Checkpoint atomic writes
+- **00-052-15:** Test parallel execution
+
+**Phase 4: Synthesis Track (Agent Coordination)**
+- **00-052-16:** Agent synthesizer core
+- **00-052-17:** Synthesis rules engine
+- **00-052-18:** Hierarchical supervisor
+
+**Phase 5: UX Track (Progressive Disclosure)**
+- **00-052-19:** Progressive disclosure for @idea (3-question cycles)
+- **00-052-20:** Progressive disclosure for @design
+- **00-052-21:** Deep-thinking integration
+- **00-052-22:** Verbosity tiers implementation
+
+**Phase 6: Documentation Track**
+- **00-052-23:** Agent catalog documentation (21 agents)
+- **00-052-24:** CLAUDE.md update (multi-agent section)
+- **00-052-25:** Migration guide (v3.x to v4.0)
+
+**What's New:**
+- **Multi-agent orchestration:** 19 specialized agents for autonomous development
+- **Strategic planning:** @vision skill with 7 expert agents (product, market, technical, UX, business, growth, risk)
+- **Codebase analysis:** @reality skill with 8 expert agents (architecture, quality, testing, security, performance, docs, debt, standards)
+- **Parallel execution:** 4.96x speedup via dependency-aware parallelization
+- **Fault tolerance:** Circuit breaker + atomic checkpoint/resume
+- **Quality lock-in:** Two-stage review (implementer → spec reviewer → quality)
+- **Progressive disclosure:** 12-27 questions per feature (down from unbounded)
+- **Documentation:** PRODUCT_VISION.md v3.0, PRD.md, ROADMAP.md, SECURITY.md
+
+**Performance:**
+- Test coverage: 83.2% (up from 68% in v0.7.0)
+- Parallel speedup: 4.96x for 5-10 workstreams
+- Fault tolerance: Crash-safe with automatic recovery
+
+**Breaking Changes:**
+- Python SDP deprecated in favor of Go binary
+- Agent catalog replaces simple skill calls
+- Two-stage review now enforced (blocking without approval)
+
+**Migration:**
+- See `docs/migrations/multi-agent-migration.md`
+
+---
+
+### Added - Feature F041: Claude Plugin Distribution
+
+**What's New:**
+- Claude Plugin marketplace distribution framework
+- Language-agnostic protocol validation
+- Go-based binary CLI (sdp command)
+- 7 workstreams completing plugin packaging
+
+**Status:** ✅ COMPLETE (deferred to v1.0.0 awaiting marketplace support)
+
+**Usage:**
+
+```bash
+# Install via Claude Plugin Marketplace (when available)
+claude plugin install sdp
+
+# Or use Go binary
+go install github.com/fall-out-bug/sdp@latest
+```
+
+---
+
+### Fixed - Quality & Reliability
+
+- **Data race fix:** TestDispatcher_CircuitBreakerTrips (atomic operations)
+- **CI/CD fix:** Go version 1.21 → 1.25.6 across all workflows
+- **Security hardening:** Checkpoint file permissions 0644 → 0600
+- **Coverage enforcement:** ≥80% threshold in CI
+
+### Changed - Documentation Improvements
+
+- **PRODUCT_VISION.md v3.0:** Updated to reflect multi-agent architecture
+- **docs/prd/PRD.md:** Complete requirements for F052
+- **docs/roadmap/ROADMAP.md:** Q1-Q4 2026 planning
+- **SECURITY.md:** Secret management guide
+- **docs/reference/agent-catalog.md:** All 21 agents documented
+
+### Refactoring
+
+- **Split large files:** dispatcher.go (343→154 LOC), checkpoint.go (232→131 LOC), circuit_breaker.go (209→133 LOC)
+- **All files now <200 LOC** (AI-readability guideline met)
+- **Zero functional changes** - pure reorganization
+
+---
+
 ## [0.7.0] - 2026-01-31
 
 ### Added - Feature F034: A+ Quality Initiative
@@ -17,7 +139,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - **00-034-07:** Add Skill Discovery (@help)
 - **00-034-08:** Remove Legacy Code (~600 LOC)
 
-**Что нового:**
+**What's New:**
 - Coverage 68% → 85.28%
 - Clean Architecture: domain layer extracted, no beads→core violations
 - `sdp status` — project and guard status
@@ -25,7 +147,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - Skills optimized (~64% reduction), repo restructured
 - Lint clean (F401, F821, E501 fixed)
 
-**Использование:**
+**Usage:**
 
 ```bash
 # Project status
@@ -43,13 +165,13 @@ sdp skills list
 
 - **00-025-01:** pip-audit + Dependabot — dependency vulnerability scanning in CI/CD
 
-**Что нового:**
+**What's New:**
 - pip-audit runs on every PR/push (blocks merge on vulnerabilities)
 - PR comments include CVE details, severity, fix versions
 - Dependabot weekly PRs for Python + GitHub Actions
 - SECURITY.md policy, docs/internals/development.md updated
 
-**Использование:**
+**Usage:**
 
 ```bash
 # Run vulnerability scan locally
@@ -69,13 +191,13 @@ poetry run pip-audit --format json --desc -o audit-report.json
 - **00-020-02:** Hooks project-agnostic — auto-detect project root, `quality-gate.toml` config
 - **00-020-04:** Fix `except Exception: pass` in common.py (Issue 006)
 
-**Что нового:**
+**What's New:**
 - Shell hooks → testable Python modules (`src/sdp/hooks/`)
 - `find_project_root()`, `find_workstream_dir()` — auto-detection
 - Configuration via `quality-gate.toml` [workstreams.dir]
 - Hooks coverage 92%, mypy --strict
 
-**Использование:**
+**Usage:**
 
 ```bash
 # Hooks run on any SDP project (dogfooding)
@@ -90,13 +212,13 @@ python -m sdp.hooks.pre_commit
 
 - **00-031-01:** Core exceptions inherit from SDPError with ErrorCategory, remediation, docs_url
 
-**Что нового:**
+**What's New:**
 - WorkstreamParseError, CircularDependencyError, MissingDependencyError → SDPError
 - ModelMappingError, ContractViolationError, HumanEscalationError → SDPError
 - format_terminal() and format_json() on SDPError base
 - Actionable error messages with remediation steps
 
-**Использование:**
+**Usage:**
 
 ```bash
 # Exceptions now include structured output
@@ -116,12 +238,12 @@ print(error.format_json())      # JSON for CI/CD
 - **00-030-02:** Adapter Tests — base 86%, claude 86%, opencode 93%
 - **00-030-03:** Core Functionality Tests — workstream 84%, builder 81%, model 80%
 
-**Что нового:**
+**What's New:**
 - 72 новых unit-тестов для GitHub, adapters, core
 - Все тесты используют mocks (без реальных API-вызовов)
 - mypy --strict для всех тестовых файлов
 
-**Использование:**
+**Usage:**
 
 ```bash
 # Запуск тестов F030

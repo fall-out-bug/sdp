@@ -2,9 +2,39 @@
 
 **Workstream-driven framework that turns AI coding tools (Claude Code, Cursor, OpenCode) into a structured software development process.**
 
-[![Python](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
+[![Go](https://img.shields.io/badge/go-1.25+-blue.svg)](https://go.dev/dl/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-83.2%25-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-0.9.0-brightgreen.svg)](CHANGELOG.md)
+
+---
+
+## v0.9.0 Architecture Update
+
+**SDP v0.9.0 is a major architectural transformation** from Python CLI to Go-based multi-agent orchestration system.
+
+### What Changed
+
+- **Current Status:** Active development (26/26 workstreams complete)
+- **Architecture:** Multi-agent orchestration with 19 specialized agents
+- **Installation:** Go binary (language-agnostic protocol)
+- **Quality:** 83.2% test coverage, 4.96x parallel execution speedup
+
+### Migration from Python SDP
+
+**If you're upgrading from Python SDP (v0.7.x or earlier):**
+
+| Feature | Python SDP (v0.7.x) | Go SDP (v0.9.0) |
+|---------|---------------------|-----------------|
+| **Installation** | `pip install sdp` | `go install github.com/fall-out-bug/sdp@latest` |
+| **Runtime** | Python 3.10+ | Go 1.25.6+ |
+| **Execution** | Manual @build per WS | Autonomous @oneshot with parallel dispatcher |
+| **Agents** | 0 (skill-based) | 19 (strategic planning + codebase analysis) |
+| **Planning** | @feature only | @vision → @reality → @feature → @oneshot |
+
+**Your existing workstreams are compatible** - the protocol is language-agnostic!
+
+See [docs/migrations/multi-agent-migration.md](docs/migrations/multi-agent-migration.md) for complete migration guide.
 
 ---
 
@@ -26,29 +56,28 @@ SDP is for you if:
 
 ## Quick Start
 
-### Use as CLI Tool (Recommended for individuals)
+### Install via Go Binary (Recommended)
 
 ```bash
-# Install via pip (coming soon)
-pipx install sdp-cli
-sdp --version
+# Install Go 1.25.6+
+# macOS
+brew install go
+# OR download from golang.org
 
-# Or install from source
-git clone https://github.com/fall-out-bug/sdp.git
-cd sdp
-pip install -e .
+# Install SDP
+go install github.com/fall-out-bug/sdp@latest
 
-# Run health checks
-sdp doctor
+# Verify installation
+sdp status
 ```
 
-### Use as Submodule (Recommended for teams)
+### Use as Submodule (For project-specific customization)
 
 ```bash
 # Add to your project
 git submodule add git@github.com:fall-out-bug/sdp.git sdp
 
-# Initialize
+# Initialize (sets up Git hooks, skills, agents)
 cd sdp
 ./scripts/init.sh
 ```
@@ -232,6 +261,7 @@ sdp/
 - [docs/reference/quality-gates.md](docs/reference/quality-gates.md) - Quality standards
 - [docs/reference/configuration.md](docs/reference/configuration.md) - Config files
 - [docs/reference/skills.md](docs/reference/skills.md) - Skill system
+- [docs/SLOS.md](docs/SLOS.md) - SLOs/SLIs for CLI tool
 
 ### Internals (Maintainer Docs)
 **Extending SDP or contributing?**
@@ -261,33 +291,39 @@ sdp/
 
 ## Development Status
 
-**Current Version:** v0.6.0 (Unified Workflow)
+**Current Version:** v0.9.0 (Multi-Agent Architecture)
+
+**Status:** 🚀 **Active Development** - 26/26 workstreams complete
 
 **Implemented:**
-- ✅ Multi-agent coordination (spawning, messaging, roles)
-- ✅ Telegram notifications (real + mock)
-- ✅ Beads CLI integration (task tracking)
-- ✅ Checkpoint system (save/resume)
-- ✅ Progressive disclosure (@feature skill)
-- ✅ Autonomous execution (@oneshot)
-- ✅ 309 tests (91% coverage)
+- ✅ Multi-agent orchestration (19 specialized agents)
+- ✅ Four-level planning model (@vision → @reality → @feature → @oneshot)
+- ✅ Parallel execution (4.96x speedup with dependency-aware dispatcher)
+- ✅ Fault tolerance (circuit breaker + atomic checkpoint/resume)
+- ✅ Progressive disclosure (12-27 questions vs unbounded)
+- ✅ Two-stage review (implementer → spec reviewer → quality)
+- ✅ Test coverage 83.2% (30 tests, graph package 88.3%)
 
-**In Progress:**
-- 🔄 PyPI package (sdp-cli)
-- 🔄 GitHub Actions CI/CD
-- 🔄 Documentation website
+**Roadmap:**
+- 🔄 v1.0.0: Claude Plugin marketplace distribution
+- 📋 v1.1.0: OpenTelemetry integration, enhanced synthesis rules
+- 📋 v1.2.0: Real-time dashboards (Grafana), alerting (PagerDuty)
+
+See [ROADMAP.md](docs/roadmap/ROADMAP.md) for complete planning.
 
 ---
 
 ## Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! This is an active project.
 
-**Development:**
-- Python 3.14+
-- Poetry for dependency management
-- TDD required (tests first, code second)
-- Quality gates enforced (coverage, mypy, ruff)
+**Areas of contribution:**
+- Bug fixes and improvements
+- New expert agents (see [docs/reference/agent-catalog.md](docs/reference/agent-catalog.md))
+- Documentation and examples
+- Performance optimizations
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 

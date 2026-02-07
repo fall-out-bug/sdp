@@ -1,110 +1,173 @@
 ---
 name: design
-description: Decompose feature into workstreams with scope
-tools: Read, Write, Shell, AskUserQuestion
+description: System design with progressive disclosure
+tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+version: 4.0.0
 ---
 
-# @design - Feature Decomposition
+# @design - System Design with Progressive Disclosure
 
-Analyze requirements and create workstreams with dependencies and scope.
+Multi-agent system design (Arch + Security + SRE) with progressive discovery blocks.
 
-## Quick Reference
+## When to Use
 
-| Step | Action | Gate |
-|------|--------|------|
-| 1 | Read feature | Requirements clear |
-| 2 | Explore codebase | Context gathered |
-| 3 | Ask architecture | Decisions made |
-| 4 | Create workstreams | All WS have AC + scope |
-| 5 | Verify deps | No cycles |
+- After @idea requirements gathering
+- Need architecture decisions
+- Creating workstream breakdown
 
-## Workflow
-
-### Step 1: Read Feature
+## Invocation
 
 ```bash
-bd show {feature-id}
+@design <task_id>
+@design <task_id> --quiet    # Minimal design blocks
+@design "feature description"  # Skip @idea, design directly
 ```
 
-Or for markdown:
+## Progressive Discovery Workflow
+
+### Overview
+
+**Discovery Blocks:** 3-5 focused blocks (not one big questionnaire)
+
+**Block Structure:**
+- Each block: 3 questions
+- After each block: trigger point (Continue / Skip block / Done)
+- User can skip blocks not relevant to feature
+
+### Discovery Blocks
+
+**Block 1: Data & Storage (3 questions)**
+- Data models?
+- Storage requirements?
+- Persistence strategy?
+
+**Block 2: API & Integration (3 questions)**
+- API endpoints?
+- External integrations?
+- Authentication/authorization?
+
+**Block 3: Architecture (3 questions)**
+- Component structure?
+- Layer boundaries?
+- Error handling strategy?
+
+**Block 4: Security (3 questions)**
+- Input validation?
+- Sensitive data handling?
+- Rate limiting?
+
+**Block 5: Operations (3 questions)**
+- Monitoring?
+- Deployment?
+- Rollback strategy?
+
+### Phase 5: Contract Synthesis (CRITICAL - Before Implementation)
+
+**Purpose:** Multi-agent contract agreement BEFORE parallel implementation begins.
+
+**Why Now:** Prevents component integration failures (404 Not Found) when agents work in parallel.
+
+**Workflow:**
+
+1. **Architect Proposes Initial Contract**
+   ```bash
+   sdp contract synthesize \
+     --feature=<feature-name> \
+     --requirements=<idea-doc> \
+     --output=.contracts/<feature-name>.yaml
+   ```
+   - Analyzes requirements from @idea
+   - Proposes OpenAPI 3.0 contract
+   - Defines endpoints, methods, request/response schemas
+
+2. **Multi-Agent Review (Parallel)**
+   - Frontend Agent: "Need /batch endpoint"
+   - Backend Agent: "Works for us"
+   - SDK Agent: "Matches our method naming"
+   - Security Agent: "Add authentication headers"
+
+3. **Synthesizer Resolves Conflicts**
+   - Unanimous agreement → Contract locked
+   - Domain expertise veto → Escalate to human
+   - Merge suggestions → Update contract
+   - Escalation → Human decides
+
+4. **Lock Contract**
+   ```bash
+   sdp contract lock \
+     --contract=.contracts/<feature-name>.yaml \
+     --reason="Multi-agent agreement complete"
+   ```
+   - Creates .lock file
+   - Stores SHA256 checksum
+   - Prevents modifications during implementation
+
+5. **Create Validation Workstreams**
+   - Add WS: Contract validation (post-implementation)
+   - Add WS: Integration testing
+
+**Exit Criteria:**
+- [ ] Contract file exists: `.contracts/<feature-name>.yaml`
+- [ ] Contract locked: `.contracts/<feature-name>.yaml.lock`
+- [ ] No ERROR-level conflicts
+- [ ] Validation workstream created
+
+**Skip Only If:**
+- Feature has NO API contracts (pure computation)
+- Feature has single component (no integration risk)
+
+### After Each Block: Trigger Point
+
+```markdown
+AskUserQuestion({
+  "questions": [
+    {"question": "Block complete. Continue to next block?",
+     "header": "Discovery",
+     "options": [
+       {"label": "Continue (Recommended)", "description": "Next discovery block"},
+       {"label": "Skip block", "description": "Skip remaining blocks"},
+       {"label": "Done", "description": "Generate workstreams with current info"}
+     ]}
+  ]
+})
+```
+
+## Integration with @idea
+
+```python
+# Uses requirements from @idea
+idea_result = load_idea_result(task_id)
+
+# Skip already covered topics
+skip_topics = idea_result.covered_topics
+
+# Focus on design-specific questions
+design_blocks = filter_blocks(skip_topics)
+```
+
+## --quiet Mode
+
+Minimal blocks (2 blocks, 6 questions):
+1. Data & Storage
+2. Core Architecture
+
+## Output
+
+**Primary:** Workstream files in `docs/workstreams/backlog/`
+
+**Secondary:**
+- `docs/drafts/<task_id>-design.md` - Design document
+
+## Next Steps
 
 ```bash
-Read("docs/drafts/{feature}.md")
+@oneshot <feature>  # Execute all workstreams (includes contract validation)
+@build <ws_id>      # Execute workstream
 ```
 
-### Step 2: Explore Codebase
+**Note:** Contract validation workstream (created in Phase 5) runs AFTER implementation to detect drift.
 
-```bash
-Glob("src/**/*.py")
-Grep("relevant patterns")
-```
+---
 
-Understand:
-- Existing architecture
-- Integration points
-- Dependencies
-
-### Step 3: Architecture Questions
-
-Use AskUserQuestion for:
-- Complexity level (simple/medium/large)
-- Layers needed (domain/repo/service/api)
-- Database changes
-- External integrations
-
-### Step 4: Create Workstreams
-
-For each WS:
-
-```yaml
-ws_id: 00-032-01
-title: Domain entities
-size: MEDIUM
-depends_on: []
-scope_files:
-  - src/domain/entities.py
-  - src/domain/value_objects.py
-  - tests/unit/test_entities.py
-acceptance_criteria:
-  - AC1: Entity created with required fields
-  - AC2: Value objects immutable
-```
-
-**Key:** Include `scope_files` for guard enforcement.
-
-### Step 5: Verify Dependencies
-
-```bash
-sdp ws graph {feature-id}
-```
-
-Check for cycles. Ensure topological order possible.
-
-### Step 6: Beads Registration (when Beads enabled)
-
-When project uses Beads (bd installed, `.beads/` exists):
-
-```bash
-poetry run sdp beads migrate docs/workstreams/backlog/ --real
-```
-
-Creates Beads tasks and `.beads-sdp-mapping.jsonl` entries. Agents can then use `bd ready` and `@build` integrates with Beads.
-
-**When Beads NOT enabled:** Skip. Workstreams remain in markdown only.
-
-## Quality Gates
-
-See [Quality Gates Reference](../../docs/reference/quality-gates.md)
-
-## Errors
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| Cycle detected | Circular deps | Break cycle |
-| Missing scope | No files listed | Add scope_files |
-| Too large | WS >500 LOC | Split WS |
-
-## See Also
-
-- [Full Design Spec](../../docs/reference/design-spec.md)
-- [Sizing Guide](../../docs/reference/ws-sizing.md)
+**Version:** 5.0.0 (Contract Synthesis Phase)
+**See Also:** `@idea`, `@build`, `@oneshot`

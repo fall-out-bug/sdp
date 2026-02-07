@@ -1,47 +1,128 @@
 # PRODUCT_VISION.md
 
-> **Last Updated:** 2026-02-02
-> **Version:** 2.0
+> **Last Updated:** 2026-02-07
+> **Version:** 3.0 (Multi-Agent Architecture)
 
 ## Mission
 
-Transform SDP from a Python-centric CLI tool into a **language-agnostic Claude Plugin** that enforces development protocols through AI-driven validation and portable prompts, with optional tooling for automation.
+Transform SDP into a **multi-agent orchestration system** that enables autonomous feature execution through intelligent agent collaboration, strategic planning, and codebase analysis.
+
+### Architecture Evolution (v2.0 → v3.0)
+
+**Original Vision (v2.0):** Language-agnostic Claude Plugin for protocol enforcement
+**Pivot to Multi-Agent (v3.0):** Orchestration system for autonomous development
+
+**Rationale for Pivot:**
+- Claude Plugin marketplace not yet available (platform limitation)
+- Multi-agent architecture enables autonomous execution (higher value)
+- Strategic planning (@vision) and reality checking (@reality) prevent drift
+- Parallel execution achieves 5x speedup vs sequential workflows
 
 ## Users
 
-1. **Non-Python Development Teams**
-   - Java teams using Maven/Gradle
-   - Go teams using go.mod
-   - Polyglot teams working across multiple languages
+1. **Development Teams Using AI Agents**
+   - Want autonomous feature execution
+   - Need quality assurance before merge
+   - Require fault tolerance and checkpointing
 
-2. **Solo Developers on Small Projects**
-   - Want protocol enforcement without heavy Python dependency
-   - Prefer lightweight setup via Claude Plugin Marketplace
+2. **Strategic Planners**
+   - Product managers defining roadmaps
+   - Tech leads planning quarterly goals
+   - Architects analyzing codebase health
 
-3. **DevOps Engineers**
-   - Need language-agnostic protocol enforcement
-   - Want Git integration without runtime dependencies
+3. **Solo Developers**
+   - Want AI assistance for feature planning
+   - Need reality checks on code quality
+   - Require autonomous execution of repetitive tasks
 
-## Success Metrics
+## Success Metrics (v3.0 - Multi-Agent)
 
-- [ ] Zero Python dependency for basic SDP protocol usage
-- [ ] Installation via Claude Plugin Marketplace (single click)
-- [ ] Support for Python, Java, Go projects with language-agnostic validation
-- [ ] Backward compatibility with existing Python SDP users
+### Delivered ✅
+- [x] Multi-agent orchestration with 19 specialized agents
+- [x] Parallel execution achieving 4.96x speedup
+- [x] Fault tolerance (circuit breaker + checkpoint/resume)
+- [x] Strategic planning via @vision (7 expert agents)
+- [x] Codebase analysis via @reality (8 expert agents)
+- [x] Two-stage quality review (implementer → spec reviewer → quality)
+- [x] Agent synthesis for conflict resolution
+- [x] Progressive disclosure for reduced question fatigue
+- [x] 83.2% test coverage across 26 workstreams
 
-## Strategic Tradeoffs
+### Deferred 🔄
+- [ ] Claude Plugin marketplace distribution (awaiting platform support)
+- [ ] Zero runtime dependency (Go binary required for orchestration)
+- [ ] Prompts-only distribution (binary provides agent coordination)
+
+### Maintained ✅
+- [x] Language-agnostic validation (works on any project)
+- [x] Backward compatibility with Python SDP (protocol unchanged)
+
+## Strategic Tradeoffs (v3.0)
 
 | Aspect | Decision | Rationale |
 |--------|----------|-----------|
-| **Validation Mechanism** | AI-based via prompts | Universal across languages, no language-specific parsers needed |
-| **Distribution** | Claude Plugin Marketplace | Native integration with Claude Code/CLI, zero-install friction |
-| **Binary Component** | Optional, not required | Prompts work standalone; binary adds convenience (CLI, git hooks) |
-| **Language Support** | Language-agnostic first | Universal rules (file size, structure) over language-specific details |
-| **Architecture** | Split protocol + tools | Protocol (prompts) is core; Tools (binary) is optional automation |
+| **Architecture** | Multi-agent orchestration | Enables autonomous execution, parallel speedup, fault tolerance |
+| **Planning** | 4-level model (@vision/@reality/@feature/@oneshot) | Strategic planning → Reality check → Feature planning → Autonomous execution |
+| **Execution** | Parallel dispatcher with DAG | 4.96x speedup via dependency-aware parallelization |
+| **Quality** | Two-stage review + synthesis | Implementer → Spec reviewer → Quality reviewer with conflict resolution |
+| **Fault Tolerance** | Circuit breaker + checkpoint | Crash-safe execution with automatic recovery |
+| **Language Support** | Go binary with protocol enforcement | Language-agnostic rules via prompts, Go provides performance |
+| **Distribution** | Binary (Go) + Claude skills | Binary for orchestration, skills for protocol definition |
 
-## Non-Goals
+## Architecture Overview (v3.0)
 
-- ~~Language-specific code parsing~~ (AI validation instead)
-- ~~Enforcing Python as primary runtime~~ (language-agnostic)
-- ~~Breaking change for existing users~~ (Python SDP becomes reference implementation)
-- ~~Requiring binary for basic usage~~ (prompts-only should work)
+```
+Strategic Level                 Analysis Level                 Feature Level                Execution Level
+┌──────────────────┐           ┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+│     @vision      │           │    @reality      │         │    @feature      │         │    @oneshot      │
+│  (strategic)     │           │  (codebase anal) │         │   (planning)     │         │   (execution)    │
+└──────────────────┘           └──────────────────┘         └──────────────────┘         └──────────────────┘
+         │                              │                             │                             │
+         ▼                              ▼                             ▼                             ▼
+  7 Expert Agents             8 Expert Agents              @idea + @design            @build (all WS)
+  (product analysis)           (codebase analysis)          (requirements + WS)         (implement)
+         │                              │                             │                             │
+         ▼                              ▼                             ▼                             ▼
+  Product Artifacts            Reality Report               workstreams                 @review + @deploy
+  (VISION, PRD, ROADMAP)      (health, gaps, debt)         (00-FFF-SS.md)              (quality + merge)
+```
+
+## Delivered Features (F052)
+
+### Phase 1A: Strategic Planning (@vision)
+- 7 expert agents (product, market, technical, UX, business, growth, risk)
+- PRODUCT_VISION.md, PRD.md, ROADMAP.md generation
+- Feature extraction from PRD with priority tagging
+
+### Phase 1B: Codebase Analysis (@reality)
+- 8 expert agents (architecture, quality, testing, security, performance, docs, debt, standards)
+- Language/framework detection (Go, Python, JS, TS, Rust, Java)
+- Health scoring and gap analysis
+- Vision vs reality drift detection
+
+### Phase 2: Quality Lock-in (Two-Stage Review)
+- Implementer agent (TDD discipline: Red → Green → Refactor)
+- Spec compliance reviewer (DO NOT TRUST pattern, verifies actual code)
+- @build orchestration (3 stages with max 2 retries per stage)
+
+### Phase 3: Speed Track (Parallel Execution)
+- Parallel dispatcher with Kahn's algorithm
+- Dependency graph from workstream files
+- 4.96x speedup (5 WS: 55ms → 11ms, 10 WS: 109ms → 22ms)
+
+### Phase 4: Synthesis Track (Agent Coordination)
+- Agent proposal system with confidence scoring
+- Synthesizer with priority-based rules (unanimous → domain expertise → quality gate → merge → escalate)
+- Hierarchical supervisor for specialist agent coordination
+- Conflict type detection (major, medium, minor)
+
+### Phase 5: UX Track (Progressive Disclosure)
+- 3-question cycles with trigger points
+- TMI detection and --quiet mode
+- Target: 12-27 questions per feature (down from unbounded)
+- Verbosity tiers (--quiet, --verbose, --debug)
+
+### Phase 6: Documentation Track
+- Agent catalog (21 agents documented)
+- Migration guide (v3.x to v4.0)
+- Updated CLAUDE.md with 4-level planning model

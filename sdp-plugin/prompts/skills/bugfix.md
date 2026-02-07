@@ -26,7 +26,7 @@ Standard bug fixes with full quality cycle.
 1. **Read issue** — Load issue file from `docs/issues/`
 2. **Create branch** — `git checkout -b bugfix/{issue-id}-{slug}` from dev
 3. **TDD cycle** — Write failing test → implement fix → refactor
-4. **Quality gates** — pytest, coverage ≥80%, mypy --strict, ruff
+4. **Quality gates** — language-specific tests + AI validators (coverage ≥80%)
 5. **Commit** — `fix(scope): description (issue NNN)`
 6. **Mark issue closed** — Update status in issue file
 7. **MERGE AND PUSH** — See critical section below

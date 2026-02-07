@@ -1,144 +1,237 @@
 ---
 name: feature
-description: Unified entry point for feature development with progressive disclosure
+description: Feature planning orchestrator (idea → design → workstreams)
 tools: Read, Write, Edit, Bash, AskUserQuestion, Skill
+version: 6.0.0
+changes:
+  - Refactored to orchestrate @idea and @design skills
+  - Removed duplicate agent spawning logic
+  - Reduced from 227 LOC to ~100 LOC
 ---
 
-# /feature - Unified Feature Development
+# @feature - Feature Planning Orchestrator
 
-Progressive disclosure workflow: vision -> requirements -> planning -> execution.
+**Orchestrate requirements gathering and workstream design.**
+
+## Mental Model
+
+```
+@feature (Planning Orchestrator)
+    │
+    ├─► @idea (Requirements)
+    │     ├─► Deep interviewing (AskUserQuestion)
+    │     ├─► User stories
+    │     └─► Success metrics
+    │
+    └─► @design (Workstream Planning)
+          ├─► Codebase exploration
+          ├─► Architecture decisions
+          └─► Workstream files (00-FFF-SS.md)
+```
 
 ## When to Use
 
-- Starting new feature (recommended for all)
-- Exploring feature idea
-- Creating MVP from scratch
-- Power users can skip to @idea or @design directly
+- Starting new feature from scratch
+- Need to gather requirements (@idea phase)
+- Need to design workstreams (@design phase)
+- Want interactive planning (questions, tradeoffs)
+
+## What @feature Does
+
+**@feature is an ORCHESTRATOR, not a duplicate:**
+
+| Aspect | Old @feature | New @feature |
+|--------|--------------|--------------|
+| **Role** | Spawns 4 agents directly | Calls Skill('@idea') + Skill('@design') |
+| **Logic** | Duplicates interview/discovery | Delegates to specialized skills |
+| **Lines of Code** | ~227 LOC | ~100 LOC |
+| **Maintainability** | Changes in 2 places | Single source of truth |
 
 ## Workflow
 
-### Phase 1: Vision Interview (3-5 questions)
+### Step 1: Quick Interview (3-5 questions)
 
-AskUserQuestion about:
-- **Mission**: What problem do we solve?
-- **Users**: Who are we building for?
-- **Success Metrics**: How do we measure success?
+Before spawning agents, ask quick questions to understand scope:
 
-### Phase 2: Generate PRODUCT_VISION.md
-
-Create or update `PRODUCT_VISION.md` at project root.
-
-Format:
-```markdown
-# PRODUCT_VISION.md
-
-> **Last Updated:** YYYY-MM-DD
-> **Version:** 1.0
-
-## Mission
-
-[Product mission statement]
-
-## Users
-
-1. **[User type]**
-2. **[User type]**
-
-## Success Metrics
-
-- [ ] [Metric 1]
-- [ ] [Metric 2]
-
-## Strategic Tradeoffs
-
-| Aspect | Decision | Rationale |
-|--------|----------|-----------|
-| [Aspect] | [Decision] | [Why] |
-
-## Non-Goals
-
-- [Not doing X]
-- [Not doing Y]
+```python
+AskUserQuestion(
+    questions=[{
+        "question": "What problem does this feature solve?",
+        "header": "Problem",
+        "options": [
+            {"label": "User pain point", "description": "Fixes existing user friction"},
+            {"label": "New capability", "description": "Enables new user workflows"},
+            {"label": "Technical debt", "description": "Improves code quality/performance"}
+        ],
+        "multiSelect": false
+    }, {
+        "question": "Who are the primary users?",
+        "header": "Users",
+        "options": [
+            {"label": "End users", "description": "External customers or users"},
+            {"label": "Internal", "description": "Internal tools/operations"},
+            {"label": "Developers", "description": "Developer experience/API"}
+        ],
+        "multiSelect": true
+    }, {
+        "question": "What defines success?",
+        "header": "Success",
+        "options": [
+            {"label": "Adoption", "description": "% of users using the feature"},
+            {"label": "Efficiency", "description": "Time savings, automation"},
+            {"label": "Quality", "description": "Bug reduction, reliability"}
+        ],
+        "multiSelect": true
+    }]
+)
 ```
 
-### Phase 3: Technical Interview (5-8 questions)
+**Gate:** If description is vague (< 200 words, unclear scope), ask for clarification before proceeding.
 
-AskUserQuestion about:
-- Technical approach (architecture, storage, failure mode)
-- Tradeoffs (security vs performance, complexity vs speed)
-- Integration points
+### Step 2: Requirements Gathering (@idea)
 
-### Phase 4: Generate intent.json
+```python
+# Delegate to @idea skill for deep requirements gathering
+Skill(
+    skill="idea",
+    args=feature_description  # e.g., "Add payment processing"
+)
+```
 
-Validate against `docs/schema/intent.schema.json`, save to `docs/intent/{slug}.json`
+**What @idea does:**
+- Deep interviewing via AskUserQuestion
+- Explores technical approach
+- Identifies tradeoffs and concerns
+- Generates comprehensive spec in `docs/drafts/idea-{feature_name}.md`
+
+**Output:**
+- `docs/drafts/idea-{feature_name}.md` with requirements
+- User stories, acceptance criteria
+- Success metrics, stakeholders
+
+### Step 3: Workstream Design (@design)
+
+```python
+# Delegate to @design skill for workstream planning
+Skill(
+    skill="design",
+    args=idea_file  # e.g., "idea-payment-processing"
+)
+```
+
+**What @design does:**
+- EnterPlanMode for codebase exploration
+- Asks architecture questions
+- Designs workstream decomposition
+- Requests approval via ExitPlanMode
+- Creates `docs/workstreams/backlog/00-FFF-SS.md` files
+
+**Output:**
+- Workstream files (e.g., `00-050-01.md`, `00-050-02.md`)
+- Dependency graph
+- Architecture decisions
+
+### Step 4: Verify Outputs
 
 ```bash
-# Create intent directory
-mkdir -p docs/intent
+# Check that @idea created spec
+ls docs/drafts/idea-{feature_name}.md
 
-# Create and validate
-from sdp.schema.validator import IntentValidator
-from sdp.schema.models import Intent
+# Check that @design created workstreams
+ls docs/workstreams/backlog/00-FFF-*.md
 
-intent = Intent.from_dict({
-    "problem": "...",
-    "users": [...],
-    "success_criteria": [...]
-})
-
-# Validate
-validator = IntentValidator()
-validator.validate(intent.to_dict())
-
-# Save
-import json
-with open("docs/intent/{slug}.json", "w") as f:
-    json.dump(intent.to_dict(), f, indent=2)
+# Count workstreams
+ws_count=$(ls docs/workstreams/backlog/00-FFF-*.md | wc -l)
+echo "Created $ws_count workstreams"
 ```
-
-### Phase 5: Create Requirements Draft (REQUIRED)
-
-Create `docs/drafts/idea-{slug}.md` with full specification:
-
-```markdown
-# {Feature Name}
-
-> **Feature ID:** FXXX
-> **Status:** Draft
-> **Created:** YYYY-MM-DD
-
-## Problem
-[From interview]
-
-## Users
-[From interview]
-
-## Success Criteria
-[From interview]
-
-## Goals
-[Primary goals]
-
-## Non-Goals
-[Out of scope]
-
-## Technical Approach
-[From technical interview]
-```
-
-### Phase 6: Transition to @design
-
-Call `/design` with full context (vision + intent).
-
-## Power User Flags
-
-- `--vision-only` -- Only create vision, skip planning
-- `--no-interview` -- Skip questions, use defaults
-- `--update-vision` -- Update existing PRODUCT_VISION.md
-- `--spec PATH` -- Start from existing spec
 
 ## Output
 
-- `PRODUCT_VISION.md` -- Project manifesto
-- `docs/drafts/idea-{slug}.md` -- Full spec
-- `docs/intent/{slug}.json` -- Machine-readable intent
+**Success:**
+```
+✅ Feature planning complete
+📄 Requirements: docs/drafts/idea-{feature_name}.md
+📊 Workstreams: N created in docs/workstreams/backlog/00-FFF-*.md
+🎯 Next step: @oneshot F{FF} or @build 00-FFF-01
+```
+
+**Example:**
+```bash
+User: @feature "Add payment processing"
+
+Claude:
+→ Step 1: Quick Interview (3 questions)
+→ Step 2: @idea "Add payment processing"
+   → Interviewing requirements...
+   → Created: docs/drafts/idea-payment-processing.md
+→ Step 3: @design idea-payment-processing
+   → Exploring codebase...
+   → Designing workstreams...
+   → Created: 00-050-01.md, 00-050-02.md, 00-050-03.md
+→ Step 4: Verification
+   → ✅ 3 workstreams created
+
+✅ Feature F050 planning complete
+📄 docs/drafts/idea-payment-processing.md
+📊 docs/workstreams/backlog/00-050-*.md (3 files)
+
+Next: @oneshot F050 or @build 00-050-01
+```
+
+## Beads Integration
+
+**Detect Beads:**
+```bash
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+else
+  BEADS_ENABLED=false
+fi
+```
+
+**Beads operations:**
+- @idea creates feature task if enabled
+- @design creates workstream tasks if enabled
+- @feature itself does NOT create Beads tasks (delegates)
+
+## Key Differences from @oneshot
+
+| Aspect | @feature | @oneshot |
+|--------|----------|----------|
+| **Phase** | Planning | Execution |
+| **Input** | Feature description | Feature ID or workstreams |
+| **Output** | Workstream files | Implemented code |
+| **Skills used** | @idea, @design | @build, @review, @deploy |
+| **Human interaction** | Heavy (interviewing) | Minimal (only blockers) |
+| **When to use** | Starting new feature | Workstreams exist |
+
+## Skip @feature If...
+
+**Use @idea directly when:**
+- You already have workstreams
+- Only need requirements gathering
+- Skip workstream design
+
+**Use @design directly when:**
+- You have requirements (idea file)
+- Only need workstream planning
+- Requirements already gathered
+
+**Use @oneshot when:**
+- Workstreams already exist
+- Ready to implement
+- Want autonomous execution
+
+## Version
+
+**6.0.0** - Orchestrator refactoring
+- Delegates to Skill('@idea') for requirements
+- Delegates to Skill('@design') for workstreams
+- Reduced from 227 LOC to ~100 LOC
+- Removed duplicate agent spawning logic
+
+**See Also:**
+- `.claude/skills/idea/SKILL.md` — Requirements gathering
+- `.claude/skills/design/SKILL.md` — Workstream planning
+- `.claude/skills/oneshot/SKILL.md` — Execution orchestrator
+- `CLAUDE.md` — Decision tree: @feature vs @oneshot

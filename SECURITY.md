@@ -1,42 +1,100 @@
-# Security Policy
+# Security Guide
 
-## Reporting Vulnerabilities
+## Secret Management
 
-If you find a security vulnerability in SDP or its dependencies:
+### Principles
 
-1. **DO NOT** open a public issue
-2. Email security advisory to the maintainers (see repository contacts)
-3. Include: CVE ID (if known), affected versions, reproduction steps
+1. **NEVER commit secrets to git** - This includes API keys, tokens, passwords
+2. **Use environment variables** - Load secrets from environment at runtime
+3. **Use GitHub Secrets** - For CI/CD pipeline secrets
+4. **Rotate compromised secrets** - If a secret is exposed, rotate it immediately
 
-We will respond within 48 hours with:
+### Environment Variables
 
-- Confirmation of vulnerability
-- Severity assessment (CRITICAL/HIGH/MEDIUM/LOW)
-- Patch timeline (usually <7 days for CRITICAL/HIGH)
+The `.env` file is **gitignored** and should **NEVER** be committed.
 
-## Supported Versions
+**Required for development:**
+- `TELEGRAM_BOT_TOKEN` - Telegram bot token for notifications (optional)
 
-| Version | Supported |
-|---------|-----------|
-| v0.5.x  | ✅ Yes |
-| v0.4.x  | ⚠️ Security fixes only |
-| < v0.4  | ❌ No |
+**Setup:**
+```bash
+# Copy template
+cp .env.example .env
 
-## Dependency Security
+# Edit with your values
+nano .env
 
-SDP uses **pip-audit** to scan for known vulnerabilities in dependencies:
+# Load in your shell
+source .env  # or export TELEGRAM_BOT_TOKEN="your_token_here"
+```
 
-- Runs automatically on every PR via GitHub Actions
-- Blocks merge if vulnerabilities found
-- Automated patching via Dependabot (weekly PRs)
+### CI/CD Secrets
 
-### Vulnerability Exceptions
+**GitHub Secrets (used in CI/CD):**
+- None currently needed for this CLI tool
 
-If a vulnerability must be temporarily ignored (e.g., no fix available):
+**To add secrets:**
+1. Go to: https://github.com/fall-out-bug/sdp/settings/secrets/actions
+2. Click: "New repository secret"
+3. Name: `TELEGRAM_BOT_TOKEN` (or appropriate)
+4. Value: Your secret value
+5. Enable: "Required for workflow"
 
-1. Document the exception in this file with:
-   - CVE ID and affected package
-   - Reason for exception
-   - Workaround or mitigation
-   - Timeline for resolution
-2. Use `poetry run pip-audit --ignore-vuln <VULN_ID>` in CI (temporary only)
+### Secret Rotation
+
+**If a secret is exposed (committed, leaked, etc.):**
+
+1. **Immediately rotate the secret**
+   ```bash
+   # Telegram bot token
+   # 1. Message @BotFather on Telegram
+   # 2: Select your bot → Revoke old token
+   # 3. Generate new token
+   # 4. Update .env locally
+   ```
+
+2. **Verify it's not in git history**
+   ```bash
+   git log --all --full-history -- .env
+   # Should return: "No history found"
+   ```
+
+3. **If it WAS committed:**
+   ```bash
+   # Remove from all commits
+   git filter-branch --force --index-filter \
+     "git rm --cached --ignore-unmatch .env"
+   
+   # Force push
+   git push origin --force --all
+   ```
+
+### Current Status (2026-02-07)
+
+✅ **SAFE** - `.env` is gitignored and not in git history
+⚠️ **Token exposed locally** - This is acceptable for development
+📋 **Template** - `.env.example` provided for setup
+
+### Best Practices
+
+1. **Never commit `.env`** - It's in `.gitignore`
+2. **Use `.env.example`** - Template for required variables
+3. **Document secrets** - Keep this SECURITY.md up to date
+4. **Review regularly** - Audit git log for accidental commits
+5. **Use `.env.local`** - For local overrides (also gitignored)
+
+### Monitoring
+
+**Check for exposed secrets:**
+```bash
+# Search git history for sensitive patterns
+git log --all --oneline -S | grep -i "token\|secret\|password\|api[_-]key"
+
+# Search all tracked files for secrets
+grep -r "TELEGRAM_BOT_TOKEN\|password\|secret" --include="*.go" --exclude-dir=vendor
+```
+
+---
+
+**Last Updated:** 2026-02-07  
+**Version:** 1.0
