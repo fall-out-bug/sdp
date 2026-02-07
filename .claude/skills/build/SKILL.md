@@ -32,18 +32,20 @@ Accepts **both** formats:
 
 ## Quick Reference
 
-| Step | Action | Gate | Beads? |
-|------|--------|------|--------|
-| 0 | Detect Beads | Check `bd --version` + `.beads/` | Detection |
-| 0a | Resolve beads_id | ws_id → mapping (if Beads) | Optional |
-| 0b | Beads IN_PROGRESS | `bd update --status in_progress` (if Beads) | Optional |
-| 1 | Activate guard | `sdp guard activate {ws_id}` | Always |
-| 2 | Read WS spec | AC present and clear | Always |
-| 3 | TDD cycle | `@tdd` for each AC | Always |
-| 4 | Quality check | `sdp quality check` passes | Always |
-| 5 | Beads CLOSED/blocked | `bd close` or `bd update --status blocked` (if Beads) | Optional |
-| 6 | Beads sync + commit | `bd sync` then commit (if Beads) | Optional |
-| 7 | Commit only | `git commit` (if no Beads) | Fallback |
+| Step | Action | Gate | Beads? | Retries |
+|------|--------|------|--------|---------|
+| 0 | Detect Beads | Check `bd --version` + `.beads/` | Detection | - |
+| 0a | Resolve beads_id | ws_id → mapping (if Beads) | Optional | - |
+| 0b | Beads IN_PROGRESS | `bd update --status in_progress` (if Beads) | Optional | - |
+| 1 | Activate guard | `sdp guard activate {ws_id}` | Always | - |
+| 2 | Read WS spec | AC present and clear | Always | - |
+| 3 | **Stage 1: Implementer** | TDD cycle | Always | 2 |
+| 4 | **Stage 2: Spec Reviewer** | Spec compliance | Always | 2 |
+| 5 | **Stage 3: Quality Reviewer** | Final quality check | Always | 2 |
+| 6 | All stages pass? | If yes, proceed | Always | - |
+| 7 | Beads CLOSED/blocked | `bd close` or `bd update --status blocked` (if Beads) | Optional | - |
+| 8 | Beads sync + commit | `bd sync` then commit (if Beads) | Optional | - |
+| 9 | Commit only | `git commit` (if no Beads) | Fallback | - |
 
 ## Workflow
 
@@ -83,38 +85,200 @@ Extract:
 - Input/Output files
 - Steps to execute
 
-### Step 4: TDD Cycle
+### Step 4: Two-Stage Review (Three Stages)
 
-For each AC, call internal TDD skill:
+**IMPORTANT:** Execute all three stages with retry logic.
 
+#### Stage 1: Implementer Agent
+
+**Purpose:** Execute TDD cycle (Red → Green → Refactor)
+
+```python
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the IMPLEMENTER agent.
+
+Read .claude/agents/implementer.md for your specification.
+
+WORKSTREAM: {WS-ID}
+SPEC: docs/workstreams/backlog/{WS-ID}.md
+
+Execute TDD cycle for each AC:
+1. RED: Write failing test
+2. GREEN: Implement minimum code
+3. REFACTOR: Improve code
+
+Generate self-report with metrics.
+Run quality gates.
+
+Return verdict: PASS/FAIL
+""",
+    description="Implementer agent - Stage 1"
+)
 ```
-@tdd "AC1: {description}"
+
+**Retry Logic:**
+- Max 2 retries
+- If FAIL: Fix issues, retry
+- If FAIL after 2 retries: Stop, report failure
+
+**Success Criteria:**
+- ✅ All AC implemented
+- ✅ All tests passing
+- ✅ Quality gates passed
+- ✅ Self-report generated
+
+#### Stage 2: Spec Compliance Reviewer Agent
+
+**Purpose:** Verify implementation matches specification
+
+```python
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the SPEC COMPLIANCE REVIEWER agent.
+
+Read .claude/agents/spec-reviewer.md for your specification.
+
+WORKSTREAM: {WS-ID}
+SPEC: docs/workstreams/backlog/{WS-ID}.md
+IMPLEMENTER REPORT: {from stage 1}
+
+CRITICAL: DO NOT TRUST implementer report.
+Verify everything yourself:
+1. Read actual code
+2. Run tests yourself
+3. Check coverage yourself
+4. Verify each AC manually
+
+Generate evidence-based verdict.
+Return verdict: PASS/FAIL
+""",
+    description="Spec compliance reviewer - Stage 2"
+)
 ```
 
-Cycle: Red → Green → Refactor
+**Retry Logic:**
+- Max 2 retries
+- If FAIL: Implementer fixes issues, retry
+- If FAIL after 2 retries: Stop, report failure
 
-### Step 5: Quality Check
+**Success Criteria:**
+- ✅ All AC verified (evidence provided)
+- ✅ Implementation matches spec
+- ✅ Tests are real (not mocked)
+- ✅ Quality gates passed (verified)
 
-```bash
-sdp quality check --module {module}
+#### Stage 3: Quality Reviewer Agent
+
+**Purpose:** Final quality check (comprehensive review)
+
+```python
+Task(
+    subagent_type="general-purpose",
+    prompt="""You are the QUALITY REVIEWER agent.
+
+WORKSTREAM: {WS-ID}
+SPEC: docs/workstreams/backlog/{WS-ID}.md
+
+Run comprehensive quality check:
+1. Test coverage (≥80%)
+2. Code quality (LOC, complexity)
+3. Security check
+4. Performance check
+5. Documentation check
+
+Generate quality report.
+Return verdict: PASS/FAIL
+""",
+    description="Quality reviewer - Stage 3"
+)
 ```
 
-Must pass:
-- Coverage ≥80%
-- mypy --strict
-- ruff (no errors)
-- Files <200 LOC
+**Retry Logic:**
+- Max 2 retries
+- If FAIL: Fix quality issues, retry
+- If FAIL after 2 retries: Stop, report failure
+
+**Success Criteria:**
+- ✅ All quality gates passed
+- ✅ No security issues
+- ✅ No performance issues
+- ✅ Documentation complete
+
+#### Retry Logic Summary
+
+```python
+def execute_stage(stage_name, agent, max_retries=2):
+    for attempt in range(1, max_retries + 1):
+        print(f"Stage: {stage_name}, Attempt: {attempt}/{max_retries}")
+
+        result = agent.execute()
+
+        if result.verdict == "PASS":
+            print(f"✅ {stage_name} PASSED")
+            return True
+        else:
+            print(f"❌ {stage_name} FAILED")
+            if attempt < max_retries:
+                print(f"Retrying...")
+                # Fix issues and retry
+            else:
+                print(f"Failed after {max_retries} retries")
+                return False
+
+    return False
+
+# Execute all stages
+stages = [
+    ("Implementer", implementer_agent),
+    ("Spec Reviewer", spec_reviewer_agent),
+    ("Quality Reviewer", quality_reviewer_agent)
+]
+
+all_passed = True
+for stage_name, agent in stages:
+    if not execute_stage(stage_name, agent):
+        all_passed = False
+        break  # Stop if any stage fails
+
+if all_passed:
+    print("✅ All stages passed - proceeding to commit")
+else:
+    print("❌ Stage failed - workstream blocked")
+```
+
+### Step 5: Verify All Stages Passed
+
+**If all three stages passed:**
+```markdown
+✅ All Stages Passed:
+- Stage 1 (Implementer): ✅ PASS
+- Stage 2 (Spec Reviewer): ✅ PASS
+- Stage 3 (Quality Reviewer): ✅ PASS
+
+Proceeding to commit...
+```
+
+**If any stage failed:**
+```markdown
+❌ Stage Failed:
+- Stage 1 (Implementer): ❌ FAIL (after 2 retries)
+  Reason: {details}
+  Action: Fix issues, retry
+
+Workstream blocked.
+```
 
 ### Step 6: Beads CLOSED or blocked
 
-**On success:**
+**On success (all 3 stages passed):**
 ```bash
-[ -n "$beads_id" ] && bd close "$beads_id" --reason "WS completed" --suggest-next
+[ -n "$beads_id" ] && bd close "$beads_id" --reason "WS completed (3-stage review passed)" --suggest-next
 ```
 
-**On failure (quality check fails, TDD fails):**
+**On failure (any stage failed after retries):**
 ```bash
-[ -n "$beads_id" ] && bd update "$beads_id" --status blocked
+[ -n "$beads_id" ] && bd update "$beads_id" --status blocked --notes="Failed at {stage}: {reason}"
 ```
 
 ### Step 7: Complete
