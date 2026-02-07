@@ -8,10 +8,11 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 > **🎯 New to SDP?** Start with [docs/NAVIGATION.md](docs/NAVIGATION.md) - Single entry point for all documentation.
 
-### Quick Start (3 Commands)
+### Quick Start (4 Commands)
 
 ```bash
 @vision "AI-powered task manager"     # Strategic planning
+@reality --quick                      # What's actually there?
 @feature "Add user authentication"    # Plan feature
 @build 00-001-01                      # Execute workstream
 @review F01                           # Quality check
@@ -23,39 +24,39 @@ Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude
 
 **⚠️ Workstream ID Format:** Use `PP-FFF-SS` (e.g., `00-001-01`), NOT legacy `WS-FFF-SS`
 
-## Decision Tree: @vision vs @feature vs @oneshot
+## Decision Tree: @vision → @reality → @feature → @oneshot
 
-### Three-Level Planning Model
+### Four-Level Planning Model
 
-**SDP has three orchestrators for different planning levels:**
+**SDP has four orchestrators for different planning levels:**
 
 ```
-Strategic Level                 Feature Level                Execution Level
-┌──────────────────┐           ┌──────────────────┐         ┌──────────────────┐
-│     @vision      │           │    @feature      │         │    @oneshot      │
-│  (strategic)     │           │   (planning)     │         │   (execution)    │
-└──────────────────┘           └──────────────────┘         └──────────────────┘
-         │                              │                             │
-         ▼                              ▼                             ▼
-  7 Expert Agents                @idea + @design            @build (all WS)
-  (deep analysis)               (requirements + WS)         (implement)
-         │                              │                             │
-         ▼                              ▼                             ▼
-  Product Artifacts              workstreams                 @review + @deploy
-  (VISION, PRD, ROADMAP)        (00-FFF-SS.md)              (quality + merge)
+Strategic Level                 Analysis Level                 Feature Level                Execution Level
+┌──────────────────┐           ┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+│     @vision      │           │    @reality      │         │    @feature      │         │    @oneshot      │
+│  (strategic)     │           │  (codebase anal) │         │   (planning)     │         │   (execution)    │
+└──────────────────┘           └──────────────────┘         └──────────────────┘         └──────────────────┘
+         │                              │                             │                             │
+         ▼                              ▼                             ▼                             ▼
+  7 Expert Agents             8 Expert Agents              @idea + @design            @build (all WS)
+  (product analysis)           (codebase analysis)          (requirements + WS)         (implement)
+         │                              │                             │                             │
+         ▼                              ▼                             ▼                             ▼
+  Product Artifacts            Reality Report               workstreams                 @review + @deploy
+  (VISION, PRD, ROADMAP)      (health, gaps, debt)         (00-FFF-SS.md)              (quality + merge)
 ```
 
 ### Level Comparison
 
-| Aspect | @vision | @feature | @oneshot |
-|--------|---------|----------|----------|
-| **Purpose** | Strategic product planning | Feature planning (requirements + workstreams) | Execute workstreams |
-| **Input** | Product idea ("AI task manager") | Feature description ("Add OAuth") | Feature ID (F01) or WS list |
-| **Output** | PRODUCT_VISION.md, PRD.md, ROADMAP.md | Workstream files (00-FFF-SS.md) | Implemented code + deployed feature |
-| **Duration** | Quarterly/annual review | Per feature | Per feature |
-| **Agents** | 7 experts (product, market, technical, UX, business, growth, risk) | @idea + @design | @build + @review + @deploy |
-| **When to Use** | New project, major pivot, quarterly planning | Starting new feature from scratch | Workstreams exist, ready to implement |
-| **Human Interaction** | Medium (3-5 interview cycles) | Heavy (AskUserQuestion, ExitPlanMode) | Minimal (only critical blockers) |
+| Aspect | @vision | @reality | @feature | @oneshot |
+|--------|---------|----------|----------|----------|
+| **Purpose** | Strategic product planning | Codebase analysis | Feature planning (requirements + workstreams) | Execute workstreams |
+| **Input** | Product idea ("AI task manager") | Project directory | Feature description ("Add OAuth") | Feature ID (F01) or WS list |
+| **Output** | PRODUCT_VISION.md, PRD.md, ROADMAP.md | Reality report (health, gaps, debt) | Workstream files (00-FFF-SS.md) | Implemented code + deployed feature |
+| **Duration** | Quarterly/annual review | Per project or quarterly | Per feature | Per feature |
+| **Agents** | 7 experts (product, market, technical, UX, business, growth, risk) | 8 experts (architecture, quality, testing, security, performance, docs, debt, standards) | @idea + @design | @build + @review + @deploy |
+| **When to Use** | New project, major pivot, quarterly planning | New to project, before @feature, after @vision, quarterly review | Starting new feature from scratch | Workstreams exist, ready to implement |
+| **Human Interaction** | Medium (3-5 interview cycles) | Minimal (auto-scans project) | Heavy (AskUserQuestion, ExitPlanMode) | Minimal (only critical blockers) |
 
 ### When to Use Each Level
 
@@ -65,6 +66,14 @@ Strategic Level                 Feature Level                Execution Level
 - ✅ Major pivot or direction change
 - ✅ Need comprehensive product analysis
 - ✅ Want expert analysis across 7 dimensions (product, market, technical, UX, business, growth, risk)
+
+**Use @reality when:**
+- ✅ New to project (what's actually here?)
+- ✅ Before @feature (what can we build on?)
+- ✅ After @vision (how do docs match code?)
+- ✅ Quarterly review (track tech debt and quality trends)
+- ✅ Debugging mysteries (why doesn't this work?)
+- ✅ Want 8-expert codebase analysis (architecture, quality, testing, security, performance, docs, debt, standards)
 
 **Use @feature when:**
 - ✅ You have a feature idea but no workstreams
@@ -201,6 +210,7 @@ Planning Phase                  Execution Phase
 | Skill | Purpose | Phase | Example |
 |-------|---------|-------|---------|
 | `@vision` | **Strategic product planning** (7 expert agents) | Strategic | `@vision "AI-powered task manager"` |
+| `@reality` | **Codebase analysis** (8 expert agents) | Analysis | `@reality --quick` or `@reality --focus=security` |
 | `@feature` | **Planning orchestrator** (interactive) | Planning | `@feature "Add payment processing"` |
 | `@idea` | **Requirements gathering** (AskUserQuestion) | Planning | `@idea "Add payment processing"` |
 | `@design` | **Workstream design** (EnterPlanMode) | Planning | `@design idea-payments` |
@@ -222,6 +232,7 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 
 **Claude Code Integration Highlights:**
 - `@vision` — Strategic planning: 7 expert agents (product, market, technical, UX, business, growth, risk) → PRODUCT_VISION.md, PRD.md, ROADMAP.md
+- `@reality` — Codebase analysis: 8 expert agents (architecture, quality, testing, security, performance, docs, debt, standards) → Reality report + vision gap analysis
 - `@feature` — Planning orchestrator: @idea (requirements) → @design (workstreams)
 - `@idea` — Deep interviewing via AskUserQuestion (no obvious questions, explores tradeoffs)
 - `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
@@ -273,13 +284,20 @@ Skills are defined in `.claude/skills/{name}/SKILL.md`
 # → Generates: PRODUCT_VISION.md, PRD.md, ROADMAP.md
 # Result: Clear strategic direction and feature roadmap
 
-# 2. Planning phase: @feature (per feature)
+# 2. Analysis phase: @reality (bridge vision to reality)
+@reality --quick
+# → 8 expert agents analyze codebase
+# → Generates: Reality report (health, gaps, tech debt)
+# → Compares: Vision vs Reality gap analysis
+# Result: Clear understanding of current state
+
+# 3. Planning phase: @feature (per feature)
 @feature "User can reset password via email"
 # → @idea gathers requirements (AskUserQuestion)
 # → @design creates workstreams (ExitPlanMode)
 # Result: 00-050-01.md, 00-050-02.md, ... in docs/workstreams/backlog/
 
-# 3. Execution phase: @oneshot (autonomous)
+# 4. Execution phase: @oneshot (autonomous)
 @oneshot F050
 # → @build executes all workstreams
 # → @review checks quality
