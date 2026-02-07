@@ -2,7 +2,6 @@ package graph
 
 import (
 	"errors"
-	"log"
 	"sync"
 	"time"
 )
@@ -74,28 +73,23 @@ func (cb *CircuitBreaker) Metrics() CircuitBreakerMetrics {
 
 // Execute runs the given function if the circuit breaker is not OPEN
 // If the circuit breaker is OPEN, it returns ErrCircuitBreakerOpen without running the function
+// However, if enough time has passed (backoff elapsed), it transitions to HALF_OPEN and allows execution
 func (cb *CircuitBreaker) Execute(fn func() error) error {
 	cb.mu.Lock()
 
-	// Check if we're in OPEN state and need to wait for backoff
+	// Check if we're in OPEN state
 	if cb.state == StateOpen {
 		backoff := cb.calculateBackoff()
-		cb.mu.Unlock()
+		elapsed := time.Since(cb.lastStateChange)
 
-		// Wait for backoff
-		log.Printf("[Circuit Breaker] OPEN - waiting %v before attempting recovery", backoff)
-		time.Sleep(backoff)
-
-		// Transition to HALF_OPEN
-		cb.mu.Lock()
-		cb.setState(StateHalfOpen)
-		cb.mu.Unlock()
-	}
-
-	// Check if we can proceed
-	if cb.state == StateOpen {
-		cb.mu.Unlock()
-		return ErrCircuitBreakerOpen
+		// If backoff has elapsed, transition to HALF_OPEN and proceed
+		// Otherwise, fail fast
+		if elapsed >= backoff {
+			cb.setState(StateHalfOpen)
+		} else {
+			cb.mu.Unlock()
+			return ErrCircuitBreakerOpen
+		}
 	}
 
 	cb.mu.Unlock()
@@ -117,10 +111,8 @@ func (cb *CircuitBreaker) Execute(fn func() error) error {
 		}
 	} else {
 		cb.successCount++
-		// Reset failure count on success
-		if cb.failureCount > 0 {
-			cb.failureCount--
-		}
+		// Fully reset failure count on success
+		cb.failureCount = 0
 
 		// If we're in HALF_OPEN, transition back to CLOSED on success
 		if cb.state == StateHalfOpen {

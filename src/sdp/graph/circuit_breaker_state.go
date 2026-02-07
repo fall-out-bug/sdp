@@ -6,10 +6,8 @@ import (
 )
 
 // setState transitions the circuit breaker to a new state
+// IMPORTANT: Caller must hold cb.mu.Lock()
 func (cb *CircuitBreaker) setState(newState CircuitState) {
-	cb.mu.Lock()
-	defer cb.mu.Unlock()
-
 	oldState := cb.state
 	cb.state = newState
 	cb.lastStateChange = time.Now()
@@ -19,10 +17,8 @@ func (cb *CircuitBreaker) setState(newState CircuitState) {
 }
 
 // calculateBackoff calculates the exponential backoff duration
+// IMPORTANT: Caller must hold the lock (cb.mu.Lock() or cb.mu.RLock())
 func (cb *CircuitBreaker) calculateBackoff() time.Duration {
-	cb.mu.RLock()
-	defer cb.mu.RUnlock()
-
 	// Base timeout
 	baseTimeout := cb.timeout
 

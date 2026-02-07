@@ -55,6 +55,7 @@ func (d *Dispatcher) createCheckpoint() *Checkpoint {
 		SuccessCount:     cbMetrics.SuccessCount,
 		ConsecutiveOpens: cbMetrics.ConsecutiveOpens,
 		LastFailureTime:  cbMetrics.LastFailureTime,
+		LastStateChange:  cbMetrics.LastStateChange,
 	}
 
 	return checkpoint

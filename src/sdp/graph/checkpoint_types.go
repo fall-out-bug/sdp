@@ -34,4 +34,5 @@ type CircuitBreakerSnapshot struct {
 	SuccessCount     int       `json:"success_count"`
 	ConsecutiveOpens int       `json:"consecutive_opens"`
 	LastFailureTime  time.Time `json:"last_failure_time"`
+	LastStateChange  time.Time `json:"last_state_change"`
 }
