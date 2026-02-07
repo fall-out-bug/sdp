@@ -2,16 +2,19 @@ package graph
 
 import (
 	"fmt"
+	"log"
 	"sync"
+	"time"
 )
 
 // Dispatcher coordinates parallel execution of workstreams
 type Dispatcher struct {
-	graph       *DependencyGraph
-	concurrency int
-	completed   map[string]bool
-	failed      map[string]error
-	mu          sync.RWMutex
+	graph          *DependencyGraph
+	concurrency    int
+	completed      map[string]bool
+	failed         map[string]error
+	circuitBreaker *CircuitBreaker
+	mu             sync.RWMutex
 }
 
 // NewDispatcher creates a new dispatcher for parallel execution
@@ -23,11 +26,20 @@ func NewDispatcher(g *DependencyGraph, concurrency int) *Dispatcher {
 		concurrency = 5 // Max 5 parallel workers
 	}
 
+	// Create circuit breaker with default configuration
+	cbConfig := CircuitBreakerConfig{
+		Threshold:  3,                // Trip after 3 failures
+		Window:     5,                // Within 5 requests
+		Timeout:    60 * time.Second, // Wait 60s before retry
+		MaxBackoff: 5 * time.Minute,  // Max backoff 5min
+	}
+
 	return &Dispatcher{
-		graph:       g,
-		concurrency: concurrency,
-		completed:   make(map[string]bool),
-		failed:      make(map[string]error),
+		graph:          g,
+		concurrency:    concurrency,
+		completed:      make(map[string]bool),
+		failed:         make(map[string]error),
+		circuitBreaker: NewCircuitBreaker(cbConfig),
 	}
 }
 
@@ -76,22 +88,29 @@ func (d *Dispatcher) Execute(executeFn ExecuteFunc) []ExecuteResult {
 		// Process batch
 		var wg sync.WaitGroup
 		resultsChan := make(chan ExecuteResult, batchSize)
-
 		for i := 0; i < batchSize && i < len(readyToRun); i++ {
 			wg.Add(1)
 			go func(wsID string) {
 				defer wg.Done()
-
-				err := executeFn(wsID)
-
+				// Wrap execution with circuit breaker
+				err := d.circuitBreaker.Execute(func() error {
+					return executeFn(wsID)
+				})
+				// Log circuit breaker state for observability
+				metrics := d.circuitBreaker.Metrics()
+				if err != nil && err == ErrCircuitBreakerOpen {
+					log.Printf("[Circuit Breaker] Workstream %s rejected - circuit is OPEN (state=%v, failures=%d)",
+						wsID, metrics.State, metrics.FailureCount)
+				} else if err != nil {
+					log.Printf("[Circuit Breaker] Workstream %s failed - circuit state=%v, failures=%d",
+						wsID, metrics.State, metrics.FailureCount)
+				}
 				result := ExecuteResult{
 					WorkstreamID: wsID,
 					Success:      err == nil,
 					Error:        err,
 				}
-
 				resultsChan <- result
-
 				// Update graph state
 				d.mu.Lock()
 				if err != nil {
@@ -106,7 +125,6 @@ func (d *Dispatcher) Execute(executeFn ExecuteFunc) []ExecuteResult {
 				d.mu.Unlock()
 			}(readyToRun[i])
 		}
-
 		// Wait for all goroutines in this batch
 		wg.Wait()
 		close(resultsChan)
@@ -142,6 +160,11 @@ func (d *Dispatcher) GetFailed() map[string]error {
 		failed[id] = err
 	}
 	return failed
+}
+
+// GetCircuitBreakerMetrics returns the current circuit breaker metrics
+func (d *Dispatcher) GetCircuitBreakerMetrics() CircuitBreakerMetrics {
+	return d.circuitBreaker.Metrics()
 }
 
 // isCompleted checks if a workstream is completed
