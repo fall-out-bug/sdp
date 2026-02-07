@@ -114,22 +114,60 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 	}
 
 	var calls []ExtractedCall
-	lines := strings.Split(string(content), "\n")
+	contentStr := string(content)
 
-	// Regex patterns for fetch and axios
-	patterns := []struct {
+	// First, process multiline patterns on the entire content
+	multilinePatterns := []struct {
 		Name    string
 		Pattern *regexp.Regexp
 		Method  string
 	}{
 		{
-			Name:    "fetch with method",
-			Pattern: regexp.MustCompile(`fetch\("([^"]+)",\s*\{[^}]*method:\s*["'](\w+)["']`),
+			Name:    "fetch with method (multiline)",
+			Pattern: regexp.MustCompile(`fetch\("([^"]+)",\s*\{[\s\S]*?method:\s*["'](\w+)["'][\s\S]*?\}`),
 			Method:  "",
 		},
 		{
+			Name:    "fetch GET (multiline with .then)",
+			Pattern: regexp.MustCompile(`fetch\("([^"]+)"\)[\s\S]*?\.then\(`),
+			Method:  "GET",
+		},
+	}
+
+	// Find all multiline matches
+	for _, p := range multilinePatterns {
+		allMatches := p.Pattern.FindAllStringSubmatchIndex(contentStr, -1)
+		for _, match := range allMatches {
+			if len(match) >= 6 {
+				// Extract matched text
+				matchedText := contentStr[match[0]:match[1]]
+				// Find line number by counting newlines before match
+				lineNum := strings.Count(contentStr[:match[0]], "\n")
+
+				// Extract submatches
+				submatches := p.Pattern.FindStringSubmatch(matchedText)
+				if len(submatches) >= 3 {
+					calls = append(calls, ExtractedCall{
+						Path:   submatches[1],
+						Method: strings.ToUpper(submatches[2]),
+						File:   filePath,
+						Line:   lineNum + 1,
+					})
+				}
+			}
+		}
+	}
+
+	// Then process line-by-line for simple patterns
+	lines := strings.Split(contentStr, "\n")
+	simplePatterns := []struct {
+		Name    string
+		Pattern *regexp.Regexp
+		Method  string
+	}{
+		{
 			Name:    "fetch shorthand",
-			Pattern: regexp.MustCompile(`fetch\("([^"]+)"\)`),
+			Pattern: regexp.MustCompile(`fetch\("([^"]*?)(?:\s*\+\s*[^)]*?)?"\)`),
 			Method:  "GET",
 		},
 		{
@@ -142,7 +180,7 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
 
-		for _, p := range patterns {
+		for _, p := range simplePatterns {
 			matches := p.Pattern.FindStringSubmatch(line)
 			if len(matches) >= 2 {
 				path := matches[1]
@@ -154,7 +192,7 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 				}
 
 				// For axios, method is in group 1
-				if p.Name == "axios" && len(matches) >= 2 {
+				if p.Name == "axios" && len(matches) >= 3 {
 					method = matches[1]
 					path = matches[2]
 				}
@@ -170,7 +208,20 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 		}
 	}
 
-	return calls, nil
+	// Deduplicate calls (same path and method)
+	uniqueCalls := make(map[string]ExtractedCall)
+	for _, call := range calls {
+		key := call.Path + ":" + call.Method
+		uniqueCalls[key] = call
+	}
+
+	// Convert map back to slice
+	var result []ExtractedCall
+	for _, call := range uniqueCalls {
+		result = append(result, call)
+	}
+
+	return result, nil
 }
 
 // AnalyzePythonSDK extracts public methods from Python SDK
@@ -183,8 +234,9 @@ func (ca *CodeAnalyzer) AnalyzePythonSDK(filePath string) ([]ExtractedMethod, er
 	var methods []ExtractedMethod
 	lines := strings.Split(string(content), "\n")
 
-	// Regex for method definition: def method_name(self, ...):
-	methodRe := regexp.MustCompile(`def\s+(\w+)\(self([^)]*)\):`)
+	// Regex for method definition: def method_name(self, ...) -> ReturnType:
+	// Handles both def method(self, param) and def method(self, param: type) -> ReturnType:
+	methodRe := regexp.MustCompile(`def\s+(\w+)\(self([^)]*)\)(?:\s*->\s*[^:]+)?:`)
 	docsRe := regexp.MustCompile(`"""(.+?)"""`)
 
 	for lineNum, line := range lines {
