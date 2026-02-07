@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -396,11 +397,11 @@ func TestDispatcher_CircuitBreakerTrips(t *testing.T) {
 	dispatcher := graph.NewDispatcher(g, 3)
 
 	// Execute with failures
-	failCount := 0
+	var failCount int64
 	executeFn := func(wsID string) error {
 		if wsID == "00-001-01" || wsID == "00-001-02" || wsID == "00-001-03" {
-			failCount++
-			if failCount <= 3 {
+			count := atomic.AddInt64(&failCount, 1)
+			if count <= 3 {
 				return errors.New("simulated failure")
 			}
 		}
