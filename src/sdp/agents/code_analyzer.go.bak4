@@ -1,0 +1,391 @@
+package agents
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
+// CodeAnalyzer extracts API contracts from existing code
+type CodeAnalyzer struct{}
+
+// ExtractedRoute represents a backend route
+type ExtractedRoute struct {
+	Path   string `yaml:"path"`
+	Method string `yaml:"method"`
+	File   string `yaml:"file"`
+	Line   int    `yaml:"line"`
+}
+
+// ExtractedCall represents a frontend API call
+type ExtractedCall struct {
+	Path   string `yaml:"path"`
+	Method string `yaml:"method"`
+	File   string `yaml:"file"`
+	Line   int    `yaml:"line"`
+}
+
+// ExtractedMethod represents a Python SDK method
+type ExtractedMethod struct {
+	Name        string   `yaml:"name"`
+	Parameters  []string `yaml:"parameters"`
+	ReturnType  string   `yaml:"return_type"`
+	Description string   `yaml:"description"`
+	File        string   `yaml:"file"`
+	Line        int      `yaml:"line"`
+}
+
+// NewCodeAnalyzer creates a new code analyzer
+func NewCodeAnalyzer() *CodeAnalyzer {
+	return &CodeAnalyzer{}
+}
+
+// AnalyzeGoBackend extracts routes from Go backend code
+func (ca *CodeAnalyzer) AnalyzeGoBackend(filePath string) ([]ExtractedRoute, error) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read Go file: %w", err)
+	}
+
+	var routes []ExtractedRoute
+	lines := strings.Split(string(content), "\n")
+
+	// Regex patterns for different frameworks
+	patterns := []struct {
+		Name    string
+		Pattern *regexp.Regexp
+	}{
+		{
+			Name:    "gorilla/mux",
+			Pattern: regexp.MustCompile(`HandleFunc\("([^"]+)",\s*(\w+)\)\.Methods\("(\w+)"\)`),
+		},
+		{
+			Name:    "gin",
+			Pattern: regexp.MustCompile(`r?\.(GET|POST|PUT|DELETE|PATCH)\("([^"]+)",\s*(\w+)\)`),
+		},
+		{
+			Name:    "echo",
+			Pattern: regexp.MustCompile(`e?\.(GET|POST|PUT|DELETE|PATCH)\("([^"]+)",\s*(\w+)\)`),
+		},
+	}
+
+	for lineNum, line := range lines {
+		line = strings.TrimSpace(line)
+
+		// Try each pattern
+		for _, p := range patterns {
+			matches := p.Pattern.FindStringSubmatch(line)
+			if len(matches) >= 3 {
+				var path, method string
+
+				// Extract path and method based on pattern
+				switch p.Name {
+				case "gorilla/mux":
+					path = matches[1]
+					method = matches[3]
+				case "gin", "echo":
+					method = matches[1]
+					path = matches[2]
+				}
+
+				routes = append(routes, ExtractedRoute{
+					Path:   path,
+					Method: strings.ToUpper(method),
+					File:   filePath,
+					Line:   lineNum + 1,
+				})
+				break
+			}
+		}
+	}
+
+	return routes, nil
+}
+
+// AnalyzeTypeScriptFrontend extracts API calls from TypeScript/JavaScript
+func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedCall, error) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read TypeScript file: %w", err)
+	}
+
+	var calls []ExtractedCall
+	lines := strings.Split(string(content), "\n")
+
+	// Regex patterns for fetch and axios
+	patterns := []struct {
+		Name    string
+		Pattern *regexp.Regexp
+		Method  string
+	}{
+		{
+			Name:    "fetch with method",
+			Pattern: regexp.MustCompile(`fetch\("([^"]+)",\s*\{[^}]*method:\s*["'](\w+)["']`),
+			Method:  "",
+		},
+		{
+			Name:    "fetch shorthand",
+			Pattern: regexp.MustCompile`fetch\("([^"]+)"\)`),
+			Method:  "GET",
+		},
+		{
+			Name:    "axios",
+			Pattern: regexp.MustCompile(`axios\.(\w+)\("([^"]+)"`),
+			Method:  "",
+		},
+	}
+
+	for lineNum, line := range lines {
+		line = strings.TrimSpace(line)
+
+		for _, p := range patterns {
+			matches := p.Pattern.FindStringSubmatch(line)
+			if len(matches) >= 2 {
+				path := matches[1]
+				method := p.Method
+
+				// Extract method from match if available
+				if len(matches) >= 3 && matches[2] != "" {
+					method = matches[2]
+				}
+
+				// For axios, method is in group 1
+				if p.Name == "axios" && len(matches) >= 2 {
+					method = matches[1]
+					path = matches[2]
+				}
+
+				calls = append(calls, ExtractedCall{
+					Path:   path,
+					Method: strings.ToUpper(method),
+					File:   filePath,
+					Line:   lineNum + 1,
+				})
+				break
+			}
+		}
+	}
+
+	return calls, nil
+}
+
+// AnalyzePythonSDK extracts public methods from Python SDK
+func (ca *CodeAnalyzer) AnalyzePythonSDK(filePath string) ([]ExtractedMethod, error) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read Python file: %w", err)
+	}
+
+	var methods []ExtractedMethod
+	lines := strings.Split(string(content), "\n")
+
+	// Regex for method definition: def method_name(self, ...):
+	methodRe := regexp.MustCompile(`def\s+(\w+)\(self([^)]*)\):`)
+	docsRe := regexp.MustCompile(`"""(.+?)"""`)
+
+	for lineNum, line := range lines {
+		line = strings.TrimSpace(line)
+
+		matches := methodRe.FindStringSubmatch(line)
+		if len(matches) >= 2 {
+			methodName := matches[1]
+
+			// Skip private methods
+			if strings.HasPrefix(methodName, "_") {
+				continue
+			}
+
+			// Extract parameters
+			paramsStr := matches[2]
+			var parameters []string
+			if paramsStr != "" {
+				// Remove leading comma and split
+				paramsStr = strings.TrimPrefix(paramsStr, ",")
+				params := strings.Split(paramsStr, ",")
+				for _, p := range params {
+					p = strings.TrimSpace(p)
+					if p != "" {
+						// Extract parameter name (before type hint)
+						parts := strings.Fields(p)
+						if len(parts) > 0 {
+							parameters = append(parameters, parts[0])
+						}
+					}
+				}
+			}
+
+			// Look for docstring in next few lines
+			description := ""
+			for i := lineNum; i < len(lines) && i < lineNum+5; i++ {
+				docMatches := docsRe.FindStringSubmatch(lines[i])
+				if len(docMatches) >= 2 {
+					description = docMatches[1]
+					break
+				}
+			}
+
+			methods = append(methods, ExtractedMethod{
+				Name:        methodName,
+				Parameters:  parameters,
+				ReturnType:  "dict", // Default return type
+				Description: description,
+				File:        filePath,
+				Line:        lineNum + 1,
+			})
+		}
+	}
+
+	return methods, nil
+}
+
+// GenerateOpenAPIContract generates an OpenAPI contract from extracted data
+func (ca *CodeAnalyzer) GenerateOpenAPIContract(
+	componentName string,
+	backendRoutes []ExtractedRoute,
+	frontendCalls []ExtractedCall,
+) (*OpenAPIContract, error) {
+	contract := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Info: InfoSpec{
+			Title:   fmt.Sprintf("%s API", strings.Title(componentName)),
+			Version: "1.0.0",
+		},
+		Paths: make(PathsSpec),
+	}
+
+	// Add backend routes to contract
+	for _, route := range backendRoutes {
+		if _, exists := contract.Paths[route.Path]; !exists {
+			contract.Paths[route.Path] = make(PathSpec)
+		}
+
+		operation := OperationSpec{
+			Summary: fmt.Sprintf("%s %s", route.Method, route.Path),
+			Responses: ResponsesSpec{
+				"200": ResponseSpec{
+					Description: "Success",
+					Content: map[string]MediaSpec{
+						"application/json": {
+							Schema: SchemaRefSpec{Type: "object"},
+						},
+					},
+				},
+			},
+		}
+
+		// Add request body for POST/PUT/PATCH
+		if route.Method == "POST" || route.Method == "PUT" || route.Method == "PATCH" {
+			operation.RequestBody = &RequestSpec{
+				Required: true,
+				Content: map[string]MediaSpec{
+					"application/json": {
+						Schema: SchemaRefSpec{Type: "object"},
+					},
+				},
+			}
+		}
+
+		contract.Paths[route.Path][strings.ToLower(route.Method)] = operation
+	}
+
+	return contract, nil
+}
+
+// WriteExtractedContract writes the extracted contract to a YAML file
+func (ca *CodeAnalyzer) WriteExtractedContract(contract *OpenAPIContract, outputPath string) error {
+	// Ensure directory exists
+	dir := filepath.Dir(outputPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Marshal to YAML
+	data, err := yaml.Marshal(contract)
+	if err != nil {
+		return fmt.Errorf("failed to marshal contract: %w", err)
+	}
+
+	// Write file
+	if err := os.WriteFile(outputPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write contract: %w", err)
+	}
+
+	return nil
+}
+
+// ExtractComponentContract performs end-to-end contract extraction for a component
+func (ca *CodeAnalyzer) ExtractComponentContract(
+	componentName string,
+	componentType string, // "backend", "frontend", "sdk"
+	filePaths []string,
+	outputPath string,
+) error {
+	var contract *OpenAPIContract
+	var err error
+
+	switch componentType {
+	case "backend":
+		var allRoutes []ExtractedRoute
+		for _, filePath := range filePaths {
+			routes, err := ca.AnalyzeGoBackend(filePath)
+			if err != nil {
+				return fmt.Errorf("failed to analyze %s: %w", filePath, err)
+			}
+			allRoutes = append(allRoutes, routes...)
+		}
+		contract, err = ca.GenerateOpenAPIContract(componentName, allRoutes, nil)
+		if err != nil {
+			return fmt.Errorf("failed to generate contract: %w", err)
+		}
+
+	case "frontend":
+		var allCalls []ExtractedCall
+		for _, filePath := range filePaths {
+			calls, err := ca.AnalyzeTypeScriptFrontend(filePath)
+			if err != nil {
+				return fmt.Errorf("failed to analyze %s: %w", filePath, err)
+			}
+			allCalls = append(allCalls, calls...)
+		}
+		// For frontend, we treat calls as routes
+		var routes []ExtractedRoute
+		for _, call := range allCalls {
+			routes = append(routes, ExtractedRoute{
+				Path:   call.Path,
+				Method: call.Method,
+				File:   call.File,
+				Line:   call.Line,
+			})
+		}
+		contract, err = ca.GenerateOpenAPIContract(componentName, routes, nil)
+		if err != nil {
+			return fmt.Errorf("failed to generate contract: %w", err)
+		}
+
+	case "sdk":
+		// SDK methods don't map directly to OpenAPI
+		// We'll create a minimal contract for now
+		contract = &OpenAPIContract{
+			OpenAPI: "3.0.0",
+			Info: InfoSpec{
+				Title:   fmt.Sprintf("%s SDK", strings.Title(componentName)),
+				Version: "1.0.0",
+			},
+			Paths: make(PathsSpec),
+		}
+
+	default:
+		return fmt.Errorf("unknown component type: %s", componentType)
+	}
+
+	// Write contract
+	if err := ca.WriteExtractedContract(contract, outputPath); err != nil {
+		return fmt.Errorf("failed to write contract: %w", err)
+	}
+
+	return nil
+}
