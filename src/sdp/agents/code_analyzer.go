@@ -128,8 +128,8 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 			Method:  "",
 		},
 		{
-			Name:    "fetch GET (multiline with .then)",
-			Pattern: regexp.MustCompile(`fetch\("([^"]+)"\)[\s\S]*?\.then\(`),
+			Name:    "fetch followed by .then",
+			Pattern: regexp.MustCompile(`fetch\([^)]+\)(?:\s*[\n\r]*\s*\.\s*then\s*\()`),
 			Method:  "GET",
 		},
 	}
@@ -138,18 +138,79 @@ func (ca *CodeAnalyzer) AnalyzeTypeScriptFrontend(filePath string) ([]ExtractedC
 	for _, p := range multilinePatterns {
 		allMatches := p.Pattern.FindAllStringSubmatchIndex(contentStr, -1)
 		for _, match := range allMatches {
-			if len(match) >= 6 {
-				// Extract matched text
-				matchedText := contentStr[match[0]:match[1]]
+			if len(match) >= 4 { // Need at least: start, end, and 1 submatch pair
 				// Find line number by counting newlines before match
 				lineNum := strings.Count(contentStr[:match[0]], "\n")
 
-				// Extract submatches
-				submatches := p.Pattern.FindStringSubmatch(matchedText)
-				if len(submatches) >= 3 {
+				// Extract the matched text
+				matchedText := contentStr[match[0]:match[1]]
+
+				// For .then pattern, extract path from first quoted string
+				var path, method string
+				if p.Name == "fetch followed by .then" {
+					// Extract path from first "..." in the matched text
+					pathRe := regexp.MustCompile(`"([^"]+)"`)
+					pathMatches := pathRe.FindStringSubmatch(matchedText)
+					if len(pathMatches) >= 2 {
+						path = pathMatches[1]
+					}
+					method = p.Method
+				} else {
+					// Extract submatches directly from indices
+					// Group 1 (path): match[2], match[3]
+					// Group 2 (method): match[4], match[5] (if present)
+					if len(match) >= 4 {
+						path = contentStr[match[2]:match[3]]
+					}
+
+					if len(match) >= 6 && p.Method == "" {
+						// Extract method from group 2
+						method = contentStr[match[4]:match[5]]
+					} else {
+						method = p.Method
+					}
+				}
+
+				if path != "" {
 					calls = append(calls, ExtractedCall{
-						Path:   submatches[1],
-						Method: strings.ToUpper(submatches[2]),
+						Path:   path,
+						Method: strings.ToUpper(method),
+						File:   filePath,
+						Line:   lineNum + 1,
+					})
+				}
+			}
+		}
+	}
+
+	// Find all multiline matches
+	for _, p := range multilinePatterns {
+		allMatches := p.Pattern.FindAllStringSubmatchIndex(contentStr, -1)
+		for _, match := range allMatches {
+			if len(match) >= 6 { // Need at least: start, end, and 2 submatch pairs
+				// Find line number by counting newlines before match
+				lineNum := strings.Count(contentStr[:match[0]], "\n")
+
+				// Extract submatches directly from indices
+				// Group 1 (path): match[2], match[3]
+				// Group 2 (method): match[4], match[5] (if present)
+				var path, method string
+
+				if len(match) >= 4 {
+					path = contentStr[match[2]:match[3]]
+				}
+
+				if len(match) >= 6 && p.Method == "" {
+					// Extract method from group 2
+					method = contentStr[match[4]:match[5]]
+				} else {
+					method = p.Method
+				}
+
+				if path != "" {
+					calls = append(calls, ExtractedCall{
+						Path:   path,
+						Method: strings.ToUpper(method),
 						File:   filePath,
 						Line:   lineNum + 1,
 					})

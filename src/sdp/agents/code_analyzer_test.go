@@ -131,6 +131,14 @@ export async function getTelemetryEvent(id: string): Promise<TelemetryEvent> {
 		t.Fatalf("AnalyzeTypeScriptFrontend failed: %v", err)
 	}
 
+	// Debug: print what was found
+	if len(calls) != 2 {
+		t.Logf("DEBUG: Found %d calls:", len(calls))
+		for i, call := range calls {
+			t.Logf("  [%d] Path=%q Method=%s Line=%d", i, call.Path, call.Method, call.Line)
+		}
+	}
+
 	if len(calls) != 2 {
 		t.Errorf("Expected 2 API calls, got %d", len(calls))
 	}
@@ -167,6 +175,14 @@ export async function getTelemetryEvent(id: string) {
 	calls, err := analyzer.AnalyzeTypeScriptFrontend(tsFile)
 	if err != nil {
 		t.Fatalf("AnalyzeTypeScriptFrontend failed: %v", err)
+	}
+
+	// Debug: print what was found
+	if len(calls) != 2 {
+		t.Logf("DEBUG: Found %d calls:", len(calls))
+		for i, call := range calls {
+			t.Logf("  [%d] Path=%q Method=%s Line=%d", i, call.Path, call.Method, call.Line)
+		}
 	}
 
 	if len(calls) != 2 {
