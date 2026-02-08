@@ -220,6 +220,11 @@ func (cv *ContractValidator) ValidateSDKBackend(
 
 // GenerateReport generates a markdown validation report
 func (cv *ContractValidator) GenerateReport(mismatches []*ContractMismatch) string {
+	return cv.GenerateReportWithOptions(mismatches, false)
+}
+
+// GenerateReportWithOptions generates a markdown validation report with options
+func (cv *ContractValidator) GenerateReportWithOptions(mismatches []*ContractMismatch, redact bool) string {
 	var sb strings.Builder
 
 	sb.WriteString("# Contract Validation Report\n\n")
@@ -236,6 +241,7 @@ func (cv *ContractValidator) GenerateReport(mismatches []*ContractMismatch) stri
 	errorCount := 0
 	warningCount := 0
 	infoCount := 0
+	sensitiveCount := 0
 
 	for _, m := range mismatches {
 		switch m.Severity {
@@ -246,30 +252,43 @@ func (cv *ContractValidator) GenerateReport(mismatches []*ContractMismatch) stri
 		case "INFO":
 			infoCount++
 		}
+
+		// Count sensitive paths
+		if isSensitivePath(m.Path) {
+			sensitiveCount++
+		}
 	}
 
 	sb.WriteString("## Summary\n\n")
 	sb.WriteString(fmt.Sprintf("- Total issues: %d\n", len(mismatches)))
 	sb.WriteString(fmt.Sprintf("- Errors: %d\n", errorCount))
 	sb.WriteString(fmt.Sprintf("- Warnings: %d\n", warningCount))
-	sb.WriteString(fmt.Sprintf("- Info: %d\n\n", infoCount))
+	sb.WriteString(fmt.Sprintf("- Info: %d\n", infoCount))
+
+	if redact && sensitiveCount > 0 {
+		sb.WriteString(fmt.Sprintf("- ⚠️ Sensitive endpoints redacted: %d\n\n", sensitiveCount))
+	} else if sensitiveCount > 0 {
+		sb.WriteString(fmt.Sprintf("- Sensitive endpoints detected: %d\n\n", sensitiveCount))
+	} else {
+		sb.WriteString("\n")
+	}
 
 	// Errors section
 	if errorCount > 0 {
 		sb.WriteString("## Errors\n\n")
-		cv.writeMismatchesTable(&sb, mismatches, "ERROR")
+		cv.writeMismatchesTable(&sb, mismatches, "ERROR", redact)
 	}
 
 	// Warnings section
 	if warningCount > 0 {
 		sb.WriteString("## Warnings\n\n")
-		cv.writeMismatchesTable(&sb, mismatches, "WARNING")
+		cv.writeMismatchesTable(&sb, mismatches, "WARNING", redact)
 	}
 
 	// Info section
 	if infoCount > 0 {
 		sb.WriteString("## Info\n\n")
-		cv.writeMismatchesTable(&sb, mismatches, "INFO")
+		cv.writeMismatchesTable(&sb, mismatches, "INFO", redact)
 	}
 
 	if len(mismatches) == 0 {
@@ -280,7 +299,7 @@ func (cv *ContractValidator) GenerateReport(mismatches []*ContractMismatch) stri
 }
 
 // writeMismatchesTable writes a markdown table for mismatches of given severity
-func (cv *ContractValidator) writeMismatchesTable(sb *strings.Builder, mismatches []*ContractMismatch, severity string) {
+func (cv *ContractValidator) writeMismatchesTable(sb *strings.Builder, mismatches []*ContractMismatch, severity string, redact bool) {
 	sb.WriteString("| Component | Type | Expected | Actual | Fix |\n")
 	sb.WriteString("|-----------|------|----------|--------|-----|\n")
 
@@ -290,8 +309,22 @@ func (cv *ContractValidator) writeMismatchesTable(sb *strings.Builder, mismatche
 		}
 
 		component := fmt.Sprintf("%s vs %s", m.ComponentA, m.ComponentB)
+		expected := m.Expected
+		actual := m.Actual
+		fix := m.Fix
+
+		// Redact sensitive information if requested
+		if redact {
+			if isSensitivePath(m.Path) {
+				expected = "[REDACTED]"
+				actual = "[REDACTED]"
+				fix = "Review manually (sensitive endpoint)"
+			}
+			component = redactSensitiveInfo(component)
+		}
+
 		sb.WriteString(fmt.Sprintf("| %s | %s | %s | %s | %s |\n",
-			component, m.Type, m.Expected, m.Actual, m.Fix))
+			component, m.Type, expected, actual, fix))
 	}
 
 	sb.WriteString("\n")
@@ -325,6 +358,41 @@ func (cv *ContractValidator) extractPaths(contract *OpenAPIContract) map[string]
 	}
 
 	return paths
+}
+
+// isSensitivePath checks if a path contains sensitive information
+func isSensitivePath(path string) bool {
+	sensitivePrefixes := []string{
+		"/admin", "/internal", "/private", "/config",
+		"/secret", "/auth", "/login", "/logout",
+		"/password", "/token", "/key", "/credentials",
+	}
+
+	lowerPath := strings.ToLower(path)
+	for _, prefix := range sensitivePrefixes {
+		// Check if path starts with prefix OR contains /prefix/
+		if strings.HasPrefix(lowerPath, prefix) || strings.Contains(lowerPath, "/"+prefix+"/") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// redactSensitiveInfo redacts sensitive information from a string
+func redactSensitiveInfo(input string) string {
+	// Redact file paths (keep only filename, redact directory structure)
+	// Example: /home/user/project/file.go -> ***/file.go
+	if strings.Contains(input, "/") {
+		parts := strings.Split(input, "/")
+		if len(parts) > 1 {
+			filename := parts[len(parts)-1]
+			// Always use exactly 3 levels of ***
+			input = "***/***/" + filename
+		}
+	}
+
+	return input
 }
 
 // ValidateContractFile validates a contract file and returns issues
