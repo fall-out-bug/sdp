@@ -55,13 +55,46 @@ The first three layers are free and catch 35-50% more bugs than no verification.
 
 ## What SDP Is
 
-**An opinionated verification framework for AI-generated code.**
+**A build system for AI-generated code with invisible structure and a built-in audit trail.**
 
-Not a protocol. Not a standard. Not a taxonomy of 24 skills.
+One opinion: **AI code should be generated in small verified units, not in large unverified blobs.**
 
-A framework with one opinion: **AI code should be generated in small verified units, not in large unverified blobs.**
+Two modes. One philosophy. Different depths of engagement.
 
-If that opinion turns out to be wrong — if future models generate flawless 5000-line files — SDP is unnecessary. We bet they won't. We bet that decomposition is a permanent structural advantage, not a temporary crutch.
+### Mode 1: `ship` — Trust with Verification
+
+For people who want to hand off to AI but need verified results.
+
+```bash
+sdp ship "Add OAuth2 login with Google and GitHub"
+```
+
+What happens inside: decomposition, specs, TDD, static analysis, audit trail.
+What the user sees: a progress bar and a PR with a green checkmark.
+
+**The structure is invisible. The artifacts exist for three consumers:**
+1. The next AI session (inter-session memory — context, not docs)
+2. The human investigator (forensics when something breaks)
+3. The compliance system (SOC2/HIPAA audit trail)
+
+### Mode 2: `mentor` — Guide the AI
+
+For people who want their expertise reflected in the output. The full circle:
+
+```bash
+sdp idea "Add OAuth2 login"    # Interactive requirements (you shape the spec)
+sdp design idea-oauth           # Architecture decisions (you choose the approach)
+sdp build 00-001-01             # TDD execution (you watch each unit)
+sdp review F01                  # Multi-agent review (you approve the verdict)
+```
+
+Same decomposition. Same verification. Same artifacts. But the human is in the loop at every stage — mentoring the AI, not just consuming its output.
+
+### The Insight
+
+Both modes produce the same thing: **small verified units with an audit trail.** The difference is who makes the decisions — the AI (ship) or the human (mentor). The philosophy doesn't change. The depth of engagement does.
+
+> *"Ship" users trust the framework. "Mentor" users trust themselves. Both get verified code.*
 
 ---
 
@@ -70,12 +103,13 @@ If that opinion turns out to be wrong — if future models generate flawless 500
 - **Not a coding methodology.** SDP doesn't enforce TDD, clean architecture, or file size limits as doctrine. These are verification heuristics that the framework tunes based on results.
 - **Not a project manager.** No sprints, no velocity, no roadmaps. SDP verifies output.
 - **Not for disposable code.** If your code costs less to rewrite than to verify, don't use SDP.
+- **Not a straitjacket.** Risk-proportional verification: `payments/` gets the full audit trail, `components/` gets code + tests. The framework infers the risk, the user doesn't configure it.
 
 ---
 
 ## The User Experience
 
-### One Command: `sdp ship`
+### Ship Mode (default): One Command
 
 ```bash
 $ sdp ship "Add OAuth2 login with Google and GitHub"
@@ -114,6 +148,26 @@ Verification passed. PR created: github.com/org/repo/pull/42
 ```
 
 **Streaming progress is non-negotiable.** The progress bar IS the product. Nobody stares at a spinner for 3 minutes.
+
+### Mentor Mode: Full Circle
+
+For engineers who want to shape the output — the same pipeline, but human-in-the-loop at each stage:
+
+```bash
+sdp idea "Add OAuth2 login"       # AI interviews you: "Sessions or JWT? PKCE?"
+sdp design idea-oauth              # AI proposes architecture, you choose
+sdp build 00-001-01               # You watch TDD: red → green → refactor
+sdp build 00-001-02               # Unit by unit, your expertise guides the AI
+sdp review F01                    # Multi-agent review, you approve the verdict
+```
+
+**Same decomposition. Same verification. Same artifacts.** The difference: your decisions are encoded into the specs. The AI doesn't guess "sessions or JWT" — it asks you.
+
+**When to use mentor mode:**
+- New domain (you need to teach the AI your constraints)
+- High-stakes system (you want sign-off at every stage)
+- Learning SDP (you want to see the internals)
+- Compliance requires human approval at each gate
 
 ### Flags for Control
 
@@ -173,6 +227,16 @@ One YAML file. One CI check. Every AI-generated PR gets verified. Teams add it o
 | **Enterprise SaaS** | Multi-tenant bugs = data leaks | AI doesn't verify isolation boundaries |
 | **ML/Data** | Pipeline bugs = silent data corruption | No property-based testing in AI workflows |
 
+### Early Traction
+
+Enterprise interest is not hypothetical:
+
+- **T-Bank** (top-3 Russian bank) — contracted for AI development workflow integration
+- **S7 Airlines** — contracted for AI-assisted development tooling
+- **Avito** (Russia's largest marketplace) — evaluating for engineering teams
+
+All via independent contracts. Signal: **enterprises with compliance requirements already want this.** The pain is real. The budget exists. The question is execution speed.
+
 ### Who Pays
 
 Not developers. Developers adopt free tools.
@@ -180,6 +244,8 @@ Not developers. Developers adopt free tools.
 **Compliance budgets.** The pitch: "Auditable proof that all AI-generated code was independently verified." That's a SOC2 line item.
 
 **Engineering lead budgets.** The pitch: "SDP-verified code has N% fewer defects. Here's the data."
+
+**The enterprise path is validated.** The next step is packaging what works into a repeatable product — not proving demand exists.
 
 ---
 
@@ -277,5 +343,6 @@ The clock is running.
 
 ---
 
-*SDP v2.1 — February 2026*
-*Updated after think-tank review by PG, Hashimoto, DHH, Collison, and adversarial ML research.*
+*SDP v2.2 — February 2026*
+*Updated after unified philosophy debate (PG, DHH, Levels, Karpathy, Masad, Willison).*
+*Two-mode model (ship/mentor) based on enterprise feedback from T-Bank, S7, Avito.*
