@@ -10,6 +10,9 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,7 +22,7 @@ jobs:
         with:
           go-version: '1.25.6'
           cache: true
-          cache-dependency-path: go.sum
+          cache-dependency-path: sdp-plugin/go.sum
 
       - name: Download dependencies
         run: go mod download
@@ -46,13 +49,16 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: coverage.out
+          files: sdp-plugin/coverage.out
           fail_ci_if_error: true
           min_coverage: 75
 
   contract-validation:
     name: Contract Validation
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,7 +68,7 @@ jobs:
         with:
           go-version: '1.25.6'
           cache: true
-          cache-dependency-path: go.sum
+          cache-dependency-path: sdp-plugin/go.sum
 
       - name: Build SDP CLI
         run: go build -o sdp ./cmd/sdp
@@ -130,13 +136,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: contract-validation-reports
-          path: validation-reports/
+          path: sdp-plugin/validation-reports/
           retention-days: 30
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -146,17 +155,21 @@ jobs:
         with:
           go-version: '1.25.6'
           cache: true
-          cache-dependency-path: go.sum
+          cache-dependency-path: sdp-plugin/go.sum
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
           args: --timeout=5m
+          working-directory: sdp-plugin
 
   cross-platform:
     name: Cross-Platform Build
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
     strategy:
       matrix:
         include:
@@ -184,7 +197,7 @@ jobs:
         with:
           go-version: '1.25.6'
           cache: true
-          cache-dependency-path: go.sum
+          cache-dependency-path: sdp-plugin/go.sum
 
       - name: Build
         run: |
@@ -201,4 +214,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sdp-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/sdp-*
+          path: sdp-plugin/dist/sdp-*
