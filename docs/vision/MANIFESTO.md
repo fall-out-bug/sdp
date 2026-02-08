@@ -231,9 +231,9 @@ One YAML file. One CI check. Every AI-generated PR gets verified. Teams add it o
 
 Enterprise interest is not hypothetical:
 
-- **T-Bank** (top-3 Russian bank) — contracted for AI development workflow integration
-- **S7 Airlines** — contracted for AI-assisted development tooling
-- **Avito** (Russia's largest marketplace) — evaluating for engineering teams
+- **A top-3 bank** — contracted for AI development workflow integration
+- **A major airline** — contracted for AI-assisted development tooling
+- **The largest online marketplace** — evaluating for engineering teams
 
 All via independent contracts. Signal: **enterprises with compliance requirements already want this.** The pain is real. The budget exists. The question is execution speed.
 
