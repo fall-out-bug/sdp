@@ -349,3 +349,119 @@ func containsSubstring(s, substr string) bool {
 	}
 	return false
 }
+
+// TestExtractComponentContract_Backend verifies end-to-end backend contract extraction
+func TestExtractComponentContract_Backend(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+	tmpDir := t.TempDir()
+
+	// Create Go backend file
+	goFile := filepath.Join(tmpDir, "routes.go")
+	goCode := `package main
+import "github.com/gorilla/mux"
+func SetupRoutes(r *mux.Router) {
+	r.HandleFunc("/api/v1/telemetry/events", handleEvents).Methods("POST")
+}
+func handleEvents(w http.ResponseWriter, r *http.Request) {}
+`
+	if err := os.WriteFile(goFile, []byte(goCode), 0644); err != nil {
+		t.Fatalf("Failed to create Go file: %v", err)
+	}
+
+	outputPath := filepath.Join(tmpDir, "contract.yaml")
+
+	// Extract contract for backend component
+	err := analyzer.ExtractComponentContract("telemetry", "backend", []string{goFile}, outputPath)
+	if err != nil {
+		t.Fatalf("ExtractComponentContract (backend) failed: %v", err)
+	}
+
+	// Verify contract file created
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		t.Fatal("Contract file was not created")
+	}
+
+	// Verify contract content
+	content, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatalf("Failed to read contract: %v", err)
+	}
+
+	if !stringContains(content, "openapi: 3.0.0") {
+		t.Error("Contract missing openapi version")
+	}
+}
+
+// TestExtractComponentContract_Frontend verifies end-to-end frontend contract extraction
+func TestExtractComponentContract_Frontend(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+	tmpDir := t.TempDir()
+
+	// Create TypeScript frontend file
+	tsFile := filepath.Join(tmpDir, "api.ts")
+	tsCode := `export async function submitEvent() {
+	return fetch("/api/v1/telemetry/events", { method: "POST" });
+}`
+	if err := os.WriteFile(tsFile, []byte(tsCode), 0644); err != nil {
+		t.Fatalf("Failed to create TypeScript file: %v", err)
+	}
+
+	outputPath := filepath.Join(tmpDir, "contract.yaml")
+
+	// Extract contract for frontend component
+	err := analyzer.ExtractComponentContract("telemetry", "frontend", []string{tsFile}, outputPath)
+	if err != nil {
+		t.Fatalf("ExtractComponentContract (frontend) failed: %v", err)
+	}
+
+	// Verify contract file created
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		t.Fatal("Contract file was not created")
+	}
+}
+
+// TestExtractComponentContract_SDK verifies SDK contract extraction
+func TestExtractComponentContract_SDK(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+	tmpDir := t.TempDir()
+
+	pyFile := filepath.Join(tmpDir, "client.py")
+	pyCode := `class TelemetryClient:
+	def submit_event(self, event_name: str) -> dict:
+		return {"status": "ok"}
+`
+	if err := os.WriteFile(pyFile, []byte(pyCode), 0644); err != nil {
+		t.Fatalf("Failed to create Python file: %v", err)
+	}
+
+	outputPath := filepath.Join(tmpDir, "contract.yaml")
+
+	// Extract contract for SDK component
+	err := analyzer.ExtractComponentContract("telemetry", "sdk", []string{pyFile}, outputPath)
+	if err != nil {
+		t.Fatalf("ExtractComponentContract (sdk) failed: %v", err)
+	}
+
+	// Verify contract file created
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		t.Fatal("Contract file was not created")
+	}
+}
+
+// TestExtractComponentContract_UnknownType verifies error handling for unknown component type
+func TestExtractComponentContract_UnknownType(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+	tmpDir := t.TempDir()
+
+	outputPath := filepath.Join(tmpDir, "contract.yaml")
+
+	// Try to extract contract for unknown component type
+	err := analyzer.ExtractComponentContract("test", "unknown_type", []string{}, outputPath)
+	if err == nil {
+		t.Fatal("Expected error for unknown component type")
+	}
+
+	if !stringContainsStr(err.Error(), "unknown component type") {
+		t.Errorf("Expected 'unknown component type' error, got: %v", err)
+	}
+}
