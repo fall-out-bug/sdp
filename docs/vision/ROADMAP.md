@@ -28,19 +28,19 @@
 
 **Goal:** Formalize what exists into an open protocol. Ship the evidence chain.
 
-### 1.1 Protocol Specification (Weeks 1-2)
+### 1.1 Protocol Schema (Weeks 1-2)
 
-Formal spec: what any SDP-compatible tool must do.
+Machine-readable JSON Schema for four primitives. If another tool can't implement SDP from the schema alone — the schema is incomplete.
 
-- [ ] **plan**: decompose feature → atomic units with dependencies
-- [ ] **apply**: generate → verify → record per unit
-- [ ] **evidence**: linked chain (spec → code → verification → approval)
-- [ ] **incident**: trace from commit back through evidence chain
-- [ ] Model provenance format (model, version, prompt hash, timestamp)
-- [ ] Evidence format (JSON, cryptographic hash chain)
-- [ ] Verification report format (actual command output, not assertions)
+- [ ] **plan**: describe intended work units (with or without decomposition)
+- [ ] **apply**: record what was generated, verified, and approved
+- [ ] **evidence**: structured log of generation events with provenance
+- [ ] **incident**: query interface to trace from commit to evidence
+- [ ] Model provenance fields (model_id, model_version, timestamp — minimal viable)
+- [ ] Verification report fields (tool, command, actual output)
+- [ ] Schema versioning (start at 0.1, expect breaking changes)
 
-**Output:** `docs/protocol/SDP-SPEC-v1.md` — the open standard.
+**Output:** `protocol/sdp-schema-v0.1.json` — JSON Schema, public repo. One file.
 
 ### 1.2 Model Provenance (Weeks 1-3)
 
@@ -55,17 +55,29 @@ Every piece of AI-generated code records:
 
 **This is P0.** Without provenance, the evidence chain is broken and compliance export is garbage.
 
-### 1.3 Evidence Chain (Weeks 2-4)
+### 1.3 AI Activity Log (Weeks 2-4)
 
-Cryptographically linked record:
+Structured record of what happened during AI code generation:
 
-- [ ] spec → generation → verification → approval
-- [ ] Tamper-evident hashing (each step references previous hash)
-- [ ] Stored in `.sdp/evidence/` alongside the repo
-- [ ] Human-readable + machine-parseable (JSON)
+- [ ] Generation → verification → approval chain per commit
+- [ ] Stored in `.sdp/log/` alongside the repo
+- [ ] Human-readable + machine-parseable (JSON, follows published schema)
 - [ ] `sdp incident <commit>` reads and presents the chain
+- [ ] Hash linking for integrity (v0.1 — not yet a compliance artifact)
 
-### 1.4 Claude Code Plugin Update (Weeks 3-6)
+**Honest labeling:** This is an "AI Activity Log", not a compliance certificate. Compliance-grade evidence comes later when auditors have reviewed the format.
+
+### 1.4 Compliance Design Doc (Week 3-4)
+
+Document the plan before building compliance features:
+
+- [ ] Data residency: where is the log stored?
+- [ ] Retention policies: how long? GDPR vs audit trail conflict
+- [ ] RBAC: who can see evidence, approve plans, override gates?
+- [ ] Audit trail immutability: what guarantees?
+- [ ] This doc enables enterprise conversations NOW, implementation comes Phase 2
+
+### 1.5 Claude Code Plugin Update (Weeks 3-6)
 
 Update existing skills to produce protocol-compliant artifacts:
 
@@ -74,13 +86,13 @@ Update existing skills to produce protocol-compliant artifacts:
 - [ ] Model provenance tracked on every generation
 - [ ] `sdp plan` / `sdp apply` skill wrappers
 
-### 1.5 Data Collection (Week 1, ongoing)
+### 1.6 Data Collection (Week 1, ongoing)
 
 - [ ] Instrument every run: decomposition quality, verification catch rate, iteration count
 - [ ] Rich telemetry (not A/B test — observational dataset)
 - [ ] Target: "AI Code Quality Benchmark" quarterly publication
 
-**Success criteria:** Protocol spec published. Evidence chain working in Claude Code plugin. Provenance on every generation.
+**Success criteria:** JSON Schema published. AI Activity Log working in Claude Code plugin. Provenance on every generation. Compliance design doc written.
 
 ---
 

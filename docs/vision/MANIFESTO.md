@@ -6,17 +6,19 @@
 
 ## The Accountability Gap
 
-AI writes code. You ship it. **You own the consequences.**
+AI writes code. Somebody ships it. Something breaks. A courtroom, an auditor, or an incident review asks:
 
-Not Anthropic. Not OpenAI. Not Cursor. You — the person who merged the PR.
+**"What happened? When? Who decided? What was verified?"**
 
-Today, a developer generates 500 lines of payment logic with Cursor. It looks right. Tests pass. Ships to production. Three months later: currency conversion bug. $200K in incorrect charges. A courtroom asks: "What evidence do you have that this code was reviewed?"
+Today, the answer is: "I... looked at it. It seemed fine."
 
-The developer's answer: "I... looked at it. It seemed fine."
+That answer will get increasingly expensive. Not because of any one party's liability — the legal frameworks are still being written. But because **someone will need the evidence.** The developer. The model provider. The platform vendor. The regulator. Someone.
 
-That answer will get increasingly expensive.
+**SDP doesn't decide who's responsible. SDP records what happened.**
 
-**SDP exists to replace "it seemed fine" with evidence.**
+It's a neutral evidence layer. It captures: which model generated the code, what spec it was built against, what verification ran, what the output was, who approved it. The chain of facts. Not opinions about liability.
+
+> **SDP replaces "it seemed fine" with a record of what actually happened.**
 
 ---
 
@@ -26,13 +28,13 @@ That answer will get increasingly expensive.
 
 Three guarantees:
 
-1. **Every piece of AI-generated code has provenance.** Which model. Which version. What prompt. What spec. When. Who approved.
+1. **Every piece of AI-generated code has provenance.** Which model. Which version. What parameters. What spec. When. Who initiated.
 
-2. **Every piece is verified before merge.** Type checking. Static analysis. Tests. Coverage. And the verification output is recorded — not "tests passed" but the actual `pytest` output.
+2. **Every verification is recorded with actual output.** Not "tests passed" — the actual `pytest` output with line counts. Not "types checked" — the actual `mypy` report.
 
-3. **Every decision is traceable.** When something breaks in production, you can trace from the git commit back through the full chain: spec → decomposition → generation → verification → approval. Not "someone approved this PR." **Here's the spec it was built against. Here's what was verified. Here's who signed off.**
+3. **Every decision is traceable.** When something breaks, you trace from the git commit back through the chain: generation → verification → approval. Not "someone approved this PR." **Here's what was generated, here's what was checked, here's who signed off.**
 
-> This is the **forensic system for AI-generated code.** Nobody else is building it. And every enterprise will need it.
+> This is the **forensic system for AI-generated code** — a neutral record of what happened, for whoever needs it: the developer, the auditor, or the incident responder.
 
 ---
 
@@ -136,7 +138,7 @@ $ sdp incident abc1234  # git commit hash
   └── unit-3: Integration tests (commit ghi9012)
 ```
 
-When the courtroom asks "what happened?" — you have the answer. Every detail. Timestamped. Cryptographically linked.
+When someone asks "what happened?" — you have the answer. Every detail. Timestamped. Machine-readable.
 
 ### Modes
 
@@ -224,14 +226,12 @@ What they can't build:
 ## The Five Bets
 
 1. **AI will write most code by 2028.** Not controversial.
-2. **Accountability will be the bottleneck.** "Who verified this?" will be asked in courtrooms, audits, and incident reviews.
-3. **Decomposition is permanent.** Human verification capacity is finite. Better models don't fix human cognition.
-4. **Forensics > Verification.** Everyone claims "verified AI code." Nobody has a forensic chain from production incident back to spec.
-5. **Protocol > Product.** The team that sets the standard wins. Not the team with the best CLI.
+2. **"What happened?" will be mandatory.** Courtrooms, audits, incident reviews will demand records of AI code generation.
+3. **Provenance is permanent.** Regardless of whether code is generated in 50 small units or one big prompt — the record of what model, what spec, what verification, who approved never stops being valuable.
+4. **Forensics > Verification.** Everyone claims "verified AI code." Nobody has a forensic chain from production incident back to generation.
+5. **Protocol > Product.** The team that sets the evidence standard wins.
 
-If bet 3 is wrong — if humans can somehow verify 5000-line blobs — SDP is unnecessary.
-
-We bet they can't.
+Decomposition is a powerful technique that improves generation quality today. It may or may not be permanent. **Provenance and evidence are permanent regardless.**
 
 ---
 
