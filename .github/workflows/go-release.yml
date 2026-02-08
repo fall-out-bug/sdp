@@ -12,8 +12,6 @@ jobs:
   release:
     name: Release with GoReleaser
     runs-on: ubuntu-latest
-    defaults:
-      run:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,7 +23,7 @@ jobs:
         with:
           go-version: '1.25.6'
           cache: true
-          cache-dependency-path: sdp-plugin/go.sum
+          cache-dependency-path: go.sum
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
@@ -48,4 +46,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: sdp-plugin/dist/*
+          path: dist/*
