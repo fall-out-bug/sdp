@@ -1,0 +1,183 @@
+# GoReleaser configuration for SDP
+# See https://goreleaser.com/customization/ for documentation
+
+project_name: sdp
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "6"
+    ignore:
+      - goos: windows
+        goarch: arm64
+    main: ./cmd/sdp
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+    flags:
+      - -trimpath
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - docs/*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+signs:
+  - artifacts: checksum
+    signature: "${artifact}.sig"
+    cmd: gpg
+    args:
+      - --output
+      - "${signature}"
+      - --detach-sign
+      - --armor
+      - "${artifact}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+
+release:
+  github:
+    owner: fall-out-bug
+    name: sdp
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## SDP {{ .Tag }} ({{ .Date }})
+
+    ### What's Changed
+
+    {{ .Body }}
+
+    ### Installation
+
+    **macOS / Linux:**
+    ```bash
+    # Download binary
+    curl -sSL https://github.com/fall-out-bug/sdp/releases/download/{{ .Tag }}/sdp_{{ .Tag }}_checksums.txt -o checksums.txt
+    curl -sSL https://github.com/fall-out-bug/sdp/releases/download/{{ .Tag }}/sdp_{{ .Tag }}_darwin_amd64.tar.gz -o sdp.tar.gz
+
+    # Verify checksum
+    grep darwin_amd64 checksums.txt | shasum -c -
+
+    # Extract
+    tar -xzf sdp.tar.gz
+    chmod +x sdp
+    mv sdp /usr/local/bin/
+    ```
+
+    **Homebrew (macOS/Linux):**
+    ```bash
+    brew install fall-out-bug/tap/sdp
+    ```
+
+    **Docker:**
+    ```bash
+    docker pull ghcr.io/fall-out-bug/sdp:{{ .Tag }}
+    ```
+
+    ### Verification
+
+    All releases are signed with GPG key:
+    ```bash
+    gpg --verify sdp_{{ .Tag }}_checksums.txt.sig
+    ```
+
+brews:
+  - name: sdp
+    homepage: https://github.com/fall-out-bug/sdp
+    description: "Spec-Driven Protocol tools for Claude Code"
+    license: MIT
+    folder: Formula
+    tap:
+      owner: fall-out-bug
+      name: homebrew-tap
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    url_template: "https://github.com/fall-out-bug/sdp/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    sha256: "{{ .Sha256 }}"
+    skip_upload: false
+
+snapcrafts:
+  - name: sdp
+    description: "Spec-Driven Protocol tools for Claude Code"
+    license: MIT
+    grade: stable
+    confinement: classic
+    base: core22
+    architectures:
+      - amd64
+      - arm64
+    publish: true
+
+# Docker images (optional)
+dockers:
+  - image_templates:
+      - "ghcr.io/fall-out-bug/sdp:{{ .Tag }}"
+      - "ghcr.io/fall-out-bug/sdp:latest"
+      - "falloutbug/sdp:{{ .Tag }}"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Spec-Driven Protocol tools"
+    goos: linux
+    goarch: amd64
+    use: buildx
+
+# Announcements to various platforms
+announce:
+  twitter:
+    enabled: false
+  discord:
+    enabled: false
+  reddit:
+    enabled: false
+  slack:
+    enabled: false
+  teams:
+    enabled: false
