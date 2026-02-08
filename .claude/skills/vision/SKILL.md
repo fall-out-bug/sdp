@@ -15,6 +15,62 @@ version: 1.0.0
 - **Major pivot** - "Is the direction changing?"
 - **New market entry** - "Entering a new market?"
 
+## Verbosity Tiers
+
+```bash
+@vision "AI task manager" --quiet     # Exit status only: ✅
+@vision "AI task manager"             # Summary: ✅ Vision: AI-Powered Task Manager (7 experts, 45m)
+@vision "AI task manager" --verbose   # Step-by-step progress
+@vision "AI task manager" --debug     # Internal state + API calls
+```
+
+**Examples:**
+
+```bash
+# Quiet mode
+@vision "AI task manager" --quiet
+# Output: ✅
+
+# Default mode
+@vision "AI task manager"
+# Output: ✅ Vision: AI-Powered Task Manager (7 experts, 45m)
+
+# Verbose mode
+@vision "AI task manager" --verbose
+# Output:
+# → Quick interview: 5 questions (8m)
+# → Deep-thinking: 7 parallel experts (30m)
+# → Artifacts generated: PRODUCT_VISION.md, PRD.md, ROADMAP.md
+# ✅ COMPLETE
+
+# Debug mode
+@vision "AI task manager" --debug
+# Output:
+# [DEBUG] Product idea: "AI task manager"
+# [DEBUG] Starting quick interview...
+# [DEBUG] Question 1: What problem are you solving?
+# [DEBUG] Question 2: Who are your target users?
+# [DEBUG] Question 3: What defines success in 1 year?
+# [DEBUG] Question 4: What's your MVP?
+# [DEBUG] Question 5: Who are your competitors?
+# → Quick interview: 5 questions (8m)
+# [DEBUG] Spawning 7 parallel experts...
+# [DEBUG] Expert 1: Product (subagent_type=general-purpose)
+# [DEBUG] Expert 2: Market (subagent_type=general-purpose)
+# [DEBUG] Expert 3: Technical (subagent_type=general-purpose)
+# [DEBUG] Expert 4: UX (subagent_type=general-purpose)
+# [DEBUG] Expert 5: Business (subagent_type=general-purpose)
+# [DEBUG] Expert 6: Growth (subagent_type=general-purpose)
+# [DEBUG] Expert 7: Risk (subagent_type=general-purpose)
+# → Deep-thinking: 7 parallel experts (30m)
+# [DEBUG] Generating artifacts...
+# [DEBUG] Created: PRODUCT_VISION.md
+# [DEBUG] Created: docs/prd/PRD.md
+# [DEBUG] Created: docs/roadmap/ROADMAP.md
+# → Artifacts generated: PRODUCT_VISION.md, PRD.md, ROADMAP.md
+# ✅ COMPLETE
+```
+
 ## Workflow
 
 ### Step 1: Quick Interview (3-5 questions)

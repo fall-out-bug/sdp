@@ -15,6 +15,69 @@ Accepts **both** formats:
 - `@build 00-001-01` — WS-ID (PP-FFF-SS), resolve beads_id from `.beads-sdp-mapping.jsonl`
 - `@build sdp-xxx` — Beads task ID directly
 
+## Verbosity Tiers
+
+```bash
+@build 00-050-01 --quiet     # Exit status only: ✅
+@build 00-050-01             # Summary: ✅ 00-050-01: Workstream Parser (22m, 85%, commit:abc123)
+@build 00-050-01 --verbose   # Step-by-step progress
+@build 00-050-01 --debug     # Internal state + API calls
+```
+
+**Examples:**
+
+```bash
+# Quiet mode
+@build 00-050-01 --quiet
+# Output: ✅
+
+# Default mode
+@build 00-050-01
+# Output: ✅ 00-050-01: Workstream Parser (22m, 85%, commit:abc123)
+
+# Verbose mode
+@build 00-050-01 --verbose
+# Output:
+# → Activating guard...
+# → Reading WS spec...
+# → Stage 1: Implementer (TDD cycle)
+#   → Red: Writing failing test (3m)
+#   → Green: Implementing minimum code (12m)
+#   → Refactor: Improving code (7m)
+# → Stage 2: Spec Reviewer
+#   → Verifying implementation matches spec (5m)
+# → Stage 3: Quality Reviewer
+#   → Running quality gates (3m)
+# ✅ COMPLETE
+
+# Debug mode
+@build 00-050-01 --debug
+# Output:
+# [DEBUG] WS ID: 00-050-01
+# [DEBUG] Beads ID: sdp-abc123
+# [DEBUG] Activating guard...
+# [DEBUG] Guard activated: /tmp/guard-00-050-01.json
+# [DEBUG] Reading WS spec: docs/workstreams/backlog/00-050-01.md
+# [DEBUG] Scope files: [src/sdp/parser.py, tests/sdp/test_parser.py]
+# → Activating guard...
+# → Reading WS spec...
+# [DEBUG] Starting Stage 1: Implementer...
+# → Stage 1: Implementer (TDD cycle)
+#   [DEBUG] Test file: tests/sdp/test_parser.py
+#   → Red: Writing failing test (3m)
+#   [DEBUG] Implementing in: src/sdp/parser.py
+#   → Green: Implementing minimum code (12m)
+#   → Refactor: Improving code (7m)
+# [DEBUG] Coverage: 85.3%
+# → Stage 2: Spec Reviewer
+#   [DEBUG] Verifying: all AC implemented
+#   → Verifying implementation matches spec (5m)
+# → Stage 3: Quality Reviewer
+#   [DEBUG] Running: pytest --cov
+#   → Running quality gates (3m)
+# ✅ COMPLETE
+```
+
 ## Beads Integration (optional)
 
 **When Beads is enabled** (bd installed, `.beads/` exists):

@@ -36,6 +36,64 @@ changes:
 - Need to design workstreams (@design phase)
 - Want interactive planning (questions, tradeoffs)
 
+## Verbosity Tiers
+
+```bash
+@feature "Add OAuth2" --quiet     # Exit status only: ✅
+@feature "Add OAuth2"             # Summary: ✅ Feature F051: OAuth2 Authentication (4 workstreams, 2.1h est.)
+@feature "Add OAuth2" --verbose   # Step-by-step progress
+@feature "Add OAuth2" --debug     # Internal state + API calls
+```
+
+**Examples:**
+
+```bash
+# Quiet mode
+@feature "Add OAuth2" --quiet
+# Output: ✅
+
+# Default mode
+@feature "Add OAuth2"
+# Output: ✅ Feature F051: OAuth2 Authentication (4 workstreams, 2.1h est.)
+
+# Verbose mode
+@feature "Add OAuth2" --verbose
+# Output:
+# → @idea phase: Requirements gathering
+#   → 18 questions across 6 cycles (15m)
+# → @design phase: Architecture design
+#   → 5 discovery blocks (45m)
+# → Workstreams created: 00-051-01 through 00-051-04
+# ✅ COMPLETE
+
+# Debug mode
+@feature "Add OAuth2" --debug
+# Output:
+# [DEBUG] Feature description: "Add OAuth2"
+# [DEBUG] Calling Skill(@idea)...
+# → @idea phase: Requirements gathering
+#   [DEBUG] Question cycle 1: 3 questions
+#   [DEBUG] Question cycle 2: 3 questions
+#   [DEBUG] Question cycle 3: 3 questions
+#   → 18 questions across 6 cycles (15m)
+# [DEBUG] Creating Beads task for feature...
+# [DEBUG] Calling Skill(@design)...
+# → @design phase: Architecture design
+#   [DEBUG] Discovery block 1: 3 questions
+#   [DEBUG] Discovery block 2: 3 questions
+#   [DEBUG] Discovery block 3: 3 questions
+#   [DEBUG] Discovery block 4: 3 questions
+#   [DEBUG] Discovery block 5: 3 questions
+#   → 5 discovery blocks (45m)
+# [DEBUG] Creating workstream files...
+# [DEBUG] Created: docs/workstreams/backlog/00-051-01.md
+# [DEBUG] Created: docs/workstreams/backlog/00-051-02.md
+# [DEBUG] Created: docs/workstreams/backlog/00-051-03.md
+# [DEBUG] Created: docs/workstreams/backlog/00-051-04.md
+# → Workstreams created: 00-051-01 through 00-051-04
+# ✅ COMPLETE
+```
+
 ## What @feature Does
 
 **@feature is an ORCHESTRATOR, not a duplicate:**
