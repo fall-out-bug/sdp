@@ -1,179 +1,149 @@
-# SDP v2: The Trust Layer for AI-Generated Software
+# SDP v2: Verified Build for AI-Generated Code
 
-> *"The point of SDP isn't plan + build. It's verified build with decomposition and adversarial review. No other tool does this automatically."*
+> *"The point isn't that AI can write code. It's that you can't tell when it wrote it wrong."*
 
 ---
 
 ## The Problem
 
-In 2026, AI writes code. That's solved.
+AI writes code. That's solved.
 
 The unsolved problem: **can you trust it?**
 
-- A landing page built by AI that's slightly wrong? Rebuild it. Cost: $0.
-- A payment system built by AI that's slightly wrong? Chargebacks, lawsuits, regulatory fines. Cost: $100K+.
+A landing page that's slightly wrong? Rebuild it in 5 minutes. A payment system that's slightly wrong? Chargebacks, lawsuits, regulatory fines.
 
-As AI writes more code, the **trust gap** widens. Models get better at generating. They don't get better at guaranteeing. The gap between "it looks right" and "it IS right" is where the damage happens.
+Models get better at generating. They don't get better at guaranteeing. The gap between "it looks right" and "it IS right" — that's where the damage lives.
 
 **SDP exists to close that gap.**
 
+Not with another model reviewing the first. Not with a protocol spec nobody reads. With something simpler and harder to replicate:
+
+> **Decompose into small units. Verify each one. Record everything.**
+
+That's it. That's the entire thesis.
+
 ---
 
-## What SDP Is (v2)
+## Why Decomposition Is the Insight
 
-SDP is a **trust standard for AI-generated software.**
+Every AI model generates better code in a 200-line focused module than in a 2000-line sprawling file. This isn't an opinion — it's a property of context windows, attention mechanisms, and how autoregressive models lose coherence over long outputs.
 
-Not a coding framework. Not a project management tool. Not a skill taxonomy.
+SDP's core move: **break features into atomic units before generating code.** Each unit has:
+- A clear goal and acceptance criteria
+- A bounded scope (files to touch)
+- Dependencies on other units
+- Verification gates to pass
 
-A trust standard. Three words:
+This is where trust comes from. Not from a second model reviewing the first (that helps ~15%, at 2.5x cost). From the **structure itself** — small, typed, tested units that are individually verifiable.
 
-> **Decompose. Verify. Audit.**
+### The Verification Stack
 
-### Decompose
+Ordered by ROI, not by impressiveness:
 
-AI generates better code in small, focused units than in large, sprawling ones. SDP decomposes features into workstreams — atomic units with clear acceptance criteria and dependency order. The model works within its reliable context window, not beyond it.
+| Layer | What It Catches | Cost | Status |
+|-------|----------------|------|--------|
+| **Decomposition** (<200 LOC units) | Context overload, spaghetti generation | Free | Core feature |
+| **Type checking** (mypy --strict, tsc) | Type errors — the #1 class of AI bugs | Free | Core feature |
+| **Static analysis** (semgrep + custom rules) | Security patterns, anti-patterns | Free | Core feature |
+| **Property-based testing** (Hypothesis, fast-check) | Edge cases, invariant violations | 1.2x tokens | High priority |
+| **Cross-model review** (different provider) | "Different perspective" bugs | 2.5x tokens | High-risk code only |
+| **Human review** (the PR) | Everything above missed | Human time | The output |
 
-### Verify
+The first three layers are free and catch 35-50% more bugs than no verification. That's the foundation. Cross-model review is a premium layer for auth, payments, and data deletion — not the default for every workstream.
 
-Every generated unit passes through:
-1. **Tests** — written before implementation (TDD), catching interface mismatches
-2. **Type checking** — `mypy --strict` or language equivalent. Highest ROI quality gate for AI code.
-3. **Cross-model review** — a *different* model checks the work. Correlated failures between same-model implementer and reviewer are the #1 blind spot in AI coding. Cross-model review breaks the correlation.
+---
 
-### Audit
+## What SDP Is
 
-Every change is traceable:
-- Which model generated it
-- Against which spec
-- With what acceptance criteria
-- Reviewed by which verifier
-- At what cost (tokens, time, dollars)
+**An opinionated verification framework for AI-generated code.**
+
+Not a protocol. Not a standard. Not a taxonomy of 24 skills.
+
+A framework with one opinion: **AI code should be generated in small verified units, not in large unverified blobs.**
+
+If that opinion turns out to be wrong — if future models generate flawless 5000-line files — SDP is unnecessary. We bet they won't. We bet that decomposition is a permanent structural advantage, not a temporary crutch.
 
 ---
 
 ## What SDP Is NOT
 
-- **Not a coding framework.** SDP doesn't tell agents *how* to code. TDD, clean architecture, file size limits — these are opinions, not protocol. Agents apply their own engineering judgment.
-- **Not a project manager.** SDP doesn't manage sprints, estimate timelines, or track velocity. It verifies output.
-- **Not a prompt library.** SDP doesn't provide better prompts. It provides a verification layer that works regardless of prompt quality.
-- **Not for landing pages.** If your code is disposable, you don't need trust guarantees. SDP is for code that costs more to fix than to write.
-
----
-
-## The Architecture
-
-### Two Layers, Cleanly Separated
-
-```
-┌─────────────────────────────────────────┐
-│           SDP Protocol (the spec)        │
-│                                          │
-│  • Workstream format                     │
-│  • Agent contract interface              │
-│  • Verification gate interface           │
-│  • Checkpoint/audit format               │
-│  • Coordination semantics                │
-│                                          │
-│  Anyone can implement this.              │
-│  This is the HTTP of agent coordination. │
-└─────────────────────────────────────────┘
-                    │
-                    │ implements
-                    ▼
-┌─────────────────────────────────────────┐
-│         SDP Framework (one impl)         │
-│                                          │
-│  • Go binary (dispatcher, verifier)      │
-│  • @ship command (one-command UX)        │
-│  • Git hooks + CI integration            │
-│  • Cross-model review engine             │
-│  • Agent plugin SDK                      │
-│                                          │
-│  The reference implementation.           │
-│  Others can build their own.             │
-└─────────────────────────────────────────┘
-```
-
-### The Protocol (sdp-spec)
-
-A specification document. Not code. Defines:
-
-| Concept | What It Specifies |
-|---------|-------------------|
-| **Workstream** | Format for atomic task units: goal, acceptance criteria, scope, dependencies |
-| **Agent Contract** | How agents declare capabilities, quality guarantees, cost profile |
-| **Verification Gate** | Interface for quality checks (tests pass, types check, review approved) |
-| **Checkpoint** | Format for saving/restoring execution state across sessions |
-| **Audit Entry** | Format for tracing who did what, when, with which model, at what cost |
-| **Coordination** | How multiple agents divide work, avoid conflicts, merge results |
-
-This is a *standard*. Like OpenAPI defines how APIs describe themselves, SDP Protocol defines how AI agents describe, coordinate, and verify their work.
-
-### The Framework (sdp)
-
-A Go binary that implements the protocol. Ships with:
-
-**One command for users:**
-```
-sdp ship "Add OAuth2 login with Google and GitHub"
-```
-
-What happens inside (invisible to user):
-1. Scans codebase (what's here, what tech stack, what patterns)
-2. Decomposes into workstreams with dependency order
-3. For each workstream: generates tests → implements → type-checks
-4. Cross-model review (sends to a different provider for verification)
-5. Produces a PR with full audit trail
-
-**Two integration paths:**
-
-1. **Git hooks + CI** — SDP as quality gate in the pipeline. Any code pushed goes through verification. Developers don't install SDP; the *repo* has SDP.
-
-2. **Agent SDK** — Libraries that agent platforms embed. Cursor calls `sdp.Decompose(task)` internally. Replit calls `sdp.Verify(code)` before deploying. SDP is the engine inside, invisible to users.
+- **Not a coding methodology.** SDP doesn't enforce TDD, clean architecture, or file size limits as doctrine. These are verification heuristics that the framework tunes based on results.
+- **Not a project manager.** No sprints, no velocity, no roadmaps. SDP verifies output.
+- **Not for disposable code.** If your code costs less to rewrite than to verify, don't use SDP.
 
 ---
 
 ## The User Experience
 
-### For Developers (Direct Use)
+### One Command: `sdp ship`
 
 ```bash
-# Install
-go install github.com/user/sdp@latest
+$ sdp ship "Add OAuth2 login with Google and GitHub"
 
-# The only command you need
-sdp ship "Add user authentication with OAuth2"
+Planning... (3s)
 
-# Watch it work
-Decomposing... 3 workstreams identified
-  [1/3] Backend auth service ████████████ done (87% coverage)
-  [2/3] Frontend login flow   ████████████ done (92% coverage)
-  [3/3] Integration tests     ████████████ done
-Cross-model review... approved ✓
-PR created: github.com/org/repo/pull/42
+  Workstreams:
+  1. Backend OAuth service (passport.js, Google + GitHub providers)
+     Scope: src/auth/oauth.ts, src/auth/providers/*.ts
+     Gates: types, tests, semgrep
+
+  2. Frontend login component (React, existing AuthContext)
+     Scope: src/components/Login.tsx, src/hooks/useOAuth.ts
+     Gates: types, tests
+
+  3. Integration tests (OAuth flow e2e)
+     Scope: tests/integration/oauth.test.ts
+     Gates: tests
+
+  Estimated: ~3 min | 3 units | ~$0.15
+
+Proceed? [Y/n/edit]
 ```
 
-That's it. No skills to learn. No workstream IDs to manage. No guards to activate. No questions to answer.
+**Plan by default.** Like `terraform plan`. You see the decomposition before anything executes. You can edit it — "skip unit 3, I'll write those myself" or "use next-auth, not passport."
 
-Want more control? It's there:
+Then execution:
+
+```
+Building...
+  [1/3] Backend OAuth ████████████████ done (91% coverage, types ✓, semgrep ✓)
+  [2/3] Frontend login ████████████████ done (87% coverage, types ✓)
+  [3/3] Integration    ████████████████ done
+
+Verification passed. PR created: github.com/org/repo/pull/42
+```
+
+**Streaming progress is non-negotiable.** The progress bar IS the product. Nobody stares at a spinner for 3 minutes.
+
+### Flags for Control
+
 ```bash
-# See what it planned
-sdp ship "Add auth" --explain
-
-# Review workstreams before execution
-sdp ship "Add auth" --approve-plan
-
-# Force a specific decomposition
-sdp ship "Add auth" --workstreams=2
-
-# Skip cross-model review (fast mode, less trust)
-sdp ship "Add auth" --skip-review
+sdp ship "Add auth"                  # Plan → approve → build (default)
+sdp ship "Add auth" --auto-approve   # Skip plan approval (I trust the decomposition)
+sdp ship "Add auth" --cross-review   # Add cross-model review (premium, for high-risk code)
+sdp ship "Add auth" --edit           # Open plan in editor before building
+sdp ship "Add auth" --dry-run        # Show plan only, don't build
 ```
 
-### For CI/CD (Invisible)
+### Per-Unit Rollback
+
+When unit 3 fails but units 1-2 succeeded, regenerate just unit 3:
+
+```bash
+sdp ship --retry 3    # Regenerate only the failed unit
+```
+
+The checkpoint infrastructure makes this free. No wasted work.
+
+---
+
+## The Wedge: GitHub Action
+
+Before `sdp ship` exists, the wedge that gets SDP into repos:
 
 ```yaml
 # .github/workflows/sdp-verify.yml
+name: SDP Verify
 on: [pull_request]
 jobs:
   verify:
@@ -182,132 +152,130 @@ jobs:
       - uses: actions/checkout@v4
       - uses: sdp-dev/verify-action@v1
         with:
-          gates: [tests, types, review]
-          review-model: "gpt-4o"  # Cross-model review
+          gates: [types, semgrep, tests]
 ```
 
-Every PR gets verified. Developers never think about SDP.
+One YAML file. One CI check. Every AI-generated PR gets verified. Teams add it once and forget about it.
 
-### For Agent Platforms (SDK)
-
-```go
-// Inside Cursor/Replit/Claude Code
-import "github.com/user/sdp/sdk"
-
-func handleUserRequest(prompt string) {
-    // Decompose into verified units
-    plan := sdp.Decompose(prompt, codebase)
-    
-    for _, ws := range plan.Workstreams {
-        code := agent.Generate(ws.Spec)
-        result := sdp.Verify(code, ws.AcceptanceCriteria)
-        if !result.Passed {
-            code = agent.Fix(code, result.Issues)
-        }
-    }
-    
-    // Cross-model review
-    review := sdp.CrossModelReview(allChanges, "gpt-4o")
-    
-    // Audit trail
-    sdp.RecordAudit(plan, review, tokenCost)
-}
-```
-
-The platform uses SDP. The user never knows.
+**This is the door.** `sdp ship` is the house. You enter through the door.
 
 ---
 
 ## Who This Is For
 
-### Primary: Deeptech & Enterprise
+### Code That Costs More to Fix Than to Write
 
-Code that costs more to fix than to write:
-- **Fintech** — Payment processing, regulatory compliance
-- **Healthcare** — Patient data, HIPAA compliance
-- **Infrastructure** — Cloud provisioning, network config
-- **ML/Data** — Pipeline correctness, model serving
-- **Enterprise SaaS** — Multi-tenant, data isolation
+| Segment | Why They Need SDP | Pain Today |
+|---------|-------------------|-----------|
+| **Fintech** | Payment bugs = chargebacks + fines | AI-generated code ships without structural verification |
+| **Healthcare** | Data bugs = HIPAA violations | No audit trail for AI code provenance |
+| **Infrastructure** | Config bugs = outages | Terraform has `plan`; AI coding tools don't |
+| **Enterprise SaaS** | Multi-tenant bugs = data leaks | AI doesn't verify isolation boundaries |
+| **ML/Data** | Pipeline bugs = silent data corruption | No property-based testing in AI workflows |
 
-### Secondary: AI Agent Platforms
+### Who Pays
 
-Tools that want "quality built in":
-- **IDE agents** (Cursor, Windsurf, Continue) — embed verification
-- **Autonomous agents** (Devin, SWE-Agent) — coordination protocol
-- **CI/CD platforms** (GitHub Actions, GitLab CI) — verification gates
+Not developers. Developers adopt free tools.
 
-### Not For:
+**Compliance budgets.** The pitch: "Auditable proof that all AI-generated code was independently verified." That's a SOC2 line item.
 
-- Landing pages and portfolio sites
-- Disposable prototypes
-- Vibe coding experiments
-- Projects where "works on my machine" is good enough
+**Engineering lead budgets.** The pitch: "SDP-verified code has N% fewer defects. Here's the data."
 
 ---
 
 ## The Moat
 
-SDP's moat is not code. Code is reproducible.
+Code is reproducible. Cursor can build `sdp ship` in a sprint.
 
-SDP's moat is **accumulated trust knowledge**:
-- Which verification gates catch which failure modes
-- How to decompose features for optimal AI generation quality
-- What cross-model review patterns break correlated failures
-- How coordination protocols prevent multi-agent conflicts
+What Cursor can't build in a sprint:
 
-This knowledge deepens with every verified build. Every failure mode caught. Every cross-model disagreement resolved. It's the engineering knowledge equivalent of Google's search index — built through usage, not engineering alone.
+1. **Decomposition heuristics.** How to break "Add OAuth2 login" into the right 3 units (not 5, not 1). Learned from thousands of verified builds. Each build refines the heuristics.
+
+2. **Verification gate calibration.** Which semgrep rules catch AI-specific anti-patterns. Which property-based test strategies expose AI-specific edge cases. Built from data on what AI actually gets wrong.
+
+3. **Trust dataset.** "SDP-verified code has X% fewer defects than unverified AI code." The dataset that proves this is the moat. Without it, SDP is a claim. With it, SDP is evidence.
+
+**The moat deepens with usage, not engineering.** Every verified build adds data. Every caught bug refines a heuristic. Every false positive tunes a gate. This is a flywheel, not a feature list.
 
 ---
 
 ## The Roadmap
 
-### Phase 1: @ship (The One-Command UX)
+### Phase 1: The Wedge (Weeks 1-4)
 
-Make the default experience zero-ceremony:
-- `sdp ship "description"` — one command, invisible internals
-- Quality gates run silently (tests, types, file size)
-- Cross-model review for every generation
-- Audit trail recorded automatically
+**Ship the GitHub Action.**
+- `sdp-dev/verify-action@v1` — types + static analysis + test verification
+- Free for open source, paid for private repos
+- Target: 100 repos in month 1
 
-### Phase 2: CI/CD Integration (The Invisible Gate)
+**Ship `sdp ship` with plan-by-default.**
+- Decomposition → approval → verified execution → PR
+- Streaming progress, per-unit rollback
+- Static analysis pipeline (mypy + semgrep) as default gates
 
-SDP as a GitHub Action / GitLab CI step:
-- Every PR verified automatically
-- Cross-model review on every AI-generated diff
-- Trust scores per repository, per developer, per model
-- Dashboard for engineering leads
+**Start collecting data.**
+- 10 features with SDP vs 10 without
+- Measure: bugs found in review, time to correct implementation, token spend
 
-### Phase 3: Agent SDK (The Invisible Engine)
+### Phase 2: The Evidence (Months 2-4)
 
-SDP as a library agent platforms embed:
-- `sdp.Decompose()` — break features into verified units
-- `sdp.Verify()` — run all gates on generated code
-- `sdp.CrossReview()` — send to different model for check
-- `sdp.Audit()` — record everything
+**Publish the dataset.**
+- "SDP-verified code: X% fewer defects, Y% faster to merge, Z% less rework"
+- Open dataset, reproducible methodology
+- Blog posts, case studies
 
-### Phase 4: Protocol Standard (The HTTP Moment)
+**Add property-based testing.**
+- AI-generated Hypothesis/fast-check strategies
+- Second-highest ROI verification layer
 
-SDP Protocol v1.0 as an open specification:
-- Workstream format standard
-- Agent contract standard
-- Verification gate interface
-- Published independently of any implementation
-- Multiple implementations by different teams/companies
+**Add compliance reporting.**
+- SOC2-ready audit trails
+- Per-PR verification certificates
+- This is where the money is
+
+### Phase 3: The Platform (Months 4-8)
+
+**Agent SDK.**
+- `sdp.Decompose()`, `sdp.Verify()`, `sdp.Audit()`
+- Pitch to platforms WITH the evidence dataset: "Our data shows X% defect reduction. Want to embed this?"
+
+**Cross-model review for premium tier.**
+- High-risk code only (auth, payments, data)
+- Additional cost, additional confidence
+- Justified by data, not by thesis
+
+### Phase 4: The Standard (If We Win)
+
+**Extract the protocol — but only if the framework wins.**
+- If 1000+ repos use SDP, platforms will want interoperability
+- The protocol is what DHH called "Rack" — the thinnest interface for composability
+- It emerges from success, not from planning
 
 ---
 
-## The Bet
-
-We bet that:
+## The Five Bets
 
 1. **AI will write most code by 2028.** Not controversial.
-2. **Trust will be the bottleneck, not generation.** Controversial today. Obvious in 2028.
-3. **Verification requires structure.** You can't verify a 5000-line monolithic AI generation. You can verify 10 focused units of 200 lines each.
-4. **Cross-model review breaks correlated failures.** Same model reviewing its own code is theater. Different model catches different bugs.
-5. **The invisible standard wins.** HTTP won because users never think about it. SDP wins when developers never think about it.
+2. **Trust will be the bottleneck.** Controversial today. Obvious after the first major AI-code incident.
+3. **Decomposition is a permanent advantage.** Small typed tested units > large unverified blobs, regardless of model capability.
+4. **Static analysis beats cross-model review on ROI.** Free tools that catch 35-50% of bugs beat expensive tools that catch 15% more.
+5. **Data is the moat.** The team with the best dataset on "what AI gets wrong and how to catch it" wins. Not the team with the best architecture.
 
-If any of these bets are wrong, SDP is unnecessary. If all five are right, SDP is essential infrastructure.
+If bet 3 is wrong — if future models produce flawless 5000-line generations — SDP is unnecessary.
+
+We bet they won't.
 
 ---
 
-*SDP v2 — February 2026*
+## The 12-Month Window
+
+Cursor and GitHub will ship "verified AI code" features. Probably within 18 months. They have distribution, model access, and enterprise customers demanding it.
+
+SDP's advantage: **speed and focus.** Ship the wedge now. Build the dataset now. Become the tool that Cursor embeds — or the tool that enterprises require alongside Cursor.
+
+The clock is running.
+
+---
+
+*SDP v2.1 — February 2026*
+*Updated after think-tank review by PG, Hashimoto, DHH, Collison, and adversarial ML research.*
