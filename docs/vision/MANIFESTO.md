@@ -77,24 +77,32 @@ What the user sees: a progress bar and a PR with a green checkmark.
 2. The human investigator (forensics when something breaks)
 3. The compliance system (SOC2/HIPAA audit trail)
 
-### Mode 2: `mentor` — Guide the AI
+### Mode 2: `drive` — You're at the Wheel
 
-For people who want their expertise reflected in the output. The full circle:
+For people who take responsibility for every decision. You drive, AI navigates.
 
 ```bash
-sdp idea "Add OAuth2 login"    # Interactive requirements (you shape the spec)
-sdp design idea-oauth           # Architecture decisions (you choose the approach)
-sdp build 00-001-01             # TDD execution (you watch each unit)
-sdp review F01                  # Multi-agent review (you approve the verdict)
+sdp drive "Add OAuth2 login"   # Full pipeline, you decide at every fork
 ```
 
-Same decomposition. Same verification. Same artifacts. But the human is in the loop at every stage — mentoring the AI, not just consuming its output.
+Which expands to:
 
-### The Insight
+```bash
+sdp idea "Add OAuth2 login"    # AI interviews you: "Sessions or JWT? PKCE?"
+sdp design idea-oauth           # AI proposes architecture, you choose
+sdp build 00-001-01             # You watch TDD: red → green → refactor
+sdp review F01                  # Multi-agent review, you approve the verdict
+```
 
-Both modes produce the same thing: **small verified units with an audit trail.** The difference is who makes the decisions — the AI (ship) or the human (mentor). The philosophy doesn't change. The depth of engagement does.
+Same decomposition. Same verification. Same artifacts. But YOU make the calls. The AI doesn't guess "sessions or JWT" — it asks you. Your expertise is encoded into every spec.
 
-> *"Ship" users trust the framework. "Mentor" users trust themselves. Both get verified code.*
+### The Accountability Thesis
+
+Both modes produce the same thing: **small verified units with an audit trail.** The difference is who makes the decisions — the AI (ship) or the human (drive).
+
+The philosophy doesn't change. The depth of engagement does. But in BOTH modes, the human is accountable for the output. Not the model provider. Not the framework. **You.**
+
+> *AI generates code. You ship it. You own the consequences. SDP gives you the evidence to stand behind your decisions — or catch problems before they ship.*
 
 ---
 
@@ -149,25 +157,27 @@ Verification passed. PR created: github.com/org/repo/pull/42
 
 **Streaming progress is non-negotiable.** The progress bar IS the product. Nobody stares at a spinner for 3 minutes.
 
-### Mentor Mode: Full Circle
+### Drive Mode: You Decide at Every Fork
 
-For engineers who want to shape the output — the same pipeline, but human-in-the-loop at each stage:
+For engineers who take responsibility for the output — the same pipeline, but you're at the wheel:
 
 ```bash
-sdp idea "Add OAuth2 login"       # AI interviews you: "Sessions or JWT? PKCE?"
-sdp design idea-oauth              # AI proposes architecture, you choose
-sdp build 00-001-01               # You watch TDD: red → green → refactor
-sdp build 00-001-02               # Unit by unit, your expertise guides the AI
-sdp review F01                    # Multi-agent review, you approve the verdict
+sdp drive "Add OAuth2 login"       # Full pipeline, human-in-the-loop
 ```
 
-**Same decomposition. Same verification. Same artifacts.** The difference: your decisions are encoded into the specs. The AI doesn't guess "sessions or JWT" — it asks you.
+The AI stops at every decision point and asks:
+- "Sessions or JWT?" → you decide
+- "passport.js or next-auth?" → you decide
+- "Unit 2 failed coverage gate (78%). Retry or accept?" → you decide
 
-**When to use mentor mode:**
+**Same decomposition. Same verification. Same artifacts.** The difference: your expertise is baked into every spec. The output reflects YOUR judgment, not the model's defaults.
+
+**When to use drive mode:**
 - New domain (you need to teach the AI your constraints)
 - High-stakes system (you want sign-off at every stage)
 - Learning SDP (you want to see the internals)
 - Compliance requires human approval at each gate
+- You're accountable and want evidence of YOUR decisions
 
 ### Flags for Control
 
@@ -345,4 +355,4 @@ The clock is running.
 
 *SDP v2.2 — February 2026*
 *Updated after unified philosophy debate (PG, DHH, Levels, Karpathy, Masad, Willison).*
-*Two-mode model (ship/mentor) based on enterprise feedback from T-Bank, S7, Avito.*
+*Two-mode model (ship/drive) based on enterprise feedback.*
