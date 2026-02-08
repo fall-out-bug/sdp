@@ -67,6 +67,22 @@ When parallel workstreams touch the same files — signal it.
 - Evidence must be thin first (model ID + pass/fail + timestamp), full forensics later
 - Acceptance test must be cheap (30 seconds, not 10 minutes)
 
+### 4. Decision Memory (from F051 reconception)
+Record decisions as evidence events. "We decided X because Y" — searchable, reversible.
+
+- `decision` event type in evidence schema
+- Auto-captured during `@design` and `@build`
+- Searchable: `sdp log show --type=decision --search "auth"`
+- Reversal tracking: new decision can reference the old one it overturns
+
+### 5. Lessons & "We Already Tried" Warnings
+Auto-extract lessons from outcomes. Warn when approaching past failures.
+
+- `lesson` event type extracted on workstream completion
+- Proactive: `sdp guard activate` checks for similar failed decisions
+- Keyword + tag matching (no ML — simple first)
+- Non-blocking: warnings, not gates
+
 ## Non-Goals
 
 - Full forensic chain with complete verification output (P1)
