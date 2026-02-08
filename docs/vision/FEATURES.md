@@ -1,202 +1,281 @@
 # SDP Feature Map
 
-> Organized by protocol layer, not by release phase.
+> What exists. What's needed. Priorities.
 
 ---
 
-## Protocol Layer (Open Standard)
+## Already Built
 
-### Core Protocol
+Not on the roadmap. Done.
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **plan** | Decompose feature → atomic units with dependencies | P0 |
-| **apply** | Generate → verify → record per unit | P0 |
-| **evidence** | Cryptographic chain: spec → code → verification → approval | P0 |
-| **incident** | Trace from commit back through evidence chain | P0 |
+### Decomposition
 
-### Model Provenance
+| Feature | Status |
+|---------|--------|
+| NL → atomic workstreams | Done |
+| Dependency graph (Kahn's algorithm) | Done |
+| Parallel dispatch (goroutines, circuit breaker) | Done |
+| Checkpoint recovery (atomic write-fsync-rename) | Done |
+| Synthesis engine (multi-agent conflict resolution) | Done |
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Model identity** | Model name, version, provider | P0 |
-| **Generation params** | Temperature, prompt hash (not prompt), timestamp | P0 |
-| **Spec reference** | Which spec this code was generated against | P0 |
-| **Approval record** | Who approved, when, what they saw | P0 |
+### Verification
 
-### Evidence Format
+| Layer | What It Catches | Status |
+|-------|----------------|--------|
+| Type checking | Type errors | Done |
+| Static analysis (semgrep) | Security patterns | Done |
+| Test execution (TDD) | Functional correctness | Done |
+| Coverage gates (≥80%) | Untested paths | Done |
+| Contract validation | OpenAPI mismatches | Done |
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Hash chain** | Tamper-evident linking of evidence records | P0 |
-| **JSON format** | Human-readable + machine-parseable | P0 |
-| **Verification output** | Actual command output, not "tests passed" | P0 |
-| **Decision log** | What was decided and why (drive/interactive mode) | P0 |
+### Orchestration
 
----
+| Feature | Status |
+|---------|--------|
+| 19 agent roles | Done |
+| Ship mode (autonomous) | Done |
+| Drive mode (human-in-the-loop) | Done |
+| Progressive disclosure | Done |
+| Adversarial review (6 agent roles) | Done |
 
-## Verification Engine (Open Source)
+### Infrastructure
 
-### Verification Stack
-
-| Layer | What It Catches | Cost | Priority |
-|-------|----------------|------|----------|
-| **Type checking** | Type errors (#1 AI bug class) | Free | P0 |
-| **Static analysis** | Security patterns, anti-patterns (semgrep) | Free | P0 |
-| **Test execution** | Functional correctness | Free | P0 |
-| **Coverage gates** | Untested code paths | Free | P0 |
-| **Property-based testing** | Edge cases, invariant violations | 1.2x tokens | P1 |
-| **Cross-model review** | Correlated blind spots | 2.5x tokens | P2 |
-| **Snapshot testing** | Unintended behavioral changes | Free | P2 |
-
-### Decomposition Engine
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **NL → Units** | Natural language → atomic workstream units | P0 |
-| **Dependency Graph** | Topological sort, parallel-safe execution order | P0 (exists) |
-| **Scope Inference** | Auto-detect which files a unit should touch | P0 |
-| **Acceptance Criteria** | Auto-generate testable criteria per unit | P0 |
-| **Adaptive Granularity** | Unit size scales with risk (100 LOC payments, 300 LOC UI) | P1 |
-| **Decomposition Heuristics** | Learned patterns: "OAuth → 3 units, not 5" | P2 (moat) |
-
-### Risk Engine
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Path-based risk** | `auth/`, `payments/`, `infra/` → high risk | P1 |
-| **Content-based risk** | SQL queries, crypto, token handling → flag | P1 |
-| **History-based risk** | Files with high bug rate → extra verification | P2 |
-| **Custom risk profiles** | `.sdp.yml` overrides per project | P1 |
-| **Model selection policy** | Route high-risk to capable models, low-risk to fast models | P1 |
+| Feature | Status |
+|---------|--------|
+| Beads (issue tracking) | Done |
+| Guard enforcement | Done |
+| Quality gates (<200 LOC, CC<10) | Done |
+| Telemetry collector (JSONL) | Done |
 
 ---
 
-## Orchestration (Proprietary)
+## P0 — Result Checking + Evidence Log
 
-### plan/apply UX
+The protocol must answer "does it work?" before recording "what happened."
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **`sdp plan`** | Show decomposition before execution | P0 |
-| **`sdp apply`** | Execute plan with streaming progress | P0 |
-| **`sdp incident`** | Forensic trace from commit to evidence chain | P0 |
-| **`--auto-apply`** | Plan + apply immediately (ship mode) | P0 |
-| **`--interactive`** | Stop at every fork (drive mode) | P1 |
-| **`--retry N`** | Regenerate only failed unit N | P0 |
-| **`--output=json`** | JSON output for tool integration | P0 |
-| **`--dry-run`** | Show plan only, equivalent to `plan` | P0 |
-| **Cost estimate** | "~3 min, 3 units, ~$0.15" before execution | P1 |
+### Acceptance Test Gate
 
-### Drive Mode (interactive)
+| Feature | Description |
+|---------|-------------|
+| **E2E smoke test** | After every `@build`: start the app, hit core endpoint, verify response. Failure = build failed, regardless of coverage |
+| **Smoke test config** | `.sdp.yml` defines what "works" means per project (HTTP 200? Container starts? Output matches?) |
+| **Graceful fallback** | Warn if no smoke test defined, don't block |
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Decision points** | AI stops and asks: "Sessions or JWT?" | P1 |
-| **Decision recording** | Every human choice logged in evidence chain | P1 |
-| **Stage gates** | Human approval at each stage | P1 |
-| **Expertise encoding** | Human decisions become spec constraints | P1 |
-| **Progressive disclosure** | Start with 3 questions, deepen only if needed | P1 |
+This is the vibe-coder's feedback loop (run it after every change), formalized into the protocol. The user controls architecture depth and scope by talking to `@idea` — that's a conversation, not a feature. The acceptance test is the one gate nobody can opt out of.
 
-### Failure UX
+### Schema
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Graceful degradation** | Clear errors when decomposition fails | P1 |
-| **"Can't decompose" UX** | Explain why, suggest alternatives | P1 |
-| **Partial success** | "3/5 units passed, 2 need attention" | P0 |
-| **Hallucination detection** | Flag when AI invents dependencies/files | P1 |
+| Feature | Description |
+|---------|-------------|
+| Schema consolidation | Fix existing sprawl (`schema/`, `docs/schema/`, frontmatter) |
+| Single namespace | One `$id`, one validation entrypoint |
+| Schema versioning | SemVer, changelog, breaking change policy |
+| Evidence schema v0.1 | JSON Schema for four event types |
+
+### Evidence Log
+
+| Feature | Description |
+|---------|-------------|
+| `plan` event | Intent: feature, units, dependencies, cost estimate |
+| `generation` event | Provenance: model, version, prompt hash, params, timestamp, spec ref, initiator, code hash |
+| `verification` event | Tool, command, **actual output** (pytest stdout, mypy output), pass/fail, coverage |
+| `approval` event | Who approved, when, what they saw, reasoning |
+| Hash chain | `prev_hash` per record — corruption detection, not tamper-proof |
+| Committed by default | `.sdp/log/` in git, not gitignored |
+| Append-only merge | `.gitattributes` merge driver |
+| Storage budget | ~1KB generation, ~5KB verification |
+
+### Forensic Trace
+
+| Feature | Description |
+|---------|-------------|
+| `sdp log trace <commit>` | Chain backwards: commit → model → spec → verification → approver |
+| Tree view | Default human-readable output |
+| `--output=json` | Machine-readable |
+| Offline | All data local |
+| Missing evidence | Graceful: "no evidence for this commit" |
+| `sdp log show` | Browse log with filters |
+
+### `@build` Instrumentation
+
+| Feature | Description |
+|---------|-------------|
+| Generation events | Every AI generation → `generation` event |
+| Verification events | Actual tool output, not summary |
+| Approval events | Auto (ship) or human (drive) |
+| Plan events | On decomposition completion |
+| Automatic | No opt-in |
+
+### Scope Collision Detection
+
+| Feature | Description |
+|---------|-------------|
+| Cross-reference scope | Compare `scope_files` across all in-progress workstreams |
+| Collision signal | "Feature A WS-3 and Feature B WS-7 both modify `user_model.go`" |
+| Signal, not block | Warn and suggest coordination, don't prevent work |
+| Query existing data | Workstream specs already declare scope — this is just a query |
+
+### Compliance Design Doc
+
+| Feature | Description |
+|---------|-------------|
+| Data residency | Where the log lives |
+| Retention | GDPR vs audit trail |
+| RBAC | Who sees evidence |
+| Integrity | What hash chain guarantees and what it doesn't |
+| Prompt privacy | Hash only, raw prompts never stored |
 
 ---
 
-## Tools (User Surfaces)
+## P1 — Full Instrumentation + CLI + CI/CD
 
-### Claude Code Plugin
+### Skills Instrumentation
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Protocol compliance** | Existing skills emit evidence chain | P0 |
-| **Model provenance** | Track provenance on every `@build` | P0 |
-| **`sdp plan` skill** | Plan/apply wrapper for existing workflow | P0 |
-| **`sdp incident` skill** | Forensic trace in Claude Code | P1 |
+| Feature | Description |
+|---------|-------------|
+| `@review` → verification events | Findings, actual review output |
+| `@deploy` → approval chain | Merge approval, gates passed |
+| `@design` → plan events | Decomposition decisions |
+| `@idea` → decision events | Questions + answers (drive mode) |
+| All 19 skills | Full pipeline coverage |
 
 ### CLI
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **`sdp plan`** | Standalone plan command | P1 |
-| **`sdp apply`** | Standalone apply command | P1 |
-| **`sdp incident`** | Forensic trace command | P1 |
-| **Streaming progress** | Real-time progress per unit | P1 |
+| Feature | Description |
+|---------|-------------|
+| `sdp plan <description>` | Decomposition + plan event |
+| `sdp apply` | Execution + full evidence chain |
+| `sdp log trace <commit>` | Forensic trace (standalone) |
+| `sdp log show` | Evidence browser |
+| `--auto-apply` | Ship mode |
+| `--interactive` | Drive mode |
+| `--retry N` | Retry failed unit |
+| `--output=json` | JSON for all commands |
+| Streaming progress | Per-unit progress |
 
 ### CI/CD
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **GitHub Action** | `sdp-dev/verify-action@v1` — one-YAML verification | P1 |
-| **PR evidence comment** | Evidence chain summary in PR | P1 |
-| **Provenance check** | Verify all AI code has provenance | P1 |
-| **GitLab CI** | Same for GitLab | P2 |
+| Feature | Description |
+|---------|-------------|
+| GitHub Action | `sdp-dev/verify-action@v1` |
+| PR evidence comment | Evidence chain summary |
+| Provenance gate | Block merge without evidence |
+| GitLab CI | Same for GitLab |
 
-### IDE
+### Observability Bridge (Design)
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Cursor plugin** | Plan/apply from IDE (highest IDE priority) | P2 |
-| **VS Code extension** | Plan/apply from command palette | P2 |
-| **JetBrains plugin** | Plan/apply from IDE | P3 |
+| Feature | Description |
+|---------|-------------|
+| Deploy markers | Evidence → deploy events |
+| OTel span attributes | AI-generated code paths in traces |
+| Diff-level provenance | Which lines are AI vs human |
+| Integration spec | Honeycomb / Datadog / Grafana |
+
+### Shared Contracts for Parallel Features
+
+| Feature | Description |
+|---------|-------------|
+| Boundary detection | When `@design` runs for parallel features, identify shared surfaces |
+| Interface contracts | Generate API/data model contracts before parallel implementation starts |
+| Contract synthesis | Extend synthesis engine to cross-feature boundaries |
+| Contract-first build | Parallel workstreams build against shared contracts, not assumptions |
+
+### Data
+
+| Feature | Description |
+|---------|-------------|
+| MTTR tracking | With evidence vs without |
+| Verification telemetry | Catch rate, iterations |
+| AI failure taxonomy | By model/language/domain |
+| Quarterly benchmark | Public publication |
+
+---
+
+## P2 — SDK + Enterprise + Observability
 
 ### SDK
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **`sdp.Verify()`** | Verification engine as library | P2 |
-| **`sdp.Evidence()`** | Evidence bundle generation | P2 |
-| **`sdp.Audit()`** | Audit trail recording | P2 |
-| **Provider adapters** | Claude, GPT, Gemini, local models | P2 |
-| **JSON-in/JSON-out** | API for external tool integration | P1 |
+| Feature | Description |
+|---------|-------------|
+| `sdp.Verify()` | Verification engine as Go library |
+| `sdp.Evidence()` | Evidence bundle generation |
+| Provider adapters | Claude, GPT, Gemini |
+| JSON-in/JSON-out | External tool integration |
+
+SDK = verification + evidence. Decomposition stays in CLI/plugin.
+
+### Observability (Implementation)
+
+| Feature | Description |
+|---------|-------------|
+| OTel exporter | SDP evidence → OTel spans |
+| Deploy correlation | Auto-link evidence ↔ deploys |
+| Runtime context | Feature flags, blast radius, rollback |
+| Per-line attribution | AI vs human per line |
+
+### Continuous Cross-Branch Integration
+
+| Feature | Description |
+|---------|-------------|
+| Per-workstream integration | After each WS: merge main, run acceptance test |
+| Cross-feature matrix | "Feature A still works after Feature B's latest WS" |
+| Cost-aware | Full matrix for high-risk, smoke-only for low-risk |
+
+### Cross-Model Review
+
+| Feature | Description |
+|---------|-------------|
+| Model A → Model B | Decorrelated errors |
+| Risk-triggered | Auto for auth, payments, data deletion |
+| Model selection policy | Route by risk |
+
+### Enterprise
+
+| Feature | Description |
+|---------|-------------|
+| Compliance export | SOC2/HIPAA/DORA |
+| Verification certificates | Signed, timestamped |
+| Risk-proportional | `auth/` → full trail, `components/` → light |
+| Team policies | "All AI PRs need evidence" |
+| Decomposition templates | Per-company patterns |
+| Billing/metering | Usage tracking |
+
+### IDE
+
+| Feature | Description |
+|---------|-------------|
+| Cursor plugin | Plan/apply/log from IDE |
+| VS Code extension | Same |
+| JetBrains | Same |
 
 ---
 
-## Enterprise Features
+## P3 — Standard
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Compliance export** | SOC2/HIPAA/DORA-ready evidence format | P1 |
-| **Verification certificates** | Signed per-PR proof of verification | P1 |
-| **Vanta/Drata integration** | Export to compliance platforms | P2 |
-| **Team templates** | Shared decomposition patterns | P1 |
-| **Conflict detection** | Two devs, same codebase awareness | P2 |
-| **Team policies** | "All AI PRs require evidence chain" | P2 |
-| **Billing/metering** | Usage tracking, invoicing | P1 |
-| **Team dashboards** | "What % of AI code is SDP-verified?" | P3 |
-| **Policy enforcement** | Org-wide verification requirements | P3 |
-| **SSO/SAML** | Enterprise auth | P3 |
-| **On-premise** | Self-hosted for air-gapped environments | P3 |
+| Feature | Description |
+|---------|-------------|
+| SDP Evidence Format v1.0 | Published spec |
+| External adoption | 2+ tools |
+| Signed evidence | Non-repudiation (compliance-grade) |
+| External timestamping | Third-party authority |
+| On-premise | Air-gapped environments |
+| Industry working group | After 50+ deployments |
 
 ---
 
-## Data & Moat
+## North Star: Real-Time Multi-Agent Coordination
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Verification telemetry** | Instrument every run: catch rate, iterations | P0 |
-| **AI failure taxonomy** | Categorized: what AI gets wrong by model/language/domain | P1 |
-| **Decomposition heuristics** | Learned patterns from verified builds | P2 |
-| **Benchmark suite** | "Generate 50 features, measure defect rates" | P2 |
-| **Quarterly benchmark** | "AI Code Quality Benchmark" publication | P1 |
+Not on the roadmap. The guiding direction.
 
----
+| Feature | Description |
+|---------|-------------|
+| Live intent broadcasting | Every participant knows what others are trying to achieve |
+| Real-time conflict detection | Interface change → immediate signal to affected agents |
+| Automatic interface negotiation | Agents resolve contract conflicts without human mediation |
+| Heterogeneous coordination | Works across models, tools, and humans with different workflows |
 
-## Priority Legend
-
-| Priority | Meaning | Phase |
-|----------|---------|-------|
-| **P0** | Protocol + plugin launch | Phase 1 (Weeks 1-6) |
-| **P1** | CLI + enterprise foundation | Phase 2 (Months 2-4) |
-| **P2** | SDK + platform expansion | Phase 3 (Months 4-8) |
-| **P3** | Scale + enterprise platform | Phase 4 (Months 8-12) |
+**How we get there:** P0 scope collision → P1 shared contracts → P2 cross-branch integration → beyond.
 
 ---
 
-*SDP Features v2.0 — February 2026*
+*SDP Features v7.0 — February 2026*

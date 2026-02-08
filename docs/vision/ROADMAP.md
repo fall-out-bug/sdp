@@ -1,256 +1,301 @@
 # SDP Roadmap
 
-> Protocol → Plugin → CLI → SDK → Enterprise
+> What we build and in what order.
 
 ---
 
 ## Current State (February 2026)
 
-### What Exists
+### Works
 
 - **Claude Code plugin**: 19 skills/agents (idea, design, build, review, deploy, vision, reality)
 - **Go engine**: decomposition, dependency graph, parallel dispatcher, synthesis engine, circuit breaker
-- **Verification**: TDD pipeline (red → green → refactor), coverage enforcement, contract validation
-- **Enterprise traction**: 2 contracts (bank, airline), 1 evaluating (marketplace)
+- **Verification**: TDD (red → green → refactor), coverage ≥80%, contract validation, types, semgrep
+- **Telemetry**: append-only JSONL collector, atomic write-fsync-rename checkpoints
+- **Enterprise**: 2 contracts (bank, airline), 1 evaluating (marketplace)
 
-### What's Missing
+### Broken
 
-- **Protocol specification**: no formal spec that other tools can implement
-- **Model provenance**: no tracking of which model generated what
-- **Evidence chain**: no cryptographic linking of spec → code → verification → approval
-- **`sdp plan` / `sdp apply`**: the plan/apply UX doesn't exist
-- **`sdp incident`**: no forensic trace tool
-- **Data collection**: no measurement of verification effectiveness
-
----
-
-## Phase 1: The Protocol (Weeks 1-6)
-
-**Goal:** Formalize what exists into an open protocol. Ship the evidence chain.
-
-### 1.1 Protocol Schema (Weeks 1-2)
-
-Machine-readable JSON Schema for four primitives. If another tool can't implement SDP from the schema alone — the schema is incomplete.
-
-- [ ] **plan**: describe intended work units (with or without decomposition)
-- [ ] **apply**: record what was generated, verified, and approved
-- [ ] **evidence**: structured log of generation events with provenance
-- [ ] **incident**: query interface to trace from commit to evidence
-- [ ] Model provenance fields (model_id, model_version, timestamp — minimal viable)
-- [ ] Verification report fields (tool, command, actual output)
-- [ ] Schema versioning (start at 0.1, expect breaking changes)
-
-**Output:** `protocol/sdp-schema-v0.1.json` — JSON Schema, public repo. One file.
-
-### 1.2 Model Provenance (Weeks 1-3)
-
-Every piece of AI-generated code records:
-
-- [ ] Model name and version
-- [ ] Prompt hash (not the prompt itself — privacy)
-- [ ] Temperature and parameters
-- [ ] Timestamp
-- [ ] Spec it was generated against
-- [ ] Who initiated the generation
-
-**This is P0.** Without provenance, the evidence chain is broken and compliance export is garbage.
-
-### 1.3 AI Activity Log (Weeks 2-4)
-
-Structured record of what happened during AI code generation:
-
-- [ ] Generation → verification → approval chain per commit
-- [ ] Stored in `.sdp/log/` alongside the repo
-- [ ] Human-readable + machine-parseable (JSON, follows published schema)
-- [ ] `sdp incident <commit>` reads and presents the chain
-- [ ] Hash linking for integrity (v0.1 — not yet a compliance artifact)
-
-**Honest labeling:** This is an "AI Activity Log", not a compliance certificate. Compliance-grade evidence comes later when auditors have reviewed the format.
-
-### 1.4 Compliance Design Doc (Week 3-4)
-
-Document the plan before building compliance features:
-
-- [ ] Data residency: where is the log stored?
-- [ ] Retention policies: how long? GDPR vs audit trail conflict
-- [ ] RBAC: who can see evidence, approve plans, override gates?
-- [ ] Audit trail immutability: what guarantees?
-- [ ] This doc enables enterprise conversations NOW, implementation comes Phase 2
-
-### 1.5 Claude Code Plugin Update (Weeks 3-6)
-
-Update existing skills to produce protocol-compliant artifacts:
-
-- [ ] `@build` emits evidence chain
-- [ ] `@review` emits verification report with actual output
-- [ ] Model provenance tracked on every generation
-- [ ] `sdp plan` / `sdp apply` skill wrappers
-
-### 1.6 Data Collection (Week 1, ongoing)
-
-- [ ] Instrument every run: decomposition quality, verification catch rate, iteration count
-- [ ] Rich telemetry (not A/B test — observational dataset)
-- [ ] Target: "AI Code Quality Benchmark" quarterly publication
-
-**Success criteria:** JSON Schema published. AI Activity Log working in Claude Code plugin. Provenance on every generation. Compliance design doc written.
+- **Result checking** — gates verify coverage/types/lint, but not "does the app actually work"
+- **Parallel coordination** — no cross-feature scope collision detection, no shared contracts
+- No structured evidence log — results stay in markdown reports
+- No model provenance — unknown which model generated what
+- No forensic trace — no way to reconstruct the chain from commit to spec
+- No protocol schema — "protocol" is informal, lives in skill code
 
 ---
 
-## Phase 2: The Tools (Months 2-4)
+## P0 — Acceptance Test + Evidence Log
 
-**Goal:** CLI + GitHub Action. Enterprise can now adopt.
+### Acceptance Test Gate
 
-### 2.1 CLI: plan / apply / incident (Months 2-3)
+**The one thing that's actually broken in SDP.**
+
+Real case: SDP built an ad server — 7,149 LOC, 88% coverage, Clean Architecture, all quality gates green. Basic features didn't work. Weighted random always returned max weight. Budget enforcement was never called. Frequency capping was missing entirely.
+
+Meanwhile, vibe-coded alternative: 1,005 LOC, works from `docker compose up`.
+
+The problem: SDP has a 5-minute feedback loop for code quality (types, tests, coverage) and a **days-long** feedback loop for "does the app work." Vibe-coders run the app after every change. SDP builds 25 workstreams, then discovers nothing works.
+
+**Fix:** After every workstream, check if the app still works.
+
+- E2E smoke test after `@build`: start the app, hit the core endpoint, verify the response
+- Not unit tests — an actual "run it and check" verification
+- Failure = build failed, regardless of coverage
+- Configurable per project: `.sdp.yml` defines what "works" means (HTTP 200? Container starts? Output matches?)
+- Graceful when no smoke test defined: warn, don't block
+- This is the vibe-coder's feedback loop, formalized
+
+Everything else — adaptive architecture, scope limiting, value-first decomposition — those are nice-to-have. The user can always say "I don't care about architecture." The user can't say "I don't care if it works."
+
+### Schema Consolidation
+
+Existing schemas diverged across `schema/`, `docs/schema/`, frontmatter — and don't match. Fix before adding new ones.
+
+- Audit all `.schema.json`, frontmatter formats, validation paths
+- Single `$id` namespace, one validation entrypoint
+- Migrate stale schemas (`WS-` → `PP-FFF-SS`)
+- Versioning: SemVer, changelog
+
+### Evidence Schema v0.1
+
+JSON Schema for the evidence log. Criterion: another tool can produce SDP-compatible evidence from the schema alone.
+
+- `plan` — intent: feature description, units, dependencies, cost estimate
+- `generation` — model: name, version, prompt hash, temperature, params, timestamp, spec reference, initiator, code hash
+- `verification` — check: tool, command, **actual output** (real pytest stdout, not "tests passed"), pass/fail, coverage, duration
+- `approval` — decision: who approved, when, what they saw, why (in drive mode)
+- Hash chain: each record contains `prev_hash` (corruption detection, **not** tamper-proof)
+- Version 0.1, breaking changes expected
+
+### Evidence Log
+
+Single `.sdp/log/events.jsonl`.
+
+- Append-only JSONL (extends existing telemetry primitive)
+- One record per event, following published schema
+- Provenance is not a separate subsystem — it's the `generation` event type
+- One log, many event types, one reader
+- Committed by default (not gitignored — evidence must survive laptop wipes and ephemeral CI runners)
+- `.gitattributes` with append-only merge driver
+- Budget: ~1KB per generation, ~5KB per verification (with actual output)
+
+### `sdp log trace <commit>`
+
+New command: walk the evidence chain backwards from a commit.
+
+- Output: tree — model → spec → verification output → approver
+- `--output=json` for tooling
+- Works offline (all data is local)
+- Graceful on missing evidence ("no SDP evidence for this commit")
+
+### `@build` Instrumentation
+
+First skill. Not all 19 at once.
+
+- `@build` emits `generation` event on every AI generation
+- `@build` emits `verification` event with **actual tool output**
+- `@build` emits `approval` event (auto-approve in ship, human-approve in drive)
+- `plan` event when decomposition completes
+- Emission is automatic — no opt-in
+
+### Scope Collision Detection
+
+When 10 agents and 5 humans work on 5 features in parallel — who's touching what?
+
+- Each workstream already declares `scope_files` in its spec
+- Cross-reference scope declarations across all in-progress workstreams
+- If two parallel workstreams (across different features) modify the same files — signal, not block
+- "Feature A WS-3 and Feature B WS-7 both modify `user_model.go`. Coordinate."
+- Cheap to build: it's a query over existing data
+
+### Compliance Design Doc
+
+Not code — a document for enterprise conversations.
+
+- Data residency, retention, RBAC, integrity guarantees
+- Prompt privacy (hash only, never raw prompts)
+- What the hash chain guarantees and what it doesn't
+
+---
+
+## P1 — Full Instrumentation + CLI + CI/CD
+
+**Remaining skills instrumentation.**
+- `@review` → verification events (findings, actual output)
+- `@deploy` → approval chain (who approved merge, what gates passed)
+- `@design` → plan events (decomposition decisions, dependency graph)
+- `@idea` → decision events (questions and answers in drive mode)
+- All 19 skills produce evidence
+
+**CLI: plan / apply / log.**
 
 ```bash
-sdp plan "Add OAuth2 login"            # Show decomposition
-sdp apply                               # Execute plan
+sdp plan "Add OAuth2 login"            # Show decomposition, emit plan event
+sdp apply                               # Execute with evidence recording
 sdp plan "Add auth" --auto-apply        # Ship mode
 sdp plan "Add auth" --interactive       # Drive mode
-sdp apply --retry 3                     # Retry failed unit
-sdp incident abc1234                    # Forensic trace
+sdp apply --retry 3                     # Retry failed unit only
+sdp log trace abc1234                   # Forensic trace
+sdp log show                            # Browse evidence
+sdp log show --unit 00-001-03           # Evidence for specific unit
 ```
 
-- [ ] `sdp plan` — NL → decomposition → plan display
-- [ ] `sdp apply` — verified execution with streaming progress
-- [ ] `sdp incident` — forensic trace from commit to evidence chain
-- [ ] Per-unit rollback
-- [ ] JSON output (`--output=json`) for tool integration
+- `sdp plan` → `@idea` + `@design` + plan event
+- `sdp apply` → `@build` + `@review` + full evidence chain
+- `sdp log trace` → reads `.sdp/log/` + git metadata
+- `sdp log show` → log browser with filters
+- `--output=json` for all commands
+- Streaming progress per unit
 
-### 2.2 GitHub Action (Month 2-3)
+**GitHub Action.**
 
 ```yaml
 - uses: sdp-dev/verify-action@v1
   with:
-    gates: [types, semgrep, tests, provenance]
+    gates: [types, semgrep, tests, evidence]
 ```
 
-- [ ] Verification on every AI-generated PR
-- [ ] Evidence chain in PR comment
-- [ ] Model provenance check
-- [ ] Free tier: 50 runs/month. Usage-based pricing above
+- Verification on every AI-generated PR
+- Evidence chain summary in PR comment
+- Provenance gate: block merge if AI code lacks evidence
+- Free tier: 50 runs/month
 
-### 2.3 Compliance Foundation (Month 3-4)
+**Observability bridge (design).**
+- Deploy markers: tie evidence records to deploy events
+- OTel span attributes: mark AI-generated code paths in traces
+- Diff-level provenance: which *lines* are AI-generated vs human-edited
+- Integration spec: how SDP connects to Honeycomb / Datadog / Grafana
 
-- [ ] Evidence export: SOC2-ready format
-- [ ] Verification certificates (signed, timestamped)
-- [ ] Vanta/Drata integration
-- [ ] DORA compliance mapping for EU fintech
-- [ ] Audit trail spec: model provenance, prompt hash, verification output, approval chain
+**Shared contracts for parallel features.**
+- When `@design` runs for multiple features in parallel, identify shared boundaries
+- Generate interface contracts (API surfaces, data models, function signatures) before implementation starts
+- Synthesis engine already exists — extend it to cross-feature boundary detection
+- "Auth and Payments both need User — here's the contract both must respect"
 
-### 2.4 Risk-Proportional Verification (Month 3-4)
-
-- [ ] Path-based risk: `auth/`, `payments/` → full trail. `components/` → light
-- [ ] Content-based risk: SQL, crypto, tokens → flag
-- [ ] Custom risk profiles via `.sdp.yml`
-
-**Success criteria:** CLI shipped. GitHub Action in 100+ repos. 3 enterprise customers on paid tier. First "AI Code Quality Benchmark" published.
+**Data collection.**
+- Instrument every run: catch rate, iteration count, model performance
+- AI failure taxonomy: what goes wrong, by model/language/domain
+- MTTR tracking: time to root cause with evidence vs without
+- Target: "AI Code Quality Benchmark" — quarterly publication
 
 ---
 
-## Phase 3: The Platform (Months 4-8)
+## P2 — SDK + Enterprise + Observability
 
-**Goal:** SDK for embedding. Enterprise features. Evidence standard.
-
-### 3.1 Verification SDK
+**Verification + Evidence SDK.**
 
 ```go
 result := sdp.Verify(files, sdp.Gates{"types", "tests", "semgrep"})
-evidence := sdp.Evidence(result)  // Signed evidence bundle
+evidence := sdp.Evidence(result)  // Schema-compliant evidence bundle
 ```
 
-- [ ] `sdp.Verify()` — verification engine as library
-- [ ] `sdp.Evidence()` — evidence bundle generation
-- [ ] `sdp.Audit()` — audit trail recording
-- [ ] Provider adapters: Claude, GPT, Gemini
-- [ ] JSON-in/JSON-out API for tool integration
+- `sdp.Verify()` — verification engine as library
+- `sdp.Evidence()` — evidence bundle generation
+- Provider adapters: Claude, GPT, Gemini
+- JSON-in/JSON-out API
+- SDK = verification + evidence only. Decomposition stays in CLI/plugin.
 
-**Note:** No `sdp.Decompose()` in SDK. Decomposition stays in CLI/plugin where we control the experience. SDK = verification + evidence only.
+**Observability integration (implementation).**
+- OTel exporter: SDP evidence → OpenTelemetry spans
+- Deploy correlation: auto-link evidence to deploy events
+- Runtime context: feature flags, blast radius, rollback path
+- Per-line attribution: AI vs human per line
 
-### 3.2 Cross-Model Review (Premium)
+**Cross-model review.**
+- Model A generates, Model B reviews (decorrelated errors)
+- Auto-trigger for high-risk code (auth, payments, data deletion)
+- Model selection policy
 
-- [ ] Model A generates, Model B reviews (decorrelated errors)
-- [ ] Auto-triggered for high-risk code (auth, payments, data deletion)
-- [ ] Model selection policy engine
-- [ ] Justified by evidence dataset, not thesis
+**Continuous cross-branch integration.**
+- After each workstream: merge main into feature branch, run acceptance test
+- Catches integration breaks per-workstream, not per-PR (when it's too late)
+- Cross-feature test matrix: "Feature A still works after Feature B's latest workstream"
+- Cost-aware: full matrix for high-risk features, smoke-only for low-risk
 
-### 3.3 Team Features
+**Enterprise features.**
+- Compliance export: SOC2/HIPAA/DORA-ready evidence format
+- Verification certificates (signed, timestamped)
+- Risk-proportional verification: `auth/` → full trail, `components/` → light
+- Team policies: "all AI PRs need evidence chain"
+- Shared decomposition templates
+- Billing/metering
 
-- [ ] Shared decomposition templates ("at our company, auth always = 5 units")
-- [ ] Conflict detection (two devs, same codebase)
-- [ ] Team-wide verification policies
-- [ ] Billing/metering infrastructure
-
-### 3.4 IDE Integrations
-
-- [ ] Cursor plugin (highest priority — plan/apply from IDE)
-- [ ] VS Code extension
-- [ ] JetBrains plugin
-
-**Success criteria:** SDK embedded in 2+ external tools. Team features used by 10+ enterprise teams.
+**IDE.**
+- Cursor plugin
+- VS Code extension
+- JetBrains plugin
 
 ---
 
-## Phase 4: The Standard (Months 8-12+)
+## P3 — Standard
 
-**Goal:** SDP becomes how enterprises prove AI code was verified.
-
-### 4.1 Evidence Standard
-
-- [ ] Published spec: "SDP Evidence Format v1.0"
-- [ ] Adopted by 2+ tools beyond SDP itself
-- [ ] Industry working group (if traction warrants)
-
-### 4.2 Enterprise Platform
-
-- [ ] Multi-team dashboards: "what % of AI code is SDP-verified?"
-- [ ] Policy enforcement: "all AI PRs must have evidence chain"
-- [ ] Audit export: SOC2 / ISO 27001 / HIPAA / DORA
-- [ ] SSO/SAML
-- [ ] On-premise for air-gapped environments
-
-### 4.3 Ecosystem
-
-- [ ] Third-party verification gates
-- [ ] Custom risk profiles
-- [ ] Community-contributed decomposition heuristics
-- [ ] AI failure taxonomy (public dataset)
-
-**Success criteria:** SDP Evidence Format cited in enterprise security policies. Acquisition or deep integration interest.
+- SDP Evidence Format v1.0 — published, auditor-reviewed
+- Adoption: 2+ tools beyond SDP
+- Signed evidence records (cryptographic non-repudiation — compliance-grade)
+- External timestamping (third-party timestamp authority)
+- On-premise for air-gapped environments
+- Industry working group (only after 50+ deployments)
 
 ---
 
 ## Success Metrics
 
-| Metric | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
-|--------|---------|---------|---------|---------|
-| Protocol implementations | 1 (plugin) | 2 (+ CLI) | 4 (+ SDK, GH Action) | 10+ |
-| Repos with evidence chains | 10 (dogfood) | 200 | 1,000 | 5,000+ |
-| Enterprise customers | 2 (existing) | 5 | 20 | 50+ |
-| Revenue | $0 | $50K ARR | $500K ARR | $2M+ ARR |
-| Evidence records generated | 100 | 5,000 | 50,000 | 500,000 |
+| Metric | P0 | P1 | P2 | P3 |
+|--------|----|----|----|----|
+| Acceptance test pass rate | Baseline | 90% | 95% | Published benchmark |
+| Evidence records | 100 (dogfood) | 5,000 | 50,000 | 500,000 |
+| Skills instrumented | 1 (`@build`) | All 19 | All + SDK | All + external |
+| MTTR improvement | Baseline | 20% ↓ | 40% ↓ | Benchmark published |
+| Repos with evidence | 3 | 200 | 1,000 | 5,000+ |
 
 ---
 
 ## Kill Criteria
 
-> After 500 SDP runs: if verification catch rate < 5% AND post-merge defect rate is not measurably different from baseline → kill the product.
+> **Primary:** After 100 incidents involving AI-generated code: if SDP evidence did not reduce MTTR compared to git-blame-only — rethink the approach.
 
-Specific. Testable. Honest.
+> **Secondary:** After 500 SDP runs: if catch rate < 5% AND defect rate equals baseline — kill the product entirely.
+
+> **New:** After 50 SDP builds: if acceptance test pass rate is not measurably higher than baseline vibe-coding — the orchestration isn't adding value.
 
 ---
 
-## Key Risks
+## Risks
 
 | Risk | Mitigation |
 |------|-----------|
-| Models improve, decomposition unnecessary | Monitor. Pivot to verification-only if evidence shows no decomposition benefit |
-| Cursor/GitHub ships native verification | Protocol is the moat. If they implement SDP protocol, we win |
-| Enterprise sales cycle too slow | GitHub Action as self-serve wedge. Bottom-up → top-down |
-| No measurable defect reduction | Kill the product (see kill criteria) |
-| Open protocol gets forked | Move fast. Build the evidence dataset. Data moat > code moat |
+| SDP produces non-working code with passing gates | Acceptance test gate (P0) |
+| Over-architecture for small projects | Adaptive architecture (P0) |
+| Scope creep through deep questioning | Scope limiter + ship gate (P0) |
+| Evidence log adds friction | Automatic emission, no opt-in |
+| Models improve, decomposition unnecessary | Provenance valuable regardless. Decomposition is a technique, not the core |
+| Hash chain oversold to enterprise | Honest labeling: corruption detection, not non-repudiation |
+| Evidence never consulted during incidents | Observability bridge: deploy markers, OTel |
+| Schemas diverge again | Single namespace, CI validation |
+| Cursor/GitHub ships native verification | Protocol + evidence log is the moat |
+| Log bloats repo | Budget per event, compression, archival policy |
 
 ---
 
-*SDP Roadmap v2.0 — February 2026*
-*Protocol → Plugin → CLI → SDK → Enterprise*
+## North Star: Real-Time Multi-Agent Coordination
+
+Not on the roadmap. Not buildable today. But this is where the world is going, and we're thinking about it.
+
+**The problem:** 10 agents and 5 humans build 5 features in parallel. Agent A changes the User interface. Agent B is mid-build using the old User interface. Agent B doesn't know. Nobody knows until merge time, which is the worst possible moment to find out.
+
+**The vision:** Real-time coordination where every participant — agent or human — has live awareness of what others are doing. Not just scope (which files) but intent (what they're trying to achieve) and state (what they've changed so far). When Agent A changes an interface, Agent B gets a signal immediately, not at merge time.
+
+This is a distributed systems problem. Eventual consistency, conflict resolution, intent broadcasting across heterogeneous participants (different models, different tools, humans with different workflows). It's hard. Nobody has solved it.
+
+**How we get there incrementally:**
+- P0: Scope collision detection (static, at plan time)
+- P1: Shared contracts (at design time, before parallel work starts)
+- P2: Continuous cross-branch integration (at build time, after each workstream)
+- Beyond: Live intent broadcasting, real-time conflict detection, automatic interface negotiation
+
+Each step is useful on its own. Together, they build toward a system where parallel AI-assisted development doesn't collapse into merge hell.
+
+---
+
+*SDP Roadmap v7.0 — February 2026*
