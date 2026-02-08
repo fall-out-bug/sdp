@@ -1,6 +1,6 @@
 # SDP Product Vision
 
-> *AI generates code. You ship it. You own the consequences. SDP gives you the evidence.*
+> *AI generates code. Somebody ships it. Somebody asks "what happened?" SDP has the answer.*
 
 ---
 
@@ -8,9 +8,11 @@
 
 Most production code is AI-generated. Developers describe intent, AI writes implementation. This is already happening — the question is what happens when it goes wrong.
 
-**The accountability gap:** when AI-generated code fails in production, the developer has no evidence. No record of what was specified. No proof of what was verified. No trace from the incident back to the generation. Just a git blame pointing at a PR that got rubber-stamped.
+**The accountability gap:** when AI-generated code fails in production, nobody has a record. No trace of what was specified. No proof of what was verified. No chain from the incident back to the generation. Just a git blame pointing at a PR that got rubber-stamped.
 
-This gap will be closed — by regulation, by litigation, or by tooling. SDP is the tooling.
+Who's liable? The developer who shipped it? The model provider? The tool vendor? That's a legal question — and it'll be contested for a decade.
+
+But regardless of who's liable, **someone needs the evidence.** SDP is that evidence.
 
 ---
 
@@ -80,11 +82,11 @@ Why reversed:
 
 ## The Philosophy: Four Pillars
 
-### 1. Accountability Is Non-Negotiable
+### 1. Evidence Is Non-Negotiable
 
-AI generates code. You ship it. You're accountable. SDP doesn't remove accountability — it gives you **evidence** to stand behind your decisions.
+AI generates code. Someone ships it. When it breaks — and it will — someone needs the record. SDP is the neutral ledger: what was generated, how it was verified, who approved it.
 
-"I verified it" without evidence is an assertion. "Here's the evidence chain" is a defense.
+Not a verdict about who's responsible. A record of what happened.
 
 ### 2. Decomposition Is Permanent
 
@@ -107,10 +109,10 @@ Not the CLI. Not the plugin. Not the decomposition. **The evidence chain** — t
 ## The Five Bets
 
 1. **AI writes most code by 2028.** Trajectory, not prediction.
-2. **Accountability becomes mandatory.** Courtrooms, audits, incident reviews will demand proof.
-3. **Decomposition is permanent.** Human cognition is the bottleneck, not AI capability.
-4. **Forensics > Verification.** "Did it pass?" is table stakes. "What happened and why?" is the moat.
-5. **Protocol > Product.** The team that sets the standard wins.
+2. **"What happened?" becomes mandatory.** Courtrooms, audits, incident reviews will demand records.
+3. **Provenance is permanent.** Regardless of how code is generated — decomposed or monolithic — the record of what model, what spec, who approved never stops being valuable.
+4. **Forensics > Verification.** "Did it pass?" is table stakes. "What happened?" is the moat.
+5. **Protocol > Product.** The team that sets the evidence standard wins.
 
 ---
 
