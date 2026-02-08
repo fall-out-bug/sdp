@@ -683,3 +683,74 @@ func TestDispatcher_RestoresCircuitBreakerState(t *testing.T) {
 		t.Error("Expected at least one workstream to be executed")
 	}
 }
+
+// TestCheckpointManager_AtomicWrite_PreservesOldOnCrash verifies old checkpoint is preserved if write crashes mid-way
+func TestCheckpointManager_AtomicWrite_PreservesOldOnCrash(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	featureID := "F052"
+	cm := graph.NewCheckpointManager(featureID)
+	cm.SetCheckpointDir(tempDir)
+
+	// Create initial checkpoint
+	checkpoint1 := &graph.Checkpoint{
+		Version:   "1.0",
+		FeatureID: featureID,
+		Timestamp: time.Now().UTC(),
+		Completed: []string{"00-052-01"},
+	}
+
+	err := cm.Save(checkpoint1)
+	if err != nil {
+		t.Fatalf("Failed to save initial checkpoint: %v", err)
+	}
+
+	// Verify initial checkpoint exists and has correct data
+	loaded1, _ := cm.Load()
+	if loaded1 == nil {
+		t.Fatal("Expected initial checkpoint to exist")
+	}
+	if len(loaded1.Completed) != 1 {
+		t.Fatalf("Expected initial checkpoint to have 1 completed workstream")
+	}
+
+	// Simulate a crash during write by creating a temp file manually
+	// and then "crashing" (not completing the rename)
+	tmpPath := cm.GetTempPath()
+	corruptData := []byte("incomplete write data...")
+	if err := os.WriteFile(tmpPath, corruptData, 0600); err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+
+	// Act - load checkpoint (should get old one, not corrupt temp)
+	loaded2, err := cm.Load()
+
+	// Assert - should load old checkpoint successfully
+	if err != nil {
+		t.Fatalf("Expected to load old checkpoint despite corrupt temp file, got error: %v", err)
+	}
+
+	if loaded2 == nil {
+		t.Fatal("Expected old checkpoint to be loaded")
+	}
+
+	// Verify it's the OLD checkpoint (not the corrupt data)
+	if len(loaded2.Completed) != 1 {
+		t.Errorf("Expected old checkpoint data (1 completed), got %d", len(loaded2.Completed))
+	}
+
+	if loaded2.Completed[0] != "00-052-01" {
+		t.Errorf("Expected old checkpoint workstream 00-052-01, got %s", loaded2.Completed[0])
+	}
+
+	// Verify temp file still exists (simulating crash before rename)
+	if _, err := os.Stat(tmpPath); os.IsNotExist(err) {
+		t.Error("Expected temp file to still exist (simulating crash before rename)")
+	}
+
+	// Clean up temp file for test completeness
+	os.Remove(tmpPath)
+
+	t.Log("✓ Atomic write preserves old checkpoint on crash")
+}
+
