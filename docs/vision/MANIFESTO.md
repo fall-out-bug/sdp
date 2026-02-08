@@ -1,70 +1,84 @@
-# SDP: The Accountability Layer for AI-Generated Code
+# SDP: Agents Are Roles, Not People. Accountability Is Real.
 
-> *"Когда тебя спросят 'что это за хуйня' — ты не можешь ответить 'что-то навайбкодилось, хз как и когда'."*
+> *"Агенты — это роли, не люди. Ответственность — настоящая."* [¹](#footnotes)
 
 ---
 
-## The Accountability Gap
+## Tech Lead Vasily
 
-AI writes code. Somebody ships it. Something breaks. A courtroom, an auditor, or an incident review asks:
+You created a task in the tracker. Timofey, a friendly analyst who loves talking about his travels, pulls you into a video call. He gently but persistently asks about your requirements, then sends you meeting minutes, creates all the subtasks, assigns the right people.
 
-**"What happened? When? Who decided? What was verified?"**
+Next, Anastasia catches you — a stern architect with a steely gaze. She lectures you that your ideas violate the project's architecture. You argue. Eventually, you agree on specifications. She locks everything down, writes specs to the wiki, draws C4 diagrams. You see Timofey and Anastasia arguing in the comments — work is humming. Disagreements resolve fast.
 
-Today, the answer is: "I... looked at it. It seemed fine."
+Then Vasily, the tech lead, takes over. Cheerful, covered in tattoos, built like Dwayne Johnson — at least that's what his video avatar looks like. You joke around, polish the design, he grabs everything into sprint. Meanwhile he mentions the team is chipping in for a gift for Kostya, the QA engineer. You don't remember Kostya, but you politely ask what they're getting him. "Claude tokens!" Vasily jokes. Everyone's a vibe-coder these days. But you know the project runs strict TDD — every sneeze is tested. The product is nearly bug-free.
 
-That answer will get increasingly expensive. Not because of any one party's liability — the legal frameworks are still being written. But because **someone will need the evidence.** The developer. The model provider. The platform vendor. The regulator. Someone.
+By evening, you have working prototypes. By morning, the full feature. You're not worried — the team delivers like this every time.
 
-**SDP doesn't decide who's responsible. SDP records what happened.**
+You stand up from your chair in the small office. Almost the entire team is remote. You glance at Georgy, the senior DevOps, perpetually tinkering with GPUs in your corporate Kubernetes. Strange — you barely have any ML. Though Alexander sits next to him — the lead ML specialist, lost in thought. He doesn't even say hello. Why are the only people in the office such NPCs? You wish Vasily would come by. You'd grab a beer. You want to see real teammates, not these two.
 
-It's a neutral evidence layer. It captures: which model generated the code, what spec it was built against, what verification ran, what the output was, who approved it. The chain of facts. Not opinions about liability.
+**Except Timofey, Anastasia, Kostya, and Vasily aren't real people. They're agents.**
 
-> **SDP replaces "it seemed fine" with a record of what actually happened.**
+And Georgy and Alexander are the ones cleaning Anastasia's hallucinations from your DMs.
+
+Or maybe you're an agent too. Alexander's experiment.
+
+Scary? Not to me. I like it. [¹](#footnotes)
+
+---
+
+## The Problem Under the Story
+
+The multi-agent future is coming. The question isn't whether AI agents will write code, run reviews, and ship features. They will. The question is:
+
+**When something breaks — and it will — what do you have?**
+
+Today: nothing. A git blame pointing at a rubber-stamped PR. "Something vibed itself into existence. No idea how or when."
+
+That answer will get increasingly expensive. Not because of one party's liability — the legal frameworks are still being written [²](#footnotes). But because **someone will need the evidence.** The developer. The model provider. The auditor. The incident responder.
+
+> **SDP doesn't decide who's responsible. SDP records what happened.**
 
 ---
 
 ## What SDP Is
 
-**An open protocol for accountable AI code generation.**
+**An open protocol for recording what AI agents did to your codebase.**
 
 Three guarantees:
 
-1. **Every piece of AI-generated code has provenance.** Which model. Which version. What parameters. What spec. When. Who initiated.
+1. **Provenance.** Every piece of AI-generated code records: which model, which version, what parameters, what spec, when, who initiated. Whether it was Vasily or Claude — you'll know.
 
-2. **Every verification is recorded with actual output.** Not "tests passed" — the actual `pytest` output with line counts. Not "types checked" — the actual `mypy` report.
+2. **Verification evidence.** Not "tests passed" — the actual pytest output. Not "types checked" — the actual mypy report. Real output, not assertions.
 
-3. **Every decision is traceable.** When something breaks, you trace from the git commit back through the chain: generation → verification → approval. Not "someone approved this PR." **Here's what was generated, here's what was checked, here's who signed off.**
-
-> This is the **forensic system for AI-generated code** — a neutral record of what happened, for whoever needs it: the developer, the auditor, or the incident responder.
+3. **Forensic trace.** When production breaks, trace from the git commit back through the chain: what was generated → what was verified → who approved. The reconstruction tool for the 3 AM page.
 
 ---
 
 ## The Philosophy
 
-### Decomposition Is Permanent
+### Provenance Is Permanent
 
-Not because models are weak. Because **humans can't verify large blobs.**
+Models will improve. Context windows will grow. Maybe one day AI generates flawless 5000-line files from a paragraph.
 
-Code review effectiveness drops to near-random above 400 lines of diff (Microsoft, Google studies). Even if GPT-6 generates flawless 5000-line files — YOU can't verify a 5000-line diff. The bottleneck is human cognition, not AI capability. This doesn't change.
+But the question "which model wrote this, from what spec, and who approved it?" **never stops being valuable.** Provenance survives every regime change in AI capability.
 
-Decomposition compensates for two permanent problems:
-- **Specification sparsity** — "Add OAuth" is 15 words. The implementation is 5000 decisions. Smaller units = fewer wrong guesses.
-- **Verification capacity** — You can review 200 lines carefully. You can only skim 2000.
+### Decomposition Helps Today
 
-### The Verification Stack
+Breaking features into small verified units improves AI generation quality and makes human review possible. Code review effectiveness drops to near-random above 400 lines of diff [³](#footnotes). This may or may not be permanent — but it works now, and SDP supports it.
 
-Ordered by ROI, not by impressiveness:
+The protocol works **with or without decomposition.** Provenance is the invariant. Decomposition is a powerful technique.
 
-| Layer | What It Catches | Cost |
-|-------|----------------|------|
-| **Decomposition** (<200 LOC units) | Context overload, spaghetti | Free |
-| **Type checking** (mypy/tsc) | Type errors — #1 AI bug class | Free |
-| **Static analysis** (semgrep) | Security patterns, anti-patterns | Free |
-| **Model provenance** | "Which model wrote this and when?" | Free |
-| **Property-based testing** | Edge cases, invariants | 1.2x tokens |
-| **Cross-model review** | Correlated blind spots | 2.5x tokens |
-| **Human review** (the PR) | Everything above missed | Human time |
+### Forensics Over Verification
 
-The first four layers are free and form the **base protocol**. Everything above is optional and additive.
+Everyone claims "verified AI code." Nobody has a forensic chain from a production incident back to the generation spec.
+
+Verification answers: "did this pass?" Forensics answers: "what happened, when, and who decided?"
+
+SDP is the forensic system. The first one for AI-generated code.
+
+### Evidence, Not Opinions
+
+SDP is a neutral ledger. It doesn't embed opinions about who's liable. It records facts: what was generated, how it was verified, who approved it. The courts, the auditors, the incident reviewers — they decide responsibility. SDP gives them the record.
 
 ---
 
@@ -72,122 +86,78 @@ The first four layers are free and form the **base protocol**. Everything above 
 
 Borrowed from Terraform — because it works.
 
-### `sdp plan`
-
-Show what you're about to do. Don't do it yet.
+**`sdp plan`** — Timofey and Anastasia. Show what you're about to do. Decompose the feature, display the units, estimate the cost. Don't execute yet.
 
 ```bash
 $ sdp plan "Add OAuth2 login with Google and GitHub"
 
   3 units planned:
+  1. Backend OAuth service    [high risk — auth module]
+  2. Frontend login component [medium risk]
+  3. Integration tests        [low risk]
 
-  1. Backend OAuth service
-     Scope: src/auth/oauth.ts, src/auth/providers/*.ts
-     Gates: types, tests, semgrep, provenance
-     Risk: high (auth module)
-
-  2. Frontend login component
-     Scope: src/components/Login.tsx, src/hooks/useOAuth.ts
-     Gates: types, tests, provenance
-     Risk: medium
-
-  3. Integration tests
-     Scope: tests/integration/oauth.test.ts
-     Gates: tests
-     Risk: low
-
-  Estimated: ~3 min | 3 units | ~$0.15
-
+  Estimated: ~3 min | ~$0.15
   [apply] [edit] [cancel]
 ```
 
-### `sdp apply`
-
-Execute the plan. Each unit: generate → verify → record.
+**`sdp apply`** — Vasily. Execute the plan. Each unit: generate → verify → record. Streaming progress. Per-unit rollback if something fails.
 
 ```
 Applying...
-  [1/3] Backend OAuth ████████████████ done
-        types ✓ | tests ✓ (91% cov) | semgrep ✓ | provenance recorded
-  [2/3] Frontend login ████████████████ done
-        types ✓ | tests ✓ (87% cov) | provenance recorded
-  [3/3] Integration    ████████████████ done
-        tests ✓ | provenance recorded
+  [1/3] Backend OAuth ████████████ done
+        model: claude-sonnet-4 | types ✓ | tests ✓ (91%) | provenance ✓
+  [2/3] Frontend      ████████████ done
+  [3/3] Integration   ████████████ done
 
-All gates passed. PR created: github.com/org/repo/pull/42
-Evidence chain: .sdp/evidence/2026-02-08-oauth-f01.json
+All gates passed. Evidence recorded.
+PR created: github.com/org/repo/pull/42
 ```
 
-### `sdp incident`
-
-Production broke. Trace back.
+**`sdp incident`** — Georgy and Alexander, cleaning up at 3 AM. Trace from a commit back through the full chain.
 
 ```bash
-$ sdp incident abc1234  # git commit hash
+$ sdp incident abc1234
 
-  Commit abc1234 — AI-generated via SDP
-  ├── Model: claude-sonnet-4-20250514, temp=0.3
+  Commit abc1234 — AI-generated
+  ├── Model: claude-sonnet-4-20250514
   ├── Spec: "Backend OAuth service with Google + GitHub"
-  ├── Acceptance criteria: 4/4 passed at build time
   ├── Verification: types ✓, tests ✓ (91%), semgrep ✓
-  ├── Approved by: @developer at 2026-02-08T14:32:00Z
-  └── Evidence: .sdp/evidence/2026-02-08-oauth-f01.json
-
-  Related units in same feature:
-  ├── unit-2: Frontend login (commit def5678)
-  └── unit-3: Integration tests (commit ghi9012)
+  ├── Approved by: @developer at 2026-02-08T14:32Z
+  └── Evidence: .sdp/log/2026-02-08-oauth.json
 ```
-
-When someone asks "what happened?" — you have the answer. Every detail. Timestamped. Machine-readable.
 
 ### Modes
 
 ```bash
 sdp plan "Add auth"                   # Show plan, wait for approval
-sdp plan "Add auth" --auto-apply      # Plan + apply immediately (ship mode)
-sdp plan "Add auth" --interactive     # Stop at every fork, you decide (drive mode)
-sdp apply                             # Apply last plan
-sdp apply --retry 3                   # Retry failed unit 3 only
+sdp plan "Add auth" --auto-apply      # Ship mode: plan + apply, no stop
+sdp plan "Add auth" --interactive     # Drive mode: you decide at every fork
+sdp apply                             # Execute last plan
+sdp apply --retry 3                   # Retry failed unit only
 sdp incident <commit>                 # Forensic trace
 ```
-
-**`--auto-apply` is "ship".** Trust the framework, get a PR.
-**`--interactive` is "drive".** You decide at every fork: "Sessions or JWT?" → your call.
-**Default is `plan`.** Show the intent. Build trust. Like `terraform plan`.
 
 ---
 
 ## The Strategy: Protocol First
 
-### Why Protocol, Not CLI
+What already exists is a Claude Code plugin with 19 agent roles [⁴](#footnotes). That's a protocol implementation — not a CLI.
 
-The old plan: build a CLI tool, then maybe extract a protocol.
-The new plan: **protocol first, then tools on top.**
+**The order:** Protocol (open standard) → Plugin → CLI → SDK → Enterprise.
 
 Why:
-1. **What already exists is a protocol.** SDP has 19 skills, a synthesis engine, dependency graph, checkpoint system — all running as a Claude Code plugin. That's a protocol implementation, not a CLI.
-2. **Open protocol gets embedded everywhere.** If Cursor, Replit, Windsurf, OpenCode can all speak SDP protocol — the standard wins regardless of which tool wins.
-3. **Enterprise wants control, not tools.** Banks don't adopt your CLI. They adopt your spec and implement it with their infra. The protocol is what they buy. The CLI is what indie devs use.
+- Open protocol gets embedded everywhere. If Cursor, Replit, and others can speak SDP — the standard wins.
+- Enterprise adopts specs, not tools. A bank implements your protocol with their infra team.
+- Plugin-first is the fastest path to real users.
 
-### The Stack
+### Open-Core
 
-```
-┌─────────────────────────────────────────┐
-│  Tools (what users touch)               │
-│  Claude Code plugin | CLI | IDE plugins │
-├─────────────────────────────────────────┤
-│  Protocol (the standard)                │
-│  plan → apply → verify → evidence       │
-│  Model provenance | Audit chain         │
-├─────────────────────────────────────────┤
-│  Engine (the implementation)            │
-│  Decomposition | Verification | Forensics│
-└─────────────────────────────────────────┘
-```
-
-**Protocol** = open, embeddable by anyone.
-**Engine** = reference implementation (open-source verification, proprietary orchestration).
-**Tools** = surfaces for different users (plugin for devs, CLI for automation, dashboards for enterprise).
+| Layer | License |
+|-------|---------|
+| Protocol schema | CC-BY (open) |
+| Verification engine | Open-source |
+| Orchestration + evidence analysis | Proprietary |
+| Enterprise features | Commercial |
 
 ---
 
@@ -195,45 +165,42 @@ Why:
 
 **Code that costs more to fix than to write.**
 
-| Segment | What They Need |
-|---------|---------------|
-| **Fintech** | Forensic proof that payment code was verified before merge |
-| **Healthcare** | HIPAA-compliant audit trail for AI-generated code provenance |
-| **Infrastructure** | `terraform plan` for AI code — show before apply |
-| **Enterprise SaaS** | Policy: "all AI PRs must have SDP evidence chain" |
-| **Regulated industries** | SOC2/DORA/ISO 27001 compliance for AI code |
+Fintech. Healthcare. Infrastructure. Enterprise SaaS. Regulated industries.
 
-Enterprise interest validated: top-3 bank (contracted), major airline (contracted), largest marketplace (evaluating).
+Enterprise interest validated: a top-3 bank, a major airline, the largest online marketplace — all engaged.
 
-**Not for:** Landing pages, MVPs, prototypes. If rewriting is cheaper than verifying — just ship.
-
----
-
-## The Moat
-
-Code is reproducible. Any team can build a verification CLI.
-
-What they can't build:
-
-1. **Decomposition heuristics.** Learned from thousands of verified builds. "OAuth → 3 units, not 5." Gets better with every run.
-
-2. **AI failure taxonomy.** A dataset of what AI actually gets wrong, organized by model, language, domain. This doesn't exist anywhere.
-
-3. **The evidence standard.** If SDP becomes how enterprises prove AI code was verified — that's a standard, not a product. Standards have network effects.
+**Not for:** Landing pages, MVPs, prototypes. If rewriting is cheaper than recording — don't record. Just ship.
 
 ---
 
 ## The Five Bets
 
-1. **AI will write most code by 2028.** Not controversial.
-2. **"What happened?" will be mandatory.** Courtrooms, audits, incident reviews will demand records of AI code generation.
-3. **Provenance is permanent.** Regardless of whether code is generated in 50 small units or one big prompt — the record of what model, what spec, what verification, who approved never stops being valuable.
-4. **Forensics > Verification.** Everyone claims "verified AI code." Nobody has a forensic chain from production incident back to generation.
+1. **AI will write most code by 2028.**
+2. **"What happened?" will be mandatory.** Courtrooms, audits, incident reviews will demand records.
+3. **Provenance is permanent.** Regardless of how code is generated — the record never stops being valuable.
+4. **Forensics > Verification.** "Did it pass?" is table stakes. "What happened?" is the moat.
 5. **Protocol > Product.** The team that sets the evidence standard wins.
-
-Decomposition is a powerful technique that improves generation quality today. It may or may not be permanent. **Provenance and evidence are permanent regardless.**
 
 ---
 
-*SDP Manifesto v3.0 — February 2026*
-*Protocol-first. Accountability-first. Forensics-first.*
+## Kill Criteria
+
+> After 500 SDP runs: if verification catch rate < 5% and post-merge defect rate equals baseline — kill the product. Specific. Testable. Honest.
+
+---
+
+## Footnotes
+
+¹ From [the original post](https://t.me/data_intensive_boar/25), November 13, 2025. The multi-agent vision that became SDP — written before the "Swarm" hype, before the agent frameworks gold rush.
+
+² Accountability for AI-generated code is being contested across multiple legal frameworks: strict developer liability, shared model-provider liability, product liability on tool vendors, and negligence-based frameworks. SDP is framework-agnostic — it records evidence, not verdicts.
+
+³ Microsoft and Google internal studies on code review effectiveness. Review quality drops to near-random above ~400 lines of diff.
+
+⁴ The SDP codebase includes a Go-based engine with decomposition, dependency graphs, parallel dispatch, circuit breakers, checkpoint recovery, and a synthesis engine — running as a Claude Code skill system since 2025.
+
+---
+
+*SDP Manifesto v4.0 — February 2026*
+*Born from a Telegram post about Tech Lead Vasily.*
+*Protocol-first. Evidence-first. Human-first.*
