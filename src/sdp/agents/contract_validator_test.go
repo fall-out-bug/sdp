@@ -664,3 +664,106 @@ paths: {}
 		t.Error("Expected WARNING severity for empty paths")
 	}
 }
+
+// TestGenerateReport_MultipleSeverities verifies report with mixed severities
+func TestGenerateReport_MultipleSeverities(t *testing.T) {
+	validator := NewContractValidator()
+
+	mismatches := []*ContractMismatch{
+		{
+			Severity:   "ERROR",
+			Type:       "endpoint_mismatch",
+			ComponentA: "frontend",
+			ComponentB: "backend",
+			Path:       "/api/test",
+			Method:     "POST",
+			Expected:   "POST /api/test",
+			Actual:     "NOT FOUND",
+			Fix:        "Add endpoint",
+		},
+		{
+			Severity:   "WARNING",
+			Type:       "schema_incompatibility",
+			ComponentA: "frontend",
+			ComponentB: "backend",
+			Path:       "/api/test2",
+			Expected:   "Field 'x' required",
+			Actual:     "Field 'x' not found",
+			Fix:        "Add field",
+		},
+		{
+			Severity:   "INFO",
+			Type:       "info",
+			ComponentA: "component",
+			ComponentB: "other",
+			Path:       "/api/info",
+			Expected:   "Info",
+			Actual:     "Info",
+			Fix:        "No action",
+		},
+	}
+
+	report := validator.GenerateReport(mismatches)
+
+	if report == "" {
+		t.Fatal("Expected report to be generated")
+	}
+
+	// Verify all sections present
+	if !contains(report, "Errors") {
+		t.Error("Report missing Errors section")
+	}
+
+	if !contains(report, "Warnings") {
+		t.Error("Report missing Warnings section")
+	}
+
+	if !contains(report, "Info") {
+		t.Error("Report missing Info section")
+	}
+
+	// Verify summary counts
+	if !contains(report, "Errors: 1") {
+		t.Error("Report missing error count")
+	}
+
+	if !contains(report, "Warnings: 1") {
+		t.Error("Report missing warning count")
+	}
+
+	if !contains(report, "Info: 1") {
+		t.Error("Report missing info count")
+	}
+}
+
+// TestGenerateReport_EmptyMismatches verifies report with no issues
+func TestGenerateReport_EmptyMismatches(t *testing.T) {
+	validator := NewContractValidator()
+
+	report := validator.GenerateReport([]*ContractMismatch{})
+
+	if report == "" {
+		t.Fatal("Expected report to be generated")
+	}
+
+	if !contains(report, "✅ No contract mismatches found!") {
+		t.Error("Report missing success message")
+	}
+}
+
+// TestWriteReport_ErrorHandling verifies error handling in WriteReport
+func TestWriteReport_ErrorHandling(t *testing.T) {
+	validator := NewContractValidator()
+
+	// Use an invalid path that cannot be created
+	invalidPath := "/proc/root/invalid/path/report.md"
+
+	err := validator.WriteReport("# Test Report", invalidPath)
+	if err == nil {
+		t.Fatal("Expected error for invalid path")
+	}
+
+	if !contains(err.Error(), "failed to") {
+		t.Errorf("Expected 'failed to' in error message, got: %v", err)
+	}
+}

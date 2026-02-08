@@ -3,6 +3,7 @@ package agents
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -463,5 +464,113 @@ func TestExtractComponentContract_UnknownType(t *testing.T) {
 
 	if !stringContainsStr(err.Error(), "unknown component type") {
 		t.Errorf("Expected 'unknown component type' error, got: %v", err)
+	}
+}
+
+// TestWriteExtractedContract_ErrorHandling verifies error handling in WriteExtractedContract
+func TestWriteExtractedContract_ErrorHandling(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+
+	// Test with invalid path (should fail on directory creation)
+	contract := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Info:    InfoSpec{Title: "Test", Version: "1.0"},
+		Paths:   make(PathsSpec),
+	}
+
+	// Use an invalid path that cannot be created
+	invalidPath := "/proc/root/invalid/path/contract.yaml"
+
+	err := analyzer.WriteExtractedContract(contract, invalidPath)
+	if err == nil {
+		t.Fatal("Expected error for invalid path")
+	}
+
+	// Error should mention directory creation or write failure
+	if !stringContainsStr(err.Error(), "failed to") {
+		t.Errorf("Expected 'failed to' in error message, got: %v", err)
+	}
+}
+
+// TestAnalyzeGoBackend_ErrorHandling verifies error handling in AnalyzeGoBackend
+func TestAnalyzeGoBackend_ErrorHandling(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+
+	// Test with non-existent file
+	_, err := analyzer.AnalyzeGoBackend("/nonexistent/file.go")
+	if err == nil {
+		t.Fatal("Expected error for non-existent file")
+	}
+
+	if !stringContainsStr(err.Error(), "failed to read") {
+		t.Errorf("Expected 'failed to read' error, got: %v", err)
+	}
+}
+
+// TestAnalyzeTypeScriptFrontend_ErrorHandling verifies error handling
+func TestAnalyzeTypeScriptFrontend_ErrorHandling(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+
+	// Test with non-existent file
+	_, err := analyzer.AnalyzeTypeScriptFrontend("/nonexistent/file.ts")
+	if err == nil {
+		t.Fatal("Expected error for non-existent file")
+	}
+
+	if !stringContainsStr(err.Error(), "failed to read") {
+		t.Errorf("Expected 'failed to read' error, got: %v", err)
+	}
+}
+
+// TestAnalyzePythonSDK_ErrorHandling verifies error handling
+func TestAnalyzePythonSDK_ErrorHandling(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+
+	// Test with non-existent file
+	_, err := analyzer.AnalyzePythonSDK("/nonexistent/file.py")
+	if err == nil {
+		t.Fatal("Expected error for non-existent file")
+	}
+
+	if !stringContainsStr(err.Error(), "failed to read") {
+		t.Errorf("Expected 'failed to read' error, got: %v", err)
+	}
+}
+
+// TestAnalyzePythonSDK_LargeFile verifies large file handling
+func TestAnalyzePythonSDK_LargeFile(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+	tmpDir := t.TempDir()
+
+	// Create file larger than limit (MaxRegexMatchSize * 10 = 100000)
+	largeContent := strings.Repeat("# Large file\n", 15000) // ~300KB
+	pyFile := filepath.Join(tmpDir, "large.py")
+	if err := os.WriteFile(pyFile, []byte(largeContent), 0644); err != nil {
+		t.Fatalf("Failed to create large file: %v", err)
+	}
+
+	_, err := analyzer.AnalyzePythonSDK(pyFile)
+	if err == nil {
+		t.Error("Expected error for oversized file")
+	}
+}
+
+// TestWriteExtractedContract_MarshalError verifies YAML marshal error handling
+func TestWriteExtractedContract_MarshalError(t *testing.T) {
+	analyzer := NewCodeAnalyzer()
+
+	// Create a contract and test with invalid path
+	contract := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Info:    InfoSpec{Title: "Test", Version: "1.0"},
+		Paths:   make(PathsSpec),
+	}
+
+	// Use an invalid path where directory can't be created
+	invalidPath := "/proc/root/invalid/path/contract.yaml"
+
+	err := analyzer.WriteExtractedContract(contract, invalidPath)
+	if err == nil {
+		t.Fatal("Expected error for invalid path")
 	}
 }

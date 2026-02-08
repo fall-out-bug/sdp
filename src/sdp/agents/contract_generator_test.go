@@ -369,3 +369,55 @@ func TestParseSchemaFromComment_EmptyComment(t *testing.T) {
 		t.Errorf("Expected 0 fields for comment without @param, got %d", len(schema.Fields))
 	}
 }
+
+// TestMapGoTypeToJSON_BasicTypes verifies Go to JSON type mapping
+func TestMapGoTypeToJSON_BasicTypes(t *testing.T) {
+	tests := []struct {
+		goType     string
+		expected   string
+	}{
+		{"string", "string"},
+		{"int", "integer"},
+		{"int32", "integer"},
+		{"int64", "integer"},
+		{"uint32", "integer"},
+		{"uint64", "integer"},
+		{"float32", "number"},
+		{"float64", "number"},
+		{"bool", "boolean"},
+		{"[]string", "array"},
+		{"map[string]string", "object"},
+		{"CustomType", "object"},
+	}
+
+	for _, tt := range tests {
+		result := mapGoTypeToJSON(tt.goType)
+		if result != tt.expected {
+			t.Errorf("mapGoTypeToJSON(%s) = %s, expected %s", tt.goType, result, tt.expected)
+		}
+	}
+}
+
+// TestMapTSTypeToJSON_BasicTypes verifies TypeScript to JSON type mapping
+func TestMapTSTypeToJSON_BasicTypes(t *testing.T) {
+	tests := []struct {
+		tsType     string
+		expected   string
+	}{
+		{"string", "string"},
+		{"number", "number"},
+		{"boolean", "boolean"},
+		{"string?", "string"},
+		{"number?", "number"},
+		{"Array<string>", "array"},
+		{"Record<string, any>", "object"},
+		{"CustomType", "object"},
+	}
+
+	for _, tt := range tests {
+		result := mapTSTypeToJSON(tt.tsType)
+		if result != tt.expected {
+			t.Errorf("mapTSTypeToJSON(%s) = %s, expected %s", tt.tsType, result, tt.expected)
+		}
+	}
+}
