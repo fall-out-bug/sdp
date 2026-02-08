@@ -1,21 +1,41 @@
 # SDP Feature Map
 
-> Everything SDP does, organized by mode and phase.
+> Organized by protocol layer, not by release phase.
 
 ---
 
-## Core Engine (Both Modes)
+## Protocol Layer (Open Standard)
 
-### Decomposition Engine
+### Core Protocol
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **NL → Units** | Natural language feature description → atomic workstream units | P0 |
-| **Dependency Graph** | Topological sort, parallel-safe execution order | P0 (exists) |
-| **Scope Inference** | Auto-detect which files a unit should touch | P0 |
-| **Acceptance Criteria** | Auto-generate testable criteria per unit | P0 |
-| **Adaptive Granularity** | Unit size scales with risk: 100 LOC for payments, 300 LOC for UI | P1 |
-| **Decomposition Heuristics** | Learned from verified builds: "OAuth → 3 units, not 5" | P2 (moat) |
+| **plan** | Decompose feature → atomic units with dependencies | P0 |
+| **apply** | Generate → verify → record per unit | P0 |
+| **evidence** | Cryptographic chain: spec → code → verification → approval | P0 |
+| **incident** | Trace from commit back through evidence chain | P0 |
+
+### Model Provenance
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **Model identity** | Model name, version, provider | P0 |
+| **Generation params** | Temperature, prompt hash (not prompt), timestamp | P0 |
+| **Spec reference** | Which spec this code was generated against | P0 |
+| **Approval record** | Who approved, when, what they saw | P0 |
+
+### Evidence Format
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **Hash chain** | Tamper-evident linking of evidence records | P0 |
+| **JSON format** | Human-readable + machine-parseable | P0 |
+| **Verification output** | Actual command output, not "tests passed" | P0 |
+| **Decision log** | What was decided and why (drive/interactive mode) | P0 |
+
+---
+
+## Verification Engine (Open Source)
 
 ### Verification Stack
 
@@ -29,6 +49,17 @@
 | **Cross-model review** | Correlated blind spots | 2.5x tokens | P2 |
 | **Snapshot testing** | Unintended behavioral changes | Free | P2 |
 
+### Decomposition Engine
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **NL → Units** | Natural language → atomic workstream units | P0 |
+| **Dependency Graph** | Topological sort, parallel-safe execution order | P0 (exists) |
+| **Scope Inference** | Auto-detect which files a unit should touch | P0 |
+| **Acceptance Criteria** | Auto-generate testable criteria per unit | P0 |
+| **Adaptive Granularity** | Unit size scales with risk (100 LOC payments, 300 LOC UI) | P1 |
+| **Decomposition Heuristics** | Learned patterns: "OAuth → 3 units, not 5" | P2 (moat) |
+
 ### Risk Engine
 
 | Feature | Description | Priority |
@@ -37,80 +68,93 @@
 | **Content-based risk** | SQL queries, crypto, token handling → flag | P1 |
 | **History-based risk** | Files with high bug rate → extra verification | P2 |
 | **Custom risk profiles** | `.sdp.yml` overrides per project | P1 |
-
-### Audit Trail
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Verification evidence** | Actual command output, not "should pass" | P0 (exists) |
-| **Decision log** | What was decided and why (drive mode) | P0 |
-| **Provenance record** | Which model, which spec, what cost, when | P1 |
-| **Compliance export** | SOC2/HIPAA-ready audit format | P2 |
-| **Verification certificates** | Signed per-PR proof of verification | P2 |
+| **Model selection policy** | Route high-risk to capable models, low-risk to fast models | P1 |
 
 ---
 
-## Ship Mode Features
+## Orchestration (Proprietary)
+
+### plan/apply UX
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **`sdp ship "description"`** | One-command: decompose → plan → verify → PR | P0 |
-| **Plan-by-default** | Show decomposition, ask Y/n/edit before execution | P0 |
-| **Streaming progress** | Real-time progress bar per unit | P0 |
-| **Per-unit rollback** | Failed unit 3? Retry just unit 3. | P0 |
-| **`--auto-approve`** | Skip plan approval (trust the decomposition) | P0 |
-| **`--cross-review`** | Add cross-model review for high-risk code | P1 |
-| **`--dry-run`** | Show plan only, don't execute | P0 |
-| **`--edit`** | Open plan in editor before execution | P1 |
+| **`sdp plan`** | Show decomposition before execution | P0 |
+| **`sdp apply`** | Execute plan with streaming progress | P0 |
+| **`sdp incident`** | Forensic trace from commit to evidence chain | P0 |
+| **`--auto-apply`** | Plan + apply immediately (ship mode) | P0 |
+| **`--interactive`** | Stop at every fork (drive mode) | P1 |
 | **`--retry N`** | Regenerate only failed unit N | P0 |
+| **`--output=json`** | JSON output for tool integration | P0 |
+| **`--dry-run`** | Show plan only, equivalent to `plan` | P0 |
 | **Cost estimate** | "~3 min, 3 units, ~$0.15" before execution | P1 |
-| **Model routing** | Fast model for simple units, capable for complex | P2 |
 
----
-
-## Drive Mode Features
+### Drive Mode (interactive)
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **`sdp drive "description"`** | Full pipeline, human decides at every fork | P0 |
-| **Decision points** | AI stops and asks: "Sessions or JWT?" | P0 |
-| **Decision recording** | Every human choice is logged in artifacts | P0 |
-| **Stage gates** | Human approval required: idea → design → build → review | P0 |
-| **Expertise encoding** | Human decisions become spec constraints for AI | P0 |
-| **Progressive disclosure** | Start with 3 questions, go deeper only if needed | P1 |
-| **Domain teaching** | "In this project, we always use X for Y" → remembered | P2 |
-| **Compliance sign-off** | Human approval at each gate for regulated environments | P1 |
+| **Decision points** | AI stops and asks: "Sessions or JWT?" | P1 |
+| **Decision recording** | Every human choice logged in evidence chain | P1 |
+| **Stage gates** | Human approval at each stage | P1 |
+| **Expertise encoding** | Human decisions become spec constraints | P1 |
+| **Progressive disclosure** | Start with 3 questions, deepen only if needed | P1 |
+
+### Failure UX
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **Graceful degradation** | Clear errors when decomposition fails | P1 |
+| **"Can't decompose" UX** | Explain why, suggest alternatives | P1 |
+| **Partial success** | "3/5 units passed, 2 need attention" | P0 |
+| **Hallucination detection** | Flag when AI invents dependencies/files | P1 |
 
 ---
 
-## Platform & Integration Features
+## Tools (User Surfaces)
+
+### Claude Code Plugin
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **Protocol compliance** | Existing skills emit evidence chain | P0 |
+| **Model provenance** | Track provenance on every `@build` | P0 |
+| **`sdp plan` skill** | Plan/apply wrapper for existing workflow | P0 |
+| **`sdp incident` skill** | Forensic trace in Claude Code | P1 |
+
+### CLI
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **`sdp plan`** | Standalone plan command | P1 |
+| **`sdp apply`** | Standalone apply command | P1 |
+| **`sdp incident`** | Forensic trace command | P1 |
+| **Streaming progress** | Real-time progress per unit | P1 |
 
 ### CI/CD
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **GitHub Action** | `sdp-dev/verify-action@v1` — one-YAML verification | P0 |
-| **PR comments** | Verification report as PR comment | P0 |
-| **GitLab CI** | Same as GitHub Action for GitLab | P2 |
-| **Branch protection** | "All AI PRs must pass SDP verification" | P2 |
+| **GitHub Action** | `sdp-dev/verify-action@v1` — one-YAML verification | P1 |
+| **PR evidence comment** | Evidence chain summary in PR | P1 |
+| **Provenance check** | Verify all AI code has provenance | P1 |
+| **GitLab CI** | Same for GitLab | P2 |
 
 ### IDE
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **CLI** | First-class, always supported | P0 |
-| **Cursor plugin** | Native integration (highest IDE priority) | P1 |
-| **VS Code extension** | Ship/drive from command palette | P2 |
-| **JetBrains plugin** | Ship/drive from IDE | P3 |
+| **Cursor plugin** | Plan/apply from IDE (highest IDE priority) | P2 |
+| **VS Code extension** | Plan/apply from command palette | P2 |
+| **JetBrains plugin** | Plan/apply from IDE | P3 |
 
 ### SDK
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **`sdp.Decompose()`** | Programmatic decomposition | P2 |
-| **`sdp.Verify()`** | Programmatic verification | P2 |
-| **`sdp.Audit()`** | Programmatic audit recording | P2 |
+| **`sdp.Verify()`** | Verification engine as library | P2 |
+| **`sdp.Evidence()`** | Evidence bundle generation | P2 |
+| **`sdp.Audit()`** | Audit trail recording | P2 |
 | **Provider adapters** | Claude, GPT, Gemini, local models | P2 |
+| **JSON-in/JSON-out** | API for external tool integration | P1 |
 
 ---
 
@@ -118,36 +162,41 @@
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
+| **Compliance export** | SOC2/HIPAA/DORA-ready evidence format | P1 |
+| **Verification certificates** | Signed per-PR proof of verification | P1 |
+| **Vanta/Drata integration** | Export to compliance platforms | P2 |
+| **Team templates** | Shared decomposition patterns | P1 |
+| **Conflict detection** | Two devs, same codebase awareness | P2 |
+| **Team policies** | "All AI PRs require evidence chain" | P2 |
+| **Billing/metering** | Usage tracking, invoicing | P1 |
 | **Team dashboards** | "What % of AI code is SDP-verified?" | P3 |
-| **Policy enforcement** | Org-wide: "all AI PRs require SDP" | P3 |
-| **Audit export** | SOC2, ISO 27001, HIPAA formats | P2 |
+| **Policy enforcement** | Org-wide verification requirements | P3 |
 | **SSO/SAML** | Enterprise auth | P3 |
 | **On-premise** | Self-hosted for air-gapped environments | P3 |
-| **Custom gate marketplace** | Third-party verification rules | P3 |
 
 ---
 
-## Data & Moat Features
+## Data & Moat
 
 | Feature | Description | Priority |
 |---------|-------------|----------|
-| **Defect tracking** | What SDP caught that would have shipped | P1 |
-| **Heuristic learning** | Decomposition patterns that reduce defects | P2 |
-| **AI failure taxonomy** | Categorized dataset of "what AI gets wrong" | P2 |
-| **Benchmark suite** | "Generate these 50 features, measure defect rates" | P2 |
-| **Public dataset** | Open evidence that decomposition reduces defects | P1 |
+| **Verification telemetry** | Instrument every run: catch rate, iterations | P0 |
+| **AI failure taxonomy** | Categorized: what AI gets wrong by model/language/domain | P1 |
+| **Decomposition heuristics** | Learned patterns from verified builds | P2 |
+| **Benchmark suite** | "Generate 50 features, measure defect rates" | P2 |
+| **Quarterly benchmark** | "AI Code Quality Benchmark" publication | P1 |
 
 ---
 
 ## Priority Legend
 
-| Priority | Meaning | Timeline |
-|----------|---------|----------|
-| **P0** | Must have for launch | Phase 1 (Weeks 1-6) |
-| **P1** | Must have for enterprise | Phase 2 (Months 2-4) |
-| **P2** | Platform expansion | Phase 3 (Months 4-8) |
-| **P3** | Scale/enterprise | Phase 4 (Months 8-12) |
+| Priority | Meaning | Phase |
+|----------|---------|-------|
+| **P0** | Protocol + plugin launch | Phase 1 (Weeks 1-6) |
+| **P1** | CLI + enterprise foundation | Phase 2 (Months 2-4) |
+| **P2** | SDK + platform expansion | Phase 3 (Months 4-8) |
+| **P3** | Scale + enterprise platform | Phase 4 (Months 8-12) |
 
 ---
 
-*SDP Features v1.0 — February 2026*
+*SDP Features v2.0 — February 2026*

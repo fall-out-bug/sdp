@@ -1,101 +1,116 @@
 # SDP Product Vision
 
-> *AI generates code. You ship it. You own the consequences.*
+> *AI generates code. You ship it. You own the consequences. SDP gives you the evidence.*
 
 ---
 
-## The World We See
+## The World in 2028
 
-By 2028, AI will write most production code. This is not a prediction — it's a trajectory visible in every metric: GitHub Copilot adoption, Cursor growth, enterprise AI budgets.
+Most production code is AI-generated. Developers describe intent, AI writes implementation. This is already happening — the question is what happens when it goes wrong.
 
-The question is not "will AI write code?" The question is: **who is responsible when that code fails?**
+**The accountability gap:** when AI-generated code fails in production, the developer has no evidence. No record of what was specified. No proof of what was verified. No trace from the incident back to the generation. Just a git blame pointing at a PR that got rubber-stamped.
 
-Not OpenAI. Not Anthropic. Not the tool vendor. **The person who shipped it.**
+This gap will be closed — by regulation, by litigation, or by tooling. SDP is the tooling.
 
-Today, a developer using Cursor generates 500 lines of payment logic. The code looks right. The tests pass. It ships. Three months later, a currency conversion bug causes $200K in incorrect charges. Who is accountable?
+---
 
-The developer. Always the developer. The one who said "looks good, ship it."
+## What SDP Is
 
-**SDP exists to give that developer evidence — not hope — that the code is correct.**
+**An open protocol for accountable AI code generation.**
+
+Three layers:
+
+### 1. The Protocol (open standard)
+
+A specification that any tool can implement:
+
+- **plan** — decompose a feature into verified units, show the plan
+- **apply** — generate, verify, and record each unit
+- **evidence** — cryptographically linked chain: spec → code → verification → approval
+- **incident** — trace from any commit back through the full evidence chain
+
+The protocol is tool-agnostic. Claude Code, Cursor, Replit, any IDE, any CI system can speak it.
+
+### 2. The Engine (reference implementation)
+
+Open-source verification. Proprietary orchestration.
+
+- **Decomposition engine** — NL → atomic units with dependency graph
+- **Verification stack** — types, static analysis, tests, property-based testing
+- **Evidence chain** — model provenance, verification output, approval records
+- **Forensic tools** — `sdp incident` traces from production back to spec
+
+### 3. The Tools (user surfaces)
+
+- **Claude Code plugin** — first implementation (exists today as skill system)
+- **CLI** — `sdp plan` / `sdp apply` / `sdp incident` for automation and enterprise
+- **GitHub Action** — verification in CI/CD
+- **IDE plugins** — Cursor, VS Code, JetBrains
+- **Enterprise dashboards** — policy, compliance, team analytics
+
+---
+
+## The Strategy: Protocol First
+
+### Why This Order
+
+**Old plan:** CLI → GitHub Action → SDK → Protocol (if we win)
+**New plan:** Protocol → Plugin → CLI → SDK → Enterprise
+
+Why reversed:
+
+1. **What exists IS a protocol implementation.** 19 skills, synthesis engine, dependency graph, TDD pipeline — running as Claude Code plugin. Not a CLI.
+
+2. **Open protocol = network effects.** If every AI coding tool embeds SDP protocol, the standard wins regardless of which tool wins. Open source enables this.
+
+3. **Enterprise adopts specs, not tools.** A top-3 bank doesn't install your CLI on 5000 developer machines. They adopt your protocol specification and implement it with their infra team.
+
+4. **Plugin-first = fastest to real users.** Claude Code users can run SDP today. CLI users can't — because `sdp ship` doesn't exist.
+
+### The Open-Core Split
+
+| Layer | License | Why |
+|-------|---------|-----|
+| **Protocol spec** | Open (CC-BY) | Standard must be open to get adoption |
+| **Verification engine** | Open-source (Apache 2.0) | Community builds integrations, ecosystem grows |
+| **Orchestration + evidence** | Proprietary | This is what enterprises pay for |
+| **Enterprise features** | Commercial | Dashboards, policy, compliance export |
 
 ---
 
 ## The Philosophy: Four Pillars
 
-### 1. Specs Before Code
+### 1. Accountability Is Non-Negotiable
 
-Not requirements documents. Not JIRA tickets. **Checkpoints.**
+AI generates code. You ship it. You're accountable. SDP doesn't remove accountability — it gives you **evidence** to stand behind your decisions.
 
-Like `terraform plan` — the AI proposes what it's about to do, the human blesses it. Five lines: goal, acceptance criteria, scope. Takes three seconds. Catches "wait, you're putting auth logic on the frontend?" BEFORE 2000 lines are generated.
+"I verified it" without evidence is an assertion. "Here's the evidence chain" is a defense.
 
-The spec is not bureaucracy. It's **provenance** — the answer to "why was it built this way?" that you'll need in three months.
+### 2. Decomposition Is Permanent
 
-### 2. Atomic Units of Work
+Not because models are weak — because humans can't verify large blobs. Code review effectiveness drops to near-random above 400 LOC. Better models don't fix human cognition.
 
-Every feature decomposes into small verified units. Not because models are weak — because **humans can't verify large blobs.**
+Unit size is tunable. The principle is not.
 
-The research is clear: code review effectiveness drops to near-random above 400 lines of diff (Microsoft, Google studies). The cognitive bottleneck is human, not AI. This is permanent.
+### 3. Forensics Over Verification
 
-Decomposition also reduces **specification sparsity** — the gap between what you said ("Add OAuth") and what the AI must decide (token storage, refresh rotation, PKCE, error handling). Smaller units = more specific specs = fewer wrong guesses.
+Everyone claims "verified AI code." Nobody has a forensic chain from production incident back through spec → generation → verification → approval. SDP does.
 
-The unit size is tunable. The principle is not.
+Verification answers: "did this pass?" Forensics answers: "what happened, why, and who decided?"
 
-### 3. Invisible Rails and Artifacts
+### 4. Evidence Is the Product
 
-Every step produces an artifact: spec, plan, code, tests, review verdict, audit entry. But the user never touches them directly.
-
-Three consumers of artifacts:
-- **The next AI session** — inter-session memory. Without it, every session starts cold.
-- **The human investigator** — forensics when something breaks. "What was the spec? What was verified? What was the test output?"
-- **The compliance system** — SOC2/HIPAA audit trail. "Prove all AI-generated code was independently verified."
-
-Artifacts should be **risk-proportional**: payments module gets the full trail, UI components get code + tests.
-
-### 4. Verification Requires Structure
-
-You CAN run mypy on a 5000-line blob. That's syntactic verification — it catches type errors.
-
-You CANNOT semantically verify a blob — "does this code do what it's supposed to do?" — without knowing what it's supposed to do. That requires a spec. A spec requires decomposition.
-
-**Decomposition for generation and decomposition for verification are the same act.** Specification and constraint are two views of one thing. They're inseparable.
-
-> SDP is not a linter (post-hoc verification) and not a build system (generation control). It's both — because decomposition IS both.
-
----
-
-## Two Modes, One Philosophy
-
-### `sdp ship` — Autopilot with Verification
-
-You describe what you want. SDP decomposes, generates, verifies, records, ships. You see a progress bar and a PR.
-
-**For:** Teams that trust the framework. Rapid iteration. "I want verified code, fast."
-
-### `sdp drive` — You're at the Wheel
-
-You describe what you want. SDP decomposes — but stops at every fork and asks you. Your expertise shapes every spec. Your decisions are recorded.
-
-**For:** Engineers who own the outcome. New domains. High-stakes systems. Compliance environments.
-
-### The Accountability Thesis
-
-In both modes, the human is accountable. SDP doesn't remove responsibility — it gives you **evidence to stand behind your decisions.** The artifacts prove what was specified, what was verified, and what passed.
-
-The difference between "I think it works" and "here's proof it works" is the difference between a blog post and a court filing.
+Not the CLI. Not the plugin. Not the decomposition. **The evidence chain** — the cryptographically linked record of what was specified, generated, verified, and approved. That's what enterprises buy. That's what courtrooms accept. That's what survives model changes, tool changes, and team changes.
 
 ---
 
 ## The Five Bets
 
-1. **AI will write most code by 2028.** Not controversial.
-2. **Trust will be the bottleneck.** Controversial today. Obvious after the first major AI-code incident.
-3. **Decomposition is a permanent advantage.** Human verification capacity is finite. This doesn't change with better models.
-4. **Static analysis beats cross-model review on ROI.** Free tools that catch 35-50% of bugs > expensive tools that catch 15% more.
-5. **Data is the moat.** The team with the best dataset on "what AI gets wrong" wins. Not the team with the best architecture.
-
-If bet 3 is wrong — if humans can somehow verify 5000-line blobs — SDP is unnecessary.
-
-We bet they can't.
+1. **AI writes most code by 2028.** Trajectory, not prediction.
+2. **Accountability becomes mandatory.** Courtrooms, audits, incident reviews will demand proof.
+3. **Decomposition is permanent.** Human cognition is the bottleneck, not AI capability.
+4. **Forensics > Verification.** "Did it pass?" is table stakes. "What happened and why?" is the moat.
+5. **Protocol > Product.** The team that sets the standard wins.
 
 ---
 
@@ -103,31 +118,35 @@ We bet they can't.
 
 **Code that costs more to fix than to write.**
 
-| Segment | The Pain |
-|---------|----------|
-| Fintech | Payment bugs = chargebacks + regulatory fines |
-| Healthcare | Data bugs = HIPAA violations |
-| Infrastructure | Config bugs = outages at scale |
-| Enterprise SaaS | Multi-tenant bugs = data leaks |
-| ML/Data | Pipeline bugs = silent corruption |
+| Segment | What They Need |
+|---------|---------------|
+| Fintech | Forensic proof that payment code was verified |
+| Healthcare | HIPAA audit trail for AI code provenance |
+| Infrastructure | `terraform plan` for AI code |
+| Enterprise SaaS | Policy: "all AI PRs need SDP evidence" |
+| Regulated industries | SOC2/DORA/ISO 27001 compliance |
 
-Enterprise interest is validated:
-- A top-3 bank — contracted
-- A major airline — contracted
-- The largest online marketplace — evaluating
+Enterprise traction: top-3 bank (contracted), major airline (contracted), largest marketplace (evaluating).
 
-**Not for:** Landing pages, MVPs, prototypes, disposable code. If rewriting is cheaper than verifying — don't verify. Just ship.
+**Not for:** Landing pages, MVPs, disposable code.
 
 ---
 
-## The 12-Month Window
+## The Moat
 
-Cursor and GitHub will ship "verified AI code" features within 18 months. They have distribution, model access, and enterprise demand.
-
-SDP's advantage: **speed and focus.** Ship the wedge now. Build the dataset now. Become the tool enterprises require — or the engine Cursor embeds.
-
-The clock is running.
+1. **AI failure taxonomy.** A dataset of what AI gets wrong, by model/language/domain. Doesn't exist anywhere.
+2. **Decomposition heuristics.** Learned from thousands of runs. Gets better with every build.
+3. **The evidence standard.** If SDP becomes how enterprises prove AI code was verified — that's a standard with network effects. Not a product. A standard.
 
 ---
 
-*SDP Vision v1.0 — February 2026*
+## Kill Criteria
+
+> If after 500 SDP runs, verification catch rate is below 5% and post-merge defect rate is not measurably different from baseline — kill the product.
+
+Specific. Testable. Honest.
+
+---
+
+*SDP Vision v2.0 — February 2026*
+*Protocol-first. Accountability-first. Forensics-first.*
