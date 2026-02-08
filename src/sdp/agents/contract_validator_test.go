@@ -767,3 +767,104 @@ func TestWriteReport_ErrorHandling(t *testing.T) {
 		t.Errorf("Expected 'failed to' in error message, got: %v", err)
 	}
 }
+
+// TestIsSensitivePath verifies sensitive path detection
+func TestIsSensitivePath(t *testing.T) {
+	tests := []struct {
+		path               string
+		shouldBeSensitive bool
+	}{
+		{"/api/v1/users", false},
+		{"/api/v1/telemetry/events", false},
+		{"/admin/users", true},
+		{"/internal/config", true},
+		{"/private/key", true},
+		{"/auth/login", true},
+		{"/token", true},
+		{"/password/reset", true},
+		{"/credentials", true},
+		{"/secret/key", true},
+	}
+
+	for _, tt := range tests {
+		result := isSensitivePath(tt.path)
+		if result != tt.shouldBeSensitive {
+			t.Errorf("isSensitivePath(%q) = %v, expected %v", tt.path, result, tt.shouldBeSensitive)
+		}
+	}
+}
+
+// TestRedactSensitiveInfo verifies redaction of sensitive information
+func TestRedactSensitiveInfo(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"/home/user/project/file.go",
+			"***/***/file.go",
+		},
+		{
+			"/home/user/project/config.go",
+			"***/***/config.go",
+		},
+		{
+			"simple string",
+			"simple string",
+		},
+	}
+
+	for _, tt := range tests {
+		result := redactSensitiveInfo(tt.input)
+		if result != tt.expected {
+			t.Errorf("redactSensitiveInfo(%q) = %q, expected %q", tt.input, result, tt.expected)
+		}
+	}
+}
+
+// TestGenerateReportWithOptions_SensitivePaths verifies sensitive path detection in reports
+func TestGenerateReportWithOptions_SensitivePaths(t *testing.T) {
+	validator := NewContractValidator()
+
+	mismatches := []*ContractMismatch{
+		{
+			Severity:   "ERROR",
+			Type:       "endpoint_mismatch",
+			ComponentA: "frontend",
+			ComponentB: "backend",
+			Path:       "/admin/users",
+			Method:     "GET",
+			Expected:   "GET /admin/users",
+			Actual:     "NOT FOUND",
+			Fix:        "Add endpoint",
+		},
+		{
+			Severity:   "WARNING",
+			Type:       "endpoint_mismatch",
+			ComponentA: "frontend",
+			ComponentB: "backend",
+			Path:       "/api/v1/users",
+			Method:     "GET",
+			Expected:   "GET /api/v1/users",
+			Actual:     "NOT FOUND",
+			Fix:        "Add endpoint",
+		},
+	}
+
+	// Test with redaction enabled
+	reportRedacted := validator.GenerateReportWithOptions(mismatches, true)
+
+	if !contains(reportRedacted, "Sensitive endpoints redacted") {
+		t.Error("Expected sensitive endpoint warning")
+	}
+
+	// Should redact sensitive endpoint info
+	if contains(reportRedacted, "/admin/users") {
+		t.Error("Sensitive path should be redacted")
+	}
+
+	// Normal endpoint should be visible
+	if !contains(reportRedacted, "/api/v1/users") {
+		t.Error("Normal path should be visible in redacted report")
+	}
+}
