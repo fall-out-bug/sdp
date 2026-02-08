@@ -346,3 +346,321 @@ paths:
 		t.Log("Warning: strict mode not enforced (unknown field accepted)")
 	}
 }
+
+// TestValidateFrontendBackend verifies frontend vs backend validation
+func TestValidateFrontendBackend(t *testing.T) {
+	validator := NewContractValidator()
+
+	frontend := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{
+					RequestBody: &RequestSpec{
+						Content: map[string]MediaSpec{
+							"application/json": {
+								Schema: SchemaRefSpec{
+									Type: "object",
+									Properties: map[string]PropertySpec{
+										"event_name": {Type: "string"},
+									},
+									Required: []string{"event_name"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	backend := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{
+					RequestBody: &RequestSpec{
+						Content: map[string]MediaSpec{
+							"application/json": {
+								Schema: SchemaRefSpec{
+									Type: "object",
+									Properties: map[string]PropertySpec{
+										"event_name": {Type: "string"},
+									},
+									Required: []string{"event_name"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	mismatches, err := validator.ValidateFrontendBackend(frontend, backend)
+	if err != nil {
+		t.Fatalf("ValidateFrontendBackend failed: %v", err)
+	}
+
+	// Should have no mismatches for matching contracts
+	if len(mismatches) != 0 {
+		t.Errorf("Expected 0 mismatches for matching contracts, got %d", len(mismatches))
+	}
+}
+
+// TestValidateFrontendBackend_SchemaMismatch detects schema incompatibility
+func TestValidateFrontendBackend_SchemaMismatch(t *testing.T) {
+	validator := NewContractValidator()
+
+	// Frontend requires timestamp, backend doesn't provide it
+	frontend := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{
+					RequestBody: &RequestSpec{
+						Content: map[string]MediaSpec{
+							"application/json": {
+								Schema: SchemaRefSpec{
+									Type: "object",
+									Properties: map[string]PropertySpec{
+										"event_name": {Type: "string"},
+										"timestamp":  {Type: "string"},
+									},
+									Required: []string{"event_name", "timestamp"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	backend := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{
+					RequestBody: &RequestSpec{
+						Content: map[string]MediaSpec{
+							"application/json": {
+								Schema: SchemaRefSpec{
+									Type: "object",
+									Properties: map[string]PropertySpec{
+										"event_name": {Type: "string"},
+									},
+									Required: []string{"event_name"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	mismatches, err := validator.ValidateFrontendBackend(frontend, backend)
+	if err != nil {
+		t.Fatalf("ValidateFrontendBackend failed: %v", err)
+	}
+
+	// Should detect schema mismatch
+	if len(mismatches) == 0 {
+		t.Error("Expected schema mismatch to be detected")
+	}
+
+	// Check for WARNING severity
+	hasSchemaWarning := false
+	for _, m := range mismatches {
+		if m.Type == "schema_incompatibility" && m.Severity == "WARNING" {
+			hasSchemaWarning = true
+		}
+	}
+	if !hasSchemaWarning {
+		t.Error("Expected WARNING severity for schema mismatch")
+	}
+}
+
+// TestValidateSDKBackend verifies SDK vs backend validation
+func TestValidateSDKBackend(t *testing.T) {
+	validator := NewContractValidator()
+
+	sdk := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{},
+			},
+		},
+	}
+
+	backend := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{},
+			},
+		},
+	}
+
+	mismatches, err := validator.ValidateSDKBackend(sdk, backend)
+	if err != nil {
+		t.Fatalf("ValidateSDKBackend failed: %v", err)
+	}
+
+	// Should have no mismatches for matching contracts
+	if len(mismatches) != 0 {
+		t.Errorf("Expected 0 mismatches for matching contracts, got %d", len(mismatches))
+	}
+}
+
+// TestValidateSDKBackend_EndpointMismatch detects endpoint mismatches
+func TestValidateSDKBackend_EndpointMismatch(t *testing.T) {
+	validator := NewContractValidator()
+
+	sdk := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/submit": {
+				"post": OperationSpec{},
+			},
+		},
+	}
+
+	backend := &OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths: PathsSpec{
+			"/api/v1/telemetry/events": {
+				"post": OperationSpec{},
+			},
+		},
+	}
+
+	mismatches, err := validator.ValidateSDKBackend(sdk, backend)
+	if err != nil {
+		t.Fatalf("ValidateSDKBackend failed: %v", err)
+	}
+
+	// Should detect endpoint mismatch
+	if len(mismatches) == 0 {
+		t.Error("Expected endpoint mismatch to be detected")
+	}
+}
+
+// TestValidateContractFile_ValidContract verifies valid contract validation
+func TestValidateContractFile_ValidContract(t *testing.T) {
+	validator := NewContractValidator()
+
+	tmpDir := t.TempDir()
+	contractPath := tmpDir + "/contract.yaml"
+
+	validYAML := []byte(`
+openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /test:
+    get:
+      summary: Test endpoint
+`)
+
+	if err := os.WriteFile(contractPath, validYAML, 0644); err != nil {
+		t.Fatalf("Failed to write contract: %v", err)
+	}
+
+	mismatches, err := validator.ValidateContractFile(contractPath)
+	if err != nil {
+		t.Fatalf("ValidateContractFile failed: %v", err)
+	}
+
+	// Valid contract should have no mismatches
+	if len(mismatches) != 0 {
+		t.Errorf("Expected 0 mismatches for valid contract, got %d", len(mismatches))
+	}
+}
+
+// TestValidateContractFile_MissingOpenAPI verifies missing openapi field detection
+func TestValidateContractFile_MissingOpenAPI(t *testing.T) {
+	validator := NewContractValidator()
+
+	tmpDir := t.TempDir()
+	contractPath := tmpDir + "/contract.yaml"
+
+	invalidYAML := []byte(`
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /test:
+    get:
+      summary: Test endpoint
+`)
+
+	if err := os.WriteFile(contractPath, invalidYAML, 0644); err != nil {
+		t.Fatalf("Failed to write contract: %v", err)
+	}
+
+	mismatches, err := validator.ValidateContractFile(contractPath)
+	if err != nil {
+		t.Fatalf("ValidateContractFile failed: %v", err)
+	}
+
+	// Should detect missing openapi field
+	if len(mismatches) == 0 {
+		t.Error("Expected mismatch for missing openapi field")
+	}
+
+	// Check for ERROR severity
+	hasOpenAPIError := false
+	for _, m := range mismatches {
+		if m.Type == "invalid_contract" && m.Severity == "ERROR" {
+			hasOpenAPIError = true
+		}
+	}
+	if !hasOpenAPIError {
+		t.Error("Expected ERROR severity for missing openapi field")
+	}
+}
+
+// TestValidateContractFile_NoPaths verifies empty paths detection
+func TestValidateContractFile_NoPaths(t *testing.T) {
+	validator := NewContractValidator()
+
+	tmpDir := t.TempDir()
+	contractPath := tmpDir + "/contract.yaml"
+
+	noPathsYAML := []byte(`
+openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths: {}
+`)
+
+	if err := os.WriteFile(contractPath, noPathsYAML, 0644); err != nil {
+		t.Fatalf("Failed to write contract: %v", err)
+	}
+
+	mismatches, err := validator.ValidateContractFile(contractPath)
+	if err != nil {
+		t.Fatalf("ValidateContractFile failed: %v", err)
+	}
+
+	// Should detect empty paths
+	if len(mismatches) == 0 {
+		t.Error("Expected mismatch for empty paths")
+	}
+
+	// Check for WARNING severity (no paths is a warning, not error)
+	hasPathsWarning := false
+	for _, m := range mismatches {
+		if m.Type == "invalid_contract" && m.Severity == "WARNING" {
+			hasPathsWarning = true
+		}
+	}
+	if !hasPathsWarning {
+		t.Error("Expected WARNING severity for empty paths")
+	}
+}
