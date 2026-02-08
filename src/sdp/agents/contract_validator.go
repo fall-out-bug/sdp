@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fall-out-bug/sdp/src/sdp/monitoring"
 	"gopkg.in/yaml.v3"
 )
 
@@ -67,11 +68,27 @@ type ContractMismatch struct {
 }
 
 // ContractValidator validates contracts against each other
-type ContractValidator struct{}
+type ContractValidator struct {
+	metrics *monitoring.MetricsCollector
+}
 
 // NewContractValidator creates a new contract validator
 func NewContractValidator() *ContractValidator {
-	return &ContractValidator{}
+	return &ContractValidator{
+		metrics: monitoring.NewMetricsCollector(),
+	}
+}
+
+// NewContractValidatorWithMetrics creates a new contract validator with custom metrics collector
+func NewContractValidatorWithMetrics(metrics *monitoring.MetricsCollector) *ContractValidator {
+	return &ContractValidator{
+		metrics: metrics,
+	}
+}
+
+// GetMetrics returns the current metrics snapshot
+func (cv *ContractValidator) GetMetrics() *monitoring.MetricsSnapshot {
+	return cv.metrics.GetMetrics()
 }
 
 // CompareContracts compares two contracts and returns mismatches
@@ -79,6 +96,18 @@ func (cv *ContractValidator) CompareContracts(
 	contractA, contractB *OpenAPIContract,
 	nameA, nameB string,
 ) ([]*ContractMismatch, error) {
+	start := time.Now()
+	success := false
+	defer func() {
+		duration := time.Since(start)
+
+		// Count severity distribution
+		var errorCount, warningCount, infoCount int
+		// Will be counted after mismatches are collected
+
+		cv.metrics.RecordValidation(success, duration, errorCount, warningCount, infoCount)
+	}()
+
 	var mismatches []*ContractMismatch
 
 	// Collect all paths from both contracts
@@ -144,6 +173,7 @@ func (cv *ContractValidator) CompareContracts(
 		}
 	}
 
+	success = true
 	return mismatches, nil
 }
 
@@ -332,6 +362,13 @@ func (cv *ContractValidator) writeMismatchesTable(sb *strings.Builder, mismatche
 
 // WriteReport writes the validation report to a file
 func (cv *ContractValidator) WriteReport(report, outputPath string) error {
+	start := time.Now()
+	success := false
+	defer func() {
+		duration := time.Since(start)
+		cv.metrics.RecordReportGeneration(success, duration)
+	}()
+
 	// Ensure directory exists
 	dir := outputPath[:strings.LastIndex(outputPath, "/")]
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -343,6 +380,7 @@ func (cv *ContractValidator) WriteReport(report, outputPath string) error {
 		return fmt.Errorf("failed to write report: %w", err)
 	}
 
+	success = true
 	return nil
 }
 
@@ -397,6 +435,13 @@ func redactSensitiveInfo(input string) string {
 
 // ValidateContractFile validates a contract file and returns issues
 func (cv *ContractValidator) ValidateContractFile(contractPath string) ([]*ContractMismatch, error) {
+	start := time.Now()
+	success := false
+	defer func() {
+		duration := time.Since(start)
+		cv.metrics.RecordValidation(success, duration, 0, 0, 0)
+	}()
+
 	// Read contract file
 	content, err := os.ReadFile(contractPath)
 	if err != nil {
@@ -405,8 +450,10 @@ func (cv *ContractValidator) ValidateContractFile(contractPath string) ([]*Contr
 
 	// Parse YAML with security controls
 	contract := &OpenAPIContract{}
-	if err := safeYAMLUnmarshal(content, contract); err != nil {
-		return nil, fmt.Errorf("failed to parse contract: %w", err)
+	parseErr := safeYAMLUnmarshal(content, contract)
+	cv.metrics.RecordSchemaParse(parseErr == nil)
+	if parseErr != nil {
+		return nil, fmt.Errorf("failed to parse contract: %w", parseErr)
 	}
 
 	// Validate contract structure
@@ -433,5 +480,6 @@ func (cv *ContractValidator) ValidateContractFile(contractPath string) ([]*Contr
 		})
 	}
 
+	success = true
 	return mismatches, nil
 }
