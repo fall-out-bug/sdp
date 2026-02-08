@@ -16,6 +16,63 @@ version: 1.0.0
 - **Quarterly review** - `@reality --review` - track tech debt and quality trends
 - **Debugging mysteries** - "Why doesn't this work?"
 
+## Verbosity Tiers
+
+```bash
+@reality --quick --quiet     # Exit status only: ✅
+@reality --quick             # Summary: ✅ Reality Check: 15K LOC, Health 72/100, 3 critical issues
+@reality --quick --verbose   # Step-by-step progress
+@reality --quick --debug     # Internal state + API calls
+```
+
+**Examples:**
+
+```bash
+# Quiet mode
+@reality --quick --quiet
+# Output: ✅
+
+# Default mode
+@reality --quick
+# Output: ✅ Reality Check: 15K LOC, Health 72/100, 3 critical issues
+
+# Verbose mode
+@reality --quick --verbose
+# Output:
+# → Project scan: 15,234 LOC, 127 files (Go)
+# → Architecture: Layer violations detected (2)
+# → Testing: Coverage ~65% (below 80% threshold)
+# → Documentation: 4 drift issues found
+# → Quick smell check: 15 TODO/FIXME comments
+# ⚠️ 3 critical issues found
+# ✅ COMPLETE
+
+# Debug mode
+@reality --quick --debug
+# Output:
+# [DEBUG] Mode: quick
+# [DEBUG] Detecting project type...
+# [DEBUG] Checking for go.mod...
+# [DEBUG] Found go.mod → Go project
+# → Project scan: 15,234 LOC, 127 files (Go)
+# [DEBUG] Scanning src/ directory...
+# [DEBUG] Found 87 .go files
+# [DEBUG] Analyzing imports...
+# [DEBUG] Checking for circular dependencies...
+# → Architecture: Layer violations detected (2)
+# [DEBUG] Scanning tests/ directory...
+# [DEBUG] Found 45 test files
+# [DEBUG] Calculating coverage...
+# → Testing: Coverage ~65% (below 80% threshold)
+# [DEBUG] Comparing docs to code...
+# [DEBUG] Checking 23 documentation files
+# → Documentation: 4 drift issues found
+# [DEBUG] Searching for TODO/FIXME/HACK...
+# → Quick smell check: 15 TODO/FIXME comments
+# ⚠️ 3 critical issues found
+# ✅ COMPLETE
+```
+
 ## Modes
 
 ```bash

@@ -16,6 +16,70 @@ Spawn specialist agents for comprehensive quality review including contract vali
 @review sdp-xxx   # Beads task ID
 ```
 
+## Verbosity Tiers
+
+```bash
+@review F01 --quiet     # Exit status only: ✅
+@review F01             # Summary: ✅ APPROVED (QA:82%, Security:PASS, 5 agents)
+@review F01 --verbose   # Step-by-step progress
+@review F01 --debug     # Internal state + API calls
+```
+
+**Examples:**
+
+```bash
+# Quiet mode
+@review F01 --quiet
+# Output: ✅
+
+# Default mode
+@review F01
+# Output: ✅ APPROVED (QA:82%, Security:PASS, 5 agents)
+
+# Verbose mode
+@review F01 --verbose
+# Output:
+# → Spawning 6 review agents...
+# → QA review: PASS (82% coverage, 145/145 tests)
+# → Security review: PASS (no vulnerabilities)
+# → DevOps review: PASS (CI/CD validated)
+# → SRE review: PASS (SLOs defined)
+# → TechLead review: PASS (code quality good)
+# → Documentation review: PASS (0% drift)
+# → Contract validation: PASS (0 mismatches)
+# ✅ APPROVED
+
+# Debug mode
+@review F01 --debug
+# Output:
+# [DEBUG] Feature: F01
+# [DEBUG] Workstreams: 5
+# [DEBUG] Beads enabled: true
+# [DEBUG] Spawning agents via Task tool...
+# [DEBUG] Agent 1: QA (subagent_type=general-purpose)
+# [DEBUG] Agent 2: Security (subagent_type=general-purpose)
+# [DEBUG] Agent 3: DevOps (subagent_type=general-purpose)
+# [DEBUG] Agent 4: SRE (subagent_type=general-purpose)
+# [DEBUG] Agent 5: TechLead (subagent_type=general-purpose)
+# [DEBUG] Agent 6: Documentation (subagent_type=general-purpose)
+# → Spawning 6 review agents...
+# [QA agent output...]
+# → QA review: PASS (82% coverage, 145/145 tests)
+# [Security agent output...]
+# → Security review: PASS (no vulnerabilities)
+# [DevOps agent output...]
+# → DevOps review: PASS (CI/CD validated)
+# [SRE agent output...]
+# → SRE review: PASS (SLOs defined)
+# [TechLead agent output...]
+# → TechLead review: PASS (code quality good)
+# [Documentation agent output...]
+# → Documentation review: PASS (0% drift)
+# [DEBUG] Running contract validation...
+# → Contract validation: PASS (0 mismatches)
+# ✅ APPROVED
+```
+
 ## Workflow
 
 ### Step 1: List Workstreams
