@@ -128,3 +128,27 @@ func VerificationEvent(wsID string, passed bool, gateName string, coverage float
 		},
 	}
 }
+
+// DecisionEvent builds a decision event (AC6, AC7). reverses links to a previous decision being overturned.
+func DecisionEvent(wsID, question, choice, rationale string, alternatives []string, confidence float64, tags []string, reverses *string) *Event {
+	data := map[string]interface{}{
+		"question":   question,
+		"choice":     choice,
+		"rationale":  rationale,
+		"confidence": confidence,
+	}
+	if len(alternatives) > 0 {
+		data["alternatives"] = alternatives
+	}
+	if len(tags) > 0 {
+		data["tags"] = tags
+	}
+	if reverses != nil && *reverses != "" {
+		data["reverses"] = *reverses
+	}
+	return &Event{
+		Type: "decision",
+		WSID: wsID,
+		Data: data,
+	}
+}

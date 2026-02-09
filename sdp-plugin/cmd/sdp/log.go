@@ -18,7 +18,7 @@ func logCmd() *cobra.Command {
 		Use:   "log",
 		Short: "Evidence log: show and trace events",
 		Long:  `Show recent events (last 20) or trace evidence chain by commit/workstream.`,
-		RunE:  runLogShow, // AC7: sdp log (no subcommand) = recent events
+		RunE:  func(cmd *cobra.Command, args []string) error { return runLogShow("", "") },
 	}
 	cmd.AddCommand(logShowCmd())
 	cmd.AddCommand(logTraceCmd())
@@ -26,14 +26,21 @@ func logCmd() *cobra.Command {
 }
 
 func logShowCmd() *cobra.Command {
-	return &cobra.Command{
+	var eventType, search string
+	c := &cobra.Command{
 		Use:   "show",
 		Short: "Show recent events (last 20)",
-		RunE:  runLogShow,
+		Long:  `Show events. Use --type=decision for decisions only; --search for full-text search.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runLogShow(eventType, search)
+		},
 	}
+	c.Flags().StringVar(&eventType, "type", "", "Filter by event type (e.g. decision)")
+	c.Flags().StringVar(&search, "search", "", "Full-text search in question/choice/rationale")
+	return c
 }
 
-func runLogShow(cmd *cobra.Command, args []string) error {
+func runLogShow(eventType, search string) error {
 	path, err := evidenceLogPath()
 	if err != nil {
 		return err
@@ -43,6 +50,8 @@ func runLogShow(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("read log: %w", err)
 	}
+	events = evidence.FilterByType(events, eventType)
+	events = evidence.FilterBySearch(events, search)
 	events = evidence.LastN(events, defaultRecentN)
 	if len(events) == 0 {
 		fmt.Println("No events in evidence log.")

@@ -36,6 +36,9 @@ type Decision struct {
 
 	// Tags for categorization
 	Tags []string `json:"tags,omitempty"`
+
+	// Reverses links to a previous decision being overturned (AC7)
+	Reverses string `json:"reverses,omitempty"`
 }
 
 // DecisionLog is the append-only log of decisions

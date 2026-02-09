@@ -9,6 +9,7 @@ import (
 	"unicode"
 
 	"github.com/fall-out-bug/sdp/internal/decision"
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/spf13/cobra"
 )
 
@@ -240,7 +241,7 @@ func decisionsExportCmd() *cobra.Command {
 
 // decisionsLogCmd logs a new decision
 func decisionsLogCmd() *cobra.Command {
-	var decisionType, featureID, workstreamID, question, decisionStr, rationale, alternatives, outcome, maker string
+	var decisionType, featureID, workstreamID, question, decisionStr, rationale, alternatives, outcome, maker, reverses string
 	var tags []string
 
 	cmd := &cobra.Command{
@@ -326,7 +327,7 @@ func decisionsLogCmd() *cobra.Command {
 				maker = "user"
 			}
 
-			// Create decision
+			// Create decision (bridge in logger.Log emits to evidence log)
 			d := decision.Decision{
 				Question:      question,
 				Decision:      decisionStr,
@@ -338,11 +339,18 @@ func decisionsLogCmd() *cobra.Command {
 				Outcome:       outcome,
 				DecisionMaker: maker,
 				Tags:          tagList,
+				Reverses:      reverses,
 			}
 
 			if err := logger.Log(d); err != nil {
 				return err
 			}
+			// AC1: Emit decision event to evidence log (bridge in CLI to avoid decision->evidence cycle)
+			var rev *string
+			if reverses != "" {
+				rev = &reverses
+			}
+			_ = evidence.EmitSync(evidence.DecisionEvent(workstreamID, question, decisionStr, rationale, altList, 0, tagList, rev))
 
 			fmt.Printf("✓ Logged decision: %s\n", d.Decision)
 			return nil
@@ -359,6 +367,7 @@ func decisionsLogCmd() *cobra.Command {
 	cmd.Flags().StringVar(&outcome, "outcome", "", "Expected outcome")
 	cmd.Flags().StringVar(&maker, "maker", "", "Decision maker (user/claude/system)")
 	cmd.Flags().StringSliceVar(&tags, "tags", []string{}, "Tags for categorization")
+	cmd.Flags().StringVar(&reverses, "reverses", "", "ID of previous decision being overturned (AC7)")
 
 	return cmd
 }
