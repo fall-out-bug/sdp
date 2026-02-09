@@ -69,6 +69,9 @@ func guardActivate() *cobra.Command {
 			activeWS := skill.GetActiveWS()
 			fmt.Printf("✅ Activated WS: %s\n", activeWS)
 
+			// AC1: Check for scope overlap with other in-progress workstreams (warning only)
+			warnCollisionIfAny(wsID)
+
 			return nil
 		},
 	}
