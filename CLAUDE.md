@@ -212,6 +212,20 @@ hooks/post-build.sh 00-001-01    # Post-build check
 
 ---
 
+## Evidence Layer
+
+Build and verify flows emit events to `.sdp/log/events.jsonl` (hash-chained). Use:
+
+| Command | Purpose |
+|---------|---------|
+| `sdp acceptance run` | Run acceptance gate from `.sdp/config.yml` (e.g. `go test -run TestSmoke`) |
+| `sdp log trace [commit]` | Show evidence timeline; `--ws`, `--json`, `--verify` for chain check |
+| `sdp collision check` | Detect scope overlaps between active workstreams |
+
+Config: `.sdp/config.yml` with `version`, `acceptance.command`, `evidence.enabled`, `evidence.log_path`. @build emits plan/generation/verification events when evidence is enabled.
+
+---
+
 ## Parallel Execution
 
 The @oneshot orchestrator uses a parallel dispatcher (`src/sdp/graph/`) with:

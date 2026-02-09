@@ -26,6 +26,21 @@ func Emit(ev *Event) {
 	}()
 }
 
+// EmitSync writes the event immediately (use from CLI so process exit doesn't drop it).
+func EmitSync(ev *Event) error {
+	if ev == nil {
+		return nil
+	}
+	ev2 := *ev
+	if ev2.ID == "" {
+		ev2.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	}
+	if ev2.Timestamp == "" {
+		ev2.Timestamp = time.Now().UTC().Format(time.RFC3339)
+	}
+	return emitSync(&ev2)
+}
+
 // emitSync writes event to log; returns error (caller may ignore).
 func emitSync(ev *Event) error {
 	root, err := config.FindProjectRoot()

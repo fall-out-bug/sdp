@@ -47,6 +47,7 @@ func runAcceptanceRun(cmd *cobra.Command, args []string) error {
 		Command:  cfg.Acceptance.Command,
 		Timeout:  timeout,
 		Expected: cfg.Acceptance.Expected,
+		Dir:      root,
 	}
 	res, err := r.Run(context.Background())
 	if err != nil {
@@ -85,6 +86,7 @@ func runAcceptanceFromConfig(projectRoot string) (passed bool, skipped bool, err
 		Command:  cfg.Acceptance.Command,
 		Timeout:  timeout,
 		Expected: cfg.Acceptance.Expected,
+		Dir:      projectRoot,
 	}
 	res, err := r.Run(context.Background())
 	if err != nil {

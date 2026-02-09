@@ -51,7 +51,7 @@ func runQualityTypes(strict bool) error {
 	}
 
 	if evidence.Enabled() {
-		evidence.Emit(evidence.VerificationEvent("", result.Passed, "types", 0))
+		_ = evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "types", 0))
 	}
 	if !result.Passed {
 		return fmt.Errorf("type check failed")

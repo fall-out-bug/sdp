@@ -42,13 +42,13 @@ Usage:
 			lesson := evidence.ExtractLesson(wsID, result)
 			evidence.EmitLesson(lesson)
 
-			// AC3: Emit verification event (pass/fail, coverage)
+			// AC3: Emit verification event synchronously so it's written before exit
 			if evidence.Enabled() {
 				coverage := 0.0
 				if result.CoverageActual > 0 {
 					coverage = result.CoverageActual
 				}
-				evidence.Emit(evidence.VerificationEvent(wsID, result.Passed, "verify", coverage))
+				_ = evidence.EmitSync(evidence.VerificationEvent(wsID, result.Passed, "verify", coverage))
 			}
 
 			// Print results

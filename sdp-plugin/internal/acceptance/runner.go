@@ -12,6 +12,7 @@ type Runner struct {
 	Command  string
 	Timeout  time.Duration
 	Expected string // substring match (AC5)
+	Dir      string // optional: run command in this directory (project root)
 }
 
 // Result is the outcome of Run (AC4, AC8).
@@ -29,6 +30,9 @@ func (r *Runner) Run(ctx context.Context) (*Result, error) {
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", r.Command)
+	if r.Dir != "" {
+		cmd.Dir = r.Dir
+	}
 	out, err := cmd.CombinedOutput()
 	duration := time.Since(start)
 	result := &Result{
