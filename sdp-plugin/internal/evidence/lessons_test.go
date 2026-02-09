@@ -1,6 +1,8 @@
 package evidence
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -66,5 +68,47 @@ func TestLesson_MatchesOutcome(t *testing.T) {
 	}
 	if l.MatchesOutcome("passed") {
 		t.Error("MatchesOutcome(passed) should be false")
+	}
+}
+
+func TestEmitLesson_WritesWhenEnabled(t *testing.T) {
+	dir := t.TempDir()
+	cfgDir := filepath.Join(dir, ".sdp")
+	logDir := filepath.Join(cfgDir, "log")
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	cfgPath := filepath.Join(cfgDir, "config.yml")
+	cfgContent := "version: 1\nevidence:\n  enabled: true\n  log_path: \".sdp/log/events.jsonl\"\n"
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	origWd, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	defer os.Chdir(origWd)
+	lesson := Lesson{
+		WSID:       "00-054-13",
+		Outcome:    "passed",
+		WhatWorked: []string{"Check: ok"},
+		Category:   "verification",
+	}
+	EmitLesson(lesson)
+	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
+	r := NewReader(logPath)
+	events, err := r.ReadAll()
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	var found bool
+	for _, e := range events {
+		if e.Type == "lesson" && e.WSID == "00-054-13" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("EmitLesson: no lesson event found in evidence log")
 	}
 }
