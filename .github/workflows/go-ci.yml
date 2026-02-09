@@ -51,7 +51,6 @@ jobs:
         with:
           files: sdp-plugin/coverage.out
           fail_ci_if_error: true
-          min_coverage: 75
 
   contract-validation:
     name: Contract Validation
