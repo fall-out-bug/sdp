@@ -40,11 +40,32 @@ func guardActivate() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			wsID := args[0]
 
-			// Get config directory
-			configDir, err := os.UserConfigDir()
-			if err != nil {
-				return fmt.Errorf("failed to get config dir: %w", err)
+			// Get config directory (respect XDG_CONFIG_HOME for testing)
+
+
+			configDir := os.Getenv("XDG_CONFIG_HOME")
+
+
+			if configDir == "" {
+
+
+				var err error
+
+
+				configDir, err = os.UserConfigDir()
+
+
+				if err != nil {
+
+
+					return fmt.Errorf("failed to get config dir: %w", err)
+
+
+				}
+
+
 			}
+
 
 			sdpDir := filepath.Join(configDir, "sdp")
 			skill := guard.NewSkill(sdpDir)
@@ -76,11 +97,32 @@ func guardCheck() *cobra.Command {
 				return fmt.Errorf("failed to resolve path: %w", err)
 			}
 
-			// Get config directory
-			configDir, err := os.UserConfigDir()
-			if err != nil {
-				return fmt.Errorf("failed to get config dir: %w", err)
+			// Get config directory (respect XDG_CONFIG_HOME for testing)
+
+
+			configDir := os.Getenv("XDG_CONFIG_HOME")
+
+
+			if configDir == "" {
+
+
+				var err error
+
+
+				configDir, err = os.UserConfigDir()
+
+
+				if err != nil {
+
+
+					return fmt.Errorf("failed to get config dir: %w", err)
+
+
+				}
+
+
 			}
+
 
 			sdpDir := filepath.Join(configDir, "sdp")
 			skill := guard.NewSkill(sdpDir)
@@ -119,10 +161,22 @@ func guardStatus() *cobra.Command {
 		Use:   "status",
 		Short: "Show guard status",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get config directory
-			configDir, err := os.UserConfigDir()
-			if err != nil {
-				return fmt.Errorf("failed to get config dir: %w", err)
+			// Get config directory (respect XDG_CONFIG_HOME for testing)
+
+			configDir := os.Getenv("XDG_CONFIG_HOME")
+
+			if configDir == "" {
+
+				var err error
+
+				configDir, err = os.UserConfigDir()
+
+				if err != nil {
+
+					return fmt.Errorf("failed to get config dir: %w", err)
+
+				}
+
 			}
 
 			sdpDir := filepath.Join(configDir, "sdp")
@@ -163,10 +217,22 @@ func guardDeactivate() *cobra.Command {
 		Use:   "deactivate",
 		Short: "Deactivate guard",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get config directory
-			configDir, err := os.UserConfigDir()
-			if err != nil {
-				return fmt.Errorf("failed to get config dir: %w", err)
+			// Get config directory (respect XDG_CONFIG_HOME for testing)
+
+			configDir := os.Getenv("XDG_CONFIG_HOME")
+
+			if configDir == "" {
+
+				var err error
+
+				configDir, err = os.UserConfigDir()
+
+				if err != nil {
+
+					return fmt.Errorf("failed to get config dir: %w", err)
+
+				}
+
 			}
 
 			sdpDir := filepath.Join(configDir, "sdp")
