@@ -102,6 +102,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(doctorCmd())
 	rootCmd.AddCommand(hooksCmd())
 	rootCmd.AddCommand(guardCmd())
+	rootCmd.AddCommand(collisionCmd())
 	rootCmd.AddCommand(verifyCmd())
 	rootCmd.AddCommand(prdCmd())
 	rootCmd.AddCommand(skillCmd())
