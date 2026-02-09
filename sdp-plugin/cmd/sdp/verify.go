@@ -42,6 +42,15 @@ Usage:
 			lesson := evidence.ExtractLesson(wsID, result)
 			evidence.EmitLesson(lesson)
 
+			// AC3: Emit verification event (pass/fail, coverage)
+			if evidence.Enabled() {
+				coverage := 0.0
+				if result.CoverageActual > 0 {
+					coverage = result.CoverageActual
+				}
+				evidence.Emit(evidence.VerificationEvent(wsID, result.Passed, "verify", coverage))
+			}
+
 			// Print results
 			if result.Passed {
 				fmt.Printf("✅ Workstream %s verification PASSED\n", wsID)

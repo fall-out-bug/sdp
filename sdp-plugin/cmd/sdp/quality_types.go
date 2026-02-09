@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
@@ -49,10 +50,12 @@ func runQualityTypes(strict bool) error {
 		}
 	}
 
+	if evidence.Enabled() {
+		evidence.Emit(evidence.VerificationEvent("", result.Passed, "types", 0))
+	}
 	if !result.Passed {
 		return fmt.Errorf("type check failed")
 	}
-
 	return nil
 }
 

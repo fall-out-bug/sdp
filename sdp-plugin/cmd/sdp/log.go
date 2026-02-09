@@ -110,7 +110,7 @@ func runLogTrace(commitSHA, wsID string, jsonOut, verify bool) error {
 	} else if wsID != "" {
 		fmt.Printf("Evidence trail for WS %s:\n\n", wsID)
 	} else {
-		fmt.Println("Evidence trail:\n")
+		fmt.Printf("Evidence trail:\n\n")
 	}
 	fmt.Println(evidence.FormatHuman(events))
 	if verify {
