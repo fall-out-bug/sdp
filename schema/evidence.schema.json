@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SDP Evidence Event",
+  "description": "Evidence log event — base + 6 types: plan, generation, verification, approval, decision, lesson",
+  "type": "object",
+  "required": ["id", "type", "timestamp", "ws_id"],
+  "properties": {
+    "id": { "type": "string", "description": "Event UUID" },
+    "type": {
+      "type": "string",
+      "enum": ["plan", "generation", "verification", "approval", "decision", "lesson"]
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "ws_id": { "type": "string", "pattern": "^\\d{2}-\\d{3}-\\d{2}$" },
+    "commit_sha": { "type": "string" },
+    "prev_hash": { "type": "string", "description": "SHA-256 of previous event" },
+    "data": { "type": "object" }
+  },
+  "definitions": {
+    "generation_data": {
+      "type": "object",
+      "properties": {
+        "model_id": { "type": "string" },
+        "model_version": { "type": "string" },
+        "prompt_hash": { "type": "string" },
+        "files_changed": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "verification_data": {
+      "type": "object",
+      "properties": {
+        "passed": { "type": "boolean" },
+        "gate_name": { "type": "string" },
+        "coverage": { "type": "number" }
+      }
+    },
+    "decision_data": {
+      "type": "object",
+      "properties": {
+        "question": { "type": "string" },
+        "choice": { "type": "string" },
+        "rationale": { "type": "string" },
+        "alternatives": { "type": "array", "items": { "type": "string" } },
+        "confidence": { "type": "number" },
+        "reverses": { "type": ["string", "null"] },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "lesson_data": {
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "insight": { "type": "string" },
+        "source_ws_id": { "type": "string" },
+        "outcome": { "type": "string", "enum": ["worked", "failed", "mixed"] },
+        "related_decisions": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
