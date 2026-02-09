@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
@@ -44,10 +45,12 @@ func runQualityCoverage(strict bool) error {
 		}
 	}
 
+	if evidence.Enabled() {
+		evidence.Emit(evidence.VerificationEvent("", result.Passed, "coverage", result.Coverage))
+	}
 	if !result.Passed {
 		return fmt.Errorf("quality check failed")
 	}
-
 	return nil
 }
 
@@ -77,6 +80,9 @@ func runQualityComplexity(strict bool) error {
 		fmt.Println("✗ FAILED")
 	}
 
+	if evidence.Enabled() {
+		evidence.Emit(evidence.VerificationEvent("", result.Passed, "complexity", 0))
+	}
 	if len(result.ComplexFiles) > 0 {
 		fmt.Printf("\n%d files exceed threshold:\n", len(result.ComplexFiles))
 		for _, f := range result.ComplexFiles {
@@ -140,10 +146,11 @@ func runQualitySize(strict bool) error {
 	} else {
 		fmt.Println("✗ FAILED")
 	}
-
+	if evidence.Enabled() {
+		evidence.Emit(evidence.VerificationEvent("", result.Passed, "size", 0))
+	}
 	if !result.Passed {
 		return fmt.Errorf("quality check failed")
 	}
-
 	return nil
 }

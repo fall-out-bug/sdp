@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/tdd"
 	"github.com/spf13/cobra"
 )
@@ -74,6 +75,11 @@ Examples:
 
 			// Run the phase
 			result, err := runner.RunPhase(ctx, tddPhase, path)
+
+			// AC2: Emit generation event on green phase
+			if evidence.Enabled() && tddPhase == tdd.Green {
+				evidence.Emit(evidence.GenerationEvent("", []string{path}))
+			}
 
 			// Print results
 			fmt.Printf("\n📊 TDD Phase: %s\n", result.Phase)

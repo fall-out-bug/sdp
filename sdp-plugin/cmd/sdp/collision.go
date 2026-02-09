@@ -119,6 +119,24 @@ func loadScopesForGuard(projectRoot, activatingWSID string) ([]collision.Workstr
 	return scopes, nil
 }
 
+// scopeFilesForWS returns scope files for the given workstream ID (for evidence plan event).
+func scopeFilesForWS(wsID string) []string {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return nil
+	}
+	scopes, err := loadScopesForGuard(root, wsID)
+	if err != nil {
+		return nil
+	}
+	for _, s := range scopes {
+		if s.ID == wsID {
+			return s.ScopeFiles
+		}
+	}
+	return nil
+}
+
 // warnCollisionIfAny finds project root, loads scopes (including activatingWSID), and prints overlap warning if any.
 func warnCollisionIfAny(activatingWSID string) {
 	root, err := config.FindProjectRoot()
