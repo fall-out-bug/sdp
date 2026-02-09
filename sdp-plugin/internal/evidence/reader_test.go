@@ -45,6 +45,38 @@ func TestReader_Verify_MissingFile(t *testing.T) {
 	}
 }
 
+func TestReader_ReadAll(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "events.jsonl")
+	w, err := NewWriter(path)
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	w.Append(&Event{ID: "e1", Type: "plan", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04"})
+	r := NewReader(path)
+	events, err := r.ReadAll()
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("ReadAll: want 1 event, got %d", len(events))
+	}
+	if events[0].ID != "e1" {
+		t.Errorf("ReadAll: want ID e1, got %s", events[0].ID)
+	}
+}
+
+func TestReader_ReadAll_MissingFile(t *testing.T) {
+	r := NewReader(filepath.Join(t.TempDir(), "nonexistent.jsonl"))
+	events, err := r.ReadAll()
+	if err != nil {
+		t.Fatalf("ReadAll missing: want nil error, got %v", err)
+	}
+	if events != nil {
+		t.Errorf("ReadAll missing: want nil events, got %d", len(events))
+	}
+}
+
 func TestReader_Verify_BrokenChain(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "events.jsonl")

@@ -50,3 +50,29 @@ func (r *Reader) Verify() error {
 	}
 	return sc.Err()
 }
+
+// ReadAll reads all events from the log file (for trace/show).
+func (r *Reader) ReadAll() ([]Event, error) {
+	f, err := os.Open(r.path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("open: %w", err)
+	}
+	defer f.Close()
+	var out []Event
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		line := sc.Bytes()
+		if len(line) == 0 {
+			continue
+		}
+		var ev Event
+		if err := json.Unmarshal(line, &ev); err != nil {
+			continue
+		}
+		out = append(out, ev)
+	}
+	return out, sc.Err()
+}
