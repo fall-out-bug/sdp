@@ -37,6 +37,34 @@ func TestVerificationEvent(t *testing.T) {
 	}
 }
 
+func TestVerificationEventWithFindings(t *testing.T) {
+	ev := VerificationEventWithFindings("00-056-01", false, "QA", 82.0, "Coverage below threshold")
+	if ev.Type != "verification" || ev.WSID != "00-056-01" {
+		t.Errorf("VerificationEventWithFindings: got %+v", ev)
+	}
+	if ev.Data == nil {
+		t.Fatal("Data is nil")
+	}
+	m, _ := ev.Data.(map[string]interface{})
+	if m["findings"] != "Coverage below threshold" {
+		t.Errorf("findings: got %v", m["findings"])
+	}
+}
+
+func TestApprovalEvent(t *testing.T) {
+	ev := ApprovalEvent("00-000-00", "main", "abc123def", "CI")
+	if ev.Type != "approval" || ev.WSID != "00-000-00" {
+		t.Errorf("ApprovalEvent: got %+v", ev)
+	}
+	if ev.Data == nil {
+		t.Fatal("Data is nil")
+	}
+	m, _ := ev.Data.(map[string]interface{})
+	if m["target_branch"] != "main" || m["commit_sha"] != "abc123def" || m["approved_by"] != "CI" {
+		t.Errorf("ApprovalEvent data: got %v", m)
+	}
+}
+
 func TestGenerationEvent(t *testing.T) {
 	ev := GenerationEvent("00-054-03", []string{"internal/evidence/types.go"})
 	if ev.Type != "generation" || ev.WSID != "00-054-03" {

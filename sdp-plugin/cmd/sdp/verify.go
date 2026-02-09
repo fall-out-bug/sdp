@@ -42,13 +42,15 @@ Usage:
 			lesson := evidence.ExtractLesson(wsID, result)
 			evidence.EmitLesson(lesson)
 
-			// AC3: Emit verification event synchronously so it's written before exit
+			// AC1/AC2: Emit one verification event per gate result with findings (F056)
 			if evidence.Enabled() {
 				coverage := 0.0
 				if result.CoverageActual > 0 {
 					coverage = result.CoverageActual
 				}
-				_ = evidence.EmitSync(evidence.VerificationEvent(wsID, result.Passed, "verify", coverage))
+				for _, check := range result.Checks {
+					_ = evidence.EmitSync(evidence.VerificationEventWithFindings(wsID, check.Passed, check.Name, coverage, check.Message))
+				}
 			}
 
 			// Print results
