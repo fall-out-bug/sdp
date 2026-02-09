@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/parser"
 	"github.com/spf13/cobra"
 )
@@ -64,6 +65,13 @@ func parseRun(cmd *cobra.Command, args []string) error {
 
 	// Display workstream
 	displayWorkstream(ws)
+
+	// F056: Emit plan event after WS parsing (feature_id, scope_files)
+	if evidence.Enabled() {
+		scopeFiles := append([]string{}, ws.Scope.Implementation...)
+		scopeFiles = append(scopeFiles, ws.Scope.Tests...)
+		_ = evidence.EmitSync(evidence.PlanEventWithFeature(ws.ID, ws.Feature, scopeFiles))
+	}
 
 	return nil
 }
