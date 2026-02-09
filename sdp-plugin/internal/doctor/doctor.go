@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/drift"
 )
 
@@ -40,7 +41,10 @@ func RunWithOptions(opts RunOptions) []CheckResult {
 	// Check 5: File permissions on sensitive data
 	results = append(results, checkFilePermissions())
 
-	// Check 6: Drift detection (if requested)
+	// Check 6: .sdp/config.yml validation (AC6: if present)
+	results = append(results, checkProjectConfig())
+
+	// Check 7: Drift detection (if requested)
 	if opts.DriftCheck {
 		results = append(results, checkDrift())
 	}
@@ -421,5 +425,44 @@ func checkFilePermissions() CheckResult {
 		Name:    "File Permissions",
 		Status:  "ok",
 		Message: "All sensitive files have secure permissions",
+	}
+}
+
+func checkProjectConfig() CheckResult {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return CheckResult{
+			Name:    ".sdp/config.yml",
+			Status:  "warning",
+			Message: fmt.Sprintf("Could not find project root: %v", err),
+		}
+	}
+	path := filepath.Join(root, ".sdp", "config.yml")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return CheckResult{
+			Name:    ".sdp/config.yml",
+			Status:  "ok",
+			Message: "No project config (using defaults)",
+		}
+	}
+	cfg, err := config.Load(root)
+	if err != nil {
+		return CheckResult{
+			Name:    ".sdp/config.yml",
+			Status:  "error",
+			Message: fmt.Sprintf("Invalid config: %v", err),
+		}
+	}
+	if err := cfg.Validate(); err != nil {
+		return CheckResult{
+			Name:    ".sdp/config.yml",
+			Status:  "error",
+			Message: fmt.Sprintf("Validation failed: %v", err),
+		}
+	}
+	return CheckResult{
+		Name:    ".sdp/config.yml",
+		Status:  "ok",
+		Message: fmt.Sprintf("Valid (version %d)", cfg.Version),
 	}
 }
