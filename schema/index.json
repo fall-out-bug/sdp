@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "schemas": [
+    { "id": "traceability", "path": "traceability.schema.json", "title": "TraceabilityReport" },
+    { "id": "intent", "path": "intent.schema.json", "title": "SDP Intent Specification" }
+  ]
+}

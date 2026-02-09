@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -234,5 +235,66 @@ status: backlog
 	}
 	if len(issues) == 0 {
 		t.Error("Expected validation issues for invalid WS ID, got none")
+	}
+}
+
+// schemaIndexEntry represents an entry in schema/index.json
+type schemaIndexEntry struct {
+	ID    string `json:"id"`
+	Path  string `json:"path"`
+	Title string `json:"title"`
+}
+
+// schemaIndex represents schema/index.json structure
+type schemaIndex struct {
+	Version int                `json:"version"`
+	Schemas []schemaIndexEntry `json:"schemas"`
+}
+
+// TestSchemaRegistryLoads verifies that the canonical schema registry and
+// schema files exist and are valid JSON (AC5: any code loading schemas still works).
+func TestSchemaRegistryLoads(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	// Walk up to find schema/ (repo root when run from sdp-plugin is ..)
+	var schemaDir string
+	for base := wd; base != ""; base = filepath.Dir(base) {
+		idx := filepath.Join(base, "schema", "index.json")
+		if _, err := os.Stat(idx); err == nil {
+			schemaDir = filepath.Join(base, "schema")
+			break
+		}
+		if base == filepath.Dir(base) {
+			break
+		}
+	}
+	if schemaDir == "" {
+		t.Skip("schema/index.json not found (run from repo containing schema/)")
+	}
+	indexPath := filepath.Join(schemaDir, "index.json")
+	data, err := os.ReadFile(indexPath)
+	if err != nil {
+		t.Fatalf("read index: %v", err)
+	}
+	var idx schemaIndex
+	if err := json.Unmarshal(data, &idx); err != nil {
+		t.Fatalf("index.json invalid JSON: %v", err)
+	}
+	if idx.Version < 1 || len(idx.Schemas) == 0 {
+		t.Error("index.json must have version >= 1 and non-empty schemas")
+	}
+	for _, s := range idx.Schemas {
+		p := filepath.Join(schemaDir, s.Path)
+		body, err := os.ReadFile(p)
+		if err != nil {
+			t.Errorf("schema file %s: %v", s.Path, err)
+			continue
+		}
+		var js map[string]interface{}
+		if err := json.Unmarshal(body, &js); err != nil {
+			t.Errorf("schema %s invalid JSON: %v", s.Path, err)
+		}
 	}
 }
