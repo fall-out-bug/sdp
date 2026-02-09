@@ -1,40 +1,32 @@
 ---
-description: Execute workstream with TDD - implements code, tests, and execution report
+description: Execute workstream with TDD and guard enforcement
 agent: builder
 ---
 
-# /build — Execute Workstream
+# /build — Build
 
-При вызове `/build {WS-ID}`:
+## Overview
 
-1. Загрузи полный промпт: `@.claude/skills/build.md`
-2. Запусти pre-build hook: `sdp/hooks/pre-build.sh {WS-ID}`
-3. Прочитай WS план
-4. Выполни шаги по TDD
-5. Запусти post-build hook: `sdp/hooks/post-build.sh {WS-ID}`
-6. Append Execution Report в WS файл
-7. Обнови статус в GitHub (см. Step 8)
+This command implements the build skill from the SDP workflow.
 
-## Quick Reference
+See `/.claude/skills/build/SKILL.md` for complete documentation.
 
-**Input:** `workstreams/backlog/WS-XXX-*.md`
-**Output:** код + тесты + Execution Report
-**Next:** `/build WS-XXX-02` или `/codereview F{XX}`
-
-## Step 8: Update GitHub Status
-
-After completing WS implementation:
+## Usage
 
 ```bash
-# Update WS file status to "completed"
-# (Already done in Step 7 - Execution Report)
-
-# Sync status change to GitHub
-cd sdp
-poetry run sdp-github sync-ws ../tools/hw_checker/docs/workstreams/active/WS-{ID}.md
+/build [arguments]
 ```
 
-This will:
-- Update GitHub issue labels (status/completed)
-- Close the GitHub issue
-- Move project board card to "Done" column
+## Implementation
+
+The command delegates to the `build` skill, which provides:
+
+- Systematic workflow
+- Quality gates
+- Proper error handling
+- Documentation
+
+## Related
+
+- Skills: `.claude/skills/build/SKILL.md`
+- Agents: `.claude/agents/builder.md`
