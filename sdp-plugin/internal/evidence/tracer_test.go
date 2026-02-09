@@ -34,6 +34,41 @@ func TestFilterByWS(t *testing.T) {
 	}
 }
 
+func TestFilterByType(t *testing.T) {
+	events := []Event{
+		{ID: "e1", Type: "decision"},
+		{ID: "e2", Type: "plan"},
+		{ID: "e3", Type: "decision"},
+	}
+	got := FilterByType(events, "decision")
+	if len(got) != 2 {
+		t.Errorf("FilterByType(decision): want 2, got %d", len(got))
+	}
+	got = FilterByType(events, "")
+	if len(got) != 3 {
+		t.Errorf("FilterByType(''): want all 3, got %d", len(got))
+	}
+}
+
+func TestFilterBySearch(t *testing.T) {
+	events := []Event{
+		{ID: "e1", Type: "decision", Data: map[string]interface{}{"question": "Auth?", "choice": "JWT", "rationale": "Stateless"}},
+		{ID: "e2", Type: "decision", Data: map[string]interface{}{"question": "DB?", "choice": "Postgres", "rationale": "ACID"}},
+	}
+	got := FilterBySearch(events, "jwt")
+	if len(got) != 1 {
+		t.Errorf("FilterBySearch(jwt): want 1, got %d", len(got))
+	}
+	got = FilterBySearch(events, "database")
+	if len(got) != 0 {
+		t.Errorf("FilterBySearch(database): want 0, got %d", len(got))
+	}
+	got = FilterBySearch(events, "postgres")
+	if len(got) != 1 {
+		t.Errorf("FilterBySearch(postgres): want 1, got %d", len(got))
+	}
+}
+
 func TestLastN(t *testing.T) {
 	events := []Event{{ID: "e1"}, {ID: "e2"}, {ID: "e3"}, {ID: "e4"}, {ID: "e5"}}
 	got := LastN(events, 2)

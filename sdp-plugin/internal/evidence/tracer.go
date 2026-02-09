@@ -7,6 +7,53 @@ import (
 	"time"
 )
 
+// FilterByType returns events whose type matches (AC4: sdp log show --type=decision).
+func FilterByType(events []Event, eventType string) []Event {
+	if eventType == "" {
+		return events
+	}
+	var out []Event
+	for _, e := range events {
+		if e.Type == eventType {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+// FilterBySearch returns events whose Data contains query (AC5: full-text search in question/choice/rationale).
+func FilterBySearch(events []Event, query string) []Event {
+	if query == "" {
+		return events
+	}
+	q := strings.ToLower(query)
+	var out []Event
+	for _, e := range events {
+		if dataContains(e.Data, q) {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+func dataContains(data interface{}, q string) bool {
+	if data == nil {
+		return false
+	}
+	m, ok := data.(map[string]interface{})
+	if !ok {
+		return false
+	}
+	for _, key := range []string{"question", "choice", "rationale"} {
+		if v, ok := m[key]; ok {
+			if s, ok := v.(string); ok && strings.Contains(strings.ToLower(s), q) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // FilterByCommit returns events whose commit_sha matches (AC1).
 func FilterByCommit(events []Event, commitSHA string) []Event {
 	if commitSHA == "" {
@@ -61,19 +108,30 @@ func keyData(e Event) string {
 	if e.Data == nil {
 		return ""
 	}
-	// Minimal key data from Data map
-	if m, ok := e.Data.(map[string]interface{}); ok {
-		if v, ok := m["passed"]; ok {
-			if b, ok := v.(bool); ok && b {
-				return "PASS"
+	m, ok := e.Data.(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	if v, ok := m["passed"]; ok {
+		if b, ok := v.(bool); ok && b {
+			return "PASS"
+		}
+		return "FAIL"
+	}
+	if v, ok := m["gate_name"]; ok {
+		return fmt.Sprintf("gate: %v", v)
+	}
+	if v, ok := m["model_id"]; ok {
+		return fmt.Sprintf("model: %v", v)
+	}
+	if e.Type == "decision" {
+		if v, ok := m["choice"]; ok {
+			if s, ok := v.(string); ok && len(s) > 0 {
+				if len(s) > 40 {
+					return s[:37] + "..."
+				}
+				return s
 			}
-			return "FAIL"
-		}
-		if v, ok := m["gate_name"]; ok {
-			return fmt.Sprintf("gate: %v", v)
-		}
-		if v, ok := m["model_id"]; ok {
-			return fmt.Sprintf("model: %v", v)
 		}
 	}
 	return ""
