@@ -315,6 +315,8 @@ Validates: scope files exist, functions/classes match docs, architectural layers
 | [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) | Code patterns |
 | [docs/reference/MODELS.md](docs/reference/MODELS.md) | Model recommendations |
 | [.claude/skills/](.claude/skills/) | Skill definitions |
+| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance (evidence, GDPR, SOC2, etc.) |
+| [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model and accepted risks |
 
 ---
 
