@@ -108,3 +108,33 @@ func TestFormatJSON(t *testing.T) {
 		t.Errorf("FormatJSON roundtrip: got %+v", decoded)
 	}
 }
+
+func TestFormatHuman_KeyDataGateName(t *testing.T) {
+	events := []Event{
+		{Type: "verification", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04", Data: map[string]interface{}{"gate_name": "coverage"}},
+	}
+	out := FormatHuman(events)
+	if !strings.Contains(out, "gate: coverage") {
+		t.Errorf("FormatHuman gate_name: want gate: coverage in output, got %q", out)
+	}
+}
+
+func TestFormatHuman_KeyDataModelID(t *testing.T) {
+	events := []Event{
+		{Type: "generation", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04", Data: map[string]interface{}{"model_id": "claude-sonnet"}},
+	}
+	out := FormatHuman(events)
+	if !strings.Contains(out, "claude-sonnet") {
+		t.Errorf("FormatHuman model_id: want model in output, got %q", out)
+	}
+}
+
+func TestFormatHuman_KeyDataDecisionChoice(t *testing.T) {
+	events := []Event{
+		{Type: "decision", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-10", Data: map[string]interface{}{"choice": "JWT with refresh tokens"}},
+	}
+	out := FormatHuman(events)
+	if !strings.Contains(out, "JWT") {
+		t.Errorf("FormatHuman decision choice: want choice in output, got %q", out)
+	}
+}

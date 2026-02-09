@@ -86,3 +86,27 @@ func TestWriter_Append_Concurrent(t *testing.T) {
 		<-done
 	}
 }
+
+func TestNewWriter_EmptyPath(t *testing.T) {
+	_, err := NewWriter("")
+	if err == nil {
+		t.Fatal("NewWriter(\"\"): want error, got nil")
+	}
+}
+
+func TestWriter_Append_PathIsDir(t *testing.T) {
+	dir := t.TempDir()
+	pathAsDir := filepath.Join(dir, "events.jsonl")
+	if err := os.MkdirAll(pathAsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	w, err := NewWriter(pathAsDir)
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	ev := Event{ID: "e1", Type: "plan", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04"}
+	err = w.Append(&ev)
+	if err == nil {
+		t.Error("Append to path that is a directory: want error, got nil")
+	}
+}
