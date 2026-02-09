@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/verify"
 	"github.com/spf13/cobra"
 )
@@ -35,6 +36,10 @@ Usage:
 
 			// Run verification
 			result := verifier.Verify(wsID)
+
+			// AC1: Emit lesson event when workstream completes (auto-extracted)
+			lesson := evidence.ExtractLesson(wsID, result)
+			evidence.EmitLesson(lesson)
 
 			// Print results
 			if result.Passed {
