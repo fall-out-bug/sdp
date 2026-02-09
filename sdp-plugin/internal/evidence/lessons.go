@@ -63,8 +63,10 @@ func (l Lesson) MatchesOutcome(filter string) bool {
 	return strings.EqualFold(l.Outcome, filter)
 }
 
-// EmitLesson emits a lesson event (AC1). No-op until evidence log writer exists (WS-04).
+// EmitLesson emits a lesson event to the evidence log when enabled (AC1).
 func EmitLesson(lesson Lesson) {
-	// TODO(00-054-04): write to .sdp/log/events.jsonl when Evidence Writer is implemented
-	_ = lesson
+	if !Enabled() {
+		return
+	}
+	_ = EmitSync(LessonEvent(lesson))
 }
