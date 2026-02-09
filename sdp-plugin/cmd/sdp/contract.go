@@ -33,7 +33,7 @@ Commands:
 	synthesizeCmd := &cobra.Command{
 		Use:   "synthesize",
 		Short: "Generate contract from requirements",
-		Long:  `Generate OpenAPI 3.0 contract from feature requirements.
+		Long: `Generate OpenAPI 3.0 contract from feature requirements.
 
 Multi-agent synthesis:
 1. Architect analyzes requirements
@@ -52,7 +52,8 @@ Multi-agent synthesis:
 	synthesizeCmd.Flags().StringVar(&requirementsPath, "requirements", "", "Path to requirements document")
 	synthesizeCmd.Flags().StringVar(&outputPath, "output", "", "Output contract path")
 
-	synthesizeCmd.MarkFlagRequired("feature")
+	// Mark flag as required (ignore error - programming error if this fails)
+	_ = synthesizeCmd.MarkFlagRequired("feature")
 
 	cmd.AddCommand(synthesizeCmd)
 
@@ -60,7 +61,7 @@ Multi-agent synthesis:
 	lockCmd := &cobra.Command{
 		Use:   "lock",
 		Short: "Lock contract as source of truth",
-		Long:  `Lock contract to prevent modifications during implementation.
+		Long: `Lock contract to prevent modifications during implementation.
 
 Creates .lock file with SHA256 checksum. Prevents agents
 from diverging from agreed contract.`,
@@ -84,7 +85,7 @@ from diverging from agreed contract.`,
 	validateCmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate contracts against each other",
-		Long:  `Validate contracts from different components against each other.
+		Long: `Validate contracts from different components against each other.
 
 Detects:
 - Endpoint mismatches
@@ -103,7 +104,7 @@ Detects:
 	verifyCmd := &cobra.Command{
 		Use:   "verify",
 		Short: "Verify contract matches lock",
-		Long:  `Verify that contract file matches the locked version.
+		Long: `Verify that contract file matches the locked version.
 
 Returns exit code 0 if match, 1 if mismatch.`,
 		RunE: runContractVerify,
@@ -121,9 +122,18 @@ Returns exit code 0 if match, 1 if mismatch.`,
 }
 
 func runContractSynthesize(cmd *cobra.Command, args []string) error {
-	featureName, _ := cmd.Flags().GetString("feature")
-	requirementsPath, _ := cmd.Flags().GetString("requirements")
-	outputPath, _ := cmd.Flags().GetString("output")
+	featureName, err := cmd.Flags().GetString("feature")
+	if err != nil {
+		return fmt.Errorf("failed to get feature flag: %w", err)
+	}
+	requirementsPath, err := cmd.Flags().GetString("requirements")
+	if err != nil {
+		return fmt.Errorf("failed to get requirements flag: %w", err)
+	}
+	outputPath, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return fmt.Errorf("failed to get output flag: %w", err)
+	}
 
 	// Set default requirements path if not provided
 	if requirementsPath == "" {
@@ -145,9 +155,18 @@ func runContractSynthesize(cmd *cobra.Command, args []string) error {
 }
 
 func runContractLock(cmd *cobra.Command, args []string) error {
-	contractPath, _ := cmd.Flags().GetString("contract")
-	gitSHA, _ := cmd.Flags().GetString("sha")
-	force, _ := cmd.Flags().GetBool("force")
+	contractPath, err := cmd.Flags().GetString("contract")
+	if err != nil {
+		return fmt.Errorf("failed to get contract flag: %w", err)
+	}
+	gitSHA, err := cmd.Flags().GetString("sha")
+	if err != nil {
+		return fmt.Errorf("failed to get sha flag: %w", err)
+	}
+	force, err := cmd.Flags().GetBool("force")
+	if err != nil {
+		return fmt.Errorf("failed to get force flag: %w", err)
+	}
 
 	// Default contract path if not provided
 	featureName := ""
@@ -175,11 +194,11 @@ func runContractLock(cmd *cobra.Command, args []string) error {
 
 // ContractLock represents the lock file structure
 type ContractLock struct {
-	ContractFile string   `yaml:"contract_file"`
-	ContractHash string   `yaml:"contract_hash"`
-	GitSHA       string   `yaml:"git_sha"`
-	LockedAt     string   `yaml:"locked_at"`
-	Checksum     string   `yaml:"checksum"`
+	ContractFile string `yaml:"contract_file"`
+	ContractHash string `yaml:"contract_hash"`
+	GitSHA       string `yaml:"git_sha"`
+	LockedAt     string `yaml:"locked_at"`
+	Checksum     string `yaml:"checksum"`
 	Metadata     struct {
 		Feature   string `yaml:"feature"`
 		Version   string `yaml:"version"`
@@ -273,8 +292,14 @@ func runContractLockInternal(featureName, gitSHA, contractPath, lockPath string,
 }
 
 func runContractValidate(cmd *cobra.Command, args []string) error {
-	contractPaths, _ := cmd.Flags().GetStringSlice("contracts")
-	reportPath, _ := cmd.Flags().GetString("output")
+	contractPaths, err := cmd.Flags().GetStringSlice("contracts")
+	if err != nil {
+		return fmt.Errorf("failed to get contracts flag: %w", err)
+	}
+	reportPath, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return fmt.Errorf("failed to get output flag: %w", err)
+	}
 
 	if len(contractPaths) < 2 {
 		return fmt.Errorf("at least 2 contracts required for validation")
@@ -289,8 +314,14 @@ func runContractValidate(cmd *cobra.Command, args []string) error {
 }
 
 func runContractVerify(cmd *cobra.Command, args []string) error {
-	featureName, _ := cmd.Flags().GetString("feature")
-	contractPath, _ := cmd.Flags().GetString("contract")
+	featureName, err := cmd.Flags().GetString("feature")
+	if err != nil {
+		return fmt.Errorf("failed to get feature flag: %w", err)
+	}
+	contractPath, err := cmd.Flags().GetString("contract")
+	if err != nil {
+		return fmt.Errorf("failed to get contract flag: %w", err)
+	}
 
 	// Default contract path from feature name
 	if contractPath == "" && featureName != "" {
