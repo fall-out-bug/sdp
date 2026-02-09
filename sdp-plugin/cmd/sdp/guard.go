@@ -5,6 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/fall-out-bug/sdp/internal/config"
+	"github.com/fall-out-bug/sdp/internal/decision"
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/guard"
 	"github.com/spf13/cobra"
 )
@@ -71,6 +74,9 @@ func guardActivate() *cobra.Command {
 
 			// AC1: Check for scope overlap with other in-progress workstreams (warning only)
 			warnCollisionIfAny(wsID)
+
+			// AC3/AC4: Check for similar past failed decisions (warning only)
+			warnSimilarFailures(wsID)
 
 			return nil
 		},
@@ -194,6 +200,36 @@ func guardStatus() *cobra.Command {
 
 			return nil
 		},
+	}
+}
+
+// warnSimilarFailures loads past decisions and prints warning if similar failed decisions exist (AC3, AC4, AC8).
+func warnSimilarFailures(wsID string) {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return
+	}
+	logger, err := decision.NewLogger(root)
+	if err != nil {
+		return
+	}
+	decisions, err := logger.LoadAll()
+	if err != nil || len(decisions) == 0 {
+		return
+	}
+	matches := evidence.FindSimilarDecisions("", nil, decisions)
+	if len(matches) == 0 {
+		return
+	}
+	fmt.Fprintln(os.Stderr, "⚠️  Similar past decision(s) found:")
+	for _, m := range matches {
+		fmt.Fprintf(os.Stderr, "   Decision: %q\n", m.Question)
+		fmt.Fprintf(os.Stderr, "   Outcome: %s\n", m.Outcome)
+		fmt.Fprintf(os.Stderr, "   Source: WS %s\n", m.WorkstreamID)
+		if len(m.Tags) > 0 {
+			fmt.Fprintf(os.Stderr, "   Tags: %v\n", m.Tags)
+		}
+		fmt.Fprintln(os.Stderr, "   Continue anyway? [y/N]")
 	}
 }
 
