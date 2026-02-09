@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestModelID(t *testing.T) {
@@ -81,11 +82,46 @@ func TestEmitSync_Enabled(t *testing.T) {
 	}
 	defer os.Chdir(origWd)
 	ev := PlanEvent("00-054-05", []string{"internal/evidence/emitter.go"})
-	if err := emitSync(ev); err != nil {
-		t.Fatalf("emitSync: %v", err)
+	if err := EmitSync(ev); err != nil {
+		t.Fatalf("EmitSync: %v", err)
 	}
 	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
 	if _, err := os.Stat(logPath); err != nil {
 		t.Errorf("events.jsonl not created: %v", err)
 	}
+}
+
+func TestEmit_EventuallyWrites(t *testing.T) {
+	dir := t.TempDir()
+	cfgDir := filepath.Join(dir, ".sdp")
+	logDir := filepath.Join(cfgDir, "log")
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	cfgPath := filepath.Join(cfgDir, "config.yml")
+	cfgContent := "version: 1\nevidence:\n  enabled: true\n  log_path: \".sdp/log/events.jsonl\"\n"
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	origWd, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	defer os.Chdir(origWd)
+	ev := VerificationEvent("00-054-12", true, "coverage", 82.0)
+	Emit(ev)
+	// Allow async goroutine to run
+	waitForFile(t, filepath.Join(dir, ".sdp", "log", "events.jsonl"), 2*time.Second)
+}
+
+func waitForFile(t *testing.T, path string, timeout time.Duration) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if _, err := os.Stat(path); err == nil {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Errorf("file %s not created within %v", path, timeout)
 }
