@@ -94,7 +94,10 @@ Examples:
 				// Ask for confirmation
 				fmt.Printf("Ready to launch agents? (Y/n): ")
 				var response string
-				fmt.Scanln(&response)
+				_, err := fmt.Scanln(&response)
+				if err != nil {
+					return fmt.Errorf("failed to read response: %w", err)
+				}
 				if response != "Y" && response != "y" && response != "yes" {
 					fmt.Printf("❌ Cancelled\n")
 					return nil
