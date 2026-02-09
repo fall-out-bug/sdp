@@ -98,7 +98,7 @@ sdp decisions log \
 
 ### Phase 4: Generate intent.json
 
-Validate against `docs/schema/intent.schema.json`, save to `docs/intent/{slug}.json`
+Validate against `schema/intent.schema.json`, save to `docs/intent/{slug}.json`
 
 ```bash
 # Create intent directory
