@@ -218,6 +218,8 @@ your-project/
 | [docs/reference/agent-catalog.md](docs/reference/agent-catalog.md) | All 19+ agent definitions |
 | [docs/vision/](docs/vision/) | Strategic vision and roadmap |
 | [docs/runbooks/](docs/runbooks/) | Operational runbooks |
+| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance (evidence, GDPR, SOC2) |
+| [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model and accepted risks |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ---
