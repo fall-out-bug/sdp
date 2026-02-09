@@ -42,30 +42,21 @@ func guardActivate() *cobra.Command {
 
 			// Get config directory (respect XDG_CONFIG_HOME for testing)
 
-
 			configDir := os.Getenv("XDG_CONFIG_HOME")
-
 
 			if configDir == "" {
 
-
 				var err error
-
 
 				configDir, err = os.UserConfigDir()
 
-
 				if err != nil {
-
 
 					return fmt.Errorf("failed to get config dir: %w", err)
 
-
 				}
 
-
 			}
-
 
 			sdpDir := filepath.Join(configDir, "sdp")
 			skill := guard.NewSkill(sdpDir)
@@ -99,30 +90,21 @@ func guardCheck() *cobra.Command {
 
 			// Get config directory (respect XDG_CONFIG_HOME for testing)
 
-
 			configDir := os.Getenv("XDG_CONFIG_HOME")
-
 
 			if configDir == "" {
 
-
 				var err error
-
 
 				configDir, err = os.UserConfigDir()
 
-
 				if err != nil {
-
 
 					return fmt.Errorf("failed to get config dir: %w", err)
 
-
 				}
 
-
 			}
-
 
 			sdpDir := filepath.Join(configDir, "sdp")
 			skill := guard.NewSkill(sdpDir)
