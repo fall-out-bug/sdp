@@ -1,161 +1,70 @@
-# Spec-Driven Protocol (SDP) Plugin
+# SDP Plugin — Go CLI
 
-**Workstream-driven development for AI agents with multi-language support.**
+**Go binary for the Spec-Driven Protocol. Provides CLI commands for health checks, workstream parsing, guard enforcement, and telemetry.**
 
-## Features
-
-✅ **TDD Discipline** - Red → Green → Refactor cycle enforced by prompts
-✅ **Clean Architecture** - Layer separation validated by AI
-✅ **Quality Gates** - Coverage ≥80%, type safety, error handling
-✅ **Multi-Language** - Python, Java, Go support
-✅ **No Installation Required** - Prompts work standalone
-✅ **Optional Binary** - Go CLI for init, doctor, hooks
-
-## Quick Start
-
-### Option 1: Manual Installation (No Python Required)
+## Build
 
 ```bash
-# 1. Clone plugin repository
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
-
-# 2. Copy prompts to your project
-cp -r ~/.claude/sdp/prompts/* .claude/
-
-# 3. Start development
-@feature "Add user authentication"
-@design feature-auth
-@build 00-001-01
+cd sdp-plugin
+go build -o sdp ./cmd/sdp
 ```
 
-### Option 2: With Optional Go Binary
+## Commands
 
 ```bash
-# Download binary (macOS arm64 example)
-curl -L https://github.com/ai-masters/sdp/releases/latest/download/sdp-darwin-arm64 -o sdp
-chmod +x sdp
-
-# Initialize project
-./sdp init
-./sdp doctor
+sdp doctor                    # Health check (hooks, config, deps)
+sdp status                    # Show project state
+sdp init                      # Initialize SDP in a new project
+sdp guard activate 00-001-01  # Enforce edit scope
+sdp guard check <file>        # Verify file is in scope
+sdp parse <ws-file>           # Parse workstream file
+sdp verify <ws-id>            # Verify workstream completion
+sdp tdd <ws-id>               # Run TDD cycle
+sdp telemetry status          # Telemetry status
 ```
 
-## What's Included
+## Skills and Agents
 
-### Skills (18 total)
+Prompt-based skills and agents are in the parent directory:
+- `../.claude/skills/` — 24 workflow skills
+- `../.claude/agents/` — 23 multi-agent definitions
+- `../.cursor/` — Cursor IDE integration
+- `../.opencode/` — OpenCode integration
 
-Core workflow skills:
-- `@feature` - Progressive vision/requirements gathering
-- `@design` - Workstream planning with dependencies
-- `@build` - Execute workstream with TDD cycle
-- `@review` - Quality check with AI validators
-- `@deploy` - Deployment workflow
+Prompt copies for the Go plugin:
+- `prompts/skills/` — Skill prompts
+- `prompts/agents/` — Agent prompts
+- `prompts/validators/` — Quality validators
 
-Support skills:
-- `@idea` - Requirements gathering
-- `@issue` - Bug classification
-- `@debug` - Systematic debugging
-- `/help` - Skill discovery
+## Telemetry
 
-### Agents (11 total)
+SDP collects **opt-in anonymized telemetry** stored locally:
 
-Multi-agent coordination:
-- `planner` - Workstream decomposition
-- `builder` - Workstream execution
-- `reviewer` - Quality validation
-- `tester` - Test strategy
-- `architect` - System design
-- And more...
+- Command invocations and duration
+- Success/failure rates and quality gate results
+- **No PII**, no file paths, no code content
+- Local only (`~/.sdp/telemetry.jsonl`), auto-cleanup after 90 days
 
-### Validators (4 total)
-
-AI-based quality validation:
-- `/coverage-validator` - Test coverage analysis
-- `/architecture-validator` - Clean Architecture checks
-- `/error-validator` - Error handling audit
-- `/complexity-validator` - Complexity analysis
+```bash
+sdp telemetry status   # Check
+sdp telemetry enable   # Opt-in
+sdp telemetry disable  # Opt-out
+sdp telemetry clear    # Delete data
+```
 
 ## Language Support
 
 | Language | Tests | Coverage | Type Check | Lint |
 |----------|-------|----------|------------|------|
-| Python   | pytest | pytest-cov | mypy | ruff |
-| Java     | Maven/Gradle | JaCoCo | javac | checkstyle |
-| Go       | go test | go tool cover | go vet | golint |
-
-## Documentation
-
-- [Full Tutorial](docs/TUTORIAL.md)
-- [Python Examples](docs/examples/python/)
-- [Java Examples](docs/examples/java/)
-- [Go Examples](docs/examples/go/)
-- [Privacy Policy](docs/PRIVACY.md)
-
-## Telemetry
-
-SDP collects **anonymized usage telemetry** to improve reliability and performance:
-
-🔒 **What's collected:**
-- Command invocations (`@build`, `@review`, etc.)
-- Execution duration
-- Success/failure rates
-- Quality gate results
-
-❌ **What's NOT collected:**
-- PII (names, emails, usernames)
-- File paths or project names
-- Code content or commit messages
-- Secrets or credentials
-
-**Key privacy features:**
-- ✅ **Opt-in by default** (disabled until you enable it)
-- ✅ Data stored **locally only** (`~/.sdp/telemetry.jsonl`)
-- ✅ No remote transmission
-- ✅ Auto-cleanup after 90 days
-
-**Manage telemetry:**
-```bash
-sdp telemetry status    # Check if enabled
-sdp telemetry disable   # Opt-out
-sdp telemetry enable    # Opt-in
-sdp telemetry clear     # Delete all data
-sdp telemetry export    # Export your data
-```
-
-📖 **See [PRIVACY.md](docs/PRIVACY.md)** for complete privacy policy
-
-## Migration from Python SDP
-
-If you're using the Python `sdp` CLI tool:
-
-✅ **Your existing workstreams still work** (prompts are compatible)
-✅ **Git hooks continue to work** (use Go binary for convenience)
-⚠️ **Quality checks now use AI validation** (no Python required)
-📖 **See [MIGRATION.md](MIGRATION.md)** for details
-
-## Directory Structure
-
-```
-sdp-plugin/
-├── plugin.json           # Plugin manifest
-├── README.md             # This file
-├── prompts/
-│   ├── skills/           # 18 workflow skills
-│   ├── agents/           # 11 agent definitions
-│   └── validators/       # 4 AI validators
-└── docs/
-    ├── TUTORIAL.md       # Full tutorial
-    ├── MIGRATION.md      # Migration guide
-    └── examples/
-        ├── python/       # Python quick start
-        ├── java/         # Java quick start
-        └── go/           # Go quick start
-```
+| Python | pytest | pytest-cov | mypy | ruff |
+| Go | go test | go tool cover | go vet | golangci-lint |
+| Java | Maven/Gradle | JaCoCo | javac | checkstyle |
+| TypeScript | jest/vitest | c8/istanbul | tsc | eslint |
 
 ## License
 
-MIT © MSU AI Masters
+MIT
 
 ## Version
 
-1.0.0 (Claude Plugin Distribution)
+0.9.0

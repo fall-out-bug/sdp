@@ -178,7 +178,7 @@ golint ./...
 sdp decisions list | grep "{feature-id}"
 
 # Or export to markdown for full report
-sdp decisions export docs/reports/{feature-id}-decisions.md
+sdp decisions export docs/decisions/{feature-id}-decisions.md
 ```
 
 **Include in review report:**
@@ -220,7 +220,7 @@ No middle ground. No "approved with notes."
 
 ```markdown
 - [ ] Verdict recorded
-- [ ] Report saved to docs/reports/
+- [ ] Report saved to appropriate documentation location
 - [ ] All bugs → Issue created
 - [ ] All planned work → WS created
 - [ ] No "deferred" without tracking
