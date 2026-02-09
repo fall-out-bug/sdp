@@ -1,6 +1,6 @@
 # SDP Project Rules
 
-This project uses **Spec-Driven Protocol (SDP)** v0.6.0.
+This project uses **Spec-Driven Protocol (SDP)** v0.9.0.
 
 ## Beads (SDP Development)
 
@@ -15,9 +15,13 @@ For other projects using SDP: Beads is optional (skills check `bd` + `.beads/`).
 ## Commands
 
 Use skills for all work:
+- `@vision` — Strategic product planning
+- `@reality` — Codebase analysis
+- `@feature` — Plan feature (idea + design)
 - `@idea` — Gather requirements
 - `@design` — Plan workstreams
 - `@build` — Execute workstream (guard enforced)
+- `@oneshot` — Autonomous feature execution
 - `@review` — Quality review
 - `@deploy` — Production deployment
 
@@ -26,23 +30,22 @@ Use skills for all work:
 All edits require active workstream:
 
 ```bash
-sdp guard activate {WS-ID}  # Before editing
-sdp guard check {file}      # Verify allowed
+sdp guard activate {PP-FFF-SS}  # Before editing
+sdp guard check {file}          # Verify allowed
 ```
 
 ## Critical Rules
 
 **Forbidden:**
-- ❌ `except: pass`
-- ❌ Files > 200 LOC
-- ❌ TODO without WS
-- ❌ Edit without active WS
+- Files > 200 LOC
+- TODO without WS
+- Edit without active WS
 
 **Required:**
-- ✅ TDD (Red → Green → Refactor)
-- ✅ Coverage ≥80%
-- ✅ Type hints (mypy --strict)
-- ✅ Conventional commits
+- TDD (Red -> Green -> Refactor)
+- Coverage >= 80%
+- Type hints / strict typing
+- Conventional commits
 
 ## Documentation
 
@@ -52,4 +55,4 @@ sdp guard check {file}      # Verify allowed
 
 ---
 
-**Version:** 0.6.0
+**Version:** 0.9.0

@@ -2,35 +2,31 @@
 
 **Workstream-driven development** for AI agents with multi-agent coordination.
 
-**⚠️ Deprecation Notice:** This Python implementation is deprecated in favor of the [SDP Plugin](https://github.com/ai-masters/sdp-plugin). See [Migration Guide](migrations/python-sdp-deprecation.md) for details.
-
-**Русская версия:** [PROTOCOL_RU.md](PROTOCOL_RU.md)
-
 ---
 
 ## Quick Start
 
 ```bash
 # Install
-pip install -e .
+go install github.com/fall-out-bug/sdp@latest
 
 # Create feature (interactive)
 @feature "Add user authentication"
 
 # Plan workstreams
-@design beads-auth
+@design idea-auth
 
 # Execute workstream
-@build WS-AUTH-01
+@build 00-001-01
 
 # Or execute all autonomously
-@oneshot beads-auth
+@oneshot F001
 
 # Review quality
-@review beads-auth
+@review F001
 
 # Deploy to production
-@deploy beads-auth
+@deploy F001
 ```
 
 ---
@@ -235,18 +231,18 @@ Claude asks deep questions:
 ```
 
 Claude explores codebase and creates workstreams:
-- WS-XXX.01: Domain model (450 LOC)
-- WS-XXX.02: Database schema (300 LOC)
-- WS-XXX.03: Repository layer (500 LOC)
-- WS-XXX.04: Service layer (600 LOC)
-- WS-XXX.05: API endpoints (400 LOC)
+- 00-XXX-01: Domain model (450 LOC)
+- 00-XXX-02: Database schema (300 LOC)
+- 00-XXX-03: Repository layer (500 LOC)
+- 00-XXX-04: Service layer (600 LOC)
+- 00-XXX-05: API endpoints (400 LOC)
 
 → Creates: `docs/workstreams/beads-sdp-XXX.md`
 
 ### 3. Contract Tests (@test skill)
 
 ```bash
-@test WS-XXX.01
+@test 00-XXX-01
 ```
 
 Generate contract tests that define **immutable interfaces**:
@@ -281,7 +277,7 @@ Creates: `tests/contract/test_{component}.py`
 ### 4. Implementation (@build skill)
 
 ```bash
-@build WS-XXX.01
+@build 00-XXX-01
 ```
 
 Claude follows TDD:
@@ -381,25 +377,10 @@ Generates:
 - `00-001-01` - First workstream of SDP feature 001
 - `02-150-01` - First workstream of hw_checker feature 150
 
-**⚠️ DEPRECATED:**
-- ~~`WS-FFF-SS`~~ → Use `PP-FFF-SS` format
-- ~~`Epic`~~ → **Feature**
-- ~~`Sprint`~~ → Not used
-
-**Migration:**
-
-For projects with legacy `WS-FFF-SS` format, use the migration script:
-
-```bash
-# Dry run to see what will change
-python scripts/migrate_workstream_ids.py --dry-run
-
-# Migrate SDP workstreams (project 00)
-python scripts/migrate_workstream_ids.py --project-id 00
-
-# Migrate other projects
-python scripts/migrate_workstream_ids.py --project-id 02 --path ../hw_checker
-```
+**Legacy terms (no longer used):**
+- ~~`WS-FFF-SS`~~ — replaced by `PP-FFF-SS`
+- ~~`Epic`~~ — replaced by **Feature**
+- ~~`Sprint`~~ — not used
 
 **Migration Features:**
 - ✅ `--dry-run` mode for safe preview
@@ -483,7 +464,7 @@ except SpecificError as e:
 # Development
 @feature "title"           # Gather requirements
 @design beads-XXX          # Plan workstreams
-@build WS-XXX-01          # Execute workstream
+@build 00-XXX-01          # Execute workstream
 @oneshot beads-XXX        # Autonomous execution
 @review beads-XXX         # Quality review
 @deploy beads-XXX         # Production deployment
@@ -523,8 +504,6 @@ pytest --cov=src/ --cov-report=term-missing
 
 ## Documentation
 
-- `PROTOCOL.md` - Full specification (Russian)
-- `docs/TUTORIAL.md` - 15-minute quick start
 - `.claude/agents/README.md` - Agent roles guide
 - `README.md` - Project overview
 
@@ -532,13 +511,12 @@ pytest --cov=src/ --cov-report=term-missing
 
 ## Version
 
-**SDP v0.6.0** - Unified Workflow (AI-Comm + Beads)
+**SDP v0.9.0** — Multi-Agent Architecture
 
-Updated: 2026-01-29
+Updated: 2026-02-09
 
 ---
 
 **See Also:**
-- Russian version: `PROTOCOL_RU.md` (полная спецификация)
-- Tutorial: `docs/TUTORIAL.md` (15-минутное введение)
-- Agent Roles: `.claude/agents/README.md` (role setup guide)
+- Agent Roles: `.claude/agents/README.md`
+- Reference: `docs/reference/`

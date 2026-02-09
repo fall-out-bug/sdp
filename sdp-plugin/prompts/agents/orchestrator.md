@@ -182,7 +182,7 @@ Feature is complete when:
 
 ## Related
 
-- Full prompt: `sdp/prompts/commands/auto-build.md`
+- Build skill: `.claude/skills/build/SKILL.md`
 - Builder subagent: `.claude/agents/builder.md`
 - Planner subagent: `.claude/agents/planner.md`
 - Reviewer subagent: `.claude/agents/reviewer.md`
