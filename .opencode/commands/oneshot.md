@@ -1,20 +1,32 @@
 ---
-description: Autonomous feature execution with checkpoint/resume support
+description: Autonomous multi-agent execution with checkpoints, resume, and PR-less modes
 agent: orchestrator
-model: inherit
 ---
 
-# /oneshot — Autonomous Feature Execution
+# /oneshot — Oneshot
 
-When called with `/oneshot {feature-id}`:
+## Overview
 
-1. Load full prompt: `@.claude/skills/oneshot.md`
-2. Follow autonomous execution algorithm (PR approval, checkpoint/resume)
-3. Execute all WS by dependencies
-4. Generate Execution Report
+This command implements the oneshot skill from the SDP workflow.
 
-## Quick Reference
+See `/.claude/skills/oneshot/SKILL.md` for complete documentation.
 
-**Input:** Feature ID (e.g., F60)
-**Output:** All WS executed + Execution Report
-**Next:** `/codereview F{XX}` → Human UAT → `/deploy F{XX}`
+## Usage
+
+```bash
+/oneshot [arguments]
+```
+
+## Implementation
+
+The command delegates to the `oneshot` skill, which provides:
+
+- Systematic workflow
+- Quality gates
+- Proper error handling
+- Documentation
+
+## Related
+
+- Skills: `.claude/skills/oneshot/SKILL.md`
+- Agents: `.claude/agents/orchestrator.md`

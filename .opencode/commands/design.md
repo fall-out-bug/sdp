@@ -1,54 +1,32 @@
 ---
-description: Analyze + Plan - creates workstreams from feature draft
+description: System design with progressive disclosure
 agent: planner
 ---
 
-# /design — Analyze + Plan
+# /design — Design
 
-При вызове `/design {slug}`:
+## Overview
 
-1. Загрузи полный промпт: `@.claude/skills/design.md`
-2. Прочитай PROJECT_MAP.md и INDEX.md
-3. Прочитай draft: `tools/hw_checker/docs/drafts/idea-{slug}.md`
-4. Создай все WS файлы в `workstreams/backlog/`
-5. Обнови INDEX.md
-6. Синхронизируй с GitHub (см. Step 7)
-7. Выведи summary
+This command implements the design skill from the SDP workflow.
 
-## Quick Reference
+See `/.claude/skills/design/SKILL.md` for complete documentation.
 
-**Input:** `tools/hw_checker/docs/drafts/idea-{slug}.md`
-**Output:** `tools/hw_checker/docs/workstreams/backlog/WS-XXX-*.md`
-**Next:** `/build WS-XXX-01`
-
-## Step 7: Sync to GitHub
-
-After creating all WS files, sync to GitHub:
+## Usage
 
 ```bash
-# Set environment (if not set)
-export GITHUB_TOKEN="${GITHUB_TOKEN:-}"
-export GITHUB_REPO="${GITHUB_REPO:-fall-out-bug/msu_ai_masters}"
-
-# Sync all created WS files
-cd sdp
-poetry run sdp-github sync-all --ws-dir ../tools/hw_checker/docs/workstreams
-
-# Or sync a single WS file (explicit path)
-poetry run sdp-github sync-ws \
-  ../tools/hw_checker/docs/workstreams/backlog/WS-{XX}-01-your-title.md
+/design [arguments]
 ```
 
-**If GITHUB_TOKEN not set:**
-- Skip sync with warning
-- WS files still created locally
-- Sync will happen on git push via GitHub Actions
+## Implementation
 
-**Expected output:**
-```
-Syncing backlog...
-  WS-{XX}-01: created (#123)
-  WS-{XX}-02: created (#124)
-Syncing active...
-Done!
-```
+The command delegates to the `design` skill, which provides:
+
+- Systematic workflow
+- Quality gates
+- Proper error handling
+- Documentation
+
+## Related
+
+- Skills: `.claude/skills/design/SKILL.md`
+- Agents: `.claude/agents/planner.md`
