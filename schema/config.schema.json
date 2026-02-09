@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SDP Project Config",
+  "description": "Project-level SDP settings (.sdp/config.yml)",
+  "type": "object",
+  "required": ["version"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "acceptance": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string" },
+        "timeout": { "type": "string" },
+        "expected": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "log_path": { "type": "string" }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "properties": {
+        "coverage_threshold": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "max_file_loc": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

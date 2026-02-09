@@ -202,8 +202,8 @@ func TestRunWithOptions(t *testing.T) {
 		t.Error("Expected results slice, got nil")
 	}
 
-	// Should have 5 checks (no drift check)
-	expectedChecks := 5
+	// Should have 6 checks (no drift: Git, Claude, Go, .claude/, permissions, .sdp/config.yml)
+	expectedChecks := 6
 	if len(results) != expectedChecks {
 		t.Errorf("Expected %d checks without drift, got %d", expectedChecks, len(results))
 	}
@@ -245,8 +245,8 @@ func TestRunWithOptions_WithDrift(t *testing.T) {
 		t.Error("Expected results slice, got nil")
 	}
 
-	// Should have 6 checks (5 standard + drift)
-	expectedChecks := 6
+	// Should have 7 checks (6 standard + drift)
+	expectedChecks := 7
 	if len(results) != expectedChecks {
 		t.Errorf("Expected %d checks with drift, got %d", expectedChecks, len(results))
 	}
