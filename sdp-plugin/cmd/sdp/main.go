@@ -110,6 +110,8 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(prdCmd())
 	rootCmd.AddCommand(skillCmd())
 	rootCmd.AddCommand(parseCmd())
+	rootCmd.AddCommand(designCmd())
+	rootCmd.AddCommand(ideaCmd())
 	rootCmd.AddCommand(prototypeCmd())
 	rootCmd.AddCommand(beadsCmd())
 	rootCmd.AddCommand(tddCmd())
