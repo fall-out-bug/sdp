@@ -53,7 +53,7 @@ Multi-agent synthesis:
 	synthesizeCmd.Flags().StringVar(&outputPath, "output", "", "Output contract path")
 
 	// Mark flag as required (ignore error - programming error if this fails)
-	_ = synthesizeCmd.MarkFlagRequired("feature")
+	_ = synthesizeCmd.MarkFlagRequired("feature") //nolint:errcheck
 
 	cmd.AddCommand(synthesizeCmd)
 
