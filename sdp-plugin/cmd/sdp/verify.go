@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/verify"
 	"github.com/spf13/cobra"
@@ -78,6 +79,21 @@ Usage:
 				for _, cmd := range result.FailedCommands {
 					fmt.Printf("  - %s\n", cmd)
 				}
+			}
+
+			// AC7: Run acceptance test gate after quality gates
+			root, _ := config.FindProjectRoot()
+			acceptPassed, acceptSkipped, acceptErr := runAcceptanceFromConfig(root)
+			if acceptErr != nil {
+				fmt.Printf("\n⚠️  Acceptance: error — %v\n", acceptErr)
+				result.Passed = false
+			} else if acceptSkipped {
+				fmt.Println("\nAcceptance: skipped (no config)")
+			} else if acceptPassed {
+				fmt.Println("\nAcceptance: PASS")
+			} else {
+				fmt.Println("\nAcceptance: FAIL")
+				result.Passed = false
 			}
 
 			// Exit with error code if failed
