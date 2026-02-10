@@ -281,12 +281,8 @@ runs:
             GENERATION_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'generation:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
             VERIFICATION_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'verification:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
 
-            COMMENT_BODY="${COMMENT_BODY}| Metric | Count |
-|---------|-------|
-| Total Events | ${TOTAL_EVENTS} |
-| Plan Events | ${PLAN_EVENTS} |
-| Generation Events | ${GENERATION_EVENTS} |
-| Verification Events | ${VERIFICATION_EVENTS} |"
+            # Build table using printf to avoid YAML pipe issues
+            COMMENT_BODY="$COMMENT_BODY$(printf '\n| Metric | Count |\n|---------|-------|\n| Total Events | %s |\n| Plan Events | %s |\n| Generation Events | %s |\n| Verification Events | %s |' "$TOTAL_EVENTS" "$PLAN_EVENTS" "$GENERATION_EVENTS" "$VERIFICATION_EVENTS")"
           else
             COMMENT_BODY="${COMMENT_BODY}_Unable to retrieve evidence statistics_"
           fi

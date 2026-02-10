@@ -106,12 +106,12 @@ test_readme_exists() {
 
 # Test 18: Verify action has curl download
 test_has_curl_download() {
-    grep -q "curl -fsSL" .github/actions/verify/action.yml
+    grep -q "curl -fsSL" .github/actions/verify/scripts/download-sdp.sh
 }
 
 # Test 19: Verify action has chmod +x
 test_has_chmod() {
-    grep -q "chmod +x" .github/actions/verify/action.yml
+    grep -q "chmod +x" .github/actions/verify/scripts/download-sdp.sh
 }
 
 # Test 20: Verify comment step checks PR context
