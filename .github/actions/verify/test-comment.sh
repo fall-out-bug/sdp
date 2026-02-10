@@ -55,8 +55,8 @@ test_required_outputs() {
     local content
     content=$(cat .github/actions/verify/action.yml)
     echo "$content" | grep -q "result:" && \
-    echo "$content" | grep -q "gates-passed:" && \
-    echo "$content" | grep -q "gates-failed:"
+    echo "$content" | grep -q "gates_passed:" && \
+    echo "$content" | grep -q "gates_failed:"
 }
 
 # Test 9: Verify action uses composite
