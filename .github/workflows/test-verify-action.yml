@@ -48,6 +48,8 @@ jobs:
 
       - name: Build SDP CLI locally (for testing)
         run: |
+          # Build from main repository (not worktree)
+          cd ../sdp
           go build -o /tmp/sdp ./cmd/sdp
           sudo mv /tmp/sdp /usr/local/bin/sdp
           sdp version || echo "Version command not available"
