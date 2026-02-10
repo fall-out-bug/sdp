@@ -71,7 +71,7 @@ USED_FALLBACK=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
   if [ $RETRY_COUNT -gt 0 ]; then
-    echo "Retry $RETRY_COUNT/$MAX_RETRIES..."
+    echo "Retry $RETRY_COUNT/$MAX_RETRIES..." >&2
     sleep 2  # Backoff before retry
   fi
 
@@ -104,7 +104,7 @@ if [ "$USED_FALLBACK" = true ]; then
   echo "⚠️  Using local fallback, skipping checksum verification" >&2
 else
   CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
-  echo "Downloading checksum: $CHECKSUM_URL"
+  echo "Downloading checksum: $CHECKSUM_URL" >&2
 
   if curl -fsSL --retry 2 "$CHECKSUM_URL" -o "$OUTPUT_DIR/sdp.sha256" 2>/dev/null; then
     echo "✅ Checksum downloaded" >&2
