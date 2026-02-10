@@ -91,8 +91,9 @@ runs:
         # Convert comma-separated gates to array
         IFS=',' read -ra GATE_ARRAY <<< "$GATES"
 
-        PASSED=0
-        FAILED=0
+        # Declare as global so run_gate can modify them
+        declare -g PASSED=0
+        declare -g FAILED=0
         RESULTS=()
 
         # Helper function to run a gate and capture exit code
@@ -108,11 +109,11 @@ runs:
 
           if [ "$rc" -eq 0 ]; then
             echo "✅ ${gate_name} passed"
-            PASSED=$((PASSED + 1))
+            declare -g PASSED=$((PASSED + 1))
             RESULTS+=("${gate_name}: PASS")
           else
             echo "❌ ${gate_name} failed (exit ${rc})"
-            FAILED=$((FAILED + 1))
+            declare -g FAILED=$((FAILED + 1))
             RESULTS+=("${gate_name}: FAIL")
           fi
         }
