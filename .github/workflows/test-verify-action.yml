@@ -145,6 +145,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Clone main repository (for SDP CLI source)
+        uses: actions/checkout@v4
+        with:
+          repository: fall-out-bug/sdp
+          ref: dev
+          path: main-repo
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build SDP CLI locally (for testing)
+        run: |
+          cd "$GITHUB_WORKSPACE/main-repo/sdp-plugin" && go build -o /tmp/sdp ./cmd/sdp
+          sudo mv /tmp/sdp /usr/local/bin/sdp
+          sdp version || echo "Version command not available"
+
       - name: Test empty gates input
         id: test-empty
         continue-on-error: true
@@ -172,6 +190,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Clone main repository (for SDP CLI source)
+        uses: actions/checkout@v4
+        with:
+          repository: fall-out-bug/sdp
+          ref: dev
+          path: main-repo
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build SDP CLI locally (for testing)
+        run: |
+          cd "$GITHUB_WORKSPACE/main-repo/sdp-plugin" && go build -o /tmp/sdp ./cmd/sdp
+          sudo mv /tmp/sdp /usr/local/bin/sdp
+          sdp version || echo "Version command not available"
 
       - name: Run action
         id: verify
