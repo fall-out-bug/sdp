@@ -207,6 +207,12 @@ runs:
           exit 0
         fi
 
+        # Check if GITHUB_TOKEN is available
+        if [ -z "${{ github.token }}" ]; then
+          echo "⊘ GITHUB_TOKEN not available, skipping comment"
+          exit 0
+        fi
+
         # Get PR number
         PR_NUMBER="${{ github.event.pull_request.number }}"
         if [ -z "$PR_NUMBER" ]; then
