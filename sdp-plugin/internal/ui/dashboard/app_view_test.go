@@ -71,8 +71,8 @@ func TestApp_Update_TabSelectMsg(t *testing.T) {
 	app := New()
 
 	tests := []struct {
-		name      string
-		tabMsg    TabSelectMsg
+		name        string
+		tabMsg      TabSelectMsg
 		expectedTab int
 	}{
 		{"Workstreams tab", TabSelectMsg(TabWorkstreams), 0},
@@ -310,8 +310,8 @@ func TestApp_renderTabs(t *testing.T) {
 
 	// Test each tab
 	tabs := []struct {
-		tabIndex  int
-		tabName   string
+		tabIndex int
+		tabName  string
 	}{
 		{0, "Workstreams"},
 		{1, "Ideas"},
