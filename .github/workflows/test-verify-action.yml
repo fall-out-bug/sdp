@@ -41,6 +41,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build SDP CLI locally (for testing)
+        run: |
+          go build -o /tmp/sdp ./cmd/sdp
+          sudo mv /tmp/sdp /usr/local/bin/sdp
+          sdp version || echo "Version command not available"
+
       - name: Test action with default inputs
         id: test-default
         uses: ./.github/actions/verify
