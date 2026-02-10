@@ -1,0 +1,1 @@
+{"timestamp":"2026-02-09T23:42:47.731763+03:00","type":"explicit","feature_id":"","question":"How to handle auth?","decision":"JWT with refresh tokens","rationale":"Stateless, scales horizontally","alternatives":["Sessions","OAuth2 only"],"outcome":"","decision_maker":"user","tags":["security","architecture"]}

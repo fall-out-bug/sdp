@@ -1,3 +1,8 @@
+---
+name: reality-check
+description: Quick documentation vs code reality validation.
+---
+
 # Reality Check
 
 Quick validation that documentation matches actual code before making changes.

@@ -1,3 +1,8 @@
+---
+name: verify-workstream
+description: Validate workstream documentation against codebase reality.
+---
+
 # Verify Workstream
 
 Before executing any workstream, validate that the documentation matches the actual codebase reality.

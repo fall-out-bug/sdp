@@ -84,8 +84,8 @@ if [ "$RED_FLAG_FOUND" -eq 1 ]; then
     echo "   Example:" >&2
     echo "   ❌ 'Tests should pass'" >&2
     echo "   ✅ '```bash" >&2
-    echo "      $ pytest tests/unit/test_service.py -v" >&2
-    echo "      ===== 15 passed in 0.5s =====" >&2
+    echo "      $ go test ./... -short" >&2
+    echo "      ok  	...	0.5s" >&2
     echo "      ```'" >&2
     exit 1
 fi
@@ -155,8 +155,8 @@ if [ "$EVIDENCE_FOUND" -eq 0 ]; then
     echo "" >&2
     echo "   Required format:" >&2
     echo "   ```bash" >&2
-    echo "   $ pytest tests/unit/test_service.py -v" >&2
-    echo "   ===== 15 passed in 0.5s =====" >&2
+    echo "   $ go test ./... -short" >&2
+    echo "   ok  	...	0.5s" >&2
     echo "   ```" >&2
     echo "" >&2
     echo "   Not just commands, but actual output showing results" >&2

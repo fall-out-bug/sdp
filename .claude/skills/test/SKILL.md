@@ -1,3 +1,8 @@
+---
+name: test
+description: Contract test generation and validation workflow.
+---
+
 # @test - Contract Test Generation
 
 Generate and validate contract tests that define the interface between components.
