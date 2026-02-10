@@ -24,11 +24,5 @@ if [[ "$WORKING_DIR" == *".."* ]]; then
   exit 1
 fi
 
-# Check for null bytes
-if [[ "$WORKING_DIR" == *$'\0'* ]]; then
-  echo "❌ Error: Invalid characters in working-directory" >&2
-  exit 1
-fi
-
 echo "✅ Working directory validated: $WORKING_DIR"
 exit 0
