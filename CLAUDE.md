@@ -212,6 +212,76 @@ hooks/post-build.sh 00-001-01    # Post-build check
 
 ---
 
+## CLI Reference
+
+The SDP CLI provides terminal commands for planning, executing, and tracking workstreams.
+
+### Core Commands
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `sdp plan` | Decompose feature into workstreams | `sdp plan "Add OAuth2"` |
+| `sdp apply` | Execute workstreams from terminal | `sdp apply --ws 00-054-01` |
+| `sdp log show` | Show recent events with filters | `sdp log show --ws 00-054-01` |
+| `sdp log trace` | Trace evidence chain | `sdp log trace --ws 00-054-01 --verify` |
+| `sdp log export` | Export events as CSV/JSON | `sdp log export --format=json` |
+| `sdp log stats` | Show event statistics | `sdp log stats` |
+
+### Plan Modes
+
+- **Drive mode** (default): Shows plan, waits for confirmation
+- **Interactive**: `--interactive` - Ask questions to refine requirements
+- **Ship mode**: `--auto-apply` - Plan then execute immediately
+- **Dry run**: `--dry-run` - Preview without writing files
+- **JSON output**: `--output=json` - Machine-readable format
+
+### Apply Options
+
+- **All workstreams**: `sdp apply` - Execute all ready (no blockers)
+- **Specific workstream**: `sdp apply --ws 00-054-01` - Execute one
+- **Retry**: `sdp apply --retry 3` - Retry failed up to N times
+- **Dry run**: `sdp apply --dry-run` - Show execution plan
+- **JSON**: `sdp apply --output=json` - Machine-readable progress
+
+### Log Filters
+
+- **By type**: `--type generation` - Filter event type
+- **By model**: `--model claude-sonnet-4` - Filter model ID
+- **By date**: `--since 2026-02-01T00:00:00Z` - Filter by ISO date
+- **By workstream**: `--ws 00-054-01` - Filter by workstream ID
+- **Pagination**: `--page 2` - Paginate (20 per page)
+
+### Evidence Trace
+
+- **All events**: `sdp log trace`
+- **By commit**: `sdp log trace abc123def`
+- **By workstream**: `sdp log trace --ws 00-054-01`
+- **Verify chain**: `sdp log trace --verify` - Check hash chain integrity
+- **JSON output**: `sdp log trace --json` - Machine-readable format
+
+### Environment
+
+Set `MODEL_API` to enable automated planning:
+
+```bash
+export MODEL_API="anthropic:claude-sonnet-4-20250514"
+```
+
+Or configure in `.sdp/config.json`:
+
+```json
+{
+  "version": "0.9.0",
+  "model_api": "anthropic:claude-sonnet-4-20250514",
+  "evidence": {
+    "enabled": true,
+    "log_path": ".sdp/log/events.jsonl"
+  }
+}
+```
+
+---
+
 ## Evidence Layer
 
 Build and verify flows emit events to `.sdp/log/events.jsonl` (hash-chained). Use:

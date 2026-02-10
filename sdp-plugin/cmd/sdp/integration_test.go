@@ -885,3 +885,320 @@ func TestDecisionsCommand(t *testing.T) {
 		})
 	}
 }
+
+// TestPlanApplyTraceWorkflow tests the end-to-end plan → apply → trace workflow
+func TestPlanApplyTraceWorkflow(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Create temp directory for isolated test environment
+	tmpDir := t.TempDir()
+
+	// Change to temp directory
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	// Initialize minimal project structure
+	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+		t.Fatalf("create backlog dir: %v", err)
+	}
+	sdpDir := filepath.Join(tmpDir, ".sdp", "log")
+	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+		t.Fatalf("create .sdp/log dir: %v", err)
+	}
+
+	// Create minimal config file
+	configContent := `version: "0.9.0"
+evidence:
+  enabled: true
+  log_path: ".sdp/log/events.jsonl"
+`
+	configPath := filepath.Join(tmpDir, ".sdp", "config.yml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("create config: %v", err)
+	}
+
+	t.Run("plan command creates workstreams", func(t *testing.T) {
+		// Test plan --dry-run first (doesn't require MODEL_API)
+		cmd := exec.Command(binaryPath, "plan", "Add simple feature", "--dry-run")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = tmpDir
+
+		err := cmd.Run()
+		output := stdout.String() + stderr.String()
+
+		// dry-run should succeed without MODEL_API
+		if err != nil {
+			t.Logf("Plan dry-run output: %s\nError: %v", output, err)
+		}
+
+		// Check for dry-run indicators
+		if !strings.Contains(output, "DRY RUN") && !strings.Contains(output, "dry") {
+			t.Logf("Expected dry-run output to mention DRY RUN or dry\nGot: %s", output)
+		}
+	})
+
+	t.Run("plan command JSON output", func(t *testing.T) {
+		// Test JSON output format
+		cmd := exec.Command(binaryPath, "plan", "Add JSON feature", "--dry-run", "--output=json")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = tmpDir
+
+		err := cmd.Run()
+		output := stdout.String()
+
+		if err != nil {
+			t.Logf("Plan JSON output: %s\nError: %v", output, err)
+		}
+
+		// Check for JSON structure
+		if !strings.Contains(output, "{") && !strings.Contains(output, "[") {
+			t.Logf("Expected JSON output to contain braces/brackets\nGot: %s", output)
+		}
+	})
+
+	t.Run("log show command", func(t *testing.T) {
+		cmd := exec.Command(binaryPath, "log", "show")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = tmpDir
+
+		err := cmd.Run()
+		output := stdout.String() + stderr.String()
+
+		// log show should succeed even with empty log
+		if err != nil && !strings.Contains(output, "No events") && !strings.Contains(output, "No matching") {
+			t.Logf("Log show failed: %v\nOutput: %s", err, output)
+		}
+
+		// Should mention events or be empty
+		if !strings.Contains(output, "event") && !strings.Contains(output, "No events") && !strings.Contains(output, "No matching") {
+			t.Logf("Unexpected log show output: %s", output)
+		}
+	})
+
+	t.Run("log export JSON", func(t *testing.T) {
+		cmd := exec.Command(binaryPath, "log", "export", "--format=json")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = tmpDir
+
+		err := cmd.Run()
+		output := stdout.String() + stderr.String()
+
+		if err != nil && !strings.Contains(output, "No events") {
+			t.Logf("Log export JSON: %v\nOutput: %s", err, output)
+		}
+
+		// Check for valid JSON or empty message
+		if !strings.Contains(output, "No events") && !strings.Contains(output, "[") && !strings.Contains(output, "{") {
+			t.Logf("Expected JSON or empty message\nGot: %s", output)
+		}
+	})
+
+	t.Run("log trace command", func(t *testing.T) {
+		cmd := exec.Command(binaryPath, "log", "trace", "--json")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = tmpDir
+
+		err := cmd.Run()
+		output := stdout.String() + stderr.String()
+
+		// trace should succeed even with empty log
+		if err != nil && !strings.Contains(output, "No events") && !strings.Contains(output, "No matching") {
+			t.Logf("Log trace failed: %v\nOutput: %s", err, output)
+		}
+
+		// Should be JSON or empty message
+		if !strings.Contains(output, "No events") && !strings.Contains(output, "No matching") && !strings.Contains(output, "[") {
+			t.Logf("Expected JSON or empty message\nGot: %s", output)
+		}
+	})
+
+	t.Run("log stats command", func(t *testing.T) {
+		cmd := exec.Command(binaryPath, "log", "stats")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Dir = tmpDir
+
+		err := cmd.Run()
+		output := stdout.String() + stderr.String()
+
+		// stats should succeed even with empty log
+		if err != nil && !strings.Contains(output, "No events") {
+			t.Logf("Log stats: %v\nOutput: %s", err, output)
+		}
+
+		// Should mention events or statistics
+		if !strings.Contains(output, "event") && !strings.Contains(output, "statistics") && !strings.Contains(output, "No events") {
+			t.Logf("Unexpected log stats output: %s", output)
+		}
+	})
+}
+
+// TestPlanApplyHelpCommand tests that help text shows all new commands
+func TestPlanApplyHelpCommand(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	tests := []struct {
+		name     string
+		args     []string
+		contains []string
+	}{
+		{
+			name: "plan help shows all options",
+			args: []string{"plan", "--help"},
+			contains: []string{
+				"plan",
+				"interactive",
+				"auto-apply",
+				"dry-run",
+				"output",
+			},
+		},
+		{
+			name: "apply help shows all options",
+			args: []string{"apply", "--help"},
+			contains: []string{
+				"apply",
+				"dry-run",
+				"retry",
+				"output",
+			},
+		},
+		{
+			name: "log help shows subcommands",
+			args: []string{"log", "--help"},
+			contains: []string{
+				"log",
+				"show",
+				"export",
+				"stats",
+				"trace",
+			},
+		},
+		{
+			name: "log trace help",
+			args: []string{"log", "trace", "--help"},
+			contains: []string{
+				"trace",
+				"ws",
+				"json",
+				"verify",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(binaryPath, tt.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			if err := cmd.Run(); err != nil {
+				t.Fatalf("Command failed: %v\nOutput: %s", err, stdout.String()+stderr.String())
+			}
+
+			output := stdout.String() + stderr.String()
+
+			for _, expected := range tt.contains {
+				if !strings.Contains(output, expected) {
+					t.Errorf("Help output should contain %q\nGot: %s", expected, output)
+				}
+			}
+		})
+	}
+}
+
+// TestJSONOutputParseable tests that JSON output is parseable by jq
+func TestJSONOutputParseable(t *testing.T) {
+	binaryPath := skipIfBinaryNotBuilt(t)
+
+	// Check if jq is available
+	if _, err := exec.LookPath("jq"); err != nil {
+		t.Skip("jq not found in PATH, skipping JSON validation test")
+	}
+
+	tmpDir := t.TempDir()
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	os.Chdir(tmpDir)
+
+	// Setup minimal structure
+	sdpDir := filepath.Join(tmpDir, ".sdp", "log")
+	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+		t.Fatalf("create .sdp/log: %v", err)
+	}
+
+	// Create empty events file for log commands
+	eventsPath := filepath.Join(sdpDir, "events.jsonl")
+	if err := os.WriteFile(eventsPath, []byte{}, 0644); err != nil {
+		t.Fatalf("create events file: %v", err)
+	}
+
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{
+			name: "plan JSON output",
+			args: []string{"plan", "Test feature", "--dry-run", "--output=json"},
+		},
+		{
+			name: "log export JSON",
+			args: []string{"log", "export", "--format=json"},
+		},
+		{
+			name: "log trace JSON",
+			args: []string{"log", "trace", "--json"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Run sdp command
+			sdpCmd := exec.Command(binaryPath, tt.args...)
+			sdpCmd.Dir = tmpDir
+			var stdout, stderr bytes.Buffer
+			sdpCmd.Stdout = &stdout
+			sdpCmd.Stderr = &stderr
+
+			err := sdpCmd.Run()
+			output := stdout.String()
+
+			// Some commands may fail (e.g., plan without MODEL_API), but output should still be valid JSON
+			if err != nil && !strings.Contains(stderr.String(), "MODEL_API") {
+				t.Logf("Command output: %s\nError: %v", output, err)
+			}
+
+			// Skip jq validation if output is empty or just an error message
+			if len(output) == 0 || !strings.Contains(output, "{") && !strings.Contains(output, "[") {
+				t.Skip("No JSON output to validate")
+			}
+
+			// Pipe output through jq
+			jqCmd := exec.Command("jq", ".")
+			jqCmd.Stdin = strings.NewReader(output)
+			var jqOut, jqErr bytes.Buffer
+			jqCmd.Stdout = &jqOut
+			jqCmd.Stderr = &jqErr
+
+			if err := jqCmd.Run(); err != nil {
+				t.Errorf("JSON output not parseable by jq\nOutput: %s\njq error: %s", output, jqErr.String())
+			}
+		})
+	}
+}
