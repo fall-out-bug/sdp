@@ -56,7 +56,7 @@ jobs:
       - name: Build SDP CLI locally (for testing)
         run: |
           # Build from cloned main repository
-          cd "$GITHUB_WORKSPACE/main-repo" && go build -o /tmp/sdp ./cmd/sdp
+          cd "$GITHUB_WORKSPACE/main-repo" && go build -o /tmp/sdp ./sdp-plugin/cmd/sdp
           sudo mv /tmp/sdp /usr/local/bin/sdp
           sdp version || echo "Version command not available"
 
