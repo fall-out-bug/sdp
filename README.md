@@ -117,6 +117,130 @@ bd --version
 
 ---
 
+## CLI Quick Start
+
+The SDP CLI provides terminal commands for planning, executing, and tracking workstreams.
+
+### Basic Workflow
+
+```bash
+# 1. Plan a feature (decompose into workstreams)
+sdp plan "Add OAuth2 authentication"
+
+# 2. See what would be created (dry-run)
+sdp plan "Add OAuth2" --dry-run
+
+# 3. Get machine-readable output
+sdp plan "Add OAuth2" --output=json | jq .
+
+# 4. Execute all ready workstreams
+sdp apply
+
+# 5. Execute specific workstream
+sdp apply --ws 00-054-01
+
+# 6. Trace evidence chain
+sdp log trace
+sdp log trace --ws 00-054-01
+
+# 7. Export events for analysis
+sdp log export --format=json | jq .
+sdp log export --format=csv > events.csv
+
+# 8. Show event statistics
+sdp log stats
+```
+
+### Plan Modes
+
+- **Drive mode** (default): `sdp plan "Add feature"` - Shows plan, waits for confirmation
+- **Interactive mode**: `sdp plan "Add feature" --interactive` - Ask questions to refine
+- **Ship mode**: `sdp plan "Add feature" --auto-apply` - Plan then execute immediately
+- **Dry run**: `sdp plan "Add feature" --dry-run` - Preview without writing files
+
+### Apply Options
+
+- **Execute all**: `sdp apply` - Run all workstreams (no unresolved blockers)
+- **Execute one**: `sdp apply --ws 00-054-01` - Run specific workstream
+- **With retry**: `sdp apply --retry 3` - Retry failed workstreams up to N times
+- **Dry run**: `sdp apply --dry-run` - Show execution plan without running
+- **JSON output**: `sdp apply --output=json` - Machine-readable progress events
+
+### Log Commands
+
+```bash
+# Show recent events (last 20, paginated)
+sdp log show
+sdp log show --page 2
+
+# Filter by type, model, date, workstream
+sdp log show --type generation
+sdp log show --model claude-sonnet-4
+sdp log show --since 2026-02-01T00:00:00Z
+sdp log show --ws 00-054-01
+
+# Export events
+sdp log export --format=json
+sdp log export --format=csv
+
+# Trace evidence chain
+sdp log trace                          # All events
+sdp log trace abc123def                # By commit SHA
+sdp log trace --ws 00-054-01           # By workstream
+sdp log trace --ws 00-054-01 --verify  # With chain integrity check
+
+# Statistics
+sdp log stats                          # Summary by type, model, date
+```
+
+### JSON Output
+
+All commands support JSON output for scripting and CI/CD integration:
+
+```bash
+# Plan output
+sdp plan "Add feature" --output=json | jq '.workstreams[] | .id'
+
+# Apply progress
+sdp apply --output=json | jq '.workstreams[] | select(.status == "failed")'
+
+# Log export
+sdp log export --format=json | jq '.events[] | select(.type == "generation")'
+
+# Trace output
+sdp log trace --json | jq '.events | length'
+```
+
+### Environment Configuration
+
+Set `MODEL_API` to enable automated planning:
+
+```bash
+# OpenAI API
+export MODEL_API="openai:gpt-4"
+
+# Anthropic API
+export MODEL_API="anthropic:claude-sonnet-4-20250514"
+
+# Custom endpoint
+export MODEL_API="http://localhost:11434/v1:llama3"
+```
+
+Or configure in `.sdp/config.json`:
+
+```json
+{
+  "version": "0.9.0",
+  "model_api": "anthropic:claude-sonnet-4-20250514",
+  "evidence": {
+    "enabled": true,
+    "log_path": ".sdp/log/events.jsonl"
+  }
+}
+```
+
+---
+
 ## Commands
 
 | Command | Purpose | Example |
@@ -138,6 +262,12 @@ bd --version
 |---------|---------|
 | `sdp doctor` | Health check (dependencies, hooks, config) |
 | `sdp status` | Show active workstream and project state |
+| `sdp plan "Add feature"` | Decompose feature into workstreams |
+| `sdp apply` | Execute workstreams from terminal |
+| `sdp log show` | Show recent events with filters |
+| `sdp log trace` | Trace evidence chain by commit/workstream |
+| `sdp log export` | Export events as CSV/JSON |
+| `sdp log stats` | Show event statistics |
 | `sdp guard activate 00-001-01` | Enforce edit scope to a workstream |
 | `sdp init` | Initialize SDP in a new project |
 | `sdp parse` | Parse and validate workstream files |
