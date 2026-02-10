@@ -7,29 +7,29 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 0
 
 echo "Running session quality checks..."
 
-# Quick regression check (only if tests exist and poetry is available)
-if [ -d "tests/unit" ] && command -v poetry &> /dev/null; then
+# Quick Go build and test if sdp-plugin exists
+if [ -d "sdp-plugin" ]; then
     echo ""
-    echo "=== Quick Regression Check ==="
-    poetry run pytest tests/unit/ -m fast -q --tb=no 2>/dev/null && {
-        echo "Fast tests: PASSED"
+    echo "=== Quick Build & Test ==="
+    (cd sdp-plugin && go build ./... && go test ./... -short -count=1) 2>/dev/null && {
+        echo "Go build and tests: PASSED"
     } || {
-        echo "WARNING: Some fast tests may be failing"
+        echo "WARNING: Go build or tests may be failing"
     }
 fi
 
-# Check for uncommitted TODO/FIXME in staged files
+# Check for TODO/FIXME in staged files
 if git rev-parse --git-dir > /dev/null 2>&1; then
     echo ""
     echo "=== Staged Files Check ==="
-    STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep "\.py$" || true)
-    if [ -n "$STAGED_PY" ]; then
-        TODO_IN_STAGED=$(echo "$STAGED_PY" | xargs grep -l "TODO\|FIXME" 2>/dev/null || true)
+    STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(go|py|ts|tsx|js)$" || true)
+    if [ -n "$STAGED" ]; then
+        TODO_IN_STAGED=$(echo "$STAGED" | xargs grep -l "TODO\|FIXME" 2>/dev/null || true)
         if [ -n "$TODO_IN_STAGED" ]; then
             echo "WARNING: TODO/FIXME found in staged files:"
             echo "$TODO_IN_STAGED"
         else
-            echo "No TODO/FIXME in staged Python files"
+            echo "No TODO/FIXME in staged files"
         fi
     fi
 fi

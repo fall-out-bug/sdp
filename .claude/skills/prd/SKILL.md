@@ -1,3 +1,8 @@
+---
+name: prd
+description: PRD generation and maintenance workflow.
+---
+
 # @prd — PRD Generation Skill
 
 Generate and maintain PROJECT_MAP.md PRD documents with automatic diagram generation.

@@ -1,3 +1,8 @@
+---
+name: beads
+description: Beads task tracker integration for SDP workflows.
+---
+
 # Beads Integration
 
 Unified interface for working with Beads task tracker from SDP workflows.

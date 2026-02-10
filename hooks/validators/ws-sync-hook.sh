@@ -39,12 +39,14 @@ if [[ ! "$FILE_PATH" =~ ^/ ]]; then
     FILE_PATH="$WORKSPACE_ROOT/$FILE_PATH"
 fi
 
-# Run sync (non-blocking - errors logged but don't fail)
+# Run sync if sdp CLI has sync command; otherwise skip
 cd "$SDP_DIR"
-if poetry run sdp-github sync-ws "$FILE_PATH" 2>&1; then
+if command -v sdp &>/dev/null && sdp sync-ws "$FILE_PATH" 2>/dev/null; then
     echo "GitHub sync complete"
+elif command -v sdp &>/dev/null; then
+    echo "Skipping GitHub sync (sdp sync-ws not available)"
 else
-    echo "Warning: GitHub sync failed (non-blocking)"
+    echo "Skipping GitHub sync (sdp not in PATH)"
 fi
 
 exit 0

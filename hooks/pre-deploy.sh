@@ -1,6 +1,5 @@
 #!/bin/bash
-# Pre-deploy hook: E2E tests before deployment
-# Extracted to Python: src/sdp/hooks/pre_deploy.py
+# Pre-deploy hook: build, test, and contract validation before deployment
 # Usage: ./pre-deploy.sh F{XX} [staging|prod]
 
 set -e
@@ -8,10 +7,15 @@ set -e
 REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
-# Run Python pre-deploy checks
-poetry run python -m sdp.hooks.pre_deploy "$@"
+# Go build and test
+if [ -d "sdp-plugin" ]; then
+    cd sdp-plugin
+    go build ./...
+    go test ./... -count=1 -short
+    cd "$REPO_ROOT"
+fi
 
-# Contract validation (Step 6: after Python checks)
+# Contract validation
 echo ""
 echo "=== 6. Contract Validation ==="
 
@@ -21,13 +25,20 @@ if [ -d ".contracts" ] && [ "$(ls -A .contracts/*.yaml 2>/dev/null | wc -l)" -gt
     if [ "$CONTRACT_COUNT" -lt 2 ]; then
         echo "  Skipped (need at least 2 contracts, found $CONTRACT_COUNT)"
     else
-        # Build SDP CLI if not already built
+        # Build SDP CLI if not already built (from sdp-plugin in this repo)
         if [ ! -f "./sdp" ]; then
             echo "  Building SDP CLI..."
-            go build -o sdp ./cmd/sdp || {
-                echo "⚠️ Failed to build SDP CLI, skipping contract validation"
-                exit 0
-            }
+            if [ -d "sdp-plugin" ]; then
+                (cd sdp-plugin && go build -o ../sdp ./cmd/sdp) || {
+                    echo "⚠️ Failed to build SDP CLI, skipping contract validation"
+                    exit 0
+                }
+            else
+                go build -o sdp ./cmd/sdp || {
+                    echo "⚠️ Failed to build SDP CLI, skipping contract validation"
+                    exit 0
+                }
+            fi
         fi
 
         # Run contract validation
