@@ -20,8 +20,8 @@ func TestPlanExecution_AC5(t *testing.T) {
 	}
 
 	p := &Planner{
-		BacklogDir:  filepath.Join(tempDir, "backlog"),
-		Description: "Add OAuth2",
+		BacklogDir:     filepath.Join(tempDir, "backlog"),
+		Description:    "Add OAuth2",
 		EvidenceWriter: writer,
 	}
 
@@ -60,8 +60,8 @@ func TestEmitPlanEvent_NoWriter(t *testing.T) {
 	os.MkdirAll(backlogDir, 0755)
 
 	p := &Planner{
-		BacklogDir:  backlogDir,
-		Description: "Add OAuth2",
+		BacklogDir:     backlogDir,
+		Description:    "Add OAuth2",
 		EvidenceWriter: nil,
 	}
 

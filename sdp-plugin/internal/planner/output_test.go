@@ -15,8 +15,8 @@ func TestPlanExecution_AC6(t *testing.T) {
 	os.MkdirAll(backlogDir, 0755)
 
 	p := &Planner{
-		BacklogDir:  backlogDir,
-		Description: "Add OAuth2",
+		BacklogDir:   backlogDir,
+		Description:  "Add OAuth2",
 		OutputFormat: "json",
 	}
 
@@ -58,8 +58,8 @@ func TestFormatHumanOutput(t *testing.T) {
 	os.MkdirAll(backlogDir, 0755)
 
 	p := &Planner{
-		BacklogDir:  backlogDir,
-		Description: "Add OAuth2",
+		BacklogDir:   backlogDir,
+		Description:  "Add OAuth2",
 		OutputFormat: "human",
 	}
 
@@ -90,8 +90,8 @@ func TestFormatOutput_UnsupportedFormat(t *testing.T) {
 	os.MkdirAll(backlogDir, 0755)
 
 	p := &Planner{
-		BacklogDir:  backlogDir,
-		Description: "Add OAuth2",
+		BacklogDir:   backlogDir,
+		Description:  "Add OAuth2",
 		OutputFormat: "yaml",
 	}
 

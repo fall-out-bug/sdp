@@ -23,24 +23,24 @@ type ExecuteOptions struct {
 
 // ExecutionResult holds the result of an execution
 type ExecutionResult struct {
-	TotalWorkstreams int               `json:"total_workstreams"`
-	Executed         int               `json:"executed"`
-	Succeeded        int               `json:"succeeded"`
-	Failed           int               `json:"failed"`
-	Skipped          int               `json:"skipped"`
-	Retries          int               `json:"retries"`
-	Duration         time.Duration     `json:"duration"`
-	EvidenceEvents   []EvidenceEvent   `json:"evidence_events"`
+	TotalWorkstreams int             `json:"total_workstreams"`
+	Executed         int             `json:"executed"`
+	Succeeded        int             `json:"succeeded"`
+	Failed           int             `json:"failed"`
+	Skipped          int             `json:"skipped"`
+	Retries          int             `json:"retries"`
+	Duration         time.Duration   `json:"duration"`
+	EvidenceEvents   []EvidenceEvent `json:"evidence_events"`
 }
 
 // ExecutionSummary is a simplified summary for output
 type ExecutionSummary struct {
-	TotalWorkstreams int    `json:"total_workstreams"`
-	Executed         int    `json:"executed"`
-	Succeeded        int    `json:"succeeded"`
-	Failed           int    `json:"failed"`
-	Skipped          int    `json:"skipped"`
-	Retries          int    `json:"retries"`
+	TotalWorkstreams int     `json:"total_workstreams"`
+	Executed         int     `json:"executed"`
+	Succeeded        int     `json:"succeeded"`
+	Failed           int     `json:"failed"`
+	Skipped          int     `json:"skipped"`
+	Retries          int     `json:"retries"`
 	Duration         float64 `json:"duration_seconds"`
 }
 

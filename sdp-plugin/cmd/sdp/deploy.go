@@ -35,8 +35,10 @@ func deployCmd() *cobra.Command {
 				}
 			}
 			if who == "" {
-				out, _ := exec.Command("git", "config", "user.name").Output()
-				who = string(out)
+				out, err := exec.Command("git", "config", "user.name").Output()
+				if err == nil {
+					who = string(out)
+				}
 				if len(who) > 0 && who[len(who)-1] == '\n' {
 					who = who[:len(who)-1]
 				}

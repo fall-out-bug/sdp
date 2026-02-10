@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-// Execute runs workstreams according to the provided options
+// Execute runs workstreams according to the provided options.
+//
+//nolint:gocognit,gocyclo // orchestration with many branches by design
 func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOptions) (*ExecutionResult, error) {
 	startTime := time.Now()
 
@@ -18,21 +20,11 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 		EvidenceEvents: []EvidenceEvent{},
 	}
 
-	// Find workstreams to execute
 	var workstreams []string
 	var err error
-
 	if opts.SpecificWS != "" {
-		// Execute specific workstream
 		workstreams = []string{opts.SpecificWS}
-	} else if opts.All {
-		// Execute all ready workstreams
-		workstreams, err = e.findReadyWorkstreams()
-		if err != nil {
-			return nil, fmt.Errorf("find ready workstreams: %w", err)
-		}
 	} else {
-		// Default: all ready workstreams
 		workstreams, err = e.findReadyWorkstreams()
 		if err != nil {
 			return nil, fmt.Errorf("find ready workstreams: %w", err)
@@ -50,7 +42,9 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 	for _, wsID := range workstreams {
 		deps, err := e.ParseDependencies(wsID)
 		if err != nil {
-			fmt.Fprintf(output, "Warning: failed to parse dependencies for %s: %v\n", wsID, err)
+			if err := writeFmt(output, "Warning: failed to parse dependencies for %s: %v\n", wsID, err); err != nil {
+				return nil, fmt.Errorf("write: %w", err)
+			}
 			continue
 		}
 		dependencies[wsID] = deps
@@ -71,9 +65,10 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 		default:
 		}
 
-		// Show executing message (only in human mode)
 		if opts.Output != "json" {
-			fmt.Fprintf(output, "\nExecuting: %s\n", wsID)
+			if err := writeFmt(output, "\nExecuting: %s\n", wsID); err != nil {
+				return nil, fmt.Errorf("write: %w", err)
+			}
 		}
 
 		// Execute workstream with retry logic
@@ -83,14 +78,17 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 
 		if err != nil {
 			result.Failed++
-			fmt.Fprintln(output, e.progress.RenderError(wsID, err))
+			if err := writeLine(output, e.progress.RenderError(wsID, err)); err != nil {
+				return nil, fmt.Errorf("write: %w", err)
+			}
 		} else {
 			result.Succeeded++
 		}
 
-		// Show retry message if retries occurred
 		if retryCount > 0 && opts.Output != "json" {
-			fmt.Fprintf(output, "Retry: %s retried %d time(s)\n", wsID, retryCount)
+			if err := writeFmt(output, "Retry: %s retried %d time(s)\n", wsID, retryCount); err != nil {
+				return nil, fmt.Errorf("write: %w", err)
+			}
 		}
 
 		// Emit evidence events
@@ -110,8 +108,8 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 		Retries:          result.Retries,
 		Duration:         result.Duration.Seconds(),
 	}
-	fmt.Fprintln(output, e.progress.RenderSummary(summary))
-
+	if err := writeLine(output, e.progress.RenderSummary(summary)); err != nil {
+		return nil, fmt.Errorf("write: %w", err)
+	}
 	return result, nil
 }
-

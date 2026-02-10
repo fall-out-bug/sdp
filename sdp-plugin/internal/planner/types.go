@@ -9,24 +9,24 @@ import (
 
 // Planner decomposes feature descriptions into workstreams.
 type Planner struct {
-	BacklogDir    string           // Directory for workstream files
-	Description   string           // Feature description to decompose
-	Interactive   bool             // AC2: Interactive mode (ask questions)
-	AutoApply     bool             // AC3: Auto-apply mode (execute after plan)
-	DryRun        bool             // AC7: Show what would be created
-	OutputFormat  string           // AC6: Output format (human, json)
-	ModelAPI      string           // AC8: AI model API endpoint
-	Questions     []string         // Questions for interactive mode
+	BacklogDir     string           // Directory for workstream files
+	Description    string           // Feature description to decompose
+	Interactive    bool             // AC2: Interactive mode (ask questions)
+	AutoApply      bool             // AC3: Auto-apply mode (execute after plan)
+	DryRun         bool             // AC7: Show what would be created
+	OutputFormat   string           // AC6: Output format (human, json)
+	ModelAPI       string           // AC8: AI model API endpoint
+	Questions      []string         // Questions for interactive mode
 	EvidenceWriter *evidence.Writer // Evidence log writer
 }
 
 // DecompositionResult contains the output of feature decomposition.
 type DecompositionResult struct {
-	Workstreams  []Workstream  `json:"workstreams"`
-	Dependencies []Dependency  `json:"dependencies"`
-	Summary      string        `json:"summary"`
-	FeatureID    string        `json:"feature_id,omitempty"`
-	CreatedAt    string        `json:"created_at"`
+	Workstreams  []Workstream `json:"workstreams"`
+	Dependencies []Dependency `json:"dependencies"`
+	Summary      string       `json:"summary"`
+	FeatureID    string       `json:"feature_id,omitempty"`
+	CreatedAt    string       `json:"created_at"`
 }
 
 // Workstream represents a single workstream in the decomposition.
