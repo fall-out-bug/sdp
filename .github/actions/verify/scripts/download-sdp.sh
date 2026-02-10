@@ -88,7 +88,11 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
         echo "⚠️  Using local sdp from PATH as fallback" >&2
         LOCAL_SDP_PATH=$(command -v sdp)
         mkdir -p "$OUTPUT_DIR"
-        cp "$LOCAL_SDP_PATH" "$OUTPUT_DIR/sdp"
+
+        # Check if we need to copy (skip if already in OUTPUT_DIR)
+        if [ "$LOCAL_SDP_PATH" != "$OUTPUT_DIR/sdp" ]; then
+          cp "$LOCAL_SDP_PATH" "$OUTPUT_DIR/sdp"
+        fi
         chmod +x "$OUTPUT_DIR/sdp"
         DOWNLOAD_SUCCESS=true
         USED_FALLBACK=true
