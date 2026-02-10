@@ -463,10 +463,10 @@ func TestFileSizeResult(t *testing.T) {
 		Warnings: []FileViolation{
 			{File: "medium.go", LOC: 180},
 		},
-		Threshold: 200,
-		Passed:    false,
+		Threshold:  200,
+		Passed:     false,
 		AverageLOC: 150,
-		Strict:    true,
+		Strict:     true,
 	}
 
 	if fsr.TotalFiles != 10 {

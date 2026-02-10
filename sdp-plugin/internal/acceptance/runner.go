@@ -4,6 +4,7 @@ import (
 	"context"
 	"os/exec"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -33,6 +34,8 @@ func (r *Runner) Run(ctx context.Context) (*Result, error) {
 	if r.Dir != "" {
 		cmd.Dir = r.Dir
 	}
+	// Set process group to ensure timeout signal propagates to child processes on Linux
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	out, err := cmd.CombinedOutput()
 	duration := time.Since(start)
 	result := &Result{

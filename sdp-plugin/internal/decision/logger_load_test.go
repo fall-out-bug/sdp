@@ -56,11 +56,11 @@ func TestLogger_Load(t *testing.T) {
 	}
 
 	tests := []struct {
-		name         string
-		opts         LoadOptions
-		expectedLen  int
-		expectedErr  bool
-		firstID      string
+		name        string
+		opts        LoadOptions
+		expectedLen int
+		expectedErr bool
+		firstID     string
 	}{
 		{
 			name:        "Load all decisions",
