@@ -12,7 +12,6 @@ import (
 // TestCheckpointCommand tests the sdp checkpoint commands
 func TestCheckpointCommand(t *testing.T) {
 	binaryPath := skipIfBinaryNotBuilt(t)
-
 	// Test checkpoint list
 	cmd := exec.Command(binaryPath, "checkpoint", "list")
 
@@ -30,7 +29,6 @@ func TestCheckpointCommand(t *testing.T) {
 // TestInitCommand tests the sdp init command
 func TestInitCommand(t *testing.T) {
 	binaryPath := skipIfBinaryNotBuilt(t)
-
 	// Create temp directory for init
 	tmpDir := t.TempDir()
 
@@ -114,7 +112,6 @@ func TestBeadsCommand(t *testing.T) {
 // TestCompletionCommand tests the sdp completion command
 func TestCompletionCommand(t *testing.T) {
 	binaryPath := skipIfBinaryNotBuilt(t)
-
 	shells := []string{"bash", "zsh", "fish"}
 
 	for _, shell := range shells {
