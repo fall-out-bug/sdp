@@ -60,7 +60,8 @@ runs:
         # Add to PATH for this and future steps
         echo "$BIN_DIR" >> $GITHUB_PATH
 
-        "$BIN_DIR/sdp" version || echo "Version command not available"
+        # Verify binary works
+        "$BIN_DIR/sdp" --help >/dev/null 2>&1 || echo "⚠️ SDP CLI not working correctly"
 
     - name: Validate Working Directory
       shell: bash
