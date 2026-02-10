@@ -94,6 +94,14 @@ jobs:
 
 Execution time: < 2 minutes for average Go project
 
+**Detailed Metrics:**
+- p50 latency: < 2 minutes
+- p95 latency: < 3 minutes
+- p99 latency: < 5 minutes
+- Success rate: ≥ 99%
+
+See [SLOS.md](SLOS.md) for complete Service Level Objectives and monitoring.
+
 ## Marketplace
 
 This action is published to GitHub Marketplace as `fall-out-bug/sdp-verify-action`.
