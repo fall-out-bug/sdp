@@ -55,6 +55,35 @@
         "outcome": { "type": "string", "enum": ["worked", "failed", "mixed"] },
         "related_decisions": { "type": "array", "items": { "type": "string" } }
       }
+    },
+    "approval_data": {
+      "type": "object",
+      "properties": {
+        "target_branch": { "type": "string" },
+        "commit_sha": { "type": "string" },
+        "approved_by": { "type": "string" }
+      }
+    },
+    "plan_data": {
+      "type": "object",
+      "properties": {
+        "scope_files": { "type": "array", "items": { "type": "string" } },
+        "action": { "type": "string" },
+        "feature_id": { "type": "string" },
+        "ws_count": { "type": "integer" },
+        "question_count": { "type": "integer" },
+        "summary": { "type": "string" },
+        "qa_pairs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question": { "type": "string" },
+              "answer": { "type": "string" }
+            }
+          }
+        }
+      }
     }
   }
 }
