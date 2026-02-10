@@ -66,6 +66,7 @@ mkdir -p "$OUTPUT_DIR"
 MAX_RETRIES=3
 RETRY_COUNT=0
 DOWNLOAD_SUCCESS=false
+USED_FALLBACK=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
   if [ $RETRY_COUNT -gt 0 ]; then
@@ -89,6 +90,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
         cp "$LOCAL_SDP_PATH" "$OUTPUT_DIR/sdp"
         chmod +x "$OUTPUT_DIR/sdp"
         DOWNLOAD_SUCCESS=true
+        USED_FALLBACK=true
       else
         exit 1
       fi
@@ -96,26 +98,30 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
   fi
 done
 
-# Download and verify SHA256 checksum
-CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
-echo "Downloading checksum: $CHECKSUM_URL"
-
-if curl -fsSL --retry 2 "$CHECKSUM_URL" -o "$OUTPUT_DIR/sdp.sha256" 2>/dev/null; then
-  echo "✅ Checksum downloaded"
-
-  # Verify checksum
-  echo "Verifying SHA256 checksum..."
-  if cd "$OUTPUT_DIR" && sha256sum -c sdp.sha256 2>/dev/null; then
-    echo "✅ SHA256 checksum verified"
-  else
-    echo "❌ SHA256 checksum verification failed" >&2
-    echo "   The downloaded binary may be corrupted or tampered with" >&2
-    rm -f "$OUTPUT_DIR/sdp" "$OUTPUT_DIR/sdp.sha256"
-    exit 1
-  fi
+# Download and verify SHA256 checksum (skip for local fallback)
+if [ "$USED_FALLBACK" = true ]; then
+  echo "⚠️  Using local fallback, skipping checksum verification" >&2
 else
-  echo "⚠️  Warning: Checksum not available, skipping verification"
-  echo "   This is less secure but continuing anyway"
+  CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
+  echo "Downloading checksum: $CHECKSUM_URL"
+
+  if curl -fsSL --retry 2 "$CHECKSUM_URL" -o "$OUTPUT_DIR/sdp.sha256" 2>/dev/null; then
+    echo "✅ Checksum downloaded"
+
+    # Verify checksum
+    echo "Verifying SHA256 checksum..."
+    if cd "$OUTPUT_DIR" && sha256sum -c sdp.sha256 2>/dev/null; then
+      echo "✅ SHA256 checksum verified"
+    else
+      echo "❌ SHA256 checksum verification failed" >&2
+      echo "   The downloaded binary may be corrupted or tampered with" >&2
+      rm -f "$OUTPUT_DIR/sdp" "$OUTPUT_DIR/sdp.sha256"
+      exit 1
+    fi
+  else
+    echo "⚠️  Warning: Checksum not available, skipping verification"
+    echo "   This is less secure but continuing anyway"
+  fi
 fi
 
 chmod +x "$OUTPUT_DIR/sdp"
@@ -126,10 +132,12 @@ if ! "$OUTPUT_DIR/sdp" --help >/dev/null 2>&1; then
   exit 1
 fi
 
-# Cache the binary for future runs
-mkdir -p "$CACHE_DIR"
-cp "$OUTPUT_DIR/sdp" "$CACHED_BINARY"
-echo "💾 Cached binary to: $CACHED_BINARY"
+# Cache the binary for future runs (skip for local fallback)
+if [ "$USED_FALLBACK" = false ]; then
+  mkdir -p "$CACHE_DIR"
+  cp "$OUTPUT_DIR/sdp" "$CACHED_BINARY"
+  echo "💾 Cached binary to: $CACHED_BINARY"
+fi
 
 echo "✅ SDP CLI installed to: $OUTPUT_DIR"
 
