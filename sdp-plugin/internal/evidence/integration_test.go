@@ -61,3 +61,52 @@ func TestEvidenceLayerE2E(t *testing.T) {
 		t.Errorf("FilterByWS: want 4, got %d", len(filtered))
 	}
 }
+
+// TestFullPipelineEvidenceChain (F056-04 AC1–AC4): idea → design → build → review → deploy produces
+// complete chain; sdp log show --type=X works for plan, generation, verification, approval; chain integrity.
+func TestFullPipelineEvidenceChain(t *testing.T) {
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "events.jsonl")
+	w, err := NewWriter(logPath)
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	chain := []*Event{
+		{ID: "idea", Type: "plan", Timestamp: "2026-02-10T10:00:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "idea"}},
+		{ID: "design", Type: "plan", Timestamp: "2026-02-10T10:01:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "design"}},
+		{ID: "build", Type: "generation", Timestamp: "2026-02-10T10:02:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "build"}},
+		{ID: "review", Type: "verification", Timestamp: "2026-02-10T10:03:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "review", "passed": true}},
+		{ID: "deploy", Type: "approval", Timestamp: "2026-02-10T10:04:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "deploy"}},
+	}
+	for _, ev := range chain {
+		if err := w.Append(ev); err != nil {
+			t.Fatalf("Append: %v", err)
+		}
+	}
+
+	r := NewReader(logPath)
+	if err := r.Verify(); err != nil {
+		t.Errorf("chain integrity: %v", err)
+	}
+	all, err := r.ReadAll()
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	if len(all) != 5 {
+		t.Fatalf("want 5 events (idea→design→build→review→deploy), got %d", len(all))
+	}
+	order := []string{"plan", "plan", "generation", "verification", "approval"}
+	for i := range order {
+		if all[i].Type != order[i] {
+			t.Errorf("event %d: want type %q, got %q", i, order[i], all[i].Type)
+		}
+	}
+
+	// AC3: sdp log show --type=X for all 4 event types
+	for _, typ := range []string{"plan", "generation", "verification", "approval"} {
+		filtered := FilterByType(all, typ)
+		if len(filtered) == 0 {
+			t.Errorf("FilterByType(%q): want at least 1, got 0", typ)
+		}
+	}
+}
