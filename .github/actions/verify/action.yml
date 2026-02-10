@@ -175,14 +175,147 @@ runs:
         echo "gates_passed=$PASSED" >> $GITHUB_OUTPUT
         echo "gates_failed=$FAILED" >> $GITHUB_OUTPUT
 
-        # Set result (fail if any gate failed)
+        # Set result and exit code (fail if any gate failed)
         if [ $FAILED -gt 0 ]; then
           echo "result=fail" >> $GITHUB_OUTPUT
+          echo "exit_code=1" >> $GITHUB_OUTPUT
           echo ""
           echo "❌ Verification failed"
-          exit 1
         else
           echo "result=pass" >> $GITHUB_OUTPUT
+          echo "exit_code=0" >> $GITHUB_OUTPUT
           echo ""
           echo "✅ All gates passed"
         fi
+
+    - name: Post PR Comment
+      if: always()
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        COMMENT_ENABLED: ${{ inputs.comment }}
+        GATES_PASSED: ${{ steps.verify.outputs.gates_passed }}
+        GATES_FAILED: ${{ steps.verify.outputs.gates_failed }}
+        VERIFICATION_RESULT: ${{ steps.verify.outputs.result }}
+        EVIDENCE_REQUIRED: ${{ inputs.evidence-required }}
+        WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+
+        # Skip if comment disabled
+        if [ "$COMMENT_ENABLED" != "true" ]; then
+          echo "⊘ PR comment disabled"
+          exit 0
+        fi
+
+        # Check if we're in a PR context
+        if [ "${{ github.event_name }}" != "pull_request" ]; then
+          echo "⊘ Not a pull request, skipping comment"
+          exit 0
+        fi
+
+        # Get PR number
+        PR_NUMBER="${{ github.event.pull_request.number }}"
+        if [ -z "$PR_NUMBER" ]; then
+          echo "⊘ No PR number found, skipping comment"
+          exit 0
+        fi
+
+        echo "Posting PR comment for #$PR_NUMBER..."
+
+        # Build comment body
+        STATUS_ICON="✅"
+        if [ "$VERIFICATION_RESULT" = "fail" ]; then
+          STATUS_ICON="❌"
+        fi
+
+        STATUS_TEXT="passed"
+        if [ "$VERIFICATION_RESULT" = "fail" ]; then
+          STATUS_TEXT="failed"
+        fi
+
+        TOTAL_GATES=$((GATES_PASSED + GATES_FAILED))
+        WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+        COMMENT_BODY="## SDP Verification ${STATUS_ICON}
+
+        **Status:** Verification ${STATUS_TEXT}
+
+        ### Gate Results
+
+        | Gate | Status |
+        |------|--------|"
+
+        if [ $GATES_PASSED -gt 0 ]; then
+          COMMENT_BODY="${COMMENT_BODY}
+        | Passed | ${GATES_PASSED} |"
+        fi
+
+        if [ $GATES_FAILED -gt 0 ]; then
+          COMMENT_BODY="${COMMENT_BODY}
+        | Failed | ${GATES_FAILED} |"
+        fi
+
+        if [ $TOTAL_GATES -gt 0 ]; then
+          COMMENT_BODY="${COMMENT_BODY}
+        | **Total** | **${TOTAL_GATES}** |"
+        fi
+
+        COMMENT_BODY="${COMMENT_BODY}
+
+        <details>
+        <summary><b>Evidence Summary</b></summary>
+
+        "
+
+        # Add evidence chain integrity info
+        if [ "$EVIDENCE_REQUIRED" = "true" ]; then
+          COMMENT_BODY="${COMMENT_BODY}### Chain Integrity
+
+        ✅ Evidence chain integrity verified"
+        else
+          COMMENT_BODY="${COMMENT_BODY}### Chain Integrity
+
+        ⊘ Evidence chain verification not required"
+        fi
+
+        COMMENT_BODY="${COMMENT_BODY}
+
+        </details>
+
+        ---
+        *View full details in [Workflow Run](${WORKFLOW_URL})*"
+
+        # Look for existing comment
+        EXISTING_COMMENT_ID=$(gh api \
+          "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+          --jq '.[] | select(.body | startswith("## SDP Verification")) | .id' \
+          2>/dev/null || echo "")
+
+        if [ -n "$EXISTING_COMMENT_ID" ]; then
+          # Update existing comment
+          echo "Updating existing comment #$EXISTING_COMMENT_ID"
+          gh api \
+            --method PATCH \
+            "repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID}" \
+            -f body="$COMMENT_BODY" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            --silent
+        else
+          # Create new comment
+          echo "Creating new comment"
+          gh api \
+            --method POST \
+            "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            -f body="$COMMENT_BODY" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            --silent
+        fi
+
+        echo "✅ PR comment posted"
+
+        # Exit with verification result (to fail the workflow if gates failed)
+        if [ "$VERIFICATION_RESULT" = "fail" ]; then
+          exit 1
+        fi
+
