@@ -166,6 +166,7 @@ runs:
           echo "exit_code=1" >> $GITHUB_OUTPUT
           echo ""
           echo "❌ Verification failed"
+          exit 1
         else
           echo "result=pass" >> $GITHUB_OUTPUT
           echo "exit_code=0" >> $GITHUB_OUTPUT
