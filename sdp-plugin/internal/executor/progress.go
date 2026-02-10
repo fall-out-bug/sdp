@@ -18,9 +18,9 @@ type ProgressEvent struct {
 
 // EvidenceEvent represents an evidence chain event
 type EvidenceEvent struct {
-	Type      string `json:"type"`      // plan, generation, verification, approval
-	WSID      string `json:"ws_id"`
-	Timestamp string `json:"timestamp"`
+	Type      string                 `json:"type"` // plan, generation, verification, approval
+	WSID      string                 `json:"ws_id"`
+	Timestamp string                 `json:"timestamp"`
 	Data      map[string]interface{} `json:"data"`
 }
 
@@ -138,7 +138,10 @@ func (r *ProgressRenderer) RenderSuccess(wsID string, message string) string {
 // RenderSummary renders a summary of execution results
 func (r *ProgressRenderer) RenderSummary(summary ExecutionSummary) string {
 	if r.outputFormat == "json" {
-		data, _ := json.Marshal(summary)
+		data, err := json.Marshal(summary)
+		if err != nil {
+			return "{}"
+		}
 		return string(data)
 	}
 

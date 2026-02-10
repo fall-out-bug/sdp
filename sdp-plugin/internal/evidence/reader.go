@@ -26,7 +26,11 @@ func (r *Reader) Verify() error {
 		}
 		return fmt.Errorf("open: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "evidence reader close: %v\n", err)
+		}
+	}()
 	sc := bufio.NewScanner(f)
 	var prevHash string = genesisHash
 	lineNum := 0
@@ -60,7 +64,11 @@ func (r *Reader) ReadAll() ([]Event, error) {
 		}
 		return nil, fmt.Errorf("open: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "evidence reader close: %v\n", err)
+		}
+	}()
 	var out []Event
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {

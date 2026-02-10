@@ -46,7 +46,9 @@ func runQualityCoverage(strict bool) error {
 	}
 
 	if evidence.Enabled() {
-		_ = evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "coverage", result.Coverage))
+		if err := evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "coverage", result.Coverage)); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		}
 	}
 	if !result.Passed {
 		return fmt.Errorf("quality check failed")
@@ -81,7 +83,9 @@ func runQualityComplexity(strict bool) error {
 	}
 
 	if evidence.Enabled() {
-		_ = evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "complexity", 0))
+		if err := evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "complexity", 0)); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		}
 	}
 	if len(result.ComplexFiles) > 0 {
 		fmt.Printf("\n%d files exceed threshold:\n", len(result.ComplexFiles))
@@ -147,7 +151,9 @@ func runQualitySize(strict bool) error {
 		fmt.Println("✗ FAILED")
 	}
 	if evidence.Enabled() {
-		_ = evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "size", 0))
+		if err := evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "size", 0)); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		}
 	}
 	if !result.Passed {
 		return fmt.Errorf("quality check failed")

@@ -66,7 +66,7 @@ func loadInProgressScopes(projectRoot string) ([]collision.WorkstreamScope, erro
 		}
 		return nil, fmt.Errorf("read in_progress dir: %w", err)
 	}
-	var scopes []collision.WorkstreamScope
+	scopes := make([]collision.WorkstreamScope, 0, len(entries))
 	for _, e := range entries {
 		if e.IsDir() || !hasSuffix(e.Name(), ".md") {
 			continue

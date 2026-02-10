@@ -30,11 +30,11 @@ func evidenceLogPath() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("find project root: %w", err)
 	}
-	cfg, _ := config.Load(root)
+	cfg, errLoad := config.Load(root)
+	_ = errLoad
 	logPath := defaultLogPath
 	if cfg != nil && cfg.Evidence.LogPath != "" {
 		logPath = cfg.Evidence.LogPath
 	}
 	return filepath.Join(root, logPath), nil
 }
-

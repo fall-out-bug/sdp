@@ -30,7 +30,9 @@ func skillRecord() *cobra.Command {
 					data[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
 				}
 			}
-			_ = evidence.EmitSync(evidence.SkillEvent(skillName, eventType, wsID, data))
+			if err := evidence.EmitSync(evidence.SkillEvent(skillName, eventType, wsID, data)); err != nil {
+				return err
+			}
 			fmt.Printf("Recorded: %s %s\n", skillName, eventType)
 			return nil
 		},

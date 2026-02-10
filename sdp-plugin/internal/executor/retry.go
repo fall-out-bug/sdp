@@ -36,21 +36,24 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 			retries = attempt
 		}
 
-		fmt.Fprintln(output, e.progress.Output(wsID, progress, "running", message))
+		if err := writeLine(output, e.progress.Output(wsID, progress, "running", message)); err != nil {
+			return retries, fmt.Errorf("write: %w", err)
+		}
 
-		// Execute (mock for now - would call actual execution logic)
 		err := e.executeWorkstreamMock(ctx, wsID, attemptCount)
 		if err == nil {
-			// Success
-			fmt.Fprintln(output, e.progress.RenderSuccess(wsID, "completed successfully"))
+			if err := writeLine(output, e.progress.RenderSuccess(wsID, "completed successfully")); err != nil {
+				return retries, fmt.Errorf("write: %w", err)
+			}
 			return retries, nil
 		}
 
 		lastErr = err
 
-		// Check if we should retry
 		if attempt < maxRetries {
-			fmt.Fprintln(output, e.progress.Output(wsID, progress, "retrying", fmt.Sprintf("failed: %v", err)))
+			if errW := writeLine(output, e.progress.Output(wsID, progress, "retrying", fmt.Sprintf("failed: %v", err))); errW != nil {
+				return retries, fmt.Errorf("write: %w", errW)
+			}
 			time.Sleep(100 * time.Millisecond) // Small delay before retry
 		}
 	}
