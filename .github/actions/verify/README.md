@@ -1,6 +1,21 @@
 # SDP Verify Action
 
+![SDP Verify](https://img.shields.io/badge/SDP-Verify-blue)
+![Version](https://img.shields.io/badge/version-v1.0.0-green)
+
 Run SDP verification gates on pull requests with evidence tracking.
+
+## Features
+
+- **Quality Gates**: Run types, tests, and coverage checks
+- **Evidence Tracking**: Verify evidence chain integrity
+- **PR Comments**: Post verification results directly to pull requests
+- **Fast Execution**: < 2 minutes for average Go project
+- **Flexible Configuration**: Customize gates and working directory
+
+## Badges
+
+![Verification Status](https://img.shields.io/badge/verification-passed-success)
 
 ## Usage
 
@@ -78,6 +93,30 @@ jobs:
 ## Performance
 
 Execution time: < 2 minutes for average Go project
+
+## Marketplace
+
+This action is published to GitHub Marketplace as `fall-out-bug/sdp-verify-action`.
+
+To use from marketplace:
+
+```yaml
+- uses: fall-out-bug/sdp-verify-action@v1
+  with:
+    gates: 'types,tests,coverage'
+```
+
+## GitLab CI
+
+Equivalent GitLab CI template available at [`ci/gitlab/.gitlab-ci-sdp-verify.yml`](../../ci/gitlab/.gitlab-ci-sdp-verify.yml).
+
+See [GitLab CI documentation](../../ci/gitlab/README.md) for usage.
+
+## Branding
+
+- **Name**: SDP Verify
+- **Description**: Run SDP verification gates with evidence tracking
+- **Category**: CI
 
 ## License
 

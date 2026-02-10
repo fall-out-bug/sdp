@@ -1,0 +1,50 @@
+name: Release Verify Action
+
+on:
+  push:
+    tags:
+      - 'verify-action-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#verify-action-v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Released version: $VERSION"
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: SDP Verify Action ${{ steps.extract_version.outputs.version }}
+          body: |
+            ## What's Changed
+
+            See [CHANGELOG.md](https://github.com/fall-out-bug/sdp/blob/main/CHANGELOG.md) for details.
+
+            ## Usage
+
+            ```yaml
+            - uses: fall-out-bug/sdp/verify-action@v1
+              with:
+                gates: 'types,tests,coverage'
+                evidence-required: 'true'
+            ```
+
+            Full documentation: https://github.com/fall-out-bug/sdp/tree/main/.github/actions/verify
+          draft: false
+          prerelease: false
