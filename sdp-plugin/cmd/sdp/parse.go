@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -64,7 +65,9 @@ func parseRun(cmd *cobra.Command, args []string) error {
 	if evidence.Enabled() {
 		scopeFiles := append([]string{}, ws.Scope.Implementation...)
 		scopeFiles = append(scopeFiles, ws.Scope.Tests...)
-		_ = evidence.EmitSync(evidence.PlanEventWithFeature(ws.ID, ws.Feature, scopeFiles))
+		if err := evidence.EmitSync(evidence.PlanEventWithFeature(ws.ID, ws.Feature, scopeFiles)); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		}
 	}
 
 	return nil

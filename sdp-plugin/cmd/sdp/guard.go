@@ -72,10 +72,11 @@ func guardActivate() *cobra.Command {
 			activeWS := skill.GetActiveWS()
 			fmt.Printf("✅ Activated WS: %s\n", activeWS)
 
-			// AC1: Emit plan event synchronously so it's written before process exit
 			if evidence.Enabled() {
 				scopeFiles := scopeFilesForWS(wsID)
-				_ = evidence.EmitSync(evidence.PlanEvent(wsID, scopeFiles))
+				if err := evidence.EmitSync(evidence.PlanEvent(wsID, scopeFiles)); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+				}
 			}
 
 			// AC1: Check for scope overlap with other in-progress workstreams (warning only)

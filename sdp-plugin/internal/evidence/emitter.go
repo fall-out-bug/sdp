@@ -22,7 +22,9 @@ func Emit(ev *Event) {
 		ev2.Timestamp = time.Now().UTC().Format(time.RFC3339)
 	}
 	go func() {
-		_ = emitSync(&ev2)
+		if err := emitSync(&ev2); err != nil {
+			return
+		}
 	}()
 }
 

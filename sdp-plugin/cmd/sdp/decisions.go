@@ -350,7 +350,9 @@ func decisionsLogCmd() *cobra.Command {
 			if reverses != "" {
 				rev = &reverses
 			}
-			_ = evidence.EmitSync(evidence.DecisionEvent(workstreamID, question, decisionStr, rationale, altList, 0, tagList, rev))
+			if err := evidence.EmitSync(evidence.DecisionEvent(workstreamID, question, decisionStr, rationale, altList, 0, tagList, rev)); err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+			}
 
 			fmt.Printf("✓ Logged decision: %s\n", d.Decision)
 			return nil
