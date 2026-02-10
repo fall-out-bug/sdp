@@ -80,7 +80,18 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
       echo "❌ Failed to download after $MAX_RETRIES attempts" >&2
-      exit 1
+
+      # Fallback for CI/testing: try to use local sdp if available
+      if command -v sdp >/dev/null 2>&1; then
+        echo "⚠️  Using local sdp from PATH as fallback" >&2
+        LOCAL_SDP_PATH=$(command -v sdp)
+        mkdir -p "$OUTPUT_DIR"
+        cp "$LOCAL_SDP_PATH" "$OUTPUT_DIR/sdp"
+        chmod +x "$OUTPUT_DIR/sdp"
+        DOWNLOAD_SUCCESS=true
+      else
+        exit 1
+      fi
     fi
   fi
 done
