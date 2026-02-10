@@ -18,9 +18,9 @@ type ProgressEvent struct {
 
 // EvidenceEvent represents an evidence chain event
 type EvidenceEvent struct {
-	Type      string                 `json:"type"` // plan, generation, verification, approval
-	WSID      string                 `json:"ws_id"`
-	Timestamp string                 `json:"timestamp"`
+	Type      string `json:"type"`      // plan, generation, verification, approval
+	WSID      string `json:"ws_id"`
+	Timestamp string `json:"timestamp"`
 	Data      map[string]interface{} `json:"data"`
 }
 
