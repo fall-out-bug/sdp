@@ -25,10 +25,10 @@ outputs:
   result:
     description: 'Verification result (pass/fail)'
     value: ${{ steps.verify.outputs.result }}
-  gates-passed:
+  gates_passed:
     description: 'Number of gates that passed'
     value: ${{ steps.verify.outputs.gates_passed }}
-  gates-failed:
+  gates_failed:
     description: 'Number of gates that failed'
     value: ${{ steps.verify.outputs.gates_failed }}
 runs:
