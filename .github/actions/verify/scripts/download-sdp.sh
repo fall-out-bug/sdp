@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Download and install SDP CLI binary
-# Usage: download-sdp.sh <version> <output-dir>
+# Usage: download-sdp.sh <version> <output-dir> [cache-dir]
 # Environment: RUNNER_TEMP must be set
 
 set -euo pipefail
 
 VERSION="${1:-latest}"
 OUTPUT_DIR="${2:-$RUNNER_TEMP/.bin}"
+CACHE_DIR="${3:-$RUNNER_TEMP/sdp-cache}"
 
 # Detect OS and architecture
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -28,6 +29,26 @@ esac
 
 # Download from GitHub releases
 BINARY_NAME="sdp-${OS}-${ARCH}"
+CACHE_KEY="${BINARY_NAME}-${VERSION}"
+
+# Check cache first
+CACHED_BINARY="$CACHE_DIR/$CACHE_KEY"
+if [ -f "$CACHED_BINARY" ]; then
+  echo "♻️  Using cached binary from: $CACHED_BINARY"
+  mkdir -p "$OUTPUT_DIR"
+  cp "$CACHED_BINARY" "$OUTPUT_DIR/sdp"
+  chmod +x "$OUTPUT_DIR/sdp"
+
+  # Verify cached binary works
+  if "$OUTPUT_DIR/sdp" --help >/dev/null 2>&1; then
+    echo "✅ SDP CLI loaded from cache: $OUTPUT_DIR"
+    echo "$OUTPUT_DIR"
+    exit 0
+  else
+    echo "⚠️  Cached binary is corrupted, re-downloading..."
+    rm -f "$CACHED_BINARY"
+  fi
+fi
 
 if [ "$VERSION" = "latest" ]; then
   DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/latest/download/${BINARY_NAME}"
@@ -71,6 +92,11 @@ if ! "$OUTPUT_DIR/sdp" --help >/dev/null 2>&1; then
   echo "❌ Downloaded binary is not executable or corrupted" >&2
   exit 1
 fi
+
+# Cache the binary for future runs
+mkdir -p "$CACHE_DIR"
+cp "$OUTPUT_DIR/sdp" "$CACHED_BINARY"
+echo "💾 Cached binary to: $CACHED_BINARY"
 
 echo "✅ SDP CLI installed to: $OUTPUT_DIR"
 

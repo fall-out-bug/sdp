@@ -34,6 +34,15 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Cache SDP CLI
+      uses: actions/cache@v4
+      with:
+        path: ~/sdp-cache
+        key: sdp-cli-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+        restore-keys: |
+          sdp-cli-${{ runner.os }}-${{ runner.arch }}-
+          sdp-cli-${{ runner.os }}-
+
     - name: Install SDP CLI
       shell: bash
       run: |
@@ -41,11 +50,12 @@ runs:
 
         VERSION="${{ inputs.version }}"
         SCRIPT_DIR="${{ github.action_path }}/scripts"
+        CACHE_DIR="$HOME/sdp-cache"
 
         echo "Installing SDP CLI version: $VERSION"
 
-        # Download using extracted script
-        BIN_DIR=$("$SCRIPT_DIR/download-sdp.sh" "$VERSION" "$RUNNER_TEMP/.bin")
+        # Download using extracted script with caching
+        BIN_DIR=$("$SCRIPT_DIR/download-sdp.sh" "$VERSION" "$RUNNER_TEMP/.bin" "$CACHE_DIR")
 
         # Add to PATH for this and future steps
         echo "$BIN_DIR" >> $GITHUB_PATH
