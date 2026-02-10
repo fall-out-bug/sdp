@@ -85,6 +85,28 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
   fi
 done
 
+# Download and verify SHA256 checksum
+CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
+echo "Downloading checksum: $CHECKSUM_URL"
+
+if curl -fsSL --retry 2 "$CHECKSUM_URL" -o "$OUTPUT_DIR/sdp.sha256" 2>/dev/null; then
+  echo "✅ Checksum downloaded"
+
+  # Verify checksum
+  echo "Verifying SHA256 checksum..."
+  if cd "$OUTPUT_DIR" && sha256sum -c sdp.sha256 2>/dev/null; then
+    echo "✅ SHA256 checksum verified"
+  else
+    echo "❌ SHA256 checksum verification failed" >&2
+    echo "   The downloaded binary may be corrupted or tampered with" >&2
+    rm -f "$OUTPUT_DIR/sdp" "$OUTPUT_DIR/sdp.sha256"
+    exit 1
+  fi
+else
+  echo "⚠️  Warning: Checksum not available, skipping verification"
+  echo "   This is less secure but continuing anyway"
+fi
+
 chmod +x "$OUTPUT_DIR/sdp"
 
 # Verify binary works
