@@ -33,8 +33,13 @@ func (e *Executor) ParseDependencies(wsID string) ([]string, error) {
 		deps = append(deps, ws.Parent)
 	}
 
-	// TODO: Parse explicit "Dependencies:" section from workstream content
-	// This would require reading the file content and looking for a Dependencies section
+	// NOTE: Parent dependencies are currently supported via ws.Parent field.
+	// Enhancement to parse explicit "Dependencies:" section is tracked in beads issue sdp-fe6q.
+	//
+	// Future implementation:
+	// - Add Dependencies []string to Workstream schema
+	// - Parse "## Dependencies" section from workstream markdown
+	// - Extract WS IDs and merge with parent dependencies
 
 	return deps, nil
 }
