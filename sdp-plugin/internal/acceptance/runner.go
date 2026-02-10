@@ -72,7 +72,7 @@ func (r *Runner) Run(ctx context.Context) (*Result, error) {
 		// Timeout - kill the entire process group
 		if cmd.Process != nil {
 			// Kill negative PID kills the entire process group
-			syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		}
 		duration := time.Since(start)
 		return &Result{
