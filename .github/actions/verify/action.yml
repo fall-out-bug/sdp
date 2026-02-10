@@ -77,8 +77,36 @@ runs:
         BIN_DIR="$RUNNER_TEMP/.bin"
         mkdir -p "$BIN_DIR"
 
-        curl -fsSL "$DOWNLOAD_URL" -o "$BIN_DIR/sdp"
+        # Download with retry logic (up to 3 attempts)
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        DOWNLOAD_SUCCESS=false
+
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
+          if [ $RETRY_COUNT -gt 0 ]; then
+            echo "Retry $RETRY_COUNT/$MAX_RETRIES..."
+            sleep 2  # Backoff before retry
+          fi
+
+          if curl -fsSL --retry 3 --retry-delay 2 "$DOWNLOAD_URL" -o "$BIN_DIR/sdp" 2>/dev/null; then
+            DOWNLOAD_SUCCESS=true
+            echo "✅ Download successful"
+          else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo "❌ Failed to download after $MAX_RETRIES attempts"
+              exit 1
+            fi
+          fi
+        done
+
         chmod +x "$BIN_DIR/sdp"
+
+        # Verify binary works
+        if ! "$BIN_DIR/sdp" --help >/dev/null 2>&1; then
+          echo "❌ Downloaded binary is not executable or corrupted"
+          exit 1
+        fi
 
         # Add to PATH for this and future steps
         echo "$BIN_DIR" >> $GITHUB_PATH
@@ -316,30 +344,59 @@ runs:
         ---
         *View full details in [Workflow Run](${WORKFLOW_URL})*"
 
-        # Look for existing comment
+        # Look for existing comment (with error handling)
         EXISTING_COMMENT_ID=$(gh api \
           "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
           --jq '.[] | select(.body | startswith("## SDP Verification")) | .id' \
           2>/dev/null || echo "")
 
-        if [ -n "$EXISTING_COMMENT_ID" ]; then
-          # Update existing comment
-          echo "Updating existing comment #$EXISTING_COMMENT_ID"
-          gh api \
-            --method PATCH \
-            "repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID}" \
-            -f body="$COMMENT_BODY" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            --silent
-        else
-          # Create new comment
-          echo "Creating new comment"
-          gh api \
-            --method POST \
-            "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
-            -f body="$COMMENT_BODY" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            --silent
+        # Post/update comment with retry logic
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        COMMENT_POSTED=false
+
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$COMMENT_POSTED" = false ]; do
+          if [ $RETRY_COUNT -gt 0 ]; then
+            echo "Retrying comment post ($RETRY_COUNT/$MAX_RETRIES)..."
+            sleep 2  # Backoff before retry
+          fi
+
+          if [ -n "$EXISTING_COMMENT_ID" ]; then
+            # Update existing comment
+            echo "Updating existing comment #$EXISTING_COMMENT_ID"
+            if gh api \
+              --method PATCH \
+              "repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID}" \
+              -f body="$COMMENT_BODY" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --silent 2>/dev/null; then
+              COMMENT_POSTED=true
+              echo "✅ Comment updated"
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            fi
+          else
+            # Create new comment
+            echo "Creating new comment"
+            if gh api \
+              --method POST \
+              "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+              -f body="$COMMENT_BODY" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --silent 2>/dev/null; then
+              COMMENT_POSTED=true
+              echo "✅ Comment posted"
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            fi
+          fi
+        done
+
+        if [ "$COMMENT_POSTED" = false ]; then
+          echo "⚠️ Warning: Failed to post PR comment after $MAX_RETRIES attempts"
+          echo "Comment body was:"
+          echo "$COMMENT_BODY"
+          # Don't fail the action for comment posting failures
         fi
 
         echo "✅ PR comment posted"
