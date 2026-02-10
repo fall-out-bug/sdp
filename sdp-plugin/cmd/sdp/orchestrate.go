@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/fall-out-bug/sdp/internal/checkpoint"
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -78,8 +79,9 @@ Example:
 			return fmt.Errorf("orchestration failed: %w", err)
 		}
 
-		// F056-03: approval event on completion
-		_ = evidence.EmitSync(evidence.SkillEvent("oneshot", "approval", "00-000-00", map[string]interface{}{"feature_id": featureID}))
+		if err := evidence.EmitSync(evidence.SkillEvent("oneshot", "approval", "00-000-00", map[string]interface{}{"feature_id": featureID})); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		}
 
 		fmt.Printf("\n✅ Feature %s completed successfully\n", featureID)
 		return nil

@@ -28,22 +28,22 @@ type VerificationData struct {
 
 // DecisionEventData is the payload for decision events (AC9).
 type DecisionEventData struct {
-	Question    string   `json:"question"`
-	Choice      string   `json:"choice"`
-	Rationale   string   `json:"rationale"`
+	Question     string   `json:"question"`
+	Choice       string   `json:"choice"`
+	Rationale    string   `json:"rationale"`
 	Alternatives []string `json:"alternatives,omitempty"`
-	Confidence  float64  `json:"confidence,omitempty"`
-	Reverses    *string  `json:"reverses,omitempty"`
-	Tags        []string `json:"tags,omitempty"`
+	Confidence   float64  `json:"confidence,omitempty"`
+	Reverses     *string  `json:"reverses,omitempty"`
+	Tags         []string `json:"tags,omitempty"`
 }
 
 // LessonEventData is the payload for lesson events (AC10).
 type LessonEventData struct {
-	Category          string   `json:"category"`
-	Insight           string   `json:"insight"`
-	SourceWSID        string   `json:"source_ws_id"`
-	Outcome           string   `json:"outcome"` // worked, failed, mixed
-	RelatedDecisions  []string `json:"related_decisions,omitempty"`
+	Category         string   `json:"category"`
+	Insight          string   `json:"insight"`
+	SourceWSID       string   `json:"source_ws_id"`
+	Outcome          string   `json:"outcome"` // worked, failed, mixed
+	RelatedDecisions []string `json:"related_decisions,omitempty"`
 }
 
 // EventTypes are the six evidence event types (AC2).

@@ -49,7 +49,9 @@ Usage:
 					coverage = result.CoverageActual
 				}
 				for _, check := range result.Checks {
-					_ = evidence.EmitSync(evidence.VerificationEventWithFindings(wsID, check.Passed, check.Name, coverage, check.Message))
+					if err := evidence.EmitSync(evidence.VerificationEventWithFindings(wsID, check.Passed, check.Name, coverage, check.Message)); err != nil {
+						_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+					}
 				}
 			}
 
@@ -93,7 +95,10 @@ Usage:
 			}
 
 			// AC7: Run acceptance test gate after quality gates
-			root, _ := config.FindProjectRoot()
+			root, errRoot := config.FindProjectRoot()
+			if errRoot != nil {
+				root = ""
+			}
 			acceptPassed, acceptSkipped, acceptErr := runAcceptanceFromConfig(root)
 			if acceptErr != nil {
 				fmt.Printf("\n⚠️  Acceptance: error — %v\n", acceptErr)

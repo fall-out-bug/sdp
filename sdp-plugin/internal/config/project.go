@@ -13,7 +13,7 @@ const configFile = "config.yml"
 
 // Config holds project-level SDP settings.
 type Config struct {
-	Version    int             `yaml:"version"`
+	Version    int               `yaml:"version"`
 	Acceptance AcceptanceSection `yaml:"acceptance"`
 	Evidence   EvidenceSection   `yaml:"evidence"`
 	Quality    QualitySection    `yaml:"quality"`
@@ -28,8 +28,8 @@ type AcceptanceSection struct {
 
 // EvidenceSection holds evidence log settings (stub for WS-04).
 type EvidenceSection struct {
-	Enabled  bool   `yaml:"enabled"`
-	LogPath  string `yaml:"log_path"`
+	Enabled bool   `yaml:"enabled"`
+	LogPath string `yaml:"log_path"`
 }
 
 // QualitySection holds quality gate settings (stub for WS-06).
@@ -49,7 +49,7 @@ func DefaultConfig() *Config {
 		},
 		Evidence: EvidenceSection{
 			Enabled: true,
-			LogPath:  ".sdp/log/events.jsonl",
+			LogPath: ".sdp/log/events.jsonl",
 		},
 		Quality: QualitySection{
 			CoverageThreshold: 80,

@@ -88,11 +88,15 @@ func appendToFile(path string, data []byte) error {
 	}
 	_, err = f.Write(data)
 	if err != nil {
-		f.Close()
+		if cErr := f.Close(); cErr != nil {
+			return fmt.Errorf("write: %w (close: %v)", err, cErr)
+		}
 		return fmt.Errorf("write: %w", err)
 	}
 	if err := f.Sync(); err != nil {
-		f.Close()
+		if cErr := f.Close(); cErr != nil {
+			return fmt.Errorf("fsync: %w (close: %v)", err, cErr)
+		}
 		return fmt.Errorf("fsync: %w", err)
 	}
 	return f.Close()

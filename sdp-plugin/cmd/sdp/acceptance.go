@@ -78,8 +78,8 @@ func runAcceptanceFromConfig(projectRoot string) (passed bool, skipped bool, err
 	if cfg.Acceptance.Command == "" {
 		return false, true, nil
 	}
-	timeout, _ := acceptance.ParseTimeout(cfg.Acceptance.Timeout)
-	if timeout == 0 {
+	timeout, err := acceptance.ParseTimeout(cfg.Acceptance.Timeout)
+	if err != nil || timeout == 0 {
 		timeout = 30 * time.Second
 	}
 	r := &acceptance.Runner{

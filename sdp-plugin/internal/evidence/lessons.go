@@ -8,12 +8,12 @@ import (
 
 // Lesson represents an auto-extracted lesson from a completed workstream (AC2).
 type Lesson struct {
-	WSID            string   `json:"ws_id"`
-	WhatWorked      []string `json:"what_worked,omitempty"`
-	WhatFailed      []string `json:"what_failed,omitempty"`
-	Category        string   `json:"category,omitempty"`
+	WSID             string   `json:"ws_id"`
+	WhatWorked       []string `json:"what_worked,omitempty"`
+	WhatFailed       []string `json:"what_failed,omitempty"`
+	Category         string   `json:"category,omitempty"`
 	RelatedDecisions []string `json:"related_decisions,omitempty"`
-	Outcome         string   `json:"outcome"` // "passed", "failed", "mixed"
+	Outcome          string   `json:"outcome"` // "passed", "failed", "mixed"
 }
 
 // ExtractLesson builds a lesson from verification result (AC1, AC2).
@@ -68,5 +68,7 @@ func EmitLesson(lesson Lesson) {
 	if !Enabled() {
 		return
 	}
-	_ = EmitSync(LessonEvent(lesson))
+	if err := EmitSync(LessonEvent(lesson)); err != nil {
+		return
+	}
 }

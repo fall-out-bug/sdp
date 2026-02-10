@@ -34,9 +34,9 @@ func LessonEvent(lesson Lesson) *Event {
 	}
 	data := map[string]interface{}{
 		"category":     lesson.Category,
-		"insight":     lessonInsight(lesson),
+		"insight":      lessonInsight(lesson),
 		"source_ws_id": lesson.WSID,
-		"outcome":     outcome,
+		"outcome":      outcome,
 	}
 	if len(lesson.RelatedDecisions) > 0 {
 		data["related_decisions"] = lesson.RelatedDecisions

@@ -8,10 +8,10 @@ import (
 
 // Match represents a similar past decision (AC7, AC8).
 type Match struct {
-	Question   string
-	Outcome    string
+	Question     string
+	Outcome      string
 	WorkstreamID string
-	Tags       []string
+	Tags         []string
 }
 
 // FindSimilarDecisions returns past decisions similar to query by tags and keywords (AC7).
@@ -45,10 +45,10 @@ func FindSimilarDecisions(query string, tags []string, decisions []decision.Deci
 		}
 		if score > 0 {
 			out = append(out, Match{
-				Question:      d.Question,
-				Outcome:       d.Outcome,
-				WorkstreamID:  d.WorkstreamID,
-				Tags:          d.Tags,
+				Question:     d.Question,
+				Outcome:      d.Outcome,
+				WorkstreamID: d.WorkstreamID,
+				Tags:         d.Tags,
 			})
 		}
 	}
