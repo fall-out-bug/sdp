@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fall-out-bug/sdp/internal/checkpoint"
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/orchestrator"
 	"github.com/spf13/cobra"
 )
@@ -69,10 +70,16 @@ Example:
 		fmt.Printf("   Checkpoint dir: %s\n", dir)
 		fmt.Printf("   Max retries: %d\n\n", maxRetries)
 
+		// F056-03: plan event (non-blocking)
+		evidence.Emit(evidence.SkillEvent("oneshot", "plan", "00-000-00", map[string]interface{}{"feature_id": featureID}))
+
 		err = orch.Run(featureID)
 		if err != nil {
 			return fmt.Errorf("orchestration failed: %w", err)
 		}
+
+		// F056-03: approval event on completion
+		_ = evidence.EmitSync(evidence.SkillEvent("oneshot", "approval", "00-000-00", map[string]interface{}{"feature_id": featureID}))
 
 		fmt.Printf("\n✅ Feature %s completed successfully\n", featureID)
 		return nil
