@@ -2,6 +2,7 @@
 # Download and install SDP CLI binary
 # Usage: download-sdp.sh <version> <output-dir> [cache-dir]
 # Environment: RUNNER_TEMP must be set
+# Output: Only the binary directory path (all other output to stderr)
 
 set -euo pipefail
 
@@ -34,18 +35,18 @@ CACHE_KEY="${BINARY_NAME}-${VERSION}"
 # Check cache first
 CACHED_BINARY="$CACHE_DIR/$CACHE_KEY"
 if [ -f "$CACHED_BINARY" ]; then
-  echo "♻️  Using cached binary from: $CACHED_BINARY"
+  echo "♻️  Using cached binary from: $CACHED_BINARY" >&2
   mkdir -p "$OUTPUT_DIR"
   cp "$CACHED_BINARY" "$OUTPUT_DIR/sdp"
   chmod +x "$OUTPUT_DIR/sdp"
 
   # Verify cached binary works
   if "$OUTPUT_DIR/sdp" --help >/dev/null 2>&1; then
-    echo "✅ SDP CLI loaded from cache: $OUTPUT_DIR"
+    echo "✅ SDP CLI loaded from cache: $OUTPUT_DIR" >&2
     echo "$OUTPUT_DIR"
     exit 0
   else
-    echo "⚠️  Cached binary is corrupted, re-downloading..."
+    echo "⚠️  Cached binary is corrupted, re-downloading..." >&2
     rm -f "$CACHED_BINARY"
   fi
 fi
@@ -56,8 +57,8 @@ else
   DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/download/${VERSION}/${BINARY_NAME}"
 fi
 
-echo "Downloading SDP CLI version: $VERSION"
-echo "From: $DOWNLOAD_URL"
+echo "Downloading SDP CLI version: $VERSION" >&2
+echo "From: $DOWNLOAD_URL" >&2
 
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
@@ -76,7 +77,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
 
   if curl -fsSL --retry 3 --retry-delay 2 "$DOWNLOAD_URL" -o "$OUTPUT_DIR/sdp" 2>/dev/null; then
     DOWNLOAD_SUCCESS=true
-    echo "✅ Download successful"
+    echo "✅ Download successful" >&2
   else
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
@@ -106,12 +107,12 @@ else
   echo "Downloading checksum: $CHECKSUM_URL"
 
   if curl -fsSL --retry 2 "$CHECKSUM_URL" -o "$OUTPUT_DIR/sdp.sha256" 2>/dev/null; then
-    echo "✅ Checksum downloaded"
+    echo "✅ Checksum downloaded" >&2
 
     # Verify checksum
-    echo "Verifying SHA256 checksum..."
+    echo "Verifying SHA256 checksum..." >&2
     if cd "$OUTPUT_DIR" && sha256sum -c sdp.sha256 2>/dev/null; then
-      echo "✅ SHA256 checksum verified"
+      echo "✅ SHA256 checksum verified" >&2
     else
       echo "❌ SHA256 checksum verification failed" >&2
       echo "   The downloaded binary may be corrupted or tampered with" >&2
@@ -119,8 +120,8 @@ else
       exit 1
     fi
   else
-    echo "⚠️  Warning: Checksum not available, skipping verification"
-    echo "   This is less secure but continuing anyway"
+    echo "⚠️  Warning: Checksum not available, skipping verification" >&2
+    echo "   This is less secure but continuing anyway" >&2
   fi
 fi
 
@@ -136,10 +137,10 @@ fi
 if [ "$USED_FALLBACK" = false ]; then
   mkdir -p "$CACHE_DIR"
   cp "$OUTPUT_DIR/sdp" "$CACHED_BINARY"
-  echo "💾 Cached binary to: $CACHED_BINARY"
+  echo "💾 Cached binary to: $CACHED_BINARY" >&2
 fi
 
-echo "✅ SDP CLI installed to: $OUTPUT_DIR"
+echo "✅ SDP CLI installed to: $OUTPUT_DIR" >&2
 
-# Output path for sourcing
+# Output path for sourcing (this is the only stdout output)
 echo "$OUTPUT_DIR"
