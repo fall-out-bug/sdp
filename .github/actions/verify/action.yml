@@ -40,78 +40,16 @@ runs:
         set -euo pipefail
 
         VERSION="${{ inputs.version }}"
-        WORKING_DIR="${{ inputs.working-directory }}"
+        SCRIPT_DIR="${{ github.action_path }}/scripts"
 
         echo "Installing SDP CLI version: $VERSION"
 
-        # Detect OS and architecture
-        OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
-        ARCH="$(uname -m)"
-
-        # Map architecture names
-        case "$ARCH" in
-          x86_64|amd64)
-            ARCH="amd64"
-            ;;
-          aarch64|arm64)
-            ARCH="arm64"
-            ;;
-          *)
-            echo "Unsupported architecture: $ARCH"
-            exit 1
-            ;;
-        esac
-
-        # Download from GitHub releases
-        BINARY_NAME="sdp-${OS}-${ARCH}"
-
-        if [ "$VERSION" = "latest" ]; then
-          DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/latest/download/${BINARY_NAME}"
-        else
-          DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/download/${VERSION}/${BINARY_NAME}"
-        fi
-
-        echo "Downloading from: $DOWNLOAD_URL"
-
-        # Use RUNNER_TEMP for binary storage (no sudo required)
-        BIN_DIR="$RUNNER_TEMP/.bin"
-        mkdir -p "$BIN_DIR"
-
-        # Download with retry logic (up to 3 attempts)
-        MAX_RETRIES=3
-        RETRY_COUNT=0
-        DOWNLOAD_SUCCESS=false
-
-        while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DOWNLOAD_SUCCESS" = false ]; do
-          if [ $RETRY_COUNT -gt 0 ]; then
-            echo "Retry $RETRY_COUNT/$MAX_RETRIES..."
-            sleep 2  # Backoff before retry
-          fi
-
-          if curl -fsSL --retry 3 --retry-delay 2 "$DOWNLOAD_URL" -o "$BIN_DIR/sdp" 2>/dev/null; then
-            DOWNLOAD_SUCCESS=true
-            echo "✅ Download successful"
-          else
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-              echo "❌ Failed to download after $MAX_RETRIES attempts"
-              exit 1
-            fi
-          fi
-        done
-
-        chmod +x "$BIN_DIR/sdp"
-
-        # Verify binary works
-        if ! "$BIN_DIR/sdp" --help >/dev/null 2>&1; then
-          echo "❌ Downloaded binary is not executable or corrupted"
-          exit 1
-        fi
+        # Download using extracted script
+        BIN_DIR=$("$SCRIPT_DIR/download-sdp.sh" "$VERSION" "$RUNNER_TEMP/.bin")
 
         # Add to PATH for this and future steps
         echo "$BIN_DIR" >> $GITHUB_PATH
 
-        echo "✅ SDP CLI installed to: $BIN_DIR"
         "$BIN_DIR/sdp" version || echo "Version command not available"
 
     - name: Validate Working Directory
@@ -120,31 +58,10 @@ runs:
         set -euo pipefail
 
         WORKING_DIR="${{ inputs.working-directory }}"
+        SCRIPT_DIR="${{ github.action_path }}/scripts"
 
-        # Validate working directory input to prevent path traversal
-        # Check for absolute paths (not allowed)
-        if [[ "$WORKING_DIR" = /* ]]; then
-          echo "❌ Error: Absolute paths not allowed in working-directory"
-          echo "   Received: $WORKING_DIR"
-          echo "   Use relative path from repository root"
-          exit 1
-        fi
-
-        # Check for path traversal attempts
-        if [[ "$WORKING_DIR" == *".."* ]]; then
-          echo "❌ Error: Path traversal not allowed in working-directory"
-          echo "   Received: $WORKING_DIR"
-          echo "   Use relative path without '..'"
-          exit 1
-        fi
-
-        # Check for null bytes
-        if [[ "$WORKING_DIR" == *$'\0'* ]]; then
-          echo "❌ Error: Invalid characters in working-directory"
-          exit 1
-        fi
-
-        echo "✅ Working directory validated: $WORKING_DIR"
+        # Validate using extracted script
+        "$SCRIPT_DIR/validate-input.sh" "$WORKING_DIR"
 
     - name: Run Verification Gates
       id: verify
