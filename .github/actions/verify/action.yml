@@ -79,6 +79,8 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
+        set -euo pipefail
+
         GATES="${{ inputs.gates }}"
         EVIDENCE_REQUIRED="${{ inputs.evidence-required }}"
 
@@ -93,6 +95,28 @@ runs:
         FAILED=0
         RESULTS=()
 
+        # Helper function to run a gate and capture exit code
+        run_gate() {
+          local gate_name="$1"
+          shift
+
+          # Temporarily disable errexit for the gate command
+          set +e
+          "$@"
+          local rc=$?
+          set -e
+
+          if [ "$rc" -eq 0 ]; then
+            echo "✅ ${gate_name} passed"
+            PASSED=$((PASSED + 1))
+            RESULTS+=("${gate_name}: PASS")
+          else
+            echo "❌ ${gate_name} failed (exit ${rc})"
+            FAILED=$((FAILED + 1))
+            RESULTS+=("${gate_name}: FAIL")
+          fi
+        }
+
         # Run each gate
         for gate in "${GATE_ARRAY[@]}"; do
           gate=$(echo "$gate" | xargs)  # trim whitespace
@@ -101,49 +125,17 @@ runs:
 
           case "$gate" in
             types)
-              if sdp quality types 2>&1; then
-                echo "✅ $gate passed"
-                ((PASSED++))
-                RESULTS+=("$gate: PASS")
-              else
-                echo "❌ $gate failed"
-                ((FAILED++))
-                RESULTS+=("$gate: FAIL")
-              fi
+              run_gate "types" sdp quality types
               ;;
             tests)
-              if go test ./... 2>&1; then
-                echo "✅ $gate passed"
-                ((PASSED++))
-                RESULTS+=("$gate: PASS")
-              else
-                echo "❌ $gate failed"
-                ((FAILED++))
-                RESULTS+=("$gate: FAIL")
-              fi
+              run_gate "tests" go test ./...
               ;;
             coverage)
-              if sdp quality coverage 2>&1; then
-                echo "✅ $gate passed"
-                ((PASSED++))
-                RESULTS+=("$gate: PASS")
-              else
-                echo "❌ $gate failed"
-                ((FAILED++))
-                RESULTS+=("$gate: FAIL")
-              fi
+              run_gate "coverage" sdp quality coverage
               ;;
             evidence)
               if [ "$EVIDENCE_REQUIRED" = "true" ]; then
-                if sdp log trace --verify 2>&1; then
-                  echo "✅ $gate passed"
-                  ((PASSED++))
-                  RESULTS+=("$gate: PASS")
-                else
-                  echo "❌ $gate failed"
-                  ((FAILED++))
-                  RESULTS+=("$gate: FAIL")
-                fi
+                run_gate "evidence" sdp log trace --verify
               else
                 echo "⊘ $gate skipped"
                 RESULTS+=("$gate: SKIPPED")
