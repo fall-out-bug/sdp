@@ -73,12 +73,18 @@ runs:
 
         echo "Downloading from: $DOWNLOAD_URL"
 
-        curl -fsSL "$DOWNLOAD_URL" -o /tmp/sdp
-        chmod +x /tmp/sdp
-        sudo mv /tmp/sdp /usr/local/bin/sdp
+        # Use RUNNER_TEMP for binary storage (no sudo required)
+        BIN_DIR="$RUNNER_TEMP/.bin"
+        mkdir -p "$BIN_DIR"
 
-        echo "✅ SDP CLI installed:"
-        sdp version || echo "Version command not available"
+        curl -fsSL "$DOWNLOAD_URL" -o "$BIN_DIR/sdp"
+        chmod +x "$BIN_DIR/sdp"
+
+        # Add to PATH for this and future steps
+        echo "$BIN_DIR" >> $GITHUB_PATH
+
+        echo "✅ SDP CLI installed to: $BIN_DIR"
+        "$BIN_DIR/sdp" version || echo "Version command not available"
 
     - name: Run Verification Gates
       id: verify
