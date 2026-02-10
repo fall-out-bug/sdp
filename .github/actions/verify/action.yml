@@ -274,11 +274,35 @@ runs:
 
         "
 
-        # Add evidence chain integrity info
+        # Add evidence statistics from sdp log stats
         if [ "$EVIDENCE_REQUIRED" = "true" ]; then
           COMMENT_BODY="${COMMENT_BODY}### Chain Integrity
 
-        ✅ Evidence chain integrity verified"
+        ✅ Evidence chain integrity verified
+
+        ### Event Statistics
+
+        "
+
+          # Get evidence statistics
+          EVIDENCE_STATS=$(sdp log stats 2>/dev/null || echo "")
+
+          if [ -n "$EVIDENCE_STATS" ]; then
+            # Parse and format stats
+            TOTAL_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'Total:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "N/A")
+            PLAN_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'plan:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
+            GENERATION_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'generation:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
+            VERIFICATION_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'verification:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
+
+            COMMENT_BODY="${COMMENT_BODY}| Metric | Count |
+|---------|-------|
+| Total Events | ${TOTAL_EVENTS} |
+| Plan Events | ${PLAN_EVENTS} |
+| Generation Events | ${GENERATION_EVENTS} |
+| Verification Events | ${VERIFICATION_EVENTS} |"
+          else
+            COMMENT_BODY="${COMMENT_BODY}_Unable to retrieve evidence statistics_"
+          fi
         else
           COMMENT_BODY="${COMMENT_BODY}### Chain Integrity
 
