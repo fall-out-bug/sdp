@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/spf13/cobra"
 )
 
@@ -82,6 +83,11 @@ Examples:
 				wsID := fmt.Sprintf("%s-%02d", featureID, i)
 				fmt.Printf("   - %s: WS-%s\n", wsID, wsID)
 			}
+			// F056-03: emit generation event (non-blocking)
+			evidence.Emit(evidence.SkillEvent("prototype", "generation", "00-000-00", map[string]interface{}{
+				"workstream_count": numWS,
+				"feature_id":       featureID,
+			}))
 			fmt.Printf("\n")
 
 			// Step 3: Launch @oneshot

@@ -208,6 +208,19 @@ func ApprovalEvent(wsID, targetBranch, commitSHA, approvedBy string) *Event {
 	}
 }
 
+// SkillEvent builds a thin evidence event for a skill (F056-03). Non-blocking use: Emit(SkillEvent(...)).
+func SkillEvent(skillName, eventType, wsID string, data map[string]interface{}) *Event {
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+	data["skill"] = skillName
+	return &Event{
+		Type: eventType,
+		WSID: wsID,
+		Data: data,
+	}
+}
+
 // DecisionEvent builds a decision event (AC6, AC7). reverses links to a previous decision being overturned.
 func DecisionEvent(wsID, question, choice, rationale string, alternatives []string, confidence float64, tags []string, reverses *string) *Event {
 	data := map[string]interface{}{
