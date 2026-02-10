@@ -26,7 +26,7 @@ Skill → event types emitted. Use for pipeline verification and `sdp log show -
 | @oneshot   | ✓    |            |              | ✓        | `sdp orchestrate` (plan start, approval end) |
 | @prototype |      | ✓          |              |          | `sdp prototype` (after WS gen) |
 | @hotfix    |      | ✓          |              | ✓        | `sdp skill record` (2 calls)  |
-| @bugfix    |      | ✓          |              | ✓        | `sdp skill record` (gen + verification) |
+| @bugfix    |      | ✓          | ✓            |          | `sdp skill record` (gen + verification) |
 | @issue     | ✓    |            |              |          | `sdp skill record --skill issue --type plan` |
 | @debug     |      |            | ✓            |          | `sdp skill record --skill debug --type verification` |
 
