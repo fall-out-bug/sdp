@@ -1,0 +1,188 @@
+name: 'SDP Verify'
+description: 'Run SDP verification gates on PRs with evidence tracking'
+inputs:
+  gates:
+    description: 'Comma-separated list of gates to run (types, tests, coverage, evidence)'
+    required: false
+    default: 'types,tests,coverage'
+  evidence-required:
+    description: 'Whether to check evidence chain integrity'
+    required: false
+    default: 'true'
+  comment:
+    description: 'Whether to post PR comment with results'
+    required: false
+    default: 'true'
+  version:
+    description: 'SDP CLI version to install'
+    required: false
+    default: 'latest'
+  working-directory:
+    description: 'Working directory for SDP checks'
+    required: false
+    default: '.'
+outputs:
+  result:
+    description: 'Verification result (pass/fail)'
+    value: ${{ steps.verify.outputs.result }}
+  gates-passed:
+    description: 'Number of gates that passed'
+    value: ${{ steps.verify.outputs.gates_passed }}
+  gates-failed:
+    description: 'Number of gates that failed'
+    value: ${{ steps.verify.outputs.gates_failed }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Install SDP CLI
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        VERSION="${{ inputs.version }}"
+        WORKING_DIR="${{ inputs.working-directory }}"
+
+        echo "Installing SDP CLI version: $VERSION"
+
+        # Detect OS and architecture
+        OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+        ARCH="$(uname -m)"
+
+        # Map architecture names
+        case "$ARCH" in
+          x86_64|amd64)
+            ARCH="amd64"
+            ;;
+          aarch64|arm64)
+            ARCH="arm64"
+            ;;
+          *)
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+        esac
+
+        # Download from GitHub releases
+        BINARY_NAME="sdp-${OS}-${ARCH}"
+
+        if [ "$VERSION" = "latest" ]; then
+          DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/latest/download/${BINARY_NAME}"
+        else
+          DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/download/${VERSION}/${BINARY_NAME}"
+        fi
+
+        echo "Downloading from: $DOWNLOAD_URL"
+
+        curl -fsSL "$DOWNLOAD_URL" -o /tmp/sdp
+        chmod +x /tmp/sdp
+        sudo mv /tmp/sdp /usr/local/bin/sdp
+
+        echo "✅ SDP CLI installed:"
+        sdp version || echo "Version command not available"
+
+    - name: Run Verification Gates
+      id: verify
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+
+        GATES="${{ inputs.gates }}"
+        EVIDENCE_REQUIRED="${{ inputs.evidence-required }}"
+
+        echo "Running SDP verification gates..."
+        echo "Gates: $GATES"
+        echo "Evidence required: $EVIDENCE_REQUIRED"
+
+        # Convert comma-separated gates to array
+        IFS=',' read -ra GATE_ARRAY <<< "$GATES"
+
+        PASSED=0
+        FAILED=0
+        RESULTS=()
+
+        # Run each gate
+        for gate in "${GATE_ARRAY[@]}"; do
+          gate=$(echo "$gate" | xargs)  # trim whitespace
+          echo ""
+          echo "Running gate: $gate"
+
+          case "$gate" in
+            types)
+              if sdp quality types 2>&1; then
+                echo "✅ $gate passed"
+                ((PASSED++))
+                RESULTS+=("$gate: PASS")
+              else
+                echo "❌ $gate failed"
+                ((FAILED++))
+                RESULTS+=("$gate: FAIL")
+              fi
+              ;;
+            tests)
+              if go test ./... 2>&1; then
+                echo "✅ $gate passed"
+                ((PASSED++))
+                RESULTS+=("$gate: PASS")
+              else
+                echo "❌ $gate failed"
+                ((FAILED++))
+                RESULTS+=("$gate: FAIL")
+              fi
+              ;;
+            coverage)
+              if sdp quality coverage 2>&1; then
+                echo "✅ $gate passed"
+                ((PASSED++))
+                RESULTS+=("$gate: PASS")
+              else
+                echo "❌ $gate failed"
+                ((FAILED++))
+                RESULTS+=("$gate: FAIL")
+              fi
+              ;;
+            evidence)
+              if [ "$EVIDENCE_REQUIRED" = "true" ]; then
+                if sdp log trace --verify 2>&1; then
+                  echo "✅ $gate passed"
+                  ((PASSED++))
+                  RESULTS+=("$gate: PASS")
+                else
+                  echo "❌ $gate failed"
+                  ((FAILED++))
+                  RESULTS+=("$gate: FAIL")
+                fi
+              else
+                echo "⊘ $gate skipped"
+                RESULTS+=("$gate: SKIPPED")
+              fi
+              ;;
+            *)
+              echo "⚠️ Unknown gate: $gate"
+              RESULTS+=("$gate: UNKNOWN")
+              ;;
+          esac
+        done
+
+        echo ""
+        echo "=== Summary ==="
+        echo "Passed: $PASSED"
+        echo "Failed: $FAILED"
+        echo ""
+        printf '%s\n' "${RESULTS[@]}"
+
+        # Set outputs
+        echo "gates_passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "gates_failed=$FAILED" >> $GITHUB_OUTPUT
+
+        # Set result (fail if any gate failed)
+        if [ $FAILED -gt 0 ]; then
+          echo "result=fail" >> $GITHUB_OUTPUT
+          echo ""
+          echo "❌ Verification failed"
+          exit 1
+        else
+          echo "result=pass" >> $GITHUB_OUTPUT
+          echo ""
+          echo "✅ All gates passed"
+        fi
