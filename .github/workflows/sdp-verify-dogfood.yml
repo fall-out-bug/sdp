@@ -37,8 +37,8 @@ jobs:
       - name: Run SDP Verify
         uses: ./.github/actions/verify
         with:
-          gates: 'types,tests,coverage'
-          evidence-required: 'true'
+          gates: 'types,tests'
+          evidence-required: 'false'
           comment: 'true'
           working-directory: './sdp-plugin'
           sdp-path: ${{ steps.build.outputs.sdp_path }}

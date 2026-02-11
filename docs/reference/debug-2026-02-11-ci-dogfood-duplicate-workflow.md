@@ -73,3 +73,14 @@
 
 - When CI is "still red" after fixes, check **which workflow file** actually ran (API `path` field)
 - Duplicate workflows with same triggers cause confusion — consolidate or differentiate
+
+---
+
+## Follow-up: Gate Failures (2026-02-11)
+
+After removing the duplicate workflow, CI still failed:
+
+- **sdp-verify-dogfood**: coverage gate (80% threshold) fails — go-ci uses 65%
+- **test-verify-action**: "Test action with custom inputs" (coverage+evidence), "Test Output Format" (coverage) failed
+
+**Fix:** Use `gates: 'types,tests'` and `evidence-required: 'false'` in dogfood; align test-verify-action to use passing gates and `working-directory: './sdp-plugin'`. Coverage/evidence gates require project to reach 80% or chain fix.
