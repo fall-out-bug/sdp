@@ -8,9 +8,9 @@ import (
 
 // ReportData holds combined metrics and taxonomy data.
 type ReportData struct {
-	Metrics    MetricsSummary     `json:"metrics"`
-	Taxonomy   TaxonomySummary    `json:"taxonomy"`
-	Historical []HistoricalEntry  `json:"historical,omitempty"`
+	Metrics    MetricsSummary    `json:"metrics"`
+	Taxonomy   TaxonomySummary   `json:"taxonomy"`
+	Historical []HistoricalEntry `json:"historical,omitempty"`
 }
 
 // MetricsSummary summarizes key metrics for report (AC2).
@@ -26,9 +26,9 @@ type MetricsSummary struct {
 // TaxonomySummary summarizes failure classifications (AC2).
 type TaxonomySummary struct {
 	TotalClassifications int            `json:"total_classifications"`
-	ByType              map[string]int `json:"by_type"`
-	ByModel             map[string]int `json:"by_model"`
-	BySeverity          map[string]int `json:"by_severity"`
+	ByType               map[string]int `json:"by_type"`
+	ByModel              map[string]int `json:"by_model"`
+	BySeverity           map[string]int `json:"by_severity"`
 }
 
 // HistoricalEntry represents a past benchmark period (AC3).

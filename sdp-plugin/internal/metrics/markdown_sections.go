@@ -39,14 +39,14 @@ func (r *Reporter) generateTaxonomySection(data ReportData) string {
 // getFailureDescription returns human-readable description.
 func (r *Reporter) getFailureDescription(failureType string) string {
 	descriptions := map[string]string{
-		"wrong_logic":           "Logic errors - incorrect algorithms or flow",
-		"missing_edge_case":     "Edge cases - boundary conditions, nil pointers",
-		"hallucinated_api":      "Hallucinated APIs - non-existent functions or methods",
-		"type_error":            "Type errors - type mismatches or incompatibilities",
+		"wrong_logic":            "Logic errors - incorrect algorithms or flow",
+		"missing_edge_case":      "Edge cases - boundary conditions, nil pointers",
+		"hallucinated_api":       "Hallucinated APIs - non-existent functions or methods",
+		"type_error":             "Type errors - type mismatches or incompatibilities",
 		"test_passing_but_wrong": "Test-Passing-But-Wrong - unit tests pass but acceptance fails",
 		"compilation_error":      "Compilation errors - syntax or build failures",
-		"import_error":          "Import errors - missing or unresolved modules",
-		"unknown":              "Unknown - unclassified failures",
+		"import_error":           "Import errors - missing or unresolved modules",
+		"unknown":                "Unknown - unclassified failures",
 	}
 	if desc, ok := descriptions[failureType]; ok {
 		return desc

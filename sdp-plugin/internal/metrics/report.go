@@ -10,14 +10,14 @@ import (
 // Reporter generates benchmark reports from metrics and taxonomy (AC1).
 type Reporter struct {
 	metricsPath    string
-	taxonomyPath  string
+	taxonomyPath   string
 	historicalPath string
 }
 
 // NewReporter creates a reporter for given paths.
 func NewReporter(metricsPath, taxonomyPath string) *Reporter {
 	return &Reporter{
-		metricsPath:   metricsPath,
+		metricsPath:  metricsPath,
 		taxonomyPath: taxonomyPath,
 	}
 }

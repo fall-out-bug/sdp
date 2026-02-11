@@ -11,20 +11,20 @@ import (
 
 // Metrics represents collected metrics from evidence events (AC2-AC5).
 type Metrics struct {
-	CatchRate          float64            `json:"catch_rate"`
-	TotalVerifications int                `json:"total_verifications"`
+	CatchRate           float64            `json:"catch_rate"`
+	TotalVerifications  int                `json:"total_verifications"`
 	FailedVerifications int                `json:"failed_verifications"`
-	IterationCount     map[string]int     `json:"iteration_count"`
-	ModelPassRate     map[string]float64 `json:"model_pass_rate"`
-	TotalApprovals    int                `json:"total_approvals"`
-	FailedApprovals   int                `json:"failed_approvals"`
-	AcceptanceCatchRate float64           `json:"acceptance_catch_rate"`
+	IterationCount      map[string]int     `json:"iteration_count"`
+	ModelPassRate       map[string]float64 `json:"model_pass_rate"`
+	TotalApprovals      int                `json:"total_approvals"`
+	FailedApprovals     int                `json:"failed_approvals"`
+	AcceptanceCatchRate float64            `json:"acceptance_catch_rate"`
 }
 
 // workstreamState tracks workstream iteration state.
 type workstreamState struct {
 	generationCount int
-	lastWasGen     bool
+	lastWasGen      bool
 }
 
 // modelVerificationStats tracks verification stats per model.
@@ -39,7 +39,7 @@ type Collector struct {
 	logPath       string
 	outputPath    string
 	watermarkPath string
-	wsModel      map[string]string
+	wsModel       map[string]string
 }
 
 // NewCollector creates a metrics collector for given log path.
@@ -60,7 +60,7 @@ func (c *Collector) SetWatermarkPath(path string) {
 func (c *Collector) Collect() (*Metrics, error) {
 	metrics := &Metrics{
 		IterationCount: make(map[string]int),
-		ModelPassRate: make(map[string]float64),
+		ModelPassRate:  make(map[string]float64),
 	}
 
 	// Load watermark for incremental processing
@@ -193,7 +193,6 @@ func (c *Collector) processGeneration(ev evidenceEvent, wsState map[string]*work
 		c.wsModel[ev.WSID] = modelID
 	}
 }
-
 
 func (c *Collector) readEvents() ([]evidenceEvent, error) {
 	f, err := os.Open(c.logPath)

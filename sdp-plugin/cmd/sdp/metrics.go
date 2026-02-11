@@ -151,12 +151,12 @@ func metricsClassifyCmd() *cobra.Command {
 			if eventID != "" && failureType != "" {
 				// Validate failure type
 				validTypes := map[string]bool{
-					metrics.FailureWrongLogic:        true,
+					metrics.FailureWrongLogic:       true,
 					metrics.FailureMissingEdgeCase:  true,
 					metrics.FailureHallucinatedAPI:  true,
 					metrics.FailureTypeError:        true,
 					metrics.FailureTestPassingWrong: true,
-					metrics.FailureCompilationError:  true,
+					metrics.FailureCompilationError: true,
 					metrics.FailureImportError:      true,
 				}
 				if !validTypes[failureType] {
@@ -272,7 +272,7 @@ func autoClassifyFromLog(taxonomy *metrics.Taxonomy, logPath string) (int, error
 type evidenceEvent struct {
 	ID   string                 `json:"id"`
 	Type string                 `json:"type"`
-	WSID    string                 `json:"ws_id"`
+	WSID string                 `json:"ws_id"`
 	Data map[string]interface{} `json:"data"`
 }
 

@@ -23,23 +23,23 @@ type FailureClassification struct {
 
 // TaxonomyStats provides summary statistics (AC1).
 type TaxonomyStats struct {
-	TotalClassifications int                `json:"total_classifications"`
-	TotalByModel       map[string]int      `json:"total_by_model"`
-	TotalByType        map[string]int      `json:"total_by_type"`
-	TotalByLanguage    map[string]int      `json:"total_by_language"`
-	TotalBySeverity    map[string]int      `json:"total_by_severity"`
+	TotalClassifications int            `json:"total_classifications"`
+	TotalByModel         map[string]int `json:"total_by_model"`
+	TotalByType          map[string]int `json:"total_by_type"`
+	TotalByLanguage      map[string]int `json:"total_by_language"`
+	TotalBySeverity      map[string]int `json:"total_by_severity"`
 }
 
 // FailureType enum (AC2).
 const (
-	FailureWrongLogic        = "wrong_logic"
+	FailureWrongLogic       = "wrong_logic"
 	FailureMissingEdgeCase  = "missing_edge_case"
 	FailureHallucinatedAPI  = "hallucinated_api"
 	FailureTypeError        = "type_error"
 	FailureTestPassingWrong = "test_passing_but_wrong"
-	FailureCompilationError  = "compilation_error"
+	FailureCompilationError = "compilation_error"
 	FailureImportError      = "import_error"
-	FailureUnknown         = "unknown"
+	FailureUnknown          = "unknown"
 )
 
 // Severity levels.
@@ -52,15 +52,15 @@ const (
 
 // Taxonomy manages failure classifications (AC3-AC6).
 type Taxonomy struct {
-	path          string
+	path            string
 	classifications map[string]*FailureClassification
-	mu            sync.RWMutex
+	mu              sync.RWMutex
 }
 
 // NewTaxonomy creates a taxonomy manager for the given path.
 func NewTaxonomy(path string) *Taxonomy {
 	return &Taxonomy{
-		path:          path,
+		path:            path,
 		classifications: make(map[string]*FailureClassification),
 	}
 }
@@ -320,10 +320,10 @@ func (t *Taxonomy) GetStats() TaxonomyStats {
 
 	stats := TaxonomyStats{
 		TotalClassifications: len(t.classifications),
-		TotalByModel:        make(map[string]int),
-		TotalByType:         make(map[string]int),
-		TotalByLanguage:     make(map[string]int),
-		TotalBySeverity:     make(map[string]int),
+		TotalByModel:         make(map[string]int),
+		TotalByType:          make(map[string]int),
+		TotalByLanguage:      make(map[string]int),
+		TotalBySeverity:      make(map[string]int),
 	}
 
 	for _, fc := range t.classifications {
