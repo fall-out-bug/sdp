@@ -95,6 +95,7 @@ jobs:
 
       - name: Test error handling - invalid gate
         id: test-invalid
+        continue-on-error: true
         uses: ./.github/actions/verify
         with:
           gates: 'invalid-gate-name'
@@ -103,10 +104,37 @@ jobs:
       - name: Verify action fails on invalid gate
         run: |
           # Action should fail when invalid gate is used
-          # This step runs only if the previous step succeeded (which is an error)
-          echo "❌ FAIL: Invalid gate test should have failed but succeeded"
+          # Check that the step failed as expected
+          if [ "${{ steps.test-invalid.outcome }}" != "failure" ]; then
+            echo "❌ FAIL: Invalid gate test should have failed but succeeded"
+            echo "Outcome: ${{ steps.test-invalid.outcome }}"
+            exit 1
+          fi
+
+          # Verify outputs are set correctly even on failure
           echo "Result: ${{ steps.test-invalid.outputs.result }}"
-          exit 1
+          echo "Gates passed: ${{ steps.test-invalid.outputs.gates_passed }}"
+          echo "Gates failed: ${{ steps.test-invalid.outputs.gates_failed }}"
+
+          # Verify result is 'fail'
+          if [ "${{ steps.test-invalid.outputs.result }}" != "fail" ]; then
+            echo "❌ FAIL: outputs.result should be 'fail' but got '${{ steps.test-invalid.outputs.result }}'"
+            exit 1
+          fi
+
+          # Verify gates_failed is 1
+          if [ "${{ steps.test-invalid.outputs.gates_failed }}" != "1" ]; then
+            echo "❌ FAIL: gates_failed should be 1 but got '${{ steps.test-invalid.outputs.gates_failed }}'"
+            exit 1
+          fi
+
+          # Verify gates_passed is 0
+          if [ "${{ steps.test-invalid.outputs.gates_passed }}" != "0" ]; then
+            echo "❌ FAIL: gates_passed should be 0 but got '${{ steps.test-invalid.outputs.gates_passed }}'"
+            exit 1
+          fi
+
+          echo "✅ PASS: Invalid gate correctly failed with proper outputs"
 
   test-no-sudo:
     name: Security Test - No Sudo Required
