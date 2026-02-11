@@ -64,6 +64,116 @@ Parse workstream markdown files
 	}
 }
 
+// TestParseWorkstreamWithFeatureID tests parsing with feature_id field (preferred)
+func TestParseWorkstreamWithFeatureID(t *testing.T) {
+	tmpDir := t.TempDir()
+	wsPath := filepath.Join(tmpDir, "00-058-01.md")
+	content := `---
+ws_id: 00-058-01
+feature_id: F058
+status: backlog
+project_id: 00
+---
+
+## Test Workstream
+
+### Goal
+
+Test feature_id field parsing
+
+### Acceptance Criteria
+
+- [ ] AC1: Parse feature_id
+`
+	err := os.WriteFile(wsPath, []byte(content), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	ws, err := ParseWorkstream(wsPath)
+	if err != nil {
+		t.Fatalf("ParseWorkstream failed: %v", err)
+	}
+
+	if ws.Feature != "F058" {
+		t.Errorf("Expected Feature F058, got %s", ws.Feature)
+	}
+}
+
+// TestParseWorkstreamFeatureIDFallback tests that feature is used when feature_id is absent (backward compat)
+func TestParseWorkstreamFeatureIDFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+	wsPath := filepath.Join(tmpDir, "00-058-02.md")
+	content := `---
+ws_id: 00-058-02
+feature: F058
+status: backlog
+project_id: 00
+---
+
+## Test Workstream
+
+### Goal
+
+Test feature field fallback
+
+### Acceptance Criteria
+
+- [ ] AC1: Parse feature as fallback
+`
+	err := os.WriteFile(wsPath, []byte(content), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	ws, err := ParseWorkstream(wsPath)
+	if err != nil {
+		t.Fatalf("ParseWorkstream failed: %v", err)
+	}
+
+	if ws.Feature != "F058" {
+		t.Errorf("Expected Feature F058, got %s", ws.Feature)
+	}
+}
+
+// TestParseWorkstreamFeatureIDPrecedence tests that feature_id takes precedence over feature
+func TestParseWorkstreamFeatureIDPrecedence(t *testing.T) {
+	tmpDir := t.TempDir()
+	wsPath := filepath.Join(tmpDir, "00-058-03.md")
+	content := `---
+ws_id: 00-058-03
+feature: F050
+feature_id: F058
+status: backlog
+project_id: 00
+---
+
+## Test Workstream
+
+### Goal
+
+Test feature_id precedence
+
+### Acceptance Criteria
+
+- [ ] AC1: feature_id takes precedence
+`
+	err := os.WriteFile(wsPath, []byte(content), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	ws, err := ParseWorkstream(wsPath)
+	if err != nil {
+		t.Fatalf("ParseWorkstream failed: %v", err)
+	}
+
+	// feature_id should take precedence
+	if ws.Feature != "F058" {
+		t.Errorf("Expected Feature F058 (from feature_id), got %s", ws.Feature)
+	}
+}
+
 func TestValidateInvalidWSID(t *testing.T) {
 	tests := []struct {
 		name  string
