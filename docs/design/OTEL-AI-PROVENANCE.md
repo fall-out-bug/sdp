@@ -733,12 +733,31 @@ OpenTelemetry has an **experimental** `code.*` namespace:
 - Grafana Tempo ✅ (Span attributes searchable)
 
 **Example: SDP Implementation Namespace**
+
+SDP uses the `sdp.*` namespace internally for its implementation, while the `code.ai.*` namespace is proposed for OpenTelemetry standardization.
+
+**Complete Attribute Mapping:**
+
+| OTel (`code.ai.*`) | SDP (`sdp.*`) | Type |
+|--------------------|---------------|------|
+| `code.ai.generated` | `sdp.ai_generated` | boolean |
+| `code.ai.model` | `sdp.model` | string |
+| `code.ai.evidence_id` | `sdp.evidence_id` | string |
+| `code.ai.verification_status` | `sdp.verification_status` | enum |
+| `code.ai.workstream_id` | `sdp.workstream_id` | string |
+| `code.ai.feature_id` | `sdp.feature_id` | string |
+| `code.ai.human_modified` | `sdp.human_modified` | boolean |
+| `code.ai.human_author` | `sdp.human_author` | string |
+| `code.ai.coverage` | `sdp.coverage` | double |
+| `code.ai.prompt_hash` | `sdp.prompt_hash` | string |
+
+**Example Conversion:**
 ```
 code.ai.generated:true -> sdp.ai_generated:true
 code.ai.model:claude-sonnet-4 -> sdp.model:claude-sonnet-4
+code.ai.evidence_id:evt-123 -> sdp.evidence_id:evt-123
+code.ai.verification_status:passed -> sdp.verification_status:passed
 ```
-
-SDP uses the `sdp.*` namespace internally for its implementation, while the `code.ai.*` namespace is proposed for OpenTelemetry standardization.
 
 ### Backward Compatibility
 
