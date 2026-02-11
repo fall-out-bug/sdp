@@ -215,15 +215,15 @@ func TestDetectBoundaries_MultipleSameFeatures_NoCrossBoundary(t *testing.T) {
 	// Arrange - Three workstreams from same feature, overlapping files
 	workstreams := []FeatureScope{
 		{
-			FeatureID: "F060",
+			FeatureID:  "F060",
 			ScopeFiles: []string{"testdata/user_model.go"},
 		},
 		{
-			FeatureID: "F060",
+			FeatureID:  "F060",
 			ScopeFiles: []string{"testdata/user_model.go", "testdata/profile.go"},
 		},
 		{
-			FeatureID: "F060",
+			FeatureID:  "F060",
 			ScopeFiles: []string{"testdata/profile.go"},
 		},
 	}

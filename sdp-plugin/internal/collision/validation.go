@@ -23,26 +23,42 @@ type Violation struct {
 
 // ValidateContractAgainstImpl validates implementation against a contract.
 func ValidateContractAgainstImpl(contractPath, implPath string) ([]Violation, error) {
-	// Load contract
-	contractData, err := os.ReadFile(contractPath)
+	contract, err := loadContract(contractPath)
 	if err != nil {
-		return nil, fmt.Errorf("read contract: %w", err)
+		return nil, err
 	}
 
+	implFields, err := extractImplFields(implPath, contract.TypeName)
+	if err != nil {
+		return nil, err
+	}
+
+	contractFields := buildContractFieldMap(contract.Fields)
+	return compareFields(contractFields, implFields), nil
+}
+
+// loadContract loads and parses a contract YAML file.
+func loadContract(path string) (Contract, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Contract{}, fmt.Errorf("read contract: %w", err)
+	}
 	var contract Contract
-	if err := yaml.Unmarshal(contractData, &contract); err != nil {
-		return nil, fmt.Errorf("parse contract: %w", err)
+	if err := yaml.Unmarshal(data, &contract); err != nil {
+		return Contract{}, fmt.Errorf("parse contract: %w", err)
 	}
+	return contract, nil
+}
 
-	// Parse implementation file
+// extractImplFields extracts struct fields from a Go implementation file.
+func extractImplFields(path, typeName string) (map[string]string, error) {
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, implPath, nil, parser.ParseComments)
+	node, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("parse implementation: %w", err)
 	}
 
-	// Extract struct fields from implementation
-	implFields := make(map[string]string)
+	fields := make(map[string]string)
 	for _, decl := range node.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok || genDecl.Tok != token.TYPE {
@@ -50,66 +66,73 @@ func ValidateContractAgainstImpl(contractPath, implPath string) ([]Violation, er
 		}
 		for _, spec := range genDecl.Specs {
 			typeSpec, ok := spec.(*ast.TypeSpec)
-			if !ok || typeSpec.Name.Name != contract.TypeName {
+			if !ok || typeSpec.Name.Name != typeName {
 				continue
 			}
 			if structType, ok := typeSpec.Type.(*ast.StructType); ok {
 				for _, field := range structType.Fields.List {
 					fieldType := formatFieldType(field.Type)
 					for _, name := range field.Names {
-						implFields[name.Name] = fieldType
+						fields[name.Name] = fieldType
 					}
 				}
 			}
 		}
 	}
+	return fields, nil
+}
 
-	// Build contract field map
-	contractFields := make(map[string]string)
-	for _, f := range contract.Fields {
-		contractFields[f.Name] = f.Type
+// buildContractFieldMap converts field slice to map.
+func buildContractFieldMap(fields []FieldInfo) map[string]string {
+	m := make(map[string]string)
+	for _, f := range fields {
+		m[f.Name] = f.Type
 	}
+	return m
+}
 
+// compareFields compares contract fields with implementation fields.
+func compareFields(contractFields, implFields map[string]string) []Violation {
 	var violations []Violation
 
-	// Check for missing required fields
-	for fieldName, fieldType := range contractFields {
-		if implType, exists := implFields[fieldName]; !exists {
+	// Check for missing required fields and type mismatches
+	for name, cType := range contractFields {
+		if iType, exists := implFields[name]; !exists {
 			violations = append(violations, Violation{
 				Type:     "missing_field",
-				Field:    fieldName,
-				Expected: fieldType,
+				Field:    name,
+				Expected: cType,
 				Actual:   "missing",
 				Severity: "error",
-				Message:  fmt.Sprintf("Missing required field: %s (%s)", fieldName, fieldType),
+				Message:  fmt.Sprintf("Missing required field: %s (%s)", name, cType),
 			})
-		} else if implType != fieldType {
+		} else if iType != cType {
 			violations = append(violations, Violation{
 				Type:     "type_mismatch",
-				Field:    fieldName,
-				Expected: fieldType,
-				Actual:   implType,
+				Field:    name,
+				Expected: cType,
+				Actual:   iType,
 				Severity: "warning",
-				Message:  fmt.Sprintf("Type mismatch for %s: expected %s, got %s", fieldName, fieldType, implType),
+				Message:  fmt.Sprintf("Type mismatch for %s: expected %s, got %s", name, cType, iType),
 			})
 		}
 	}
 
 	// Check for extra fields (warning only in P1)
-	for fieldName, fieldType := range implFields {
-		if _, exists := contractFields[fieldName]; !exists {
+	for name, fType := range implFields {
+		if _, exists := contractFields[name]; !exists {
 			violations = append(violations, Violation{
 				Type:     "extra_field",
-				Field:    fieldName,
+				Field:    name,
 				Expected: "not in contract",
-				Actual:   fieldType,
+				Actual:   fType,
 				Severity: "warning",
-				Message:  fmt.Sprintf("Extra field not in contract: %s (%s)", fieldName, fieldType),
+				Message:  fmt.Sprintf("Extra field not in contract: %s (%s)", name, fType),
 			})
 		}
 	}
 
-	return violations, nil
+	return violations
 }
 
 // ValidateContractsInDir validates all contracts in a directory.
