@@ -2,7 +2,12 @@
 name: design
 description: System design with progressive disclosure
 tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
-version: 4.0.0
+version: 5.1.0
+changes:
+  - Added Phase 5: Cross-feature boundary detection
+  - Added sdp collision detect --deep integration
+  - Added sdp contract generate for shared boundaries
+  - AC4 implementation for F060
 ---
 
 # @design - System Design with Progressive Disclosure
@@ -69,52 +74,64 @@ Multi-agent system design (Arch + Security + SRE) with progressive discovery blo
 
 **Workflow:**
 
-1. **Architect Proposes Initial Contract**
+1. **Check for Cross-Feature Boundaries** (NEW - AC4 for F060)
+   ```bash
+   sdp collision detect
+   ```
+   - Analyzes scope files for shared types/interfaces across parallel features
+   - Reports: shared types, fields needed by each feature, merge recommendations
+   - If boundaries found → suggest shared contracts
+   - JSON output: `sdp collision detect --output-json`
+
+2. **Generate Shared Contracts** (if boundaries detected)
+   ```bash
+   sdp contract generate --features=F054,F055
+   ```
+   - Creates `.contracts/<type>.yaml` files for shared boundaries
+   - Contract includes: typeName, fields, requiredBy features, status
+   - Example: `.contracts/User.yaml`
+
+3. **Lock Shared Contracts**
+   ```bash
+   sdp contract lock .contracts/User.yaml
+   ```
+   - Creates .lock file with SHA256 checksum
+   - Prevents modifications during implementation
+
+4. **API Contract Synthesis** (if applicable)
    ```bash
    sdp contract synthesize \
      --feature=<feature-name> \
-     --requirements=<idea-doc> \
-     --output=.contracts/<feature-name>.yaml
+     --requirements=<idea-doc>
    ```
-   - Analyzes requirements from @idea
-   - Proposes OpenAPI 3.0 contract
-   - Defines endpoints, methods, request/response schemas
+   - OpenAPI 3.0 contract for API endpoints
+   - Endpoints, methods, request/response schemas
 
-2. **Multi-Agent Review (Parallel)**
+5. **Multi-Agent Review** (if contracts exist)
    - Frontend Agent: "Need /batch endpoint"
    - Backend Agent: "Works for us"
-   - SDK Agent: "Matches our method naming"
    - Security Agent: "Add authentication headers"
-
-3. **Synthesizer Resolves Conflicts**
-   - Unanimous agreement → Contract locked
-   - Domain expertise veto → Escalate to human
-   - Merge suggestions → Update contract
-   - Escalation → Human decides
-
-4. **Lock Contract**
-   ```bash
-   sdp contract lock \
-     --contract=.contracts/<feature-name>.yaml \
-     --reason="Multi-agent agreement complete"
-   ```
-   - Creates .lock file
-   - Stores SHA256 checksum
-   - Prevents modifications during implementation
-
-5. **Create Validation Workstreams**
-   - Add WS: Contract validation (post-implementation)
-   - Add WS: Integration testing
+   - Synthesizer resolves conflicts
 
 **Exit Criteria:**
-- [ ] Contract file exists: `.contracts/<feature-name>.yaml`
-- [ ] Contract locked: `.contracts/<feature-name>.yaml.lock`
+- [ ] Cross-feature boundaries checked (if parallel features)
+- [ ] Shared contracts generated (if boundaries found)
+- [ ] Shared contracts locked (if generated)
+- [ ] API contracts generated (if applicable)
 - [ ] No ERROR-level conflicts
-- [ ] Validation workstream created
 
 **Skip Only If:**
+- Feature has NO shared boundaries (single feature)
 - Feature has NO API contracts (pure computation)
-- Feature has single component (no integration risk)
+
+### Phase 6: Workstream Generation
+
+**Generate workstreams based on:**
+- Shared contracts (from Phase 5)
+- API contracts (from Phase 5)
+- Architecture decisions (from discovery blocks)
+
+**Output:** Workstream files in `docs/workstreams/backlog/`
 
 ### After Each Block: Trigger Point
 
@@ -169,5 +186,6 @@ Minimal blocks (2 blocks, 6 questions):
 
 ---
 
-**Version:** 5.0.0 (Contract Synthesis Phase)
+**Version:** 5.1.0 (Cross-Feature Contract Detection - F060 AC4)
 **See Also:** `@idea`, `@build`, `@oneshot`
+**Related Features:** F054 (scope collision), F060 (cross-feature boundaries)

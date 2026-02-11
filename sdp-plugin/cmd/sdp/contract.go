@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/collision"
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -57,6 +59,22 @@ Multi-agent synthesis:
 
 	cmd.AddCommand(synthesizeCmd)
 
+	// generate subcommand (cross-feature contract generation)
+	generateCmd := &cobra.Command{
+		Use:   "generate",
+		Short: "Generate contracts from shared boundaries",
+		Long: `Generate interface contracts from shared boundaries detected across features.
+
+Creates .contracts/<type>.yaml files defining the agreed interface
+that multiple features must respect.`,
+		RunE: runContractGenerate,
+	}
+
+	var featuresFlag string
+	generateCmd.Flags().StringVar(&featuresFlag, "features", "", "Comma-separated feature IDs (e.g., F054,F055)")
+
+	cmd.AddCommand(generateCmd)
+
 	// lock subcommand
 	lockCmd := &cobra.Command{
 		Use:   "lock",
@@ -84,19 +102,26 @@ from diverging from agreed contract.`,
 
 	validateCmd := &cobra.Command{
 		Use:   "validate",
-		Short: "Validate contracts against each other",
-		Long: `Validate contracts from different components against each other.
+		Short: "Validate contracts against implementation",
+		Long: `Validate contracts against implementation files.
 
 Detects:
-- Endpoint mismatches
-- Method differences
-- Schema incompatibilities
-- Missing implementations`,
+- Missing required fields
+- Type mismatches
+- Extra fields (warning in P1)
+
+Flags:
+  --impl-dir: Directory containing implementation files
+  --contracts-dir: Directory containing contract files`,
 		RunE: runContractValidate,
 	}
 
+	var implDir string
+	var contractsDir string
 	validateCmd.Flags().StringSliceVar(&contractPaths, "contracts", []string{}, "Contract files to validate (min 2)")
 	validateCmd.Flags().StringVar(&reportPath, "output", "", "Validation report output")
+	validateCmd.Flags().StringVar(&implDir, "impl-dir", "", "Implementation directory")
+	validateCmd.Flags().StringVar(&contractsDir, "contracts-dir", ".contracts", "Contracts directory")
 
 	cmd.AddCommand(validateCmd)
 
@@ -150,6 +175,83 @@ func runContractSynthesize(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  Output: %s\n", outputPath)
 	fmt.Printf("\n⚠️  Contract synthesis not yet implemented\n")
 	fmt.Printf("   This will require integration with multi-agent synthesis system\n")
+
+	return nil
+}
+
+func runContractGenerate(cmd *cobra.Command, args []string) error {
+	featuresFlag, err := cmd.Flags().GetString("features")
+	if err != nil {
+		return fmt.Errorf("failed to get features flag: %w", err)
+	}
+
+	// Parse feature IDs
+	var featureIDs []string
+	if featuresFlag != "" {
+		for _, f := range strings.Split(featuresFlag, ",") {
+			featureIDs = append(featureIDs, strings.TrimSpace(f))
+		}
+	}
+
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return fmt.Errorf("find project root: %w", err)
+	}
+
+	// Load feature scopes
+	featureScopes, err := loadFeatureScopes(root)
+	if err != nil {
+		return fmt.Errorf("load feature scopes: %w", err)
+	}
+
+	// Filter by specified features if provided
+	if len(featureIDs) > 0 {
+		filtered := make([]collision.FeatureScope, 0)
+		for _, fs := range featureScopes {
+			for _, fid := range featureIDs {
+				if fs.FeatureID == fid {
+					filtered = append(filtered, fs)
+					break
+				}
+			}
+		}
+		featureScopes = filtered
+	}
+
+	// Detect boundaries using the collision package
+	boundaries := collision.DetectBoundaries(featureScopes)
+
+	if len(boundaries) == 0 {
+		fmt.Println("No shared boundaries detected.")
+		fmt.Println("  Run 'sdp collision detect' to find shared interfaces.")
+		return nil
+	}
+
+	// Generate contracts
+	contractsDir := filepath.Join(root, ".contracts")
+	contracts, err := collision.GenerateContracts(boundaries, contractsDir)
+	if err != nil {
+		return fmt.Errorf("generate contracts: %w", err)
+	}
+
+	fmt.Printf("✓ Generated %d contract(s)\n", len(contracts))
+	for _, c := range contracts {
+		fmt.Printf("  - %s.yaml (required by: %v)\n", c.TypeName, c.RequiredBy)
+	}
+	fmt.Printf("\n  Output directory: %s\n", contractsDir)
+
+	// AC2: Run validation post-generation (timing fix for sdp-ubdr)
+	// Check if implementation directory exists and validate
+	implDir := filepath.Join(root, "internal")
+	if _, err := os.Stat(implDir); err == nil {
+		fmt.Println("\n→ Running post-generation validation...")
+		if err := validateImplementation(contractsDir, implDir); err != nil {
+			fmt.Fprintf(os.Stderr, "⚠️  Post-generation validation: %v\n", err)
+			// Note: In P1, violations are warnings, not blockers
+		}
+	}
+
+	fmt.Printf("\n  Next step: sdp contract lock .contracts/<type>.yaml\n")
 
 	return nil
 }
@@ -292,6 +394,21 @@ func runContractLockInternal(featureName, gitSHA, contractPath, lockPath string,
 }
 
 func runContractValidate(cmd *cobra.Command, args []string) error {
+	implDir, err := cmd.Flags().GetString("impl-dir")
+	if err != nil {
+		return fmt.Errorf("failed to get impl-dir flag: %w", err)
+	}
+	contractsDir, err := cmd.Flags().GetString("contracts-dir")
+	if err != nil {
+		return fmt.Errorf("failed to get contracts-dir flag: %w", err)
+	}
+
+	// If impl-dir is specified, validate implementation against contracts
+	if implDir != "" {
+		return validateImplementation(contractsDir, implDir)
+	}
+
+	// Otherwise, use original contract-to-contract validation (placeholder)
 	contractPaths, err := cmd.Flags().GetStringSlice("contracts")
 	if err != nil {
 		return fmt.Errorf("failed to get contracts flag: %w", err)
@@ -307,8 +424,60 @@ func runContractValidate(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("✓ Validating %d contracts...\n", len(contractPaths))
 	fmt.Printf("  Report: %s\n", reportPath)
-	fmt.Printf("\n⚠️  Contract validation not yet implemented\n")
-	fmt.Printf("   Will cross-reference contracts for mismatches\n")
+	fmt.Printf("\n⚠️  Contract-to-contract validation not yet implemented\n")
+	fmt.Printf("   Use --impl-dir to validate implementation against contracts\n")
+
+	return nil
+}
+
+// validateImplementation validates implementation files against contracts.
+func validateImplementation(contractsDir, implDir string) error {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return fmt.Errorf("find project root: %w", err)
+	}
+
+	// Resolve paths
+	if !filepath.IsAbs(contractsDir) {
+		contractsDir = filepath.Join(root, contractsDir)
+	}
+	if !filepath.IsAbs(implDir) {
+		implDir = filepath.Join(root, implDir)
+	}
+
+	violations, err := collision.ValidateContractsInDir(contractsDir, implDir)
+	if err != nil {
+		return fmt.Errorf("validate contracts: %w", err)
+	}
+
+	if len(violations) == 0 {
+		fmt.Println("✓ No contract violations found")
+		fmt.Println("  All implementations match their contracts")
+		return nil
+	}
+
+	fmt.Printf("⚠️  Found %d contract violation(s):\n", len(violations))
+	fmt.Println()
+
+	errorCount := 0
+	warningCount := 0
+	for _, v := range violations {
+		if v.Severity == "error" {
+			fmt.Printf("  ❌ %s: %s\n", v.Field, v.Message)
+			errorCount++
+		} else {
+			fmt.Printf("  ⚠️  %s: %s\n", v.Field, v.Message)
+			warningCount++
+		}
+	}
+
+	fmt.Println()
+	fmt.Printf("  Errors: %d, Warnings: %d\n", errorCount, warningCount)
+	fmt.Println("  Note: Extra fields are warnings in P1 (enforcement in P2)")
+
+	if errorCount > 0 {
+		return fmt.Errorf("%d contract violation(s) found", errorCount)
+	}
 
 	return nil
 }
