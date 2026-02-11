@@ -69,17 +69,31 @@ func extractImplFields(path, typeName string) (map[string]string, error) {
 			if !ok || typeSpec.Name.Name != typeName {
 				continue
 			}
-			if structType, ok := typeSpec.Type.(*ast.StructType); ok {
-				for _, field := range structType.Fields.List {
-					fieldType := formatFieldType(field.Type)
-					for _, name := range field.Names {
-						fields[name.Name] = fieldType
-					}
-				}
+			structType, ok := typeSpec.Type.(*ast.StructType)
+			if !ok {
+				continue
 			}
+			extractStructTypeFields(structType, fields)
+			break
 		}
 	}
 	return fields, nil
+}
+
+// extractStructTypeFields extracts fields from a struct type into the provided map.
+// Named to avoid conflict with extractStructFields in boundary.go.
+func extractStructTypeFields(structType *ast.StructType, fields map[string]string) {
+	for _, field := range structType.Fields.List {
+		fieldType := formatFieldType(field.Type)
+		addFieldNames(field.Names, fieldType, fields)
+	}
+}
+
+// addFieldNames adds field names with their type to the fields map.
+func addFieldNames(names []*ast.Ident, fieldType string, fields map[string]string) {
+	for _, name := range names {
+		fields[name.Name] = fieldType
+	}
 }
 
 // buildContractFieldMap converts field slice to map.
