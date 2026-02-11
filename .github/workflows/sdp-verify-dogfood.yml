@@ -34,6 +34,11 @@ jobs:
           echo "sdp_path=$RUNNER_TEMP/sdp-bin" >> $GITHUB_OUTPUT
           echo "✅ SDP CLI built for dogfood"
 
+      - name: Debug sdp_path output
+        run: |
+          echo "steps.build.outputs.sdp_path='${{ steps.build.outputs.sdp_path }}'"
+          echo "RUNNER_TEMP=$RUNNER_TEMP"
+
       - name: Run SDP Verify
         uses: ./.github/actions/verify
         with:
