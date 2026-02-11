@@ -14,6 +14,11 @@ func hooksCmd() *cobra.Command {
 Hooks are scripts that run automatically during Git operations:
   - pre-commit: Runs before each commit
   - pre-push: Runs before each push
+  - post-merge: Runs after each git merge
+  - post-checkout: Runs after each git checkout
+
+Hooks are marked with "# SDP-MANAGED-HOOK" to track ownership.
+Non-SDP hooks are preserved during install/uninstall.
 
 You can customize hooks in .git/hooks/ after installation.`,
 	}
