@@ -63,6 +63,7 @@ func DetectBoundaries(features []FeatureScope) []SharedBoundary {
 }
 
 // buildFileToFeatures maps files to the features that use them.
+// Deduplicates feature IDs to avoid same-feature false positives.
 func buildFileToFeatures(features []FeatureScope) map[string][]string {
 	fileToFeatures := make(map[string][]string)
 	for _, f := range features {
@@ -75,10 +76,24 @@ func buildFileToFeatures(features []FeatureScope) map[string][]string {
 			if !strings.HasSuffix(file, ".go") {
 				continue
 			}
-			fileToFeatures[file] = append(fileToFeatures[file], f.FeatureID)
+			// Deduplicate: only add if featureID not already present
+			featureIDs := fileToFeatures[file]
+			if !stringSliceContains(featureIDs, f.FeatureID) {
+				fileToFeatures[file] = append(featureIDs, f.FeatureID)
+			}
 		}
 	}
 	return fileToFeatures
+}
+
+// stringSliceContains checks if a string slice contains a value.
+func stringSliceContains(slice []string, value string) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
 
 // extractGoTypes parses a Go file and returns type names defined in it.

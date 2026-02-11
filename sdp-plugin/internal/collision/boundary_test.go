@@ -1,6 +1,7 @@
 package collision
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -172,23 +173,98 @@ func TestBoundaryToJSON(t *testing.T) {
 		t.Error("Expected JSON output, got empty string")
 	}
 	// Verify it contains expected fields (case sensitive)
-	if !contains(jsonOutput, "typeName") && !contains(jsonOutput, "TypeName") {
+	if !strings.Contains(jsonOutput, "typeName") && !strings.Contains(jsonOutput, "TypeName") {
 		t.Error("Expected JSON to contain typeName")
 	}
-	if !contains(jsonOutput, "User") {
+	if !strings.Contains(jsonOutput, "User") {
 		t.Error("Expected JSON to contain User")
 	}
 }
 
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && findSubstring(s, substr) >= 0
+// TestDetectBoundaries_SameFeature_NoCrossBoundary tests that same-feature overlaps
+// are not detected as cross-feature boundaries (bug fix for sdp-zqey).
+func TestDetectBoundaries_SameFeature_NoCrossBoundary(t *testing.T) {
+	// Arrange - Two workstreams from the SAME feature touching the same file
+	workstreams := []FeatureScope{
+		{
+			FeatureID: "F060",
+			ScopeFiles: []string{
+				"testdata/user_model.go",
+			},
+		},
+		{
+			FeatureID: "F060", // Same feature
+			ScopeFiles: []string{
+				"testdata/user_model.go", // Same file - but same feature!
+			},
+		},
+	}
+
+	// Act
+	boundaries := DetectBoundaries(workstreams)
+
+	// Assert - Should NOT detect cross-feature boundary (same feature)
+	if len(boundaries) != 0 {
+		t.Errorf("Expected 0 boundaries for same-feature overlap, got %d", len(boundaries))
+	}
 }
 
-func findSubstring(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
+// TestDetectBoundaries_MultipleSameFeatures_NoCrossBoundary tests that multiple
+// workstreams from the same feature don't create false cross-feature boundaries.
+func TestDetectBoundaries_MultipleSameFeatures_NoCrossBoundary(t *testing.T) {
+	// Arrange - Three workstreams from same feature, overlapping files
+	workstreams := []FeatureScope{
+		{
+			FeatureID: "F060",
+			ScopeFiles: []string{"testdata/user_model.go"},
+		},
+		{
+			FeatureID: "F060",
+			ScopeFiles: []string{"testdata/user_model.go", "testdata/profile.go"},
+		},
+		{
+			FeatureID: "F060",
+			ScopeFiles: []string{"testdata/profile.go"},
+		},
 	}
-	return -1
+
+	// Act
+	boundaries := DetectBoundaries(workstreams)
+
+	// Assert - No cross-feature boundaries (all same feature)
+	if len(boundaries) != 0 {
+		t.Errorf("Expected 0 boundaries for same-feature overlaps, got %d", len(boundaries))
+	}
+}
+
+// TestDetectBoundaries_CrossFeature_DetectsBoundary tests that actual cross-feature
+// boundaries are still correctly detected.
+func TestDetectBoundaries_CrossFeature_DetectsBoundary(t *testing.T) {
+	// Arrange - Two DIFFERENT features sharing the same file
+	workstreams := []FeatureScope{
+		{
+			FeatureID: "F060",
+			ScopeFiles: []string{
+				"testdata/user_model.go",
+			},
+		},
+		{
+			FeatureID: "F061", // Different feature
+			ScopeFiles: []string{
+				"testdata/user_model.go",
+			},
+		},
+	}
+
+	// Act
+	boundaries := DetectBoundaries(workstreams)
+
+	// Assert - Should detect cross-feature boundary
+	if len(boundaries) < 1 {
+		t.Fatalf("Expected at least 1 boundary for cross-feature overlap, got %d", len(boundaries))
+	}
+	// Verify it contains both features
+	if len(boundaries[0].Features) != 2 {
+		t.Errorf("Expected 2 features in boundary, got %d", len(boundaries[0].Features))
+	}
 }
