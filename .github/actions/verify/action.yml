@@ -21,6 +21,10 @@ inputs:
     description: 'Working directory for SDP checks'
     required: false
     default: '.'
+  sdp-path:
+    description: 'Path to directory containing sdp binary (skip download when set, for dogfood)'
+    required: false
+    default: ''
 outputs:
   result:
     description: 'Verification result (pass/fail)'
@@ -35,6 +39,7 @@ runs:
   using: 'composite'
   steps:
     - name: Cache SDP CLI
+      if: inputs.sdp-path == ''
       uses: actions/cache@v4
       with:
         path: ~/sdp-cache
@@ -47,6 +52,14 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+
+        SDP_PATH="${{ inputs.sdp-path }}"
+        if [ -n "$SDP_PATH" ]; then
+          echo "Using SDP from: $SDP_PATH"
+          echo "$SDP_PATH" >> $GITHUB_PATH
+          "$SDP_PATH/sdp" --help >/dev/null 2>&1 || echo "⚠️ SDP CLI not working correctly"
+          exit 0
+        fi
 
         VERSION="${{ inputs.version }}"
         SCRIPT_DIR="${{ github.action_path }}/scripts"
