@@ -1,0 +1,195 @@
+# GitLab CI template for SDP verification gates
+#
+# Usage:
+# 1. Include this in your .gitlab-ci.yml:
+#    include:
+#      - project: 'fall-out-bug/sdp'
+#        ref: main
+#        file: 'ci/gitlab/.gitlab-ci-sdp-verify.yml'
+#
+# 2. Or copy this template and customize variables
+
+variables:
+  SDP_VERSION: "latest"
+  SDP_GATES: "types,tests,coverage"
+  SDP_EVIDENCE_REQUIRED: "true"
+  SDP_WORKING_DIR: "."
+
+.sdp_verify:
+  image: golang:1.23
+  script:
+    - |
+      echo "Installing SDP CLI version: $SDP_VERSION"
+
+      # Detect OS and architecture
+      OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+      ARCH="$(uname -m)"
+
+      # Map architecture names
+      case "$ARCH" in
+        x86_64|amd64) ARCH="amd64" ;;
+        aarch64|arm64) ARCH="arm64" ;;
+        *)
+          echo "Unsupported architecture: $ARCH"
+          exit 1
+          ;;
+      esac
+
+      # Download SDP CLI
+      BINARY_NAME="sdp-${OS}-${ARCH}"
+
+      if [ "$SDP_VERSION" = "latest" ]; then
+        DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/latest/download/${BINARY_NAME}"
+      else
+        DOWNLOAD_URL="https://github.com/fall-out-bug/sdp/releases/download/${SDP_VERSION}/${BINARY_NAME}"
+      fi
+
+      echo "Downloading from: $DOWNLOAD_URL"
+      curl -fsSL "$DOWNLOAD_URL" -o /usr/local/bin/sdp
+      chmod +x /usr/local/bin/sdp
+
+      echo "✅ SDP CLI installed"
+      sdp version || echo "Version command not available"
+
+      # Change to working directory
+      cd "$SDP_WORKING_DIR"
+
+      # Run verification gates
+      echo "Running SDP verification gates..."
+      echo "Gates: $SDP_GATES"
+      echo "Evidence required: $SDP_EVIDENCE_REQUIRED"
+
+      # Convert comma-separated gates to array
+      IFS=',' read -ra GATE_ARRAY <<< "$SDP_GATES"
+
+      PASSED=0
+      FAILED=0
+      RESULTS=()
+
+      # Run each gate
+      for gate in "${GATE_ARRAY[@]}"; do
+        gate=$(echo "$gate" | xargs)  # trim whitespace
+        echo ""
+        echo "Running gate: $gate"
+
+        case "$gate" in
+          types)
+            if sdp quality types 2>&1; then
+              echo "✅ $gate passed"
+              ((PASSED++))
+              RESULTS+=("$gate: PASS")
+            else
+              echo "❌ $gate failed"
+              ((FAILED++))
+              RESULTS+=("$gate: FAIL")
+            fi
+            ;;
+          tests)
+            if go test ./... 2>&1; then
+              echo "✅ $gate passed"
+              ((PASSED++))
+              RESULTS+=("$gate: PASS")
+            else
+              echo "❌ $gate failed"
+              ((FAILED++))
+              RESULTS+=("$gate: FAIL")
+            fi
+            ;;
+          coverage)
+            if sdp quality coverage 2>&1; then
+              echo "✅ $gate passed"
+              ((PASSED++))
+              RESULTS+=("$gate: PASS")
+            else
+              echo "❌ $gate failed"
+              ((FAILED++))
+              RESULTS+=("$gate: FAIL")
+            fi
+            ;;
+          evidence)
+            if [ "$SDP_EVIDENCE_REQUIRED" = "true" ]; then
+              if sdp log trace --verify 2>&1; then
+                echo "✅ $gate passed"
+                ((PASSED++))
+                RESULTS+=("$gate: PASS")
+              else
+                echo "❌ $gate failed"
+                ((FAILED++))
+                RESULTS+=("$gate: FAIL")
+              fi
+            else
+              echo "⊘ $gate skipped"
+              RESULTS+=("$gate: SKIPPED")
+            fi
+            ;;
+          *)
+            echo "⚠️ Unknown gate: $gate"
+            RESULTS+=("$gate: UNKNOWN")
+            ;;
+        esac
+      done
+
+      echo ""
+      echo "=== Summary ==="
+      echo "Passed: $PASSED"
+      echo "Failed: $FAILED"
+      echo ""
+      printf '%s\n' "${RESULTS[@]}"
+
+      # Exit with error if any gate failed
+      if [ $FAILED -gt 0 ]; then
+        echo ""
+        echo "❌ Verification failed"
+        exit 1
+      else
+        echo ""
+        echo "✅ All gates passed"
+      fi
+
+  # Only run on merge requests
+  only:
+    - merge_requests
+  # Allow manual trigger
+  when: always
+
+# Post MR comment with results (requires GITLAB_TOKEN)
+sdp_verify_comment:
+  extends: .sdp_verify
+  after_script:
+    - |
+      # Post MR comment if GITLAB_TOKEN is available
+      if [ -n "${GITLAB_TOKEN:-}" ] && [ -n "${CI_MERGE_REQUEST_IID:-}" ]; then
+        echo "Posting MR comment..."
+
+        # Get job results
+        STATUS="✅ passed"
+        if [ $? -ne 0 ]; then
+          STATUS="❌ failed"
+        fi
+
+        COMMENT="## SDP Verification ${STATUS^}
+
+        **Status:** Verification ${STATUS}
+
+        ### Gate Results
+
+        | Gate | Status |
+        |------|--------|
+        | Passed | ${PASSED:-0} |
+        | Failed | ${FAILED:-0} |
+
+        ---
+        *View full details in the [job log](${CI_JOB_URL})*"
+
+        # Post comment using GitLab API
+        curl --request POST \
+          --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes" \
+          --data "body=${COMMENT}"
+
+        echo "✅ MR comment posted"
+      else
+        echo "⊘ GITLAB_TOKEN or CI_MERGE_REQUEST_IID not set, skipping MR comment"
+      fi
+  variables:
+    GITLAB_TOKEN: $GITLAB_TOKEN
