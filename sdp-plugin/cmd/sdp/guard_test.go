@@ -314,3 +314,75 @@ func TestCountDriftWarnings(t *testing.T) {
 		t.Errorf("countDriftWarnings() = %d, want %d", count, 2)
 	}
 }
+
+// TestWarnContractViolations tests contract validation warning.
+// AC2: @build runs contract validation after code generation.
+func TestWarnContractViolations(t *testing.T) {
+	// Create temp project root
+	tmpDir := t.TempDir()
+	contractsDir := filepath.Join(tmpDir, ".contracts")
+	implDir := filepath.Join(tmpDir, "internal")
+
+	// Create directories
+	if err := os.MkdirAll(contractsDir, 0755); err != nil {
+		t.Fatalf("Failed to create contracts dir: %v", err)
+	}
+	if err := os.MkdirAll(implDir, 0755); err != nil {
+		t.Fatalf("Failed to create impl dir: %v", err)
+	}
+
+	// Create a contract
+	contractContent := `typeName: User
+fields:
+  - name: Email
+    type: string
+requiredBy:
+  - F054
+status: locked
+`
+	if err := os.WriteFile(filepath.Join(contractsDir, "User.yaml"), []byte(contractContent), 0644); err != nil {
+		t.Fatalf("Failed to create contract: %v", err)
+	}
+
+	// Create matching implementation (no violations)
+	implContent := `package impl
+
+type User struct {
+	Email string
+}
+`
+	if err := os.WriteFile(filepath.Join(implDir, "User.go"), []byte(implContent), 0644); err != nil {
+		t.Fatalf("Failed to create impl: %v", err)
+	}
+
+	// Change to temp dir
+	originalWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(originalWd)
+
+	// Create .sdp-root marker (needed by FindProjectRoot)
+	if err := os.WriteFile(".sdp-root", []byte("sdp"), 0644); err != nil {
+		t.Fatalf("Failed to create .sdp-root: %v", err)
+	}
+
+	// Test: no violations should print nothing
+	// Capture stderr
+	oldStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	warnContractViolations()
+
+	w.Close()
+	os.Stderr = oldStderr
+
+	// Read output
+	var buf [1024]byte
+	n, _ := r.Read(buf[:])
+	output := string(buf[:n])
+
+	// Should be empty (no violations)
+	if output != "" {
+		t.Errorf("warnContractViolations() with valid impl printed unexpected output: %q", output)
+	}
+}
