@@ -10,7 +10,6 @@ import (
 )
 
 func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
-	t.Skip("Skipping - requires taxonomy file format fix")
 	// Arrange
 	tempDir := t.TempDir()
 	metricsPath := filepath.Join(tempDir, "metrics.json")
@@ -18,24 +17,21 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 
 	// Create sample metrics
 	metricsData := map[string]interface{}{
-		"catch_rate":           0.25,
+		"catch_rate":            0.25,
 		"total_verifications":   100,
 		"failed_verifications":  25,
-		"model_pass_rate":      map[string]float64{"claude-sonnet-4": 0.85, "claude-opus-4": 0.92},
+		"model_pass_rate":       map[string]float64{"claude-sonnet-4": 0.85, "claude-opus-4": 0.92},
 		"iteration_count":       map[string]int{"00-001-01": 3, "00-001-02": 1},
 		"acceptance_catch_rate": 0.15,
 	}
-
-	// Create sample taxonomy
-	taxonomyData := map[string]interface{}{
-		"classifications": []map[string]interface{}{
-			{"failure_type": "wrong_logic", "severity": "MEDIUM"},
-			{"failure_type": "type_error", "severity": "MEDIUM"},
-		},
-	}
-
 	metricsJSON, _ := json.Marshal(metricsData)
 	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Create sample taxonomy - Taxonomy.Load() expects JSON array directly
+	taxonomyData := []map[string]interface{}{
+		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "wrong_logic", "severity": "MEDIUM"},
+		{"event_id": "evt2", "ws_id": "00-001-02", "model_id": "claude-opus-4", "language": "go", "failure_type": "type_error", "severity": "MEDIUM"},
+	}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
 	os.WriteFile(taxonomyPath, taxonomyJSON, 0644)
 
@@ -49,6 +45,31 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 	}
 	if report == "" {
 		t.Fatal("Expected non-empty report")
+	}
+
+	// Verify all expected sections are present
+	expectedSections := []string{
+		"# AI Code Quality Benchmark",
+		"## Executive Summary",
+		"## Overall Metrics",
+		"## Model Performance",
+		"## Failure Taxonomy",
+		"## Trends Over Time",
+		"## Methodology",
+	}
+
+	for _, section := range expectedSections {
+		if !contains(report, section) {
+			t.Errorf("Expected report to contain section '%s'", section)
+		}
+	}
+
+	// Verify taxonomy data is reflected in report
+	if !contains(report, "wrong_logic") {
+		t.Error("Expected report to contain 'wrong_logic' failure type")
+	}
+	if !contains(report, "type_error") {
+		t.Error("Expected report to contain 'type_error' failure type")
 	}
 }
 
@@ -105,31 +126,37 @@ func TestReport_GenerateJSON_ValidFormat(t *testing.T) {
 }
 
 func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
-	t.Skip("Skipping - requires taxonomy file format fix")
 	// Arrange
 	tempDir := t.TempDir()
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 	historicalPath := filepath.Join(tempDir, "historical.json")
 
-	// Create historical data
+	// Create historical data - matches HistoricalEntry struct
 	historicalData := []map[string]interface{}{
 		{
-			"period":      "2025-Q4",
-			"catch_rate":  0.30,
-			"total_ws":    50,
+			"period":            "2025-Q4",
+			"catch_rate":        0.30,
+			"total_workstreams": 50,
 		},
 		{
-			"period":      "2026-Q1",
-			"catch_rate":  0.25,
-			"total_ws":    75,
+			"period":            "2026-Q1",
+			"catch_rate":        0.25,
+			"total_workstreams": 75,
 		},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
 	os.WriteFile(historicalPath, historicalJSON, 0644)
 
 	// Create current metrics
-	metricsData := map[string]interface{}{"catch_rate": 0.20, "total_verifications": 100}
+	metricsData := map[string]interface{}{
+		"catch_rate":            0.20,
+		"total_verifications":   100,
+		"failed_verifications":  20,
+		"model_pass_rate":       map[string]float64{"claude-sonnet-4": 0.85},
+		"iteration_count":       map[string]int{"00-001-01": 3},
+		"acceptance_catch_rate": 0.10,
+	}
 	metricsJSON, _ := json.Marshal(metricsData)
 	os.WriteFile(metricsPath, metricsJSON, 0644)
 
@@ -142,12 +169,16 @@ func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	// Should contain trend section
-	if !contains(report, "Trend Over Time") {
-		t.Error("Expected report to contain 'Trend Over Time' section")
+
+	// The section is called "Trends Over Time" (plural), not "Trend Over Time"
+	if !contains(report, "Trends Over Time") {
+		t.Error("Expected report to contain 'Trends Over Time' section")
 	}
 	if !contains(report, "2025-Q4") {
-		t.Error("Expected report to contain historical data")
+		t.Error("Expected report to contain historical data for 2025-Q4")
+	}
+	if !contains(report, "2026-Q1") {
+		t.Error("Expected report to contain historical data for 2026-Q1")
 	}
 }
 
@@ -222,12 +253,12 @@ func TestReporter_LoadMetrics_ParsesCorrectly(t *testing.T) {
 
 	// Create sample metrics
 	metricsData := map[string]interface{}{
-		"catch_rate":              0.25,
-		"total_verifications":      100,
-		"failed_verifications":     25,
-		"model_pass_rate":         map[string]float64{"model-a": 0.85},
-		"iteration_count":          map[string]int{"ws-1": 3},
-		"acceptance_catch_rate":    0.15,
+		"catch_rate":            0.25,
+		"total_verifications":   100,
+		"failed_verifications":  25,
+		"model_pass_rate":       map[string]float64{"model-a": 0.85},
+		"iteration_count":       map[string]int{"ws-1": 3},
+		"acceptance_catch_rate": 0.15,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
 	os.WriteFile(metricsPath, metricsJSON, 0644)
