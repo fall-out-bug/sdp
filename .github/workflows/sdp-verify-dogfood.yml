@@ -27,10 +27,12 @@ jobs:
           cache-dependency-path: '**/go.sum'
 
       - name: Build SDP CLI (dogfood: no release yet)
+        id: build
         run: |
-          cd sdp-plugin && go build -o /tmp/sdp ./cmd/sdp
-          sudo mv /tmp/sdp /usr/local/bin/sdp
-          sdp version || echo "Version command not available"
+          mkdir -p "$RUNNER_TEMP/sdp-bin"
+          cd sdp-plugin && go build -o "$RUNNER_TEMP/sdp-bin/sdp" ./cmd/sdp
+          echo "sdp_path=$RUNNER_TEMP/sdp-bin" >> $GITHUB_OUTPUT
+          echo "✅ SDP CLI built for dogfood"
 
       - name: Run SDP Verify
         uses: ./.github/actions/verify
@@ -39,3 +41,4 @@ jobs:
           evidence-required: 'true'
           comment: 'true'
           working-directory: './sdp-plugin'
+          sdp-path: ${{ steps.build.outputs.sdp_path }}
