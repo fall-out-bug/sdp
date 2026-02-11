@@ -252,6 +252,7 @@ type User struct {
 }
 
 // TestValidateContractsInDir_NoMatchingImpl tests when no impl exists.
+// Bug fix for sdp-1lqm: should return violation for missing implementation, not false-green.
 func TestValidateContractsInDir_NoMatchingImpl(t *testing.T) {
 	// Arrange
 	tmpDir := t.TempDir()
@@ -278,15 +279,22 @@ status: locked
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
-	// Act - should not error, just skip
+	// Act - should return violation for missing implementation (bug fix)
 	violations, err := ValidateContractsInDir(contractsDir, implDir)
 
 	// Assert
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	if len(violations) != 0 {
-		t.Errorf("Expected 0 violations (no impl to validate), got %d", len(violations))
+	// Should have violation for missing implementation file (not false-green)
+	if len(violations) != 1 {
+		t.Fatalf("Expected 1 violation (missing_implementation), got %d", len(violations))
+	}
+	if violations[0].Type != "missing_implementation" {
+		t.Errorf("Expected violation type 'missing_implementation', got '%s'", violations[0].Type)
+	}
+	if violations[0].Severity != "error" {
+		t.Errorf("Expected severity 'error', got '%s'", violations[0].Severity)
 	}
 }
 

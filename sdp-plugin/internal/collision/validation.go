@@ -132,12 +132,27 @@ func ValidateContractsInDir(contractsDir, implDir string) ([]Violation, error) {
 
 		// Find implementation file
 		implPath := filepath.Join(implDir, typeName+".go")
+		implFound := true
 		if _, err := os.Stat(implPath); os.IsNotExist(err) {
 			// Try lowercase
 			implPath = filepath.Join(implDir, toLowerFirst(typeName)+".go")
 			if _, err := os.Stat(implPath); os.IsNotExist(err) {
-				continue
+				// Implementation file missing - add violation (bug fix for sdp-1lqm)
+				implFound = false
 			}
+		}
+
+		if !implFound {
+			// Add violation for missing implementation file
+			allViolations = append(allViolations, Violation{
+				Type:     "missing_implementation",
+				Field:    typeName,
+				Expected: typeName + ".go or " + toLowerFirst(typeName) + ".go",
+				Actual:   "not found",
+				Severity: "error",
+				Message:  fmt.Sprintf("Implementation file not found for contract %s: expected %s or %s in %s", typeName, typeName+".go", toLowerFirst(typeName)+".go", implDir),
+			})
+			continue
 		}
 
 		violations, err := ValidateContractAgainstImpl(contractPath, implPath)
