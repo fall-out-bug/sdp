@@ -3,6 +3,7 @@ package collision
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -69,13 +70,13 @@ func TestContractYAMLFormat(t *testing.T) {
 
 	content := string(data)
 	// Verify YAML contains expected fields
-	if !contains(content, "typeName") || !contains(content, "User") {
+	if !strings.Contains(content, "typeName") || !strings.Contains(content, "User") {
 		t.Error("Expected contract to contain typeName: User")
 	}
-	if !contains(content, "requiredBy") {
+	if !strings.Contains(content, "requiredBy") {
 		t.Error("Expected contract to contain requiredBy field")
 	}
-	if !contains(content, "status") {
+	if !strings.Contains(content, "status") {
 		t.Error("Expected contract to contain status field")
 	}
 }
