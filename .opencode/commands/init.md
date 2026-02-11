@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the init skill from the SDP workflow.
 
-See `/.claude/skills/init/SKILL.md` for complete documentation.
+See `/prompts/skills/init/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `init` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/init/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/init/SKILL.md`
+- Agents: `prompts/agents/builder.md`

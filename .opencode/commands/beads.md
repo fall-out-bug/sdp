@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the beads skill from the SDP workflow.
 
-See `/.claude/skills/beads/SKILL.md` for complete documentation.
+See `/prompts/skills/beads/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `beads` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/beads/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/beads/SKILL.md`
+- Agents: `prompts/agents/builder.md`

@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the verify-workstream skill from the SDP workflow.
 
-See `/.claude/skills/verify-workstream/SKILL.md` for complete documentation.
+See `/prompts/skills/verify-workstream/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `verify-workstream` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/verify-workstream/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/verify-workstream/SKILL.md`
+- Agents: `prompts/agents/builder.md`

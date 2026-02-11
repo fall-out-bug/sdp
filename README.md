@@ -30,7 +30,8 @@ git submodule add https://github.com/fall-out-bug/sdp.git sdp
 cd sdp && bash hooks/install-hooks.sh && cd ..
 ```
 
-Your AI tool will automatically pick up the skills from `sdp/.claude/skills/`, `sdp/.cursor/`, or `sdp/.opencode/`.
+Canonical prompts live in `sdp/prompts/skills/` and `sdp/prompts/agents/`.
+Tool adapters (`sdp/.claude/`, `sdp/.cursor/`, `sdp/.opencode/`) point to the same source via symlinks.
 
 ### Option 2: Build the CLI (optional)
 
@@ -312,8 +313,10 @@ Every workstream must pass:
 ```
 your-project/
 ├── sdp/                      # SDP submodule
-│   ├── .claude/skills/       # 24 AI agent skills
-│   ├── .claude/agents/       # 23 multi-agent definitions
+│   ├── prompts/skills/       # canonical skill prompts (source of truth)
+│   ├── prompts/agents/       # canonical agent prompts (source of truth)
+│   ├── .claude/skills -> ../prompts/skills   # compatibility symlink
+│   ├── .claude/agents -> ../prompts/agents   # compatibility symlink
 │   ├── .cursor/              # Cursor IDE integration
 │   ├── .opencode/            # OpenCode integration
 │   ├── sdp-plugin/           # Go CLI source

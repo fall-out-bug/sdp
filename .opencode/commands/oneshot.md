@@ -9,7 +9,7 @@ agent: orchestrator
 
 This command implements the oneshot skill from the SDP workflow.
 
-See `/.claude/skills/oneshot/SKILL.md` for complete documentation.
+See `/prompts/skills/oneshot/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `oneshot` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/oneshot/SKILL.md`
-- Agents: `.claude/agents/orchestrator.md`
+- Skills: `prompts/skills/oneshot/SKILL.md`
+- Agents: `prompts/agents/orchestrator.md`

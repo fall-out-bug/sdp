@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the feature skill from the SDP workflow.
 
-See `/.claude/skills/feature/SKILL.md` for complete documentation.
+See `/prompts/skills/feature/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `feature` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/feature/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/feature/SKILL.md`
+- Agents: `prompts/agents/builder.md`

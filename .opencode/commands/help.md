@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the help skill from the SDP workflow.
 
-See `/.claude/skills/help/SKILL.md` for complete documentation.
+See `/prompts/skills/help/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `help` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/help/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/help/SKILL.md`
+- Agents: `prompts/agents/builder.md`

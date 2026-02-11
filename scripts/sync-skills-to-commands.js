@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Sync skills from .claude/skills/ to .opencode/commands/
+ * Sync skills from prompts/skills/ (canonical source) to .opencode/commands/
  */
 
 import fs from 'fs';
@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const PROJECT_ROOT = path.dirname(__dirname);
-const SKILLS_DIR = path.join(PROJECT_ROOT, '.claude', 'skills');
+const SKILLS_DIR = path.join(PROJECT_ROOT, 'prompts', 'skills');
 const COMMANDS_DIR = path.join(PROJECT_ROOT, '.opencode', 'commands');
 
 // Skills that should NOT have commands (internal/meta skills)
@@ -83,7 +83,7 @@ agent: ${agent}
 
 This command implements the ${skillName} skill from the SDP workflow.
 
-See \`/.claude/skills/${skillDir}/SKILL.md\` for complete documentation.
+See \`/prompts/skills/${skillDir}/SKILL.md\` for complete documentation.
 
 ## Usage
 
@@ -102,8 +102,8 @@ The command delegates to the \`${skillDir}\` skill, which provides:
 
 ## Related
 
-- Skills: \`.claude/skills/${skillDir}/SKILL.md\`
-- Agents: \`.claude/agents/${agent}.md\`
+- Skills: \`prompts/skills/${skillDir}/SKILL.md\`
+- Agents: \`prompts/agents/${agent}.md\`
 `;
 
   return { commandPath, content, commandName };
