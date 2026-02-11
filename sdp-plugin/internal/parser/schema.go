@@ -51,7 +51,7 @@ func (ws *Workstream) Validate() error {
 type frontmatter struct {
 	WSID      string `yaml:"ws_id"`
 	Parent    string `yaml:"parent"`
-	Feature   string `yaml:"feature"`            // Legacy field name (backward compat)
+	Feature   string `yaml:"feature"`              // Legacy field name (backward compat)
 	FeatureID string `yaml:"feature_id,omitempty"` // Preferred field name
 	Status    string `yaml:"status"`
 	Size      string `yaml:"size"`
