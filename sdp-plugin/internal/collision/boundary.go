@@ -41,16 +41,19 @@ func DetectBoundaries(features []FeatureScope) []SharedBoundary {
 			continue // Not a shared boundary
 		}
 
+		// Resolve relative path before parsing (bug fix for sdp-zidp)
+		resolvedFile := resolveFilePath(file)
+
 		// Parse Go file to extract types
-		types, err := extractGoTypes(file)
+		types, err := extractGoTypes(resolvedFile)
 		if err != nil {
 			continue // Skip files that can't be parsed
 		}
 
 		for _, typeName := range types {
-			fields := extractStructFields(file, typeName)
+			fields := extractStructFields(resolvedFile, typeName)
 			boundaries = append(boundaries, SharedBoundary{
-				FileName:       file,
+				FileName:       file,         // Store original path
 				TypeName:       typeName,
 				Fields:         fields,
 				Features:       featureIDs,
@@ -96,19 +99,29 @@ func stringSliceContains(slice []string, value string) bool {
 	return false
 }
 
-// extractGoTypes parses a Go file and returns type names defined in it.
-func extractGoTypes(filePath string) ([]string, error) {
-	// Resolve relative path
-	if !filepath.IsAbs(filePath) {
-		// Try to find the file relative to current directory or testdata
-		for _, base := range []string{".", "testdata", "..", "../.."} {
-			if _, err := os.Stat(filepath.Join(base, filePath)); err == nil {
-				filePath = filepath.Join(base, filePath)
-				break
-			}
+// resolveFilePath resolves a relative file path to an absolute one.
+// Tries common base directories relative to current working directory.
+func resolveFilePath(filePath string) string {
+	// If already absolute, return as-is
+	if filepath.IsAbs(filePath) {
+		return filePath
+	}
+
+	// Try to find the file relative to current directory or testdata
+	for _, base := range []string{".", "testdata", "..", "../.."} {
+		candidate := filepath.Join(base, filePath)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
 		}
 	}
 
+	// If not found, return original (will fail during parse)
+	return filePath
+}
+
+// extractGoTypes parses a Go file and returns type names defined in it.
+// Note: filePath should already be resolved via resolveFilePath().
+func extractGoTypes(filePath string) ([]string, error) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -133,6 +146,7 @@ func extractGoTypes(filePath string) ([]string, error) {
 }
 
 // extractStructFields extracts field information from a struct type.
+// Note: filePath should already be resolved via resolveFilePath().
 func extractStructFields(filePath, typeName string) []FieldInfo {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
