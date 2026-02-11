@@ -184,7 +184,7 @@ ORDER BY avg_latency DESC
 | `code.ai.workstream_id` | string | Optional | Workstream or task ID that generated code | `00-059-01`, `TASK-123` |
 | `code.ai.feature_id` | string | Optional | Feature ID (if applicable) | `F059`, `PROJ-456` |
 | `code.ai.human_modified` | boolean | Optional | Was AI-generated code modified by human? | `true`, `false` |
-| `code.ai.human_author` | string | Conditionally Required | Git author who modified (if `code.ai.human_modified=true`) | `Jane Developer <jane@example.com>` |
+| `code.ai.human_author` | string | Conditionally Required | Username who modified (if `code.ai.human_modified=true`, no email) | `@jane_dev`, `alice_security` |
 | `code.ai.coverage` | double | Optional | Test coverage percentage (0-100) | `87.5` |
 | `code.ai.prompt_hash` | string | Optional | SHA-256 hash of prompt (for reproducibility) | `a1b2c3d4e5f6...` |
 
@@ -299,13 +299,14 @@ Following OpenTelemetry [attribute requirement levels](https://opentelemetry.io/
 
 **Requirement Level:** Required if `code.ai.human_modified=true`
 
-**Format:** Git author format (`Name <email>`) or username
+**Format:** Username only (no email to comply with no-PII guarantee)
 
 **Examples:**
-- `Jane Developer <jane@example.com>`
 - `@jane_dev`
+- `alice_security`
+- `user123`
 
-**Privacy Note:** May be omitted for privacy (use `code.ai.human_modified=true` only).
+**Privacy Note:** Email format NOT allowed to comply with no-PII guarantee. May be omitted entirely (use `code.ai.human_modified=true` only).
 
 #### `code.ai.coverage` (double, Optional)
 
@@ -572,7 +573,7 @@ validate_password (2ms)
     "code.ai.evidence_id": "evt-234e5678-f89b-23d4",
     "code.ai.workstream_id": "00-060-05",
     "code.ai.human_modified": true,
-    "code.ai.human_author": "Alice Security <alice@example.com>",
+    "code.ai.human_author": "@alice_security",
     "code.ai.verification_status": "passed"
   }
 }
@@ -765,8 +766,8 @@ code.ai.model:claude-sonnet-4 -> sdp.model_id:claude-sonnet-4
 - `code.ai.verification_status` (enum)
 
 **Potentially sensitive attributes:**
-- `code.ai.human_author` (contains email)
-  - **Mitigation:** Omit or use username only
+- `code.ai.human_author` (username only, no email)
+  - **Requirement:** Username format only to comply with no-PII guarantee
 - `code.ai.prompt_hash` (hash of prompt)
   - **Mitigation:** Hash is one-way, not reversible
 

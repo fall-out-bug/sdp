@@ -303,9 +303,9 @@ sdp:
 
   human_author:
     type: string
-    description: "Git author who modified (if human_modified=true)"
-    condition: "required if human_modified=true"
-    example: "Jane Developer <jane@example.com>"
+    description: "Username who modified (if human_modified=true, no email for PII compliance)"
+    condition: "optional if human_modified=true"
+    example: "@jane_dev"
 ```
 
 ### Span Examples
@@ -391,7 +391,7 @@ def process_payment(amount: int, currency: str) -> PaymentResult:
     span.set_attribute("sdp.evidence_id", "evt-234e5678-f89b-23d4")
     span.set_attribute("sdp.workstream_id", "00-060-05")
     span.set_attribute("sdp.human_modified", True)
-    span.set_attribute("sdp.human_author", "Alice Security <alice@example.com>")
+    span.set_attribute("sdp.human_author", "@alice_security")
     # Note: verification_status reflects current state (after human changes)
 
     # Human-optimized AI code...
@@ -1350,7 +1350,7 @@ sdp provenance report --deploy deploy/production/20260211-120000 --format csv > 
 - `sdp.verification_status` (enum)
 
 **Excluded attributes:**
-- Git author name/email (use `sdp.human_author` only internally)
+- Git author email (use username-only `sdp.human_author` format)
 - File paths (use relative paths only)
 - Branch names (may contain ticket numbers with user info)
 
@@ -1359,7 +1359,7 @@ sdp provenance report --deploy deploy/production/20260211-120000 --format csv > 
 Evidence log is **already privacy-conscious** (see `docs/compliance/COMPLIANCE.md`):
 
 - No raw prompts stored (only hashes)
-- No user names or emails
+- No user emails (usernames allowed)
 - No code content (only file paths)
 - Hash chain provides integrity detection (not tamper-proof)
 
