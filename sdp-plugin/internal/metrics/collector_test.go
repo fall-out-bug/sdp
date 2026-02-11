@@ -267,9 +267,12 @@ func TestCollector_CollectMetrics_IncrementalOnlyProcessesSinceWatermark(t *test
 		t.Fatalf("Failed to open log file: %v", err)
 	}
 	if _, err := f.Write([]byte(moreEvents + "\n")); err != nil {
+		_ = f.Close()
 		t.Fatalf("Failed to append events: %v", err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		t.Fatalf("Failed to close log file: %v", err)
+	}
 
 	// Act - Second collection (incremental)
 	collector2 := NewCollector(logPath, outputPath)

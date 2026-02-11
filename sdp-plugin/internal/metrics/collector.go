@@ -64,10 +64,7 @@ func (c *Collector) Collect() (*Metrics, error) {
 	}
 
 	// Load watermark for incremental processing
-	var processedEventIDs map[string]bool
-	if c.watermarkPath != "" {
-		processedEventIDs = c.loadWatermark()
-	}
+	processedEventIDs := c.loadWatermarkIfExists()
 
 	// Read and process events
 	events, err := c.readEvents()
@@ -75,61 +72,88 @@ func (c *Collector) Collect() (*Metrics, error) {
 		return nil, fmt.Errorf("read events: %w", err)
 	}
 
-	// Track workstream state for iteration counting
-	wsState := make(map[string]*workstreamState)
-	// Track model verification stats
-	modelStats := make(map[string]*modelVerificationStats)
+	_, modelStats, newProcessedIDs := c.processEvents(events, processedEventIDs, metrics)
 
-	newProcessedIDs := make(map[string]bool)
+	c.computeModelPassRates(modelStats, metrics)
+	c.computeCatchRates(metrics)
+
+	if err := c.writeOutput(metrics); err != nil {
+		return nil, fmt.Errorf("write output: %w", err)
+	}
+
+	if err := c.saveWatermarkIfNeeded(newProcessedIDs); err != nil {
+		return nil, fmt.Errorf("save watermark: %w", err)
+	}
+
+	return metrics, nil
+}
+
+// loadWatermarkIfExists loads watermark if watermark path is set.
+func (c *Collector) loadWatermarkIfExists() map[string]bool {
+	if c.watermarkPath == "" {
+		return nil
+	}
+	return c.loadWatermark()
+}
+
+// processEvents processes all evidence events and returns tracking data.
+func (c *Collector) processEvents(events []evidenceEvent, processedEventIDs map[string]bool, metrics *Metrics) (
+	wsState map[string]*workstreamState, modelStats map[string]*modelVerificationStats, newProcessedIDs map[string]bool,
+) {
+	wsState = make(map[string]*workstreamState)
+	modelStats = make(map[string]*modelVerificationStats)
+	newProcessedIDs = make(map[string]bool)
 
 	for _, ev := range events {
-		// Skip if already processed (incremental mode)
 		if processedEventIDs != nil && processedEventIDs[ev.ID] {
 			continue
 		}
 		newProcessedIDs[ev.ID] = true
 
-		switch ev.Type {
-		case "verification":
-			c.processVerification(ev, metrics, wsState, modelStats)
-		case "approval":
-			c.processApproval(ev, metrics)
-		case "generation":
-			c.processGeneration(ev, wsState)
-		}
+		c.processEvent(ev, metrics, wsState, modelStats)
 	}
 
-	// Compute model pass rates
+	return wsState, modelStats, newProcessedIDs
+}
+
+// processEvent dispatches a single event to the appropriate handler.
+func (c *Collector) processEvent(ev evidenceEvent, metrics *Metrics, wsState map[string]*workstreamState, modelStats map[string]*modelVerificationStats) {
+	switch ev.Type {
+	case "verification":
+		c.processVerification(ev, metrics, wsState, modelStats)
+	case "approval":
+		c.processApproval(ev, metrics)
+	case "generation":
+		c.processGeneration(ev, wsState)
+	}
+}
+
+// computeModelPassRates calculates and stores pass rates per model.
+func (c *Collector) computeModelPassRates(modelStats map[string]*modelVerificationStats, metrics *Metrics) {
 	for modelID, stats := range modelStats {
 		if stats.Total > 0 {
 			modelStats[modelID].PassRate = float64(stats.Passed) / float64(stats.Total)
 		}
 		metrics.ModelPassRate[modelID] = stats.PassRate
 	}
+}
 
-	// Compute catch rate
+// computeCatchRates calculates catch rates for verifications and approvals.
+func (c *Collector) computeCatchRates(metrics *Metrics) {
 	if metrics.TotalVerifications > 0 {
 		metrics.CatchRate = float64(metrics.FailedVerifications) / float64(metrics.TotalVerifications)
 	}
-
-	// Compute acceptance catch rate
 	if metrics.TotalApprovals > 0 {
 		metrics.AcceptanceCatchRate = float64(metrics.FailedApprovals) / float64(metrics.TotalApprovals)
 	}
+}
 
-	// Write output
-	if err := c.writeOutput(metrics); err != nil {
-		return nil, fmt.Errorf("write output: %w", err)
+// saveWatermarkIfNeeded saves watermark if watermark path is set and there are new events.
+func (c *Collector) saveWatermarkIfNeeded(newProcessedIDs map[string]bool) error {
+	if c.watermarkPath == "" || len(newProcessedIDs) == 0 {
+		return nil
 	}
-
-	// Save watermark
-	if c.watermarkPath != "" && len(newProcessedIDs) > 0 {
-		if err := c.saveWatermark(newProcessedIDs); err != nil {
-			return nil, fmt.Errorf("save watermark: %w", err)
-		}
-	}
-
-	return metrics, nil
+	return c.saveWatermark(newProcessedIDs)
 }
 
 func (c *Collector) processVerification(ev evidenceEvent, metrics *Metrics, wsState map[string]*workstreamState, modelStats map[string]*modelVerificationStats) {
@@ -202,7 +226,7 @@ func (c *Collector) readEvents() ([]evidenceEvent, error) {
 		}
 		return nil, fmt.Errorf("open log: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var events []evidenceEvent
 	sc := bufio.NewScanner(f)

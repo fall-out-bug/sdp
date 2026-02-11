@@ -26,7 +26,7 @@ func (r *Reporter) generateTaxonomySection(data ReportData) string {
 			failureType, count, percentage, r.getFailureDescription(failureType)))
 	}
 
-	sb.WriteString(fmt.Sprintf("\n### Severity Distribution\n\n"))
+	sb.WriteString("\n### Severity Distribution\n\n")
 	sb.WriteString(fmt.Sprintf("- CRITICAL: %d (systemic issues caught by acceptance)\n",
 		t.BySeverity["CRITICAL"]))
 	sb.WriteString(fmt.Sprintf("- HIGH: %d (crashes, edge cases)\n", t.BySeverity["HIGH"]))
@@ -60,7 +60,7 @@ func (r *Reporter) sortByCount(byType map[string]int) []string {
 		key   string
 		count int
 	}
-	var items []item
+	items := make([]item, 0, len(byType))
 	for k, v := range byType {
 		items = append(items, item{key: k, count: v})
 	}
