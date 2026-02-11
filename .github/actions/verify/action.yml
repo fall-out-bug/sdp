@@ -143,8 +143,9 @@ runs:
               fi
               ;;
             *)
-              echo "⚠️ Unknown gate: $gate"
-              RESULTS+=("$gate: UNKNOWN")
+              echo "❌ Unknown gate: $gate"
+              declare -g FAILED=$((FAILED + 1))
+              RESULTS+=("$gate: FAIL")
               ;;
           esac
         done
