@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/collision"
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -56,6 +58,22 @@ Multi-agent synthesis:
 	_ = synthesizeCmd.MarkFlagRequired("feature") //nolint:errcheck
 
 	cmd.AddCommand(synthesizeCmd)
+
+	// generate subcommand (cross-feature contract generation)
+	generateCmd := &cobra.Command{
+		Use:   "generate",
+		Short: "Generate contracts from shared boundaries",
+		Long: `Generate interface contracts from shared boundaries detected across features.
+
+Creates .contracts/<type>.yaml files defining the agreed interface
+that multiple features must respect.`,
+		RunE: runContractGenerate,
+	}
+
+	var featuresFlag string
+	generateCmd.Flags().StringVar(&featuresFlag, "features", "", "Comma-separated feature IDs (e.g., F054,F055)")
+
+	cmd.AddCommand(generateCmd)
 
 	// lock subcommand
 	lockCmd := &cobra.Command{
@@ -150,6 +168,71 @@ func runContractSynthesize(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  Output: %s\n", outputPath)
 	fmt.Printf("\n⚠️  Contract synthesis not yet implemented\n")
 	fmt.Printf("   This will require integration with multi-agent synthesis system\n")
+
+	return nil
+}
+
+func runContractGenerate(cmd *cobra.Command, args []string) error {
+	featuresFlag, err := cmd.Flags().GetString("features")
+	if err != nil {
+		return fmt.Errorf("failed to get features flag: %w", err)
+	}
+
+	// Parse feature IDs
+	var featureIDs []string
+	if featuresFlag != "" {
+		for _, f := range strings.Split(featuresFlag, ",") {
+			featureIDs = append(featureIDs, strings.TrimSpace(f))
+		}
+	}
+
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return fmt.Errorf("find project root: %w", err)
+	}
+
+	// Load feature scopes
+	featureScopes, err := loadFeatureScopes(root)
+	if err != nil {
+		return fmt.Errorf("load feature scopes: %w", err)
+	}
+
+	// Filter by specified features if provided
+	if len(featureIDs) > 0 {
+		filtered := make([]collision.FeatureScope, 0)
+		for _, fs := range featureScopes {
+			for _, fid := range featureIDs {
+				if fs.FeatureID == fid {
+					filtered = append(filtered, fs)
+					break
+				}
+			}
+		}
+		featureScopes = filtered
+	}
+
+	// Detect boundaries using the collision package
+	boundaries := collision.DetectBoundaries(featureScopes)
+
+	if len(boundaries) == 0 {
+		fmt.Println("No shared boundaries detected.")
+		fmt.Println("  Run 'sdp collision detect' to find shared interfaces.")
+		return nil
+	}
+
+	// Generate contracts
+	contractsDir := filepath.Join(root, ".contracts")
+	contracts, err := collision.GenerateContracts(boundaries, contractsDir)
+	if err != nil {
+		return fmt.Errorf("generate contracts: %w", err)
+	}
+
+	fmt.Printf("✓ Generated %d contract(s)\n", len(contracts))
+	for _, c := range contracts {
+		fmt.Printf("  - %s.yaml (required by: %v)\n", c.TypeName, c.RequiredBy)
+	}
+	fmt.Printf("\n  Output directory: %s\n", contractsDir)
+	fmt.Printf("  Next step: sdp contract lock --contract .contracts/<type>.yaml\n")
 
 	return nil
 }
