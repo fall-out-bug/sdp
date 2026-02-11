@@ -4,7 +4,7 @@ This project uses [Spec-Driven Protocol (SDP)](https://github.com/fall-out-bug/s
 
 ## Project-level skills
 
-Project skills live in `.codex/skills/` (this repo). For full SDP skill set see `.claude/skills/` (SDP CLI: `sdp` commands).
+Project skills source of truth lives in `prompts/skills/` (this repo). Tool folders (`.codex`, `.claude`, `.cursor`, `.opencode`) use symlinks to this source.
 
 ## Quick start
 
@@ -20,7 +20,7 @@ Project skills live in `.codex/skills/` (this repo). For full SDP skill set see 
 ```
 .codex/
 ├── INSTALL.md   # This file (read by Codex)
-└── skills/      # Project-level skills
+└── skills/      # Project-level symlinks to prompts/skills
 
 ~/.codex/
 └── skills/      # User-level skills (persistent)

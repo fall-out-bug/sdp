@@ -9,7 +9,7 @@ agent: planner
 
 This command implements the issue skill from the SDP workflow.
 
-See `/.claude/skills/issue/SKILL.md` for complete documentation.
+See `/prompts/skills/issue/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `issue` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/issue/SKILL.md`
-- Agents: `.claude/agents/planner.md`
+- Skills: `prompts/skills/issue/SKILL.md`
+- Agents: `prompts/agents/planner.md`

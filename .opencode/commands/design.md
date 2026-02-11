@@ -9,7 +9,7 @@ agent: planner
 
 This command implements the design skill from the SDP workflow.
 
-See `/.claude/skills/design/SKILL.md` for complete documentation.
+See `/prompts/skills/design/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `design` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/design/SKILL.md`
-- Agents: `.claude/agents/planner.md`
+- Skills: `prompts/skills/design/SKILL.md`
+- Agents: `prompts/agents/planner.md`

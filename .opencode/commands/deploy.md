@@ -9,7 +9,7 @@ agent: deployer
 
 This command implements the deploy skill from the SDP workflow.
 
-See `/.claude/skills/deploy/SKILL.md` for complete documentation.
+See `/prompts/skills/deploy/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `deploy` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/deploy/SKILL.md`
-- Agents: `.claude/agents/deployer.md`
+- Skills: `prompts/skills/deploy/SKILL.md`
+- Agents: `prompts/agents/deployer.md`

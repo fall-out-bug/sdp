@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the hotfix skill from the SDP workflow.
 
-See `/.claude/skills/hotfix/SKILL.md` for complete documentation.
+See `/prompts/skills/hotfix/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `hotfix` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/hotfix/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/hotfix/SKILL.md`
+- Agents: `prompts/agents/builder.md`

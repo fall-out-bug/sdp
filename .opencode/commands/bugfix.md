@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the bugfix skill from the SDP workflow.
 
-See `/.claude/skills/bugfix/SKILL.md` for complete documentation.
+See `/prompts/skills/bugfix/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `bugfix` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/bugfix/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/bugfix/SKILL.md`
+- Agents: `prompts/agents/builder.md`

@@ -98,7 +98,7 @@ if echo "$changed_files" | grep -q "docs/intent/"; then
     done
 fi
 
-if echo "$changed_files" | grep -q ".claude/skills/"; then
+if echo "$changed_files" | grep -Eq "(.claude/skills/|prompts/skills/)"; then
     echo "🛠️  Skills changed - verify artifacts exist"
     # Check for recent features by scanning draft files
     for draft_file in docs/drafts/idea-*.md docs/drafts/idea-f*.md; do

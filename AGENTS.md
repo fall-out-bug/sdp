@@ -12,6 +12,12 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Canonical Prompt Source
+
+- Canonical prompts live in `prompts/skills/*/SKILL.md` and `prompts/agents/*.md`.
+- `.claude/skills` and `.claude/agents` are compatibility symlinks to `prompts/*`.
+- When updating prompts, edit `prompts/*` paths as source of truth.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
@@ -37,4 +43,3 @@ bd sync               # Sync with git
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-

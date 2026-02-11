@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the test skill from the SDP workflow.
 
-See `/.claude/skills/test/SKILL.md` for complete documentation.
+See `/prompts/skills/test/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `test` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/test/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/test/SKILL.md`
+- Agents: `prompts/agents/builder.md`

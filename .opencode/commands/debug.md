@@ -9,7 +9,7 @@ agent: planner
 
 This command implements the debug skill from the SDP workflow.
 
-See `/.claude/skills/debug/SKILL.md` for complete documentation.
+See `/prompts/skills/debug/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `debug` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/debug/SKILL.md`
-- Agents: `.claude/agents/planner.md`
+- Skills: `prompts/skills/debug/SKILL.md`
+- Agents: `prompts/agents/planner.md`

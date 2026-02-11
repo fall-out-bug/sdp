@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the idea skill from the SDP workflow.
 
-See `/.claude/skills/idea/SKILL.md` for complete documentation.
+See `/prompts/skills/idea/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `idea` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/idea/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/idea/SKILL.md`
+- Agents: `prompts/agents/builder.md`

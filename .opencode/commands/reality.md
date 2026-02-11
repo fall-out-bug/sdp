@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the reality skill from the SDP workflow.
 
-See `/.claude/skills/reality/SKILL.md` for complete documentation.
+See `/prompts/skills/reality/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `reality` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/reality/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/reality/SKILL.md`
+- Agents: `prompts/agents/builder.md`

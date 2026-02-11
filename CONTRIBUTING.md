@@ -7,8 +7,8 @@ Thank you for your interest in contributing!
 - **Report bugs** — Open an issue describing the problem
 - **Suggest features** — Open an issue with your idea
 - **Improve documentation** — Fix typos, add examples, clarify explanations
-- **Add skills** — Create new agent skills in `.claude/skills/`
-- **Add agents** — Create new agent definitions in `.claude/agents/`
+- **Add skills** — Create new agent skills in `prompts/skills/`
+- **Add agents** — Create new agent definitions in `prompts/agents/`
 - **Share integrations** — Document how you use SDP with other tools
 
 ## Getting Started
@@ -33,9 +33,12 @@ sdp/
 │   └── internal/         # Core logic
 ├── src/sdp/              # Go source (graph, monitoring, synthesis)
 ├── tests/                # Go test suite
+├── prompts/
+│   ├── skills/           # Canonical AI skill definitions (source of truth)
+│   └── agents/           # Canonical multi-agent definitions (source of truth)
 ├── .claude/
-│   ├── skills/           # AI agent skill definitions
-│   └── agents/           # Multi-agent definitions
+│   ├── skills -> ../prompts/skills   # Compatibility symlink
+│   └── agents -> ../prompts/agents   # Compatibility symlink
 ├── .cursor/              # Cursor IDE integration
 ├── .opencode/            # OpenCode integration
 ├── docs/
@@ -84,7 +87,7 @@ Examples:
 
 - **Go** — Follow standard Go conventions, `gofmt`
 - **Markdown** — Consistent formatting, no trailing whitespace
-- **Skills** — Follow `.claude/skills/` SKILL.md format
+- **Skills** — Follow `prompts/skills/` SKILL.md format
 
 ## License
 

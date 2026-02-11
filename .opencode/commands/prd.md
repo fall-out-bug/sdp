@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the prd skill from the SDP workflow.
 
-See `/.claude/skills/prd/SKILL.md` for complete documentation.
+See `/prompts/skills/prd/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `prd` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/prd/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/prd/SKILL.md`
+- Agents: `prompts/agents/builder.md`

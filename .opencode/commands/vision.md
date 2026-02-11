@@ -9,7 +9,7 @@ agent: builder
 
 This command implements the vision skill from the SDP workflow.
 
-See `/.claude/skills/vision/SKILL.md` for complete documentation.
+See `/prompts/skills/vision/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -28,5 +28,5 @@ The command delegates to the `vision` skill, which provides:
 
 ## Related
 
-- Skills: `.claude/skills/vision/SKILL.md`
-- Agents: `.claude/agents/builder.md`
+- Skills: `prompts/skills/vision/SKILL.md`
+- Agents: `prompts/agents/builder.md`
