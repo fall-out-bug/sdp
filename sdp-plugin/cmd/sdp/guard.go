@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/fall-out-bug/sdp/internal/collision"
 	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/decision"
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -84,6 +85,9 @@ func guardActivate() *cobra.Command {
 
 			// AC3/AC4: Check for similar past failed decisions (warning only)
 			warnSimilarFailures(wsID)
+
+			// AC2: Contract validation after code generation (warning in P1)
+			warnContractViolations()
 
 			return nil
 		},
@@ -276,4 +280,52 @@ func guardDeactivate() *cobra.Command {
 			return nil
 		},
 	}
+}
+
+// warnContractViolations checks for contract violations and prints warnings.
+// AC2: @build runs contract validation after code generation.
+// AC3: Contract violation = build warning (not error in P1; enforcement in P2).
+func warnContractViolations() {
+	// Find project root
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return // Not in project, skip validation
+	}
+
+	// Check for .contracts directory
+	contractsDir := filepath.Join(root, ".contracts")
+	if _, err := os.Stat(contractsDir); os.IsNotExist(err) {
+		return // No contracts, skip validation
+	}
+
+	// Find implementation directory (default: internal/)
+	implDir := filepath.Join(root, "internal")
+	if _, err := os.Stat(implDir); os.IsNotExist(err) {
+		return // No impl dir, skip validation
+	}
+
+	// Run validation
+	violations, err := collision.ValidateContractsInDir(contractsDir, implDir)
+	if err != nil {
+		// Validation failed (not violations list), log warning
+		fmt.Fprintf(os.Stderr, "⚠️  Contract validation error: %v\n", err)
+		return
+	}
+
+	// Print violations as warnings
+	if len(violations) == 0 {
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "⚠️  Contract violations detected (%d):\n", len(violations))
+	for _, v := range violations {
+		severity := "WARNING"
+		if v.Severity == "error" {
+			severity = "ERROR"
+		}
+		fmt.Fprintf(os.Stderr, "   [%s] %s: %s\n", severity, v.Type, v.Message)
+	}
+
+	// In P1, violations are warnings only (not blocking)
+	fmt.Fprintf(os.Stderr, "   → Review violations before proceeding\n")
 }
