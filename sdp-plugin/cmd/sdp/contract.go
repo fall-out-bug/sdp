@@ -239,7 +239,19 @@ func runContractGenerate(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  - %s.yaml (required by: %v)\n", c.TypeName, c.RequiredBy)
 	}
 	fmt.Printf("\n  Output directory: %s\n", contractsDir)
-	fmt.Printf("  Next step: sdp contract lock --contract .contracts/<type>.yaml\n")
+
+	// AC2: Run validation post-generation (timing fix for sdp-ubdr)
+	// Check if implementation directory exists and validate
+	implDir := filepath.Join(root, "internal")
+	if _, err := os.Stat(implDir); err == nil {
+		fmt.Println("\n→ Running post-generation validation...")
+		if err := validateImplementation(contractsDir, implDir); err != nil {
+			fmt.Fprintf(os.Stderr, "⚠️  Post-generation validation: %v\n", err)
+			// Note: In P1, violations are warnings, not blockers
+		}
+	}
+
+	fmt.Printf("\n  Next step: sdp contract lock .contracts/<type>.yaml\n")
 
 	return nil
 }
