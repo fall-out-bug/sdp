@@ -17,5 +17,29 @@
     "enabled": true,
     "autoSync": true,
     "mappingFile": ".beads-sdp-mapping.jsonl"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/PreToolUse.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/PostToolUseWorkflowCheck.sh"
+          }
+        ]
+      }
+    ]
   }
 }
