@@ -95,17 +95,18 @@ jobs:
 
       - name: Test error handling - invalid gate
         id: test-invalid
-        continue-on-error: true
         uses: ./.github/actions/verify
         with:
           gates: 'invalid-gate-name'
           comment: 'false'
 
-      - name: Verify action handles invalid gate gracefully
+      - name: Verify action fails on invalid gate
         run: |
-          # Action should complete even with invalid gate
-          echo "Invalid gate test completed"
+          # Action should fail when invalid gate is used
+          # This step runs only if the previous step succeeded (which is an error)
+          echo "❌ FAIL: Invalid gate test should have failed but succeeded"
           echo "Result: ${{ steps.test-invalid.outputs.result }}"
+          exit 1
 
   test-no-sudo:
     name: Security Test - No Sudo Required
