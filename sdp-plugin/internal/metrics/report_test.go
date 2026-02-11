@@ -298,3 +298,351 @@ func TestReporter_GenerateTrendWithoutHistorical_ReturnsPlaceholder(t *testing.T
 		t.Error("Expected report to contain historical data placeholder")
 	}
 }
+
+func TestReporter_Save_CreatesReportInDefaultLocation(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	metricsData := map[string]interface{}{
+		"catch_rate":            0.25,
+		"total_verifications":   100,
+		"failed_verifications":  25,
+		"model_pass_rate":       map[string]float64{"claude-sonnet-4": 0.85},
+		"iteration_count":       map[string]int{"00-001-01": 3},
+		"acceptance_catch_rate": 0.15,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Change working directory to tempDir for default output path
+	originalWd, _ := os.Getwd()
+	defer os.Chdir(originalWd)
+	os.Chdir(tempDir)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	err := reporter.Save()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error from Save, got %v", err)
+	}
+
+	// Verify report file was created
+	outputPath := reporter.GetDefaultOutputPath()
+	if _, statErr := os.Stat(outputPath); statErr != nil {
+		t.Fatalf("Expected report file to exist at %s, got error: %v", outputPath, statErr)
+	}
+
+	// Verify report content
+	content, _ := os.ReadFile(outputPath)
+	if len(content) == 0 {
+		t.Error("Expected report file to have content")
+	}
+	if !contains(string(content), "# AI Code Quality Benchmark") {
+		t.Error("Expected report to contain benchmark header")
+	}
+}
+
+func TestReporter_Save_WithNestedDirectory_CreatesDirectory(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.25,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	originalWd, _ := os.Getwd()
+	defer os.Chdir(originalWd)
+	os.Chdir(tempDir)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	err := reporter.Save()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error when creating nested directories, got %v", err)
+	}
+
+	// Verify the nested directory was created
+	outputPath := reporter.GetDefaultOutputPath()
+	dir := filepath.Dir(outputPath)
+	if _, statErr := os.Stat(dir); statErr != nil {
+		t.Fatalf("Expected directory %s to exist, got error: %v", dir, statErr)
+	}
+}
+
+func TestReporter_Save_WithInvalidMetrics_ReturnsError(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "nonexistent.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	originalWd, _ := os.Getwd()
+	defer os.Chdir(originalWd)
+	os.Chdir(tempDir)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	err := reporter.Save()
+
+	// Assert - should return error when metrics file doesn't exist
+	if err == nil {
+		t.Error("Expected error when metrics file doesn't exist, got nil")
+	}
+}
+
+func TestReport_SetHistoricalPath_UpdatesPath(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+	reporter := NewReporter(metricsPath, taxonomyPath)
+
+	// Act
+	customPath := filepath.Join(tempDir, "custom-historical.json")
+	reporter.SetHistoricalPath(customPath)
+
+	// Assert - SetHistoricalPath just sets the field
+	// The effect is verified through GenerateMarkdown with historical data
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.20,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	historicalData := []map[string]interface{}{
+		{"period": "2025-Q4", "catch_rate": 0.30, "total_workstreams": 50},
+	}
+	historicalJSON, _ := json.Marshal(historicalData)
+	os.WriteFile(customPath, historicalJSON, 0644)
+
+	report, err := reporter.GenerateMarkdown()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if !contains(report, "2025-Q4") {
+		t.Error("Expected historical data to be included after SetHistoricalPath")
+	}
+}
+
+func TestReport_EstimateVerificationsForModel_ReturnsPlaceholderValue(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.25,
+		"total_verifications": 100,
+		"model_pass_rate":     map[string]float64{"claude-sonnet-4": 0.85},
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Act - The estimateVerificationsForModel is called internally by generateModelComparison
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	report, err := reporter.GenerateMarkdown()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	// The placeholder value is 10, which should appear in the model comparison table
+	if !contains(report, "10") {
+		t.Error("Expected model comparison to include verification estimate")
+	}
+}
+
+func TestReport_GenerateTaxonomySection_WithNoFailures_ReturnsNoFailuresMessage(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	// Create taxonomy with zero classifications
+	taxonomyData := []map[string]interface{}{}
+	taxonomyJSON, _ := json.Marshal(taxonomyData)
+	os.WriteFile(taxonomyPath, taxonomyJSON, 0644)
+
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.25,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	report, err := reporter.GenerateMarkdown()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if !contains(report, "No failures recorded") {
+		t.Error("Expected 'No failures recorded' message when taxonomy is empty")
+	}
+}
+
+func TestReport_GenerateTaxonomySection_WithUnknownFailureType_ReturnsUncategorizedDescription(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	// Create taxonomy with unknown failure type
+	taxonomyData := []map[string]interface{}{
+		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "unknown_weird_type", "severity": "MEDIUM"},
+	}
+	taxonomyJSON, _ := json.Marshal(taxonomyData)
+	os.WriteFile(taxonomyPath, taxonomyJSON, 0644)
+
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.25,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	report, err := reporter.GenerateMarkdown()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if !contains(report, "Uncategorized failure") {
+		t.Error("Expected 'Uncategorized failure' description for unknown failure type")
+	}
+}
+
+func TestReport_GenerateTaxonomySection_SeverityDistribution_AllLevels(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+
+	// Create taxonomy with all severity levels
+	taxonomyData := []map[string]interface{}{
+		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "wrong_logic", "severity": "CRITICAL"},
+		{"event_id": "evt2", "ws_id": "00-001-02", "model_id": "claude-opus-4", "language": "go", "failure_type": "type_error", "severity": "HIGH"},
+		{"event_id": "evt3", "ws_id": "00-001-03", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "hallucinated_api", "severity": "MEDIUM"},
+		{"event_id": "evt4", "ws_id": "00-001-04", "model_id": "claude-opus-4", "language": "go", "failure_type": "import_error", "severity": "LOW"},
+	}
+	taxonomyJSON, _ := json.Marshal(taxonomyData)
+	os.WriteFile(taxonomyPath, taxonomyJSON, 0644)
+
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.25,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	report, err := reporter.GenerateMarkdown()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	// Verify all severity levels are shown
+	expectedSeverities := []string{"CRITICAL", "HIGH", "MEDIUM", "LOW"}
+	for _, severity := range expectedSeverities {
+		if !contains(report, severity) {
+			t.Errorf("Expected report to contain severity level '%s'", severity)
+		}
+	}
+	if !contains(report, "Severity Distribution") {
+		t.Error("Expected 'Severity Distribution' section")
+	}
+}
+
+func TestReport_GenerateTrendSection_TrendAnalysis(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+	historicalPath := filepath.Join(tempDir, "historical.json")
+
+	// Historical with higher catch rate (worse) than current (improving)
+	historicalData := []map[string]interface{}{
+		{"period": "2025-Q4", "catch_rate": 0.40, "total_workstreams": 50},
+	}
+	historicalJSON, _ := json.Marshal(historicalData)
+	os.WriteFile(historicalPath, historicalJSON, 0644)
+
+	// Current with lower catch rate (better) than historical
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.20,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	reporter.SetHistoricalPath(historicalPath)
+	report, err := reporter.GenerateMarkdown()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if !contains(report, "Trend:") {
+		t.Error("Expected trend analysis to be present")
+	}
+}
+
+func TestReport_GenerateTrendSection_StableTrend(t *testing.T) {
+	// Arrange
+	tempDir := t.TempDir()
+	metricsPath := filepath.Join(tempDir, "metrics.json")
+	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
+	historicalPath := filepath.Join(tempDir, "historical.json")
+
+	// Historical with same catch rate as current (stable)
+	historicalData := []map[string]interface{}{
+		{"period": "2025-Q4", "catch_rate": 0.25, "total_workstreams": 50},
+	}
+	historicalJSON, _ := json.Marshal(historicalData)
+	os.WriteFile(historicalPath, historicalJSON, 0644)
+
+	metricsData := map[string]interface{}{
+		"catch_rate":          0.25,
+		"total_verifications": 100,
+	}
+	metricsJSON, _ := json.Marshal(metricsData)
+	os.WriteFile(metricsPath, metricsJSON, 0644)
+
+	// Act
+	reporter := NewReporter(metricsPath, taxonomyPath)
+	reporter.SetHistoricalPath(historicalPath)
+	report, err := reporter.GenerateMarkdown()
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if !contains(report, "Stable") {
+		t.Error("Expected 'Stable' trend when catch rate is unchanged")
+	}
+}
