@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schemas/failure-taxonomy.schema.json",
+  "title": "AI Failure Taxonomy Schema",
+  "description": "Schema for classifying AI code generation failures by type, severity, and context (AC1, AC2)",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["event_id", "failure_type", "severity"],
+    "properties": {
+      "event_id": {
+        "type": "string",
+        "description": "Unique identifier for the evidence event",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "ws_id": {
+        "type": "string",
+        "description": "Workstream identifier (e.g., 00-001-01)",
+        "pattern": "^\\d{2}-\\d{3}-\\d{2}$"
+      },
+      "model_id": {
+        "type": "string",
+        "description": "Model that generated the code (e.g., claude-sonnet-4, claude-opus-4)",
+        "examples": ["claude-sonnet-4", "claude-opus-4", "gpt-4"]
+      },
+      "language": {
+        "type": "string",
+        "description": "Programming language (e.g., go, python, javascript)",
+        "examples": ["go", "python", "javascript", "typescript", "java"]
+      },
+      "failure_type": {
+        "type": "string",
+        "description": "Category of failure (AC2)",
+        "enum": [
+          "wrong_logic",
+          "missing_edge_case",
+          "hallucinated_api",
+          "type_error",
+          "test_passing_but_wrong",
+          "compilation_error",
+          "import_error",
+          "unknown"
+        ]
+      },
+      "severity": {
+        "type": "string",
+        "description": "Impact level of the failure",
+        "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+      },
+      "notes": {
+        "type": "string",
+        "description": "Optional notes or context about the failure",
+        "maxLength": 1000
+      }
+    }
+  },
+  "definitions": {
+    "failure_types": {
+      "type": "object",
+      "description": "AI Failure Taxonomy Types (AC2)",
+      "properties": {
+        "wrong_logic": {
+          "description": "Code logic error - incorrect algorithm or logic flow",
+          "examples": [
+            "assertion failed: expected 5 but got 3",
+            "value does not match expected result"
+          ],
+          "severity": "MEDIUM"
+        },
+        "missing_edge_case": {
+          "description": "Edge case not handled - boundary conditions, nil pointers",
+          "examples": [
+            "nil pointer dereference",
+            "index out of range",
+            "panic: runtime error"
+          ],
+          "severity": "HIGH"
+        },
+        "hallucinated_api": {
+          "description": "AI invented non-existent API or function",
+          "examples": [
+            "undefined: function.GetName not found",
+            "no such method: client.DoSomething"
+          ],
+          "severity": "MEDIUM"
+        },
+        "type_error": {
+          "description": "Type system error - mismatch or incompatible types",
+          "examples": [
+            "cannot use str (type string) as type int",
+            "type error: int expected"
+          ],
+          "severity": "MEDIUM"
+        },
+        "test_passing_but_wrong": {
+          "description": "Code passes unit tests but fails acceptance (F054 case)",
+          "examples": [
+            "acceptance test failed: business rule violated",
+            "integration test caught error missed by unit tests"
+          ],
+          "severity": "CRITICAL"
+        },
+        "compilation_error": {
+          "description": "Code does not compile - syntax or build error",
+          "examples": [
+            "syntax error near unexpected token",
+            "compilation failed: invalid syntax"
+          ],
+          "severity": "MEDIUM"
+        },
+        "import_error": {
+          "description": "Module or package import failure",
+          "examples": [
+            "module 'requests' not found",
+            "cannot resolve import"
+          ],
+          "severity": "MEDIUM"
+        }
+      }
+    },
+    "severity_levels": {
+      "type": "object",
+      "description": "Severity levels and their meanings",
+      "properties": {
+        "LOW": {
+          "description": "Minor issue - cosmetic or low impact"
+        },
+        "MEDIUM": {
+          "description": "Standard failure - code doesn't work as intended"
+        },
+        "HIGH": {
+          "description": "Significant issue - crashes or critical bugs"
+        },
+        "CRITICAL": {
+          "description": "Catastrophic - unit tests pass but acceptance fails (systemic)"
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,5 @@
-version: 2
-
 linters:
-  default: none
+  disable-all: true
   enable:
     - errcheck
     - gosimple
@@ -127,6 +125,11 @@ issues:
         - gocyclo
       text: ".*"
     - path: cmd/sdp/
+      linters:
+        - gocognit
+        - gocyclo
+      text: ".*"
+    - path: internal/metrics/
       linters:
         - gocognit
         - gocyclo
