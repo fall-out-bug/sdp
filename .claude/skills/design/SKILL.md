@@ -76,24 +76,24 @@ Multi-agent system design (Arch + Security + SRE) with progressive discovery blo
 
 1. **Check for Cross-Feature Boundaries** (NEW - AC4 for F060)
    ```bash
-   sdp collision detect --deep
+   sdp collision detect
    ```
    - Analyzes scope files for shared types/interfaces across parallel features
    - Reports: shared types, fields needed by each feature, merge recommendations
    - If boundaries found → suggest shared contracts
-   - Output format: `sdp collision detect --deep --output=json`
+   - JSON output: `sdp collision detect --output-json`
 
 2. **Generate Shared Contracts** (if boundaries detected)
    ```bash
-   sdp contract generate --features=F054,F055 --output=.contracts/
+   sdp contract generate --features=F054,F055
    ```
-   - Creates YAML contracts for shared boundaries
+   - Creates `.contracts/<type>.yaml` files for shared boundaries
    - Contract includes: typeName, fields, requiredBy features, status
    - Example: `.contracts/User.yaml`
 
 3. **Lock Shared Contracts**
    ```bash
-   sdp contract lock --contract=.contracts/User.yaml
+   sdp contract lock .contracts/User.yaml
    ```
    - Creates .lock file with SHA256 checksum
    - Prevents modifications during implementation
@@ -102,8 +102,7 @@ Multi-agent system design (Arch + Security + SRE) with progressive discovery blo
    ```bash
    sdp contract synthesize \
      --feature=<feature-name> \
-     --requirements=<idea-doc> \
-     --output=.contracts/<feature-name>-api.yaml
+     --requirements=<idea-doc>
    ```
    - OpenAPI 3.0 contract for API endpoints
    - Endpoints, methods, request/response schemas
