@@ -22,3 +22,6 @@
 
 # Use bd merge for beads JSONL files
 .beads/issues.jsonl merge=beads
+
+# Evidence log: union merge for concurrent appends (AC7)
+.sdp/log/events.jsonl merge=union

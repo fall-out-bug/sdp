@@ -1,0 +1,44 @@
+# Build artifacts
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+*.o
+*.a
+
+# Go workspace
+go.work
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# SDP binary
+/sdp
+# Decision logs (local audit trail)
+docs/decisions/
+# Checkpoint files (may contain sensitive execution state)
+.oneshot/

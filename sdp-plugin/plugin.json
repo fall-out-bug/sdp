@@ -1,0 +1,41 @@
+{
+  "name": "sdp",
+  "version": "1.0.0",
+  "displayName": "Spec-Driven Protocol (SDP)",
+  "description": "Workstream-driven development with TDD, clean architecture, and quality gates for AI agents. Language-agnostic support for Python, Java, Go projects.",
+  "author": "MSU AI Masters",
+  "license": "MIT",
+  "homepage": "https://github.com/ai-masters/sdp",
+  "repository": "https://github.com/ai-masters/sdp-plugin",
+  "categories": ["development", "testing", "documentation", "workflow"],
+  "keywords": ["tdd", "clean-architecture", "workstream", "quality-gates", "ai-agents", "claude", "python", "java", "go"],
+  "permissions": [
+    "Read(*)",
+    "Write(*)",
+    "Edit(*)",
+    "Bash(git status, git log, git diff, git add, git commit, git push, git tag)",
+    "Bash(pytest, mvn test, go test)",
+    "Grep(*)",
+    "Glob(*)"
+  ],
+  "prompts": {
+    "skills": "prompts/skills/*.md",
+    "agents": "prompts/agents/*.md",
+    "validators": "prompts/validators/*.md"
+  },
+  "binaries": {
+    "optional": true,
+    "name": "sdp",
+    "description": "Optional Go binary for init, doctor, hooks commands",
+    "url": "https://github.com/ai-masters/sdp/releases/latest/download/sdp-{platform}-{arch}",
+    "checksums": "https://github.com/ai-masters/sdp/releases/latest/download/sdp-checksums.txt",
+    "platforms": ["darwin-arm64", "darwin-amd64", "linux-amd64", "windows-amd64"]
+  },
+  "documentation": {
+    "tutorial": "docs/TUTORIAL.md",
+    "quickstart": "docs/examples/*/QUICKSTART.md",
+    "migration": "MIGRATION.md",
+    "changelog": "CHANGELOG.md"
+  },
+  "minClaudeVersion": "1.0.0"
+}

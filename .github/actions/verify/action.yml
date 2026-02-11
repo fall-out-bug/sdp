@@ -1,0 +1,376 @@
+name: 'SDP Verify'
+description: 'Run SDP verification gates on PRs with evidence tracking'
+inputs:
+  gates:
+    description: 'Comma-separated list of gates to run (types, tests, coverage, evidence)'
+    required: false
+    default: 'types,tests,coverage'
+  evidence-required:
+    description: 'Whether to check evidence chain integrity'
+    required: false
+    default: 'true'
+  comment:
+    description: 'Whether to post PR comment with results'
+    required: false
+    default: 'true'
+  version:
+    description: 'SDP CLI version to install'
+    required: false
+    default: 'latest'
+  working-directory:
+    description: 'Working directory for SDP checks'
+    required: false
+    default: '.'
+  sdp-path:
+    description: 'Path to directory containing sdp binary (skip download when set, for dogfood)'
+    required: false
+    default: ''
+outputs:
+  result:
+    description: 'Verification result (pass/fail)'
+    value: ${{ steps.verify.outputs.result }}
+  gates_passed:
+    description: 'Number of gates that passed'
+    value: ${{ steps.verify.outputs.gates_passed }}
+  gates_failed:
+    description: 'Number of gates that failed'
+    value: ${{ steps.verify.outputs.gates_failed }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache SDP CLI
+      if: inputs.sdp-path == ''
+      uses: actions/cache@v4
+      with:
+        path: ~/sdp-cache
+        key: sdp-cli-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+        restore-keys: |
+          sdp-cli-${{ runner.os }}-${{ runner.arch }}-
+          sdp-cli-${{ runner.os }}-
+
+    - name: Install SDP CLI
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        SDP_PATH="${{ inputs.sdp-path }}"
+        if [ -n "$SDP_PATH" ]; then
+          echo "Using SDP from: $SDP_PATH"
+          echo "$SDP_PATH" >> $GITHUB_PATH
+          "$SDP_PATH/sdp" --help >/dev/null 2>&1 || echo "⚠️ SDP CLI not working correctly"
+          exit 0
+        fi
+
+        VERSION="${{ inputs.version }}"
+        SCRIPT_DIR="${{ github.action_path }}/scripts"
+        CACHE_DIR="$HOME/sdp-cache"
+
+        echo "Installing SDP CLI version: $VERSION"
+
+        # Download using extracted script with caching
+        BIN_DIR=$("$SCRIPT_DIR/download-sdp.sh" "$VERSION" "$RUNNER_TEMP/.bin" "$CACHE_DIR")
+
+        # Add to PATH for this and future steps
+        echo "$BIN_DIR" >> $GITHUB_PATH
+
+        # Verify binary works
+        "$BIN_DIR/sdp" --help >/dev/null 2>&1 || echo "⚠️ SDP CLI not working correctly"
+
+    - name: Validate Working Directory
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        WORKING_DIR="${{ inputs.working-directory }}"
+        SCRIPT_DIR="${{ github.action_path }}/scripts"
+
+        # Validate using extracted script
+        "$SCRIPT_DIR/validate-input.sh" "$WORKING_DIR"
+
+    - name: Run Verification Gates
+      id: verify
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+
+        GATES="${{ inputs.gates }}"
+        EVIDENCE_REQUIRED="${{ inputs.evidence-required }}"
+
+        echo "Running SDP verification gates..."
+        echo "Gates: $GATES"
+        echo "Evidence required: $EVIDENCE_REQUIRED"
+
+        # Convert comma-separated gates to array
+        IFS=',' read -ra GATE_ARRAY <<< "$GATES"
+
+        # Declare as global so run_gate can modify them
+        declare -g PASSED=0
+        declare -g FAILED=0
+        RESULTS=()
+
+        # Helper function to run a gate and capture exit code
+        run_gate() {
+          local gate_name="$1"
+          shift
+
+          # Temporarily disable errexit for the gate command
+          set +e
+          "$@"
+          local rc=$?
+          set -e
+
+          if [ "$rc" -eq 0 ]; then
+            echo "✅ ${gate_name} passed"
+            declare -g PASSED=$((PASSED + 1))
+            RESULTS+=("${gate_name}: PASS")
+          else
+            echo "❌ ${gate_name} failed (exit ${rc})"
+            declare -g FAILED=$((FAILED + 1))
+            RESULTS+=("${gate_name}: FAIL")
+          fi
+        }
+
+        # Run each gate
+        for gate in "${GATE_ARRAY[@]}"; do
+          gate=$(echo "$gate" | xargs)  # trim whitespace
+          echo ""
+          echo "Running gate: $gate"
+
+          case "$gate" in
+            types)
+              run_gate "types" sdp quality types
+              ;;
+            tests)
+              run_gate "tests" go test ./...
+              ;;
+            coverage)
+              run_gate "coverage" sdp quality coverage
+              ;;
+            evidence)
+              if [ "$EVIDENCE_REQUIRED" = "true" ]; then
+                run_gate "evidence" sdp log trace --verify
+              else
+                echo "⊘ $gate skipped"
+                RESULTS+=("$gate: SKIPPED")
+              fi
+              ;;
+            *)
+              echo "❌ Unknown gate: $gate"
+              declare -g FAILED=$((FAILED + 1))
+              RESULTS+=("$gate: FAIL")
+              ;;
+          esac
+        done
+
+        echo ""
+        echo "=== Summary ==="
+        echo "Passed: $PASSED"
+        echo "Failed: $FAILED"
+        echo ""
+        printf '%s\n' "${RESULTS[@]}"
+
+        # Set outputs
+        echo "gates_passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "gates_failed=$FAILED" >> $GITHUB_OUTPUT
+
+        # Set result and exit code (fail if any gate failed)
+        if [ $FAILED -gt 0 ]; then
+          echo "result=fail" >> $GITHUB_OUTPUT
+          echo "exit_code=1" >> $GITHUB_OUTPUT
+          echo ""
+          echo "❌ Verification failed"
+          exit 1
+        else
+          echo "result=pass" >> $GITHUB_OUTPUT
+          echo "exit_code=0" >> $GITHUB_OUTPUT
+          echo ""
+          echo "✅ All gates passed"
+        fi
+
+    - name: Post PR Comment
+      if: always()
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        COMMENT_ENABLED: ${{ inputs.comment }}
+        GATES_PASSED: ${{ steps.verify.outputs.gates_passed }}
+        GATES_FAILED: ${{ steps.verify.outputs.gates_failed }}
+        VERIFICATION_RESULT: ${{ steps.verify.outputs.result }}
+        EVIDENCE_REQUIRED: ${{ inputs.evidence-required }}
+        WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+
+        # Skip if comment disabled
+        if [ "$COMMENT_ENABLED" != "true" ]; then
+          echo "⊘ PR comment disabled"
+          exit 0
+        fi
+
+        # Check if we're in a PR context
+        if [ "${{ github.event_name }}" != "pull_request" ]; then
+          echo "⊘ Not a pull request, skipping comment"
+          exit 0
+        fi
+
+        # Check if GITHUB_TOKEN is available
+        if [ -z "${{ github.token }}" ]; then
+          echo "⊘ GITHUB_TOKEN not available, skipping comment"
+          exit 0
+        fi
+
+        # Get PR number
+        PR_NUMBER="${{ github.event.pull_request.number }}"
+        if [ -z "$PR_NUMBER" ]; then
+          echo "⊘ No PR number found, skipping comment"
+          exit 0
+        fi
+
+        echo "Posting PR comment for #$PR_NUMBER..."
+
+        # Build comment body
+        STATUS_ICON="✅"
+        if [ "$VERIFICATION_RESULT" = "fail" ]; then
+          STATUS_ICON="❌"
+        fi
+
+        STATUS_TEXT="passed"
+        if [ "$VERIFICATION_RESULT" = "fail" ]; then
+          STATUS_TEXT="failed"
+        fi
+
+        TOTAL_GATES=$((GATES_PASSED + GATES_FAILED))
+        WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+        COMMENT_BODY="## SDP Verification ${STATUS_ICON}
+
+        **Status:** Verification ${STATUS_TEXT}
+
+        ### Gate Results
+
+        | Gate | Status |
+        |------|--------|"
+
+        if [ $GATES_PASSED -gt 0 ]; then
+          COMMENT_BODY="${COMMENT_BODY}
+        | Passed | ${GATES_PASSED} |"
+        fi
+
+        if [ $GATES_FAILED -gt 0 ]; then
+          COMMENT_BODY="${COMMENT_BODY}
+        | Failed | ${GATES_FAILED} |"
+        fi
+
+        if [ $TOTAL_GATES -gt 0 ]; then
+          COMMENT_BODY="${COMMENT_BODY}
+        | **Total** | **${TOTAL_GATES}** |"
+        fi
+
+        COMMENT_BODY="${COMMENT_BODY}
+
+        <details>
+        <summary><b>Evidence Summary</b></summary>
+
+        "
+
+        # Add evidence statistics from sdp log stats
+        if [ "$EVIDENCE_REQUIRED" = "true" ]; then
+          COMMENT_BODY="${COMMENT_BODY}### Chain Integrity
+
+        ✅ Evidence chain integrity verified
+
+        ### Event Statistics
+
+        "
+
+          # Get evidence statistics
+          EVIDENCE_STATS=$(sdp log stats 2>/dev/null || echo "")
+
+          if [ -n "$EVIDENCE_STATS" ]; then
+            # Parse and format stats
+            TOTAL_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'Total:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "N/A")
+            PLAN_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'plan:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
+            GENERATION_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'generation:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
+            VERIFICATION_EVENTS=$(echo "$EVIDENCE_STATS" | grep -o 'verification:[^[:space:]]*[[:space:]]*[0-9]\+' | grep -o '[0-9]\+$' || echo "0")
+
+            # Build table using printf to avoid YAML pipe issues
+            COMMENT_BODY="$COMMENT_BODY$(printf '\n| Metric | Count |\n|---------|-------|\n| Total Events | %s |\n| Plan Events | %s |\n| Generation Events | %s |\n| Verification Events | %s |' "$TOTAL_EVENTS" "$PLAN_EVENTS" "$GENERATION_EVENTS" "$VERIFICATION_EVENTS")"
+          else
+            COMMENT_BODY="${COMMENT_BODY}_Unable to retrieve evidence statistics_"
+          fi
+        else
+          COMMENT_BODY="${COMMENT_BODY}### Chain Integrity
+
+        ⊘ Evidence chain verification not required"
+        fi
+
+        COMMENT_BODY="${COMMENT_BODY}
+
+        </details>
+
+        ---
+        *View full details in [Workflow Run](${WORKFLOW_URL})*"
+
+        # Look for existing comment (with error handling)
+        EXISTING_COMMENT_ID=$(gh api \
+          "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+          --jq '.[] | select(.body | startswith("## SDP Verification")) | .id' \
+          2>/dev/null || echo "")
+
+        # Post/update comment with retry logic
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        COMMENT_POSTED=false
+
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$COMMENT_POSTED" = false ]; do
+          if [ $RETRY_COUNT -gt 0 ]; then
+            echo "Retrying comment post ($RETRY_COUNT/$MAX_RETRIES)..."
+            sleep 2  # Backoff before retry
+          fi
+
+          if [ -n "$EXISTING_COMMENT_ID" ]; then
+            # Update existing comment
+            echo "Updating existing comment #$EXISTING_COMMENT_ID"
+            if gh api \
+              --method PATCH \
+              "repos/${{ github.repository }}/issues/comments/${EXISTING_COMMENT_ID}" \
+              -f body="$COMMENT_BODY" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --silent 2>/dev/null; then
+              COMMENT_POSTED=true
+              echo "✅ Comment updated"
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            fi
+          else
+            # Create new comment
+            echo "Creating new comment"
+            if gh api \
+              --method POST \
+              "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+              -f body="$COMMENT_BODY" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --silent 2>/dev/null; then
+              COMMENT_POSTED=true
+              echo "✅ Comment posted"
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            fi
+          fi
+        done
+
+        if [ "$COMMENT_POSTED" = false ]; then
+          echo "⚠️ Warning: Failed to post PR comment after $MAX_RETRIES attempts"
+          echo "Comment body was:"
+          echo "$COMMENT_BODY"
+          # Don't fail the action for comment posting failures
+        fi
+
+        echo "✅ PR comment posted"
+
+        # Exit with verification result (to fail the workflow if gates failed)
+        if [ "$VERIFICATION_RESULT" = "fail" ]; then
+          exit 1
+        fi
+

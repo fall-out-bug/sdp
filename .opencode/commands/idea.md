@@ -1,19 +1,32 @@
 ---
-description: Requirements gathering - creates feature draft from user description
-agent: planner
+description: Interactive requirements gathering with progressive disclosure
+agent: builder
 ---
 
-# /idea — Requirements Gathering
+# /idea — Idea
 
-При вызове `/idea {description}`:
+## Overview
 
-1. Загрузи полный промпт: `@.claude/skills/idea.md`
-2. Выполни Mandatory Initial Dialogue
-3. Создай draft в `tools/hw_checker/docs/drafts/idea-{slug}.md`
-4. Выведи summary для пользователя
+This command implements the idea skill from the SDP workflow.
 
-## Quick Reference
+See `/prompts/skills/idea/SKILL.md` for complete documentation.
 
-**Input:** описание фичи от пользователя
-**Output:** `tools/hw_checker/docs/drafts/idea-{slug}.md`
-**Next:** `/design idea-{slug}`
+## Usage
+
+```bash
+/idea [arguments]
+```
+
+## Implementation
+
+The command delegates to the `idea` skill, which provides:
+
+- Systematic workflow
+- Quality gates
+- Proper error handling
+- Documentation
+
+## Related
+
+- Skills: `prompts/skills/idea/SKILL.md`
+- Agents: `prompts/agents/builder.md`

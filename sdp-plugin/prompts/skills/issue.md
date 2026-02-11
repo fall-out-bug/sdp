@@ -17,7 +17,7 @@ Systematic bug analysis with severity classification and routing.
 
 ## Master Prompt
 
-📄 **sdp/prompts/commands/issue.md** (640+ lines)
+📄 **.claude/skills/issue/SKILL.md** (640+ lines)
 
 **Contains:**
 - 5-phase systematic debugging workflow

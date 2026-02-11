@@ -1,75 +1,45 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(poetry run pytest:*)",
-      "Bash(poetry run ruff:*)",
-      "Bash(poetry run mypy:*)",
-      "Bash(poetry install:*)",
-      "Bash(git status:*)",
-      "Bash(git log:*)",
-      "Bash(git diff:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git checkout:*)",
-      "Bash(git branch:*)",
-      "Bash(git merge:*)",
-      "Bash(git tag:*)",
-      "Bash(git push:*)",
-      "Bash(git fetch:*)",
-      "Bash(git rebase:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(grep:*)",
-      "Bash(wc:*)",
-      "Bash(find:*)",
-      "Bash(mkdir:*)",
-      "Bash(mv:*)",
-      "Bash(bash hooks/*)",
-      "Bash(./hooks/*)",
-      "Bash(bash notifications/*)",
-      "Read(*)",
-      "Glob(*)",
-      "Grep(*)",
-      "Write(src/*)",
-      "Write(.claude/*)",
-      "Write(docs/*)",
-      "Edit(src/*)",
-      "Edit(.claude/*)",
-      "Edit(docs/*)",
-      "WebSearch"
-    ],
-    "deny": [
-      "Bash(rm -rf /*)",
-      "Bash(git push --force:*)",
-      "Bash(git reset --hard:*)",
-      "Write(.env*)",
-      "Write(**/secrets/*)",
-      "Write(**/*credentials*)"
-    ]
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "teammateMode": "auto",
+  "skills": {
+    "verify-workstream": {
+      "enabled": true,
+      "autoRunBeforeBuild": true
+    },
+    "reality-check": {
+      "enabled": true,
+      "autoRunBeforeEdit": false
+    }
+  },
+  "beads": {
+    "enabled": true,
+    "autoSync": true,
+    "mappingFile": ".beads-sdp-mapping.jsonl"
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/fall_out_bug/projects/sdp/hooks/validators/pre-edit-check.sh \"$CLAUDE_FILE_PATH\""
+            "command": "bash .claude/hooks/PreToolUse.sh"
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/fall_out_bug/projects/sdp/hooks/validators/post-edit-check.sh \"$CLAUDE_FILE_PATH\""
+            "command": "bash .claude/hooks/PostToolUseWorkflowCheck.sh"
           }
         ]
       }
-    ],
-    "Stop": []
+    ]
   }
 }

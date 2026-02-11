@@ -1,1 +1,0 @@
-"""Skills discovery module."""

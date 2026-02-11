@@ -1,119 +1,244 @@
 # SDP: Spec-Driven Protocol
 
-**Workstream-driven framework that turns AI coding tools (Claude Code, Cursor, OpenCode) into a structured software development process.**
+**Turn AI coding tools into a structured development process with workstreams, quality gates, and multi-agent orchestration.**
 
-[![Python](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
+[![Go](https://img.shields.io/badge/go-1.24+-blue.svg)](https://go.dev/dl/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-0.9.0-brightgreen.svg)](CHANGELOG.md)
+
+## What is SDP
+
+SDP is a protocol for AI-assisted development. You describe what to build, SDP breaks it into atomic workstreams, and your AI tool (Claude Code, Cursor, or OpenCode) executes them with TDD, quality gates, and dependency tracking.
+
+**Works with:** Claude Code, Cursor, OpenCode
+**Written in:** Go (protocol is language-agnostic)
+**Tracks tasks with:** [Beads CLI](https://github.com/beads-dev/beads)
 
 ---
 
-## When to Use SDP
+## Installation
 
-SDP is for you if:
+### Option 1: Submodule (recommended)
 
-- ✅ **You already have an AI-IDE** (Claude Code, Cursor, OpenCode), but lack a structured process
-- ✅ **You need to manage complex features** through atomic workstreams with dependencies
-- ✅ **You want repeatable quality gates** for AI-generated code (TDD, coverage, type hints)
-- ✅ **You prefer progress tracking** with task systems (Beads CLI) over manual to-do lists
-- ✅ **You're building solo or small team** projects with 5-500 workstreams
-
-**New to SDP?** See [START_HERE.md](https://github.com/fall-out-bug/sdp/blob/main/docs/beginner/START_HERE.md) for beginner guides!
-
-**Upgrading from an earlier version?** See [Migration Guide](docs/migration/breaking-changes.md) for breaking changes!
-
----
-
-## Quick Start
-
-### Use as CLI Tool (Recommended for individuals)
+Add SDP to your project. The AI tools read skills, agents, and hooks directly.
 
 ```bash
-# Install via pip (coming soon)
-pipx install sdp-cli
-sdp --version
+# Add SDP as a submodule
+git submodule add https://github.com/fall-out-bug/sdp.git sdp
 
-# Or install from source
+# Install git hooks
+cd sdp && bash hooks/install-hooks.sh && cd ..
+```
+
+Canonical prompts live in `sdp/prompts/skills/` and `sdp/prompts/agents/`.
+Tool adapters (`sdp/.claude/`, `sdp/.cursor/`, `sdp/.opencode/`) point to the same source via symlinks.
+
+### Option 2: Build the CLI (optional)
+
+The `sdp` CLI provides health checks, guard enforcement, workstream parsing, and telemetry. It's optional — all core workflows work through AI tool skills alone.
+
+```bash
+cd sdp/sdp-plugin
+go build -o sdp ./cmd/sdp
+mv sdp /usr/local/bin/  # or anywhere on your PATH
+
+# Verify
+sdp doctor
+sdp status
+```
+
+### Option 3: Clone standalone
+
+For exploring or contributing without a parent project:
+
+```bash
 git clone https://github.com/fall-out-bug/sdp.git
 cd sdp
-pip install -e .
-
-# Run health checks
-sdp doctor
 ```
 
-### Use as Submodule (Recommended for teams)
+### Install Beads (task tracking)
+
+Beads is the task tracker SDP uses for dependency management and issue tracking.
 
 ```bash
-# Add to your project
-git submodule add git@github.com:fall-out-bug/sdp.git sdp
+# macOS
+brew tap beads-dev/tap && brew install beads
 
-# Initialize
-cd sdp
-./scripts/init.sh
+# Linux
+curl -sSL https://raw.githubusercontent.com/beads-dev/beads/main/install.sh | bash
+
+# Verify
+bd --version
 ```
 
 ---
 
-## Minimal Example
+## Workflow
 
-Complete workflow in 30 seconds:
+### Full flow (new project)
 
 ```bash
-# 1. Create feature (interactive interviews)
-@feature "Add user comments"
+# 1. Define product vision (7 expert agents analyze your idea)
+@vision "AI-powered task manager"
 
-# 2. Plan workstreams
-@design beads-comments
+# 2. Scan codebase (8 expert agents analyze what's actually built)
+@reality --quick
 
-# 3. Execute one workstream
-@build 00-COMMENTS-01
+# 3. Plan a feature (interactive interview + workstream design)
+@feature "Add user authentication"
 
-# Or execute all autonomously
-@oneshot beads-comments
+# 4. Execute all workstreams autonomously
+@oneshot F001
 ```
 
-**What happens:**
-- AI interviews you about requirements, users, success metrics
-- Creates workstreams with dependencies (00-001-01 → 00-001-02 → 00-001-03)
-- Executes with TDD (Red → Green → Refactor)
-- Validates quality gates (≥80% coverage, mypy --strict, ruff)
-- Tracks progress in Beads CLI
-- Sends Telegram notifications on completion
+### Quick flow (feature on existing project)
+
+```bash
+@feature "Add password reset"    # Plan
+@oneshot F050                    # Execute all workstreams
+```
+
+### Manual flow (one workstream at a time)
+
+```bash
+@build 00-050-01    # Execute single workstream with TDD
+@build 00-050-02
+@review F050        # Quality review
+@deploy F050        # Merge to main
+```
+
+### What happens during execution
+
+1. AI interviews you about requirements, users, success metrics
+2. Creates workstreams with dependency graph (`00-001-01` -> `00-001-02` -> `00-001-03`)
+3. Executes each with TDD: Red (failing test) -> Green (pass) -> Refactor
+4. Validates quality gates: coverage >= 80%, type hints, linting, files < 200 LOC
+5. Tracks progress in Beads CLI
+6. Parallel dispatch for independent workstreams (up to 5x speedup)
 
 ---
 
-## Features
+## CLI Quick Start
 
-### Multi-IDE Support
-Works with Claude Code, Cursor, OpenCode through unified skill system. Switch between AI tools without changing your workflow.
+The SDP CLI provides terminal commands for planning, executing, and tracking workstreams.
 
-### Autonomous Execution
-`@oneshot` mode executes entire features autonomously with:
-- Checkpoint save/restore (resume after interruption)
-- Background execution support
-- Progress notifications via Telegram
-- Automatic dependency resolution
+### Basic Workflow
 
-### Quality Gates Built-in
-Every workstream passes:
-- **TDD** - Tests first, code second
-- **Coverage ≥80%** - Enforced on all files
-- **Type hints** - Full mypy --strict compliance
-- **Linting** - ruff for code quality
-- **File size <200 LOC** - Keep code focused
+```bash
+# 1. Plan a feature (decompose into workstreams)
+sdp plan "Add OAuth2 authentication"
 
-### Beads Integration
-Native task tracking with:
-- Hash-based task IDs (bd-0001, bd-0001.1, etc.)
-- Dependency DAG (00-001-02 blocked by 00-001-01)
-- Ready task detection (`bd ready` shows executable tasks)
-- JSONL storage for Git versioning
+# 2. See what would be created (dry-run)
+sdp plan "Add OAuth2" --dry-run
 
-### Progressive Disclosure
-`@feature` skill uses 5-minute interview to understand requirements before planning. No premature design, ask questions as you go.
+# 3. Get machine-readable output
+sdp plan "Add OAuth2" --output=json | jq .
 
-*See [PROTOCOL.md](docs/PROTOCOL.md) for full feature list.*
+# 4. Execute all ready workstreams
+sdp apply
+
+# 5. Execute specific workstream
+sdp apply --ws 00-054-01
+
+# 6. Trace evidence chain
+sdp log trace
+sdp log trace --ws 00-054-01
+
+# 7. Export events for analysis
+sdp log export --format=json | jq .
+sdp log export --format=csv > events.csv
+
+# 8. Show event statistics
+sdp log stats
+```
+
+### Plan Modes
+
+- **Drive mode** (default): `sdp plan "Add feature"` - Shows plan, waits for confirmation
+- **Interactive mode**: `sdp plan "Add feature" --interactive` - Ask questions to refine
+- **Ship mode**: `sdp plan "Add feature" --auto-apply` - Plan then execute immediately
+- **Dry run**: `sdp plan "Add feature" --dry-run` - Preview without writing files
+
+### Apply Options
+
+- **Execute all**: `sdp apply` - Run all workstreams (no unresolved blockers)
+- **Execute one**: `sdp apply --ws 00-054-01` - Run specific workstream
+- **With retry**: `sdp apply --retry 3` - Retry failed workstreams up to N times
+- **Dry run**: `sdp apply --dry-run` - Show execution plan without running
+- **JSON output**: `sdp apply --output=json` - Machine-readable progress events
+
+### Log Commands
+
+```bash
+# Show recent events (last 20, paginated)
+sdp log show
+sdp log show --page 2
+
+# Filter by type, model, date, workstream
+sdp log show --type generation
+sdp log show --model claude-sonnet-4
+sdp log show --since 2026-02-01T00:00:00Z
+sdp log show --ws 00-054-01
+
+# Export events
+sdp log export --format=json
+sdp log export --format=csv
+
+# Trace evidence chain
+sdp log trace                          # All events
+sdp log trace abc123def                # By commit SHA
+sdp log trace --ws 00-054-01           # By workstream
+sdp log trace --ws 00-054-01 --verify  # With chain integrity check
+
+# Statistics
+sdp log stats                          # Summary by type, model, date
+```
+
+### JSON Output
+
+All commands support JSON output for scripting and CI/CD integration:
+
+```bash
+# Plan output
+sdp plan "Add feature" --output=json | jq '.workstreams[] | .id'
+
+# Apply progress
+sdp apply --output=json | jq '.workstreams[] | select(.status == "failed")'
+
+# Log export
+sdp log export --format=json | jq '.events[] | select(.type == "generation")'
+
+# Trace output
+sdp log trace --json | jq '.events | length'
+```
+
+### Environment Configuration
+
+Set `MODEL_API` to enable automated planning:
+
+```bash
+# OpenAI API
+export MODEL_API="openai:gpt-4"
+
+# Anthropic API
+export MODEL_API="anthropic:claude-sonnet-4-20250514"
+
+# Custom endpoint
+export MODEL_API="http://localhost:11434/v1:llama3"
+```
+
+Or configure in `.sdp/config.json`:
+
+```json
+{
+  "version": "0.9.0",
+  "model_api": "anthropic:claude-sonnet-4-20250514",
+  "evidence": {
+    "enabled": true,
+    "log_path": ".sdp/log/events.jsonl"
+  }
+}
+```
 
 ---
 
@@ -121,189 +246,125 @@ Native task tracking with:
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `sdp doctor` | **Health checks** | `sdp doctor` |
-| `@feature` | **Unified feature development** | `@feature "Add user auth"` |
-| `@idea` | Interactive requirements gathering | `@idea "Add user auth"` |
-| `@design` | Plan workstreams | `@design idea-user-auth` |
-| `@build` | Execute single workstream | `@build 00-001-01` |
-| `@debug` | **Systematic debugging** | `@debug "Test fails"` |
+| `@vision` | Strategic product planning (7 agents) | `@vision "AI task manager"` |
+| `@reality` | Codebase analysis (8 agents) | `@reality --quick` |
+| `@feature` | Plan feature (idea + design) | `@feature "Add auth"` |
+| `@build` | Execute single workstream (TDD) | `@build 00-001-01` |
 | `@oneshot` | Autonomous feature execution | `@oneshot F001` |
-| `@review` | Quality check | `@review F001` |
-| `@deploy` | Production deployment | `@deploy F001` |
-| `@issue` | Debug and route bugs | `@issue "Login fails"` |
-| `@hotfix` | Emergency fix (P0) | `@hotfix "Critical bug"` |
-| `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
+| `@review` | Multi-agent quality review | `@review F001` |
+| `@deploy` | Merge to main | `@deploy F001` |
+| `@debug` | Systematic debugging | `@debug "Test fails"` |
+| `@hotfix` | Emergency fix (P0) | `@hotfix "API down"` |
+| `@bugfix` | Quality fix (P1/P2) | `@bugfix "Wrong totals"` |
 
-### Health Checks
+**CLI commands** (requires Go binary):
 
-The `sdp doctor` command performs diagnostic checks on your SDP installation:
-
-```bash
-sdp doctor                    # Human-readable output
-sdp doctor --format json      # Machine-readable JSON
-```
-
-**Checks performed:**
-- Python version (>= 3.10) - **Critical**
-- Poetry installation - **Critical**
-- Git hooks configuration - **Critical**
-- Beads CLI (optional)
-- GitHub CLI (optional)
-- Telegram configuration (optional)
-
-**Exit codes:**
-- `0` - All critical checks passed
-- `1` - One or more critical checks failed
+| Command | Purpose |
+|---------|---------|
+| `sdp doctor` | Health check (dependencies, hooks, config) |
+| `sdp status` | Show active workstream and project state |
+| `sdp plan "Add feature"` | Decompose feature into workstreams |
+| `sdp apply` | Execute workstreams from terminal |
+| `sdp log show` | Show recent events with filters |
+| `sdp log trace` | Trace evidence chain by commit/workstream |
+| `sdp log export` | Export events as CSV/JSON |
+| `sdp log stats` | Show event statistics |
+| `sdp guard activate 00-001-01` | Enforce edit scope to a workstream |
+| `sdp init` | Initialize SDP in a new project |
+| `sdp parse` | Parse and validate workstream files |
 
 ---
 
-## Architecture
+## How it works
 
-### Workstream Hierarchy
+### Workstream hierarchy
 
 ```
 Release (product milestone)
-  └─ Feature (5-30 workstreams)
-      └─ Workstream (atomic task, one-shot)
-          ├─ SMALL: < 500 LOC
-          ├─ MEDIUM: 500-1500 LOC
-          └─ LARGE: > 1500 LOC (split into 2+)
+  Feature (5-30 workstreams)
+    Workstream (atomic task, one-shot execution)
 ```
 
-### Example: Adding User Authentication
+### Workstream ID: `PP-FFF-SS`
 
-```
-Feature F24: User Authentication
-├─ 00-024-01: Domain model (450 LOC, MEDIUM)
-├─ 00-024-02: Database schema (300 LOC, MEDIUM)
-├─ 00-024-03: Repository layer (500 LOC, MEDIUM)
-├─ 00-024-04: Service layer (600 LOC, MEDIUM)
-└─ 00-024-05: API endpoints (400 LOC, MEDIUM)
-```
+- `PP` — Project (00 = SDP itself)
+- `FFF` — Feature number (001-999)
+- `SS` — Step number (01-99)
+
+Example: `00-024-03` = SDP project, feature 24 (User Auth), step 3 (Repository layer)
+
+### Quality gates
+
+Every workstream must pass:
+
+| Gate | Requirement |
+|------|-------------|
+| TDD | Tests first, then implementation |
+| Coverage | >= 80% |
+| Type hints | Strict typing |
+| File size | < 200 LOC per file |
+| Architecture | No layer violations |
+| Error handling | Explicit, no bare exceptions |
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
-sdp/
-├── PRODUCT_VISION.md     # Project manifesto
-├── src/sdp/              # Source code
-│   ├── beads/            # Beads integration - task tracking
-│   ├── core/             # Workstream parser, decomposition
-│   ├── schema/           # Intent validation
-│   ├── tdd/              # TDD cycle runner
-│   ├── feature/          # Product vision management
-│   ├── design/           # Dependency graph
-│   └── unified/          # Multi-agent coordination (NEW)
-│       ├── agent/        # Agent spawning, messaging, roles
-│       └── notifications/ # Telegram + Console providers
-├── prompts/              # Command prompts
-├── .claude/skills/       # AI agent skill definitions
-├── docs/                  # Documentation
-│   ├── TUTORIAL.md        # 15-minute quick start
-│   ├── schema/            # JSON schemas
-│   ├── intent/            # Machine-readable intents
-│   └── drafts/            # Feature specifications
-└── tests/                 # Test suite (309 tests, 91% coverage)
+your-project/
+├── sdp/                      # SDP submodule
+│   ├── prompts/skills/       # canonical skill prompts (source of truth)
+│   ├── prompts/agents/       # canonical agent prompts (source of truth)
+│   ├── .claude/skills -> ../prompts/skills   # compatibility symlink
+│   ├── .claude/agents -> ../prompts/agents   # compatibility symlink
+│   ├── .cursor/              # Cursor IDE integration
+│   ├── .opencode/            # OpenCode integration
+│   ├── sdp-plugin/           # Go CLI source
+│   ├── src/sdp/              # Go engine (graph, synthesis, monitoring)
+│   ├── tests/                # Go test suite
+│   ├── hooks/                # Git hooks
+│   ├── templates/            # Workstream templates
+│   ├── docs/
+│   │   ├── PROTOCOL.md       # Core specification
+│   │   ├── reference/        # Command and API reference
+│   │   ├── vision/           # Strategic vision docs
+│   │   ├── drafts/           # Feature specs (@idea output)
+│   │   ├── adr/              # Architecture decisions
+│   │   └── workstreams/      # Backlog and completed
+│   ├── CLAUDE.md             # Claude Code guide
+│   ├── PRODUCT_VISION.md     # Product vision v3.0
+│   └── CHANGELOG.md          # Version history
+├── docs/workstreams/         # Your project's workstreams
+└── .beads/                   # Task tracking (auto-created)
 ```
 
 ---
 
 ## Documentation
 
-### Beginner Guides (Progressive Learning)
-**New to SDP? Start here:**
-- [docs/beginner/START_HERE.md](docs/beginner/START_HERE.md) - Welcome page with learning paths
-- [docs/beginner/00-quick-start.md](docs/beginner/00-quick-start.md) - 5-minute overview
-- [docs/beginner/01-first-feature.md](docs/beginner/01-first-feature.md) - Hands-on tutorial
-- [docs/beginner/02-common-tasks.md](docs/beginner/02-common-tasks.md) - Common workflows
-- [docs/beginner/03-troubleshooting.md](docs/beginner/03-troubleshooting.md) - Troubleshooting
-
-### Migration Guides
-**Upgrading from a previous version?**
-- [docs/migrations/breaking-changes.md](docs/migrations/breaking-changes.md) - Complete guide for all breaking changes
-- [docs/migration/ws-naming-migration.md](docs/migration/ws-naming-migration.md) - Workstream ID format migration (WS-FFF-SS → PP-FFF-SS)
-
-### Reference Documentation (Lookup)
-**Looking up specific commands or config?**
-- [docs/reference/README.md](docs/reference/README.md) - Reference overview
-- [docs/reference/commands.md](docs/reference/commands.md) - All commands
-- [docs/reference/quality-gates.md](docs/reference/quality-gates.md) - Quality standards
-- [docs/reference/configuration.md](docs/reference/configuration.md) - Config files
-- [docs/reference/skills.md](docs/reference/skills.md) - Skill system
-
-### Internals (Maintainer Docs)
-**Extending SDP or contributing?**
-- [docs/internals/README.md](docs/internals/README.md) - Internals overview
-- [docs/internals/architecture.md](docs/internals/architecture.md) - System architecture
-- [docs/internals/extending.md](docs/internals/extending.md) - How to extend
-- [docs/internals/development.md](docs/internals/development.md) - Dev setup
-- [docs/internals/contributing.md](docs/internals/contributing.md) - Contributing
-
-### Core Documentation
-- [PROTOCOL.md](docs/PROTOCOL.md) - Complete specification
-- [CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) - Implementation patterns
-- [CLAUDE.md](CLAUDE.md) - Claude Code integration
-- [docs/SITEMAP.md](docs/SITEMAP.md) - Full documentation index
-
-### Key Concepts
-
-| Concept | Description | Link |
-|----------|-------------|------|
-| **Workstreams** | Atomic tasks, one-shot execution | [PROTOCOL.md#Workstream-Flow](PROTOCOL.md#workstream-flow) |
-| **Scope Metrics** | Size by LOC, not time | [PROTOCOL.md#terminology](PROTOCOL.md#terminology) |
-| **Quality Gates** | Coverage, mypy, ruff, file size | [PROTOCOL.md#quality-gates](PROTOCOL.md#quality-gates) |
-| **Agent System** | Multi-agent coordination | [.claude/agents/README.md](.claude/agents/README.md) |
-| **Beads Integration** | Task tracking | [PROTOCOL.md#unified-workflow-ai-comm--beads](PROTOCOL.md#unified-workflow-ai-comm--beads) |
-
----
-
-## Development Status
-
-**Current Version:** v0.6.0 (Unified Workflow)
-
-**Implemented:**
-- ✅ Multi-agent coordination (spawning, messaging, roles)
-- ✅ Telegram notifications (real + mock)
-- ✅ Beads CLI integration (task tracking)
-- ✅ Checkpoint system (save/resume)
-- ✅ Progressive disclosure (@feature skill)
-- ✅ Autonomous execution (@oneshot)
-- ✅ 309 tests (91% coverage)
-
-**In Progress:**
-- 🔄 PyPI package (sdp-cli)
-- 🔄 GitHub Actions CI/CD
-- 🔄 Documentation website
+| Document | What's in it |
+|----------|-------------|
+| [PROTOCOL.md](docs/PROTOCOL.md) | Full SDP specification |
+| [CLAUDE.md](CLAUDE.md) | Claude Code quick reference |
+| [PRODUCT_VISION.md](PRODUCT_VISION.md) | Product vision and architecture |
+| [docs/reference/](docs/reference/) | Commands, quality gates, configuration |
+| [docs/reference/agent-catalog.md](docs/reference/agent-catalog.md) | All 19+ agent definitions |
+| [docs/vision/](docs/vision/) | Strategic vision and roadmap |
+| [docs/runbooks/](docs/runbooks/) | Operational runbooks |
+| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance (evidence, GDPR, SOC2) |
+| [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model and accepted risks |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ---
 
 ## Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-**Development:**
-- Python 3.14+
-- Poetry for dependency management
-- TDD required (tests first, code second)
-- Quality gates enforced (coverage, mypy, ruff)
-
----
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
 
 ---
 
-## Topics
-
-ai-agents developer-tools workflow prompt-engineering spec-driven-development claude-code cursor opencode terminal-workflows multi-agent-coordination task-tracking quality-gates
-
----
-
-**Website:** [Documentation Index](docs/workstreams/INDEX.md)
 **GitHub:** [fall-out-bug/sdp](https://github.com/fall-out-bug/sdp)
-
-*Workstream-driven development for AI agents*

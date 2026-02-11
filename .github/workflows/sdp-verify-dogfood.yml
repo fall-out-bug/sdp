@@ -1,0 +1,44 @@
+name: SDP Verify (Dogfood)
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  verify:
+    name: SDP Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+          cache-dependency-path: '**/go.sum'
+
+      - name: Build SDP CLI (dogfood: no release yet)
+        id: build
+        run: |
+          mkdir -p "$RUNNER_TEMP/sdp-bin"
+          cd sdp-plugin && go build -o "$RUNNER_TEMP/sdp-bin/sdp" ./cmd/sdp
+          echo "sdp_path=$RUNNER_TEMP/sdp-bin" >> $GITHUB_OUTPUT
+          echo "✅ SDP CLI built for dogfood"
+
+      - name: Run SDP Verify
+        uses: ./.github/actions/verify
+        with:
+          gates: 'types,tests'
+          evidence-required: 'false'
+          comment: 'true'
+          working-directory: './sdp-plugin'
+          sdp-path: ${{ steps.build.outputs.sdp_path }}

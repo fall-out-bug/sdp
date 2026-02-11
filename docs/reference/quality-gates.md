@@ -563,7 +563,7 @@ jobs:
 
 ## Version
 
-**SDP Version:** 0.5.0
+**SDP Version:** 0.9.0
 **Updated:** 2026-01-29
 **Status:** Active (enforced in CI/CD)
 

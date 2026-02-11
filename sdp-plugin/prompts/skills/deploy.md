@@ -19,9 +19,9 @@ Generate deployment artifacts and **EXECUTE** GitFlow merge. Do NOT propose — 
 
 | Step | Action | Must Execute |
 |------|--------|--------------|
-| 1 | Pre-flight checks | pytest, verify APPROVED |
+| 1 | Pre-flight checks | language-specific tests, verify APPROVED |
 | 2 | Version resolution | Read current, bump semver |
-| 3 | Generate artifacts | CHANGELOG, release notes, pyproject.toml |
+| 3 | Generate artifacts | CHANGELOG, release notes, version file |
 | 4 | Commit artifacts | `git add && git commit` |
 | 5 | GitFlow merge | dev → main (--no-ff) |
 | 6 | Tag + Push | `git tag && git push` |
@@ -34,8 +34,10 @@ Generate deployment artifacts and **EXECUTE** GitFlow merge. Do NOT propose — 
 ### Step 1: Pre-flight Checks
 
 ```bash
-# Verify tests pass
-uv run pytest tests/ -q
+# Detect project type and verify tests pass
+# Python: pytest tests/ -q
+# Java: mvn test OR gradle test
+# Go: go test ./...
 
 # Verify feature APPROVED (check review_verdict in WS files)
 ```
@@ -52,14 +54,15 @@ Read `pyproject.toml` current version. Bump based on:
 ### Step 3: Generate Artifacts
 
 Create/update:
-- `pyproject.toml` — update version
+- Version file (pyproject.toml for Python, pom.xml for Java, go.mod for Go)
 - `CHANGELOG.md` — add version section
 - `docs/releases/v{X.Y.Z}.md` — release notes
 
 ### Step 4: Commit Artifacts
 
 ```bash
-git add pyproject.toml CHANGELOG.md docs/releases/v{X.Y.Z}.md
+git add CHANGELOG.md docs/releases/v{X.Y.Z}.m
+git add <version-file>  # pyproject.toml OR pom.xml OR go.mod
 git add .  # Include any other deploy-related changes
 git commit -m "chore(release): v{X.Y.Z} - {Feature} {Title}"
 ```

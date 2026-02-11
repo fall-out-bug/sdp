@@ -1,8 +1,8 @@
 # Cursor Integration
 
-**Commands moved to:** `.claude/skills/`
+**Canonical skill source:** `../prompts/skills/`
 
-All SDP commands are now unified in `.claude/skills/` directory.
+All SDP command prompts are unified in `prompts/skills/` with symlink adapters in tool folders.
 
 ## Usage
 
@@ -23,4 +23,5 @@ Use `@` prefix to invoke skills:
 ## See Also
 
 - [CLAUDE.md](../CLAUDE.md) - Full protocol
-- [.claude/skills/](../.claude/skills/) - All skill definitions
+- [prompts/skills/](../prompts/skills/) - Canonical skill definitions
+- [.claude/skills/](../.claude/skills/) - Claude compatibility symlink

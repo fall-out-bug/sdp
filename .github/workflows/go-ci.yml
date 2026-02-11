@@ -1,0 +1,216 @@
+name: Go CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Build binary for integration tests
+        run: go build -o sdp ./cmd/sdp
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run govnulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Check coverage threshold
+        run: |
+          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 65.0) {print "Coverage " $3 " is below 65% threshold"; exit 1}}'
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: sdp-plugin/coverage.out
+          fail_ci_if_error: false
+
+  contract-validation:
+    name: Contract Validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build SDP CLI
+        run: go build -o sdp ./cmd/sdp
+
+      - name: Check for contracts
+        id: check_contracts
+        run: |
+          if [ -d ".contracts" ] && [ "$(ls -A .contracts/*.yaml 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "has_contracts=true" >> $GITHUB_OUTPUT
+            echo "Found $(ls -A .contracts/*.yaml 2>/dev/null | wc -l) contract(s)"
+          else
+            echo "has_contracts=false" >> $GITHUB_OUTPUT
+            echo "No contracts found, skipping validation"
+          fi
+
+      - name: Validate contracts
+        if: steps.check_contracts.outputs.has_contracts == 'true'
+        run: |
+          mkdir -p validation-reports
+
+          # Validate all contracts against each other
+          CONTRACTS=($(ls .contracts/*.yaml 2>/dev/null))
+
+          if [ ${#CONTRACTS[@]} -lt 2 ]; then
+            echo "Need at least 2 contracts for validation"
+            exit 0
+          fi
+
+          # Run contract validation
+          ./sdp contract validate "${CONTRACTS[@]}" --output validation-report.md || true
+
+          # Move report to artifacts directory
+          if [ -f "validation-report.md" ]; then
+            mv validation-report.md validation-reports/
+          fi
+
+          # Check for errors in report
+          if [ -f "validation-reports/validation-report.md" ]; then
+            ERROR_COUNT=$(grep -c "^|.*ERROR" validation-reports/validation-report.md || echo "0")
+            WARNING_COUNT=$(grep -c "^|.*WARNING" validation-reports/validation-report.md || echo "0")
+
+            echo "Contract validation complete:"
+            echo "  Errors: $ERROR_COUNT"
+            echo "  Warnings: $WARNING_COUNT"
+
+            if [ "$ERROR_COUNT" -gt 0 ]; then
+              echo "❌ Contract validation failed with $ERROR_COUNT error(s)"
+              echo ""
+              echo "Validation report:"
+              cat validation-reports/validation-report.md
+              exit 1
+            fi
+
+            if [ "$WARNING_COUNT" -gt 0 ]; then
+              echo "⚠️  Contract validation passed with $WARNING_COUNT warning(s)"
+            else
+              echo "✅ Contract validation passed"
+            fi
+          else
+            echo "⚠️  Validation report not generated"
+          fi
+
+      - name: Upload validation reports
+        if: steps.check_contracts.outputs.has_contracts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-validation-reports
+          path: sdp-plugin/validation-reports/
+          retention-days: 30
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+          working-directory: sdp-plugin
+
+  cross-platform:
+    name: Cross-Platform Build
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build
+        run: |
+          $env:GOOS="${{ matrix.goos }}"
+          $env:GOARCH="${{ matrix.goarch }}"
+          if ("${{ matrix.goos }}" -eq "windows") {
+            go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o dist/sdp-${{ matrix.goos }}-${{ matrix.goarch }}.exe ./cmd/sdp
+          } else {
+            go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o dist/sdp-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/sdp
+          }
+        shell: pwsh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdp-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: sdp-plugin/dist/sdp-*
