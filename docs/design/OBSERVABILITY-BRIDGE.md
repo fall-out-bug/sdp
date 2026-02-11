@@ -505,10 +505,11 @@ def compute_diff_provenance(deploy_commit: str, prev_commit: str) -> Dict[str, L
                 )
             else:
                 # Human-written (no evidence event found)
+                # Note: Strip email from author for PII compliance (use username only)
                 provenance[f"{file.path}:{line_number}"] = LineProvenance(
                     author_type="human",
                     commit_sha=blame.commit_sha,
-                    author=blame.author,
+                    author=blame.author.split('<')[0].strip(),  # "Jane Developer <jane@example.com>" -> "Jane Developer"
                     authored_at=blame.date
                 )
 
@@ -572,7 +573,7 @@ def find_generation_event(commit_sha: str) -> Optional[GenerationEvent]:
           "line": 17,
           "author_type": "human",
           "commit_sha": "789abc012def",
-          "author": "Jane Developer <jane@example.com>",
+          "author": "@jane_dev",
           "authored_at": "2026-02-11T11:00:00Z"
         }
       ]
