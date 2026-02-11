@@ -102,19 +102,26 @@ from diverging from agreed contract.`,
 
 	validateCmd := &cobra.Command{
 		Use:   "validate",
-		Short: "Validate contracts against each other",
-		Long: `Validate contracts from different components against each other.
+		Short: "Validate contracts against implementation",
+		Long: `Validate contracts against implementation files.
 
 Detects:
-- Endpoint mismatches
-- Method differences
-- Schema incompatibilities
-- Missing implementations`,
+- Missing required fields
+- Type mismatches
+- Extra fields (warning in P1)
+
+Flags:
+  --impl-dir: Directory containing implementation files
+  --contracts-dir: Directory containing contract files`,
 		RunE: runContractValidate,
 	}
 
+	var implDir string
+	var contractsDir string
 	validateCmd.Flags().StringSliceVar(&contractPaths, "contracts", []string{}, "Contract files to validate (min 2)")
 	validateCmd.Flags().StringVar(&reportPath, "output", "", "Validation report output")
+	validateCmd.Flags().StringVar(&implDir, "impl-dir", "", "Implementation directory")
+	validateCmd.Flags().StringVar(&contractsDir, "contracts-dir", ".contracts", "Contracts directory")
 
 	cmd.AddCommand(validateCmd)
 
@@ -375,6 +382,21 @@ func runContractLockInternal(featureName, gitSHA, contractPath, lockPath string,
 }
 
 func runContractValidate(cmd *cobra.Command, args []string) error {
+	implDir, err := cmd.Flags().GetString("impl-dir")
+	if err != nil {
+		return fmt.Errorf("failed to get impl-dir flag: %w", err)
+	}
+	contractsDir, err := cmd.Flags().GetString("contracts-dir")
+	if err != nil {
+		return fmt.Errorf("failed to get contracts-dir flag: %w", err)
+	}
+
+	// If impl-dir is specified, validate implementation against contracts
+	if implDir != "" {
+		return validateImplementation(contractsDir, implDir)
+	}
+
+	// Otherwise, use original contract-to-contract validation (placeholder)
 	contractPaths, err := cmd.Flags().GetStringSlice("contracts")
 	if err != nil {
 		return fmt.Errorf("failed to get contracts flag: %w", err)
@@ -390,8 +412,60 @@ func runContractValidate(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("✓ Validating %d contracts...\n", len(contractPaths))
 	fmt.Printf("  Report: %s\n", reportPath)
-	fmt.Printf("\n⚠️  Contract validation not yet implemented\n")
-	fmt.Printf("   Will cross-reference contracts for mismatches\n")
+	fmt.Printf("\n⚠️  Contract-to-contract validation not yet implemented\n")
+	fmt.Printf("   Use --impl-dir to validate implementation against contracts\n")
+
+	return nil
+}
+
+// validateImplementation validates implementation files against contracts.
+func validateImplementation(contractsDir, implDir string) error {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return fmt.Errorf("find project root: %w", err)
+	}
+
+	// Resolve paths
+	if !filepath.IsAbs(contractsDir) {
+		contractsDir = filepath.Join(root, contractsDir)
+	}
+	if !filepath.IsAbs(implDir) {
+		implDir = filepath.Join(root, implDir)
+	}
+
+	violations, err := collision.ValidateContractsInDir(contractsDir, implDir)
+	if err != nil {
+		return fmt.Errorf("validate contracts: %w", err)
+	}
+
+	if len(violations) == 0 {
+		fmt.Println("✓ No contract violations found")
+		fmt.Println("  All implementations match their contracts")
+		return nil
+	}
+
+	fmt.Printf("⚠️  Found %d contract violation(s):\n", len(violations))
+	fmt.Println()
+
+	errorCount := 0
+	warningCount := 0
+	for _, v := range violations {
+		if v.Severity == "error" {
+			fmt.Printf("  ❌ %s: %s\n", v.Field, v.Message)
+			errorCount++
+		} else {
+			fmt.Printf("  ⚠️  %s: %s\n", v.Field, v.Message)
+			warningCount++
+		}
+	}
+
+	fmt.Println()
+	fmt.Printf("  Errors: %d, Warnings: %d\n", errorCount, warningCount)
+	fmt.Println("  Note: Extra fields are warnings in P1 (enforcement in P2)")
+
+	if errorCount > 0 {
+		return fmt.Errorf("%d contract violation(s) found", errorCount)
+	}
 
 	return nil
 }
