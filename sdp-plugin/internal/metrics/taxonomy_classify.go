@@ -115,7 +115,11 @@ func (t *Taxonomy) classifyByPattern(output string) string {
 // matchesAny checks if output matches any of the patterns.
 func (t *Taxonomy) matchesAny(output string, patterns []string) bool {
 	for _, pattern := range patterns {
-		if matched, _ := regexp.MatchString(pattern, output); matched {
+		matched, err := regexp.MatchString(pattern, output)
+		if err != nil {
+			continue // Invalid pattern, skip
+		}
+		if matched {
 			return true
 		}
 	}

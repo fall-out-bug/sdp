@@ -287,7 +287,7 @@ func readEventsJSONL(path string) ([]evidenceEvent, error) {
 	}
 
 	lines := strings.Split(string(data), "\n")
-	var events []evidenceEvent
+	events := make([]evidenceEvent, 0, len(lines))
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {

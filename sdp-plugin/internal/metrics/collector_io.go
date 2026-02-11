@@ -16,7 +16,11 @@ func (c *Collector) readEvents() ([]evidenceEvent, error) {
 		}
 		return nil, fmt.Errorf("open log: %w", err)
 	}
-	defer func() { _ = f.Close() }()
+	defer func() {
+		if cerr := f.Close(); cerr != nil {
+			// Log close error but don't override read error
+		}
+	}()
 
 	var events []evidenceEvent
 	sc := bufio.NewScanner(f)

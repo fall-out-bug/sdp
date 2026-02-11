@@ -11,7 +11,7 @@ func (t *Taxonomy) SetClassification(eventID, failureType, notes string) {
 	} else {
 		t.classifications[eventID] = &FailureClassification{
 			EventID:     eventID,
-			FailureType:  failureType,
+			FailureType: failureType,
 			Severity:    t.severityForType(failureType),
 			Notes:       notes,
 		}
@@ -65,10 +65,10 @@ func (t *Taxonomy) GetStats() TaxonomyStats {
 
 	stats := TaxonomyStats{
 		TotalClassifications: len(t.classifications),
-		TotalByModel:        make(map[string]int),
-		TotalByType:         make(map[string]int),
-		TotalByLanguage:     make(map[string]int),
-		TotalBySeverity:     make(map[string]int),
+		TotalByModel:         make(map[string]int),
+		TotalByType:          make(map[string]int),
+		TotalByLanguage:      make(map[string]int),
+		TotalBySeverity:      make(map[string]int),
 	}
 
 	for _, fc := range t.classifications {
