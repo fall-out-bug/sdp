@@ -51,8 +51,17 @@ func (ws *Workstream) Validate() error {
 type frontmatter struct {
 	WSID      string `yaml:"ws_id"`
 	Parent    string `yaml:"parent"`
-	Feature   string `yaml:"feature"`
+	Feature   string `yaml:"feature"`            // Legacy field name (backward compat)
+	FeatureID string `yaml:"feature_id,omitempty"` // Preferred field name
 	Status    string `yaml:"status"`
 	Size      string `yaml:"size"`
 	ProjectID string `yaml:"project_id"`
+}
+
+// getFeature returns the feature ID, preferring feature_id over feature
+func (fm *frontmatter) getFeature() string {
+	if fm.FeatureID != "" {
+		return fm.FeatureID
+	}
+	return fm.Feature
 }

@@ -42,8 +42,9 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 	if fm.WSID == "" {
 		return nil, fmt.Errorf("missing required field: ws_id")
 	}
-	if fm.Feature == "" {
-		return nil, fmt.Errorf("missing required field: feature")
+	feature := fm.getFeature()
+	if feature == "" {
+		return nil, fmt.Errorf("missing required field: feature or feature_id")
 	}
 
 	// Extract main content
@@ -66,7 +67,7 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 	ws := &Workstream{
 		ID:         fm.WSID,
 		Parent:     fm.Parent,
-		Feature:    fm.Feature,
+		Feature:    fm.getFeature(),
 		Status:     fm.Status,
 		Size:       fm.Size,
 		ProjectID:  fm.ProjectID,
