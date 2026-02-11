@@ -732,11 +732,13 @@ OpenTelemetry has an **experimental** `code.*` namespace:
 - Datadog ✅ (Tag-based, converts `code.ai.*` to tags)
 - Grafana Tempo ✅ (Span attributes searchable)
 
-**Example: Datadog Tag Conversion**
+**Example: SDP Implementation Namespace**
 ```
 code.ai.generated:true -> sdp.ai_generated:true
-code.ai.model:claude-sonnet-4 -> sdp.model_id:claude-sonnet-4
+code.ai.model:claude-sonnet-4 -> sdp.model:claude-sonnet-4
 ```
+
+SDP uses the `sdp.*` namespace internally for its implementation, while the `code.ai.*` namespace is proposed for OpenTelemetry standardization.
 
 ### Backward Compatibility
 
