@@ -1,6 +1,6 @@
-# Self-Report: Workstream 00-058-05
+# Self-Report: Workstream 00-058-11
 
-**Workstream ID:** 00-058-05
+**Workstream ID:** 00-058-11
 **Feature:** F058
 **Title:** Add continue-on-error to invalid gate test
 **Agent:** Implementer (Claude Sonnet 4.5)
@@ -171,12 +171,12 @@ Failed: 0
    - Lines: 107
    - Test cases: 10
 
-2. **`docs/workstreams/completed/00-058-05-report.md`**
+2. **`docs/workstreams/completed/00-058-11-report.md`**
    - Purpose: Detailed implementation report
    - Sections: 10
    - Status: Complete
 
-3. **`docs/workstreams/completed/00-058-05-self-report.md`**
+3. **`docs/workstreams/completed/00-058-11-self-report.md`**
    - Purpose: This self-report
    - Format: Markdown
 
@@ -329,10 +329,10 @@ fi
 ```bash
 git add .github/workflows/test-verify-action.yml
 git add .github/actions/verify/test-invalid-gate.sh
-git add docs/workstreams/completed/00-058-05-report.md
-git add docs/workstreams/completed/00-058-05-self-report.md
+git add docs/workstreams/completed/00-058-11-report.md
+git add docs/workstreams/completed/00-058-11-self-report.md
 
-git commit -m "feat(00-058-05): Add continue-on-error to invalid gate test
+git commit -m "feat(00-058-11): Add continue-on-error to invalid gate test
 
 - Add continue-on-error: true to invalid gate test step
 - Enhance verification to validate all outputs on failure
@@ -372,7 +372,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ## Conclusion
 
-**Workstream 00-058-05 has been successfully completed.**
+**Workstream 00-058-11 has been successfully completed.**
 
 All acceptance criteria have been met with 100% test coverage. The implementation:
 - Fixes the integration test job failure issue
