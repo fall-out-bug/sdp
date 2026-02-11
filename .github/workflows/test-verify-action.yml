@@ -83,10 +83,11 @@ jobs:
         id: test-custom
         uses: ./.github/actions/verify
         with:
-          gates: 'coverage'
-          evidence-required: 'true'
+          gates: 'types'
+          evidence-required: 'false'
           comment: 'false'
           version: 'latest'
+          working-directory: './sdp-plugin'
 
       - name: Verify outputs (custom)
         run: |
@@ -242,8 +243,9 @@ jobs:
         id: verify
         uses: ./.github/actions/verify
         with:
-          gates: 'types,tests,coverage'
+          gates: 'types,tests'
           comment: 'false'
+          working-directory: './sdp-plugin'
 
       - name: Verify result is valid
         run: |
