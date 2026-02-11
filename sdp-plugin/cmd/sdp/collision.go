@@ -39,7 +39,7 @@ func collisionDetectCmd() *cobra.Command {
 		Use:   "detect",
 		Short: "Deep analysis: detect shared interface boundaries across features",
 		Long:  `Analyze not just file overlaps, but shared types, structs, and interfaces that need coordination.`,
-		RunE:  func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCollisionDetect(cmd, args, outputJSON)
 		},
 	}

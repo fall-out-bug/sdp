@@ -18,11 +18,11 @@ type FeatureScope struct {
 
 // SharedBoundary represents a shared type/interface boundary between features.
 type SharedBoundary struct {
-	FileName       string     `json:"fileName"`
-	TypeName       string     `json:"typeName"`
+	FileName       string      `json:"fileName"`
+	TypeName       string      `json:"typeName"`
 	Fields         []FieldInfo `json:"fields"`
-	Features       []string   `json:"features"`
-	Recommendation string     `json:"recommendation"`
+	Features       []string    `json:"features"`
+	Recommendation string      `json:"recommendation"`
 }
 
 // FieldInfo represents a field in a struct or interface.
@@ -53,7 +53,7 @@ func DetectBoundaries(features []FeatureScope) []SharedBoundary {
 		for _, typeName := range types {
 			fields := extractStructFields(resolvedFile, typeName)
 			boundaries = append(boundaries, SharedBoundary{
-				FileName:       file,         // Store original path
+				FileName:       file, // Store original path
 				TypeName:       typeName,
 				Fields:         fields,
 				Features:       featureIDs,

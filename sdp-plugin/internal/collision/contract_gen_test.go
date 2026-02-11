@@ -12,10 +12,10 @@ func TestGenerateContractFromBoundaries(t *testing.T) {
 	// Arrange
 	boundaries := []SharedBoundary{
 		{
-			FileName:  "internal/model/user.go",
-			TypeName:  "User",
-			Fields:    []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
-			Features:  []string{"F054", "F055"},
+			FileName: "internal/model/user.go",
+			TypeName: "User",
+			Fields:   []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
+			Features: []string{"F054", "F055"},
 		},
 	}
 	outputDir := t.TempDir()
@@ -42,10 +42,10 @@ func TestContractYAMLFormat(t *testing.T) {
 	// Arrange
 	boundaries := []SharedBoundary{
 		{
-			FileName:  "internal/model/user.go",
-			TypeName:  "User",
-			Fields:    []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
-			Features:  []string{"F054", "F055"},
+			FileName: "internal/model/user.go",
+			TypeName: "User",
+			Fields:   []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
+			Features: []string{"F054", "F055"},
 		},
 	}
 	outputDir := t.TempDir()
@@ -86,10 +86,10 @@ func TestGenerateContract_FieldAggregation(t *testing.T) {
 	// Arrange - two features with overlapping field needs
 	boundaries := []SharedBoundary{
 		{
-			FileName:  "internal/model/user.go",
-			TypeName:  "User",
-			Fields:    []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
-			Features:  []string{"F054", "F055"},
+			FileName: "internal/model/user.go",
+			TypeName: "User",
+			Fields:   []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
+			Features: []string{"F054", "F055"},
 		},
 	}
 	outputDir := t.TempDir()
@@ -122,16 +122,16 @@ func TestGenerateContract_MultipleBoundaries(t *testing.T) {
 	// Arrange
 	boundaries := []SharedBoundary{
 		{
-			FileName:  "internal/model/user.go",
-			TypeName:  "User",
-			Fields:    []FieldInfo{{Name: "Email", Type: "string"}},
-			Features:  []string{"F054", "F055"},
+			FileName: "internal/model/user.go",
+			TypeName: "User",
+			Fields:   []FieldInfo{{Name: "Email", Type: "string"}},
+			Features: []string{"F054", "F055"},
 		},
 		{
-			FileName:  "internal/model/user.go",
-			TypeName:  "Profile",
-			Fields:    []FieldInfo{{Name: "Bio", Type: "string"}},
-			Features:  []string{"F054"},
+			FileName: "internal/model/user.go",
+			TypeName: "Profile",
+			Fields:   []FieldInfo{{Name: "Bio", Type: "string"}},
+			Features: []string{"F054"},
 		},
 	}
 	outputDir := t.TempDir()

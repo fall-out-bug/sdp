@@ -166,10 +166,10 @@ func TestE2E_ContractWorkflow(t *testing.T) {
 
 	boundaries := []SharedBoundary{
 		{
-			FileName:  "internal/model/user.go",
-			TypeName:  "User",
-			Fields:    []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
-			Features:  []string{"F054", "F055"},
+			FileName: "internal/model/user.go",
+			TypeName: "User",
+			Fields:   []FieldInfo{{Name: "Email", Type: "string"}, {Name: "Name", Type: "string"}},
+			Features: []string{"F054", "F055"},
 		},
 	}
 
