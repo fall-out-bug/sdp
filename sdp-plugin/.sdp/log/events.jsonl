@@ -1,2 +1,3 @@
 {"id":"evt-1770846626663582000","type":"verification","timestamp":"2026-02-11T21:50:26Z","ws_id":"","prev_hash":"genesis","data":{"coverage":0,"gate_name":"size","passed":true}}
 {"id":"evt-1770846661621464000","type":"verification","timestamp":"2026-02-11T21:51:01Z","ws_id":"","prev_hash":"914c58805daefc628b0cd1b7e78a808435e59dbfc398ba4df88f288312f9101f","data":{"coverage":0,"gate_name":"coverage","passed":false}}
+{"id":"evt-1770892200843841000","type":"plan","timestamp":"2026-02-12T10:30:00Z","ws_id":"00-064-00","prev_hash":"986463857aeaba8c224f4b96c3b9045376d8b60483076f937a8f154744747a19","data":{"action":"activate","scope_files":null}}
