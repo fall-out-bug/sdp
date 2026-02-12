@@ -133,6 +133,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(sessionCmd())
 	rootCmd.AddCommand(gitCmd())
 	rootCmd.AddCommand(memoryCmd())
+	rootCmd.AddCommand(coordinationCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
