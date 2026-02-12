@@ -182,13 +182,19 @@ func (s *Store) SaveContext(ctx context.Context, artifact *Artifact) error {
 
 	tagsStr := strings.Join(artifact.Tags, ",")
 
+	// Use artifact's IndexedAt if set, otherwise use current time
+	indexedAt := artifact.IndexedAt
+	if indexedAt.IsZero() {
+		indexedAt = time.Now()
+	}
+
 	// Insert artifact
 	_, err = tx.ExecContext(ctx, `
 		INSERT OR REPLACE INTO artifacts
 		(id, path, type, title, content, feature_id, workstream_id, tags, file_hash, indexed_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, artifact.ID, artifact.Path, artifact.Type, artifact.Title, artifact.Content,
-		artifact.FeatureID, artifact.WorkstreamID, tagsStr, artifact.FileHash, time.Now())
+		artifact.FeatureID, artifact.WorkstreamID, tagsStr, artifact.FileHash, indexedAt)
 	if err != nil {
 		return fmt.Errorf("failed to save artifact: %w", err)
 	}

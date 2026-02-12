@@ -3,6 +3,8 @@ package memory
 import (
 	"testing"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/evidence"
 )
 
 func TestCompactor_NeedsCompaction(t *testing.T) {
@@ -42,13 +44,14 @@ func TestCompactor_CompactEvents(t *testing.T) {
 		CompactionRatio: 10,
 	})
 
-	events := []CompactableEvent{}
+	now := time.Now()
+	events := []evidence.Event{}
 	for i := 0; i < 25; i++ {
-		events = append(events, CompactableEvent{
+		events = append(events, evidence.Event{
 			ID:        string(rune(i)),
-			Timestamp: time.Now().Add(-time.Duration(i) * time.Hour),
+			Timestamp: now.Add(-time.Duration(i) * time.Hour).Format(time.RFC3339),
 			Type:      "test",
-			Data:      "test data",
+			WSID:      "00-051-01",
 		})
 	}
 
@@ -71,10 +74,10 @@ func TestCompactor_Summarize(t *testing.T) {
 	compactor := NewCompactor(CompactionPolicy{})
 
 	now := time.Now()
-	events := []CompactableEvent{
-		{ID: "1", Type: "agent_start", Data: "started workstream", Timestamp: now.Add(-2 * time.Hour)},
-		{ID: "2", Type: "agent_action", Data: "wrote tests", Timestamp: now.Add(-1 * time.Hour)},
-		{ID: "3", Type: "agent_complete", Data: "finished workstream", Timestamp: now},
+	events := []evidence.Event{
+		{ID: "1", Type: "generation", WSID: "00-051-01", Timestamp: now.Add(-2 * time.Hour).Format(time.RFC3339)},
+		{ID: "2", Type: "verification", WSID: "00-051-01", Timestamp: now.Add(-1 * time.Hour).Format(time.RFC3339)},
+		{ID: "3", Type: "approval", WSID: "00-051-01", Timestamp: now.Format(time.RFC3339)},
 	}
 
 	summary := compactor.Summarize(events)
@@ -84,6 +87,9 @@ func TestCompactor_Summarize(t *testing.T) {
 	}
 	if summary.StartTime.IsZero() || summary.EndTime.IsZero() {
 		t.Error("Start and end times should be set")
+	}
+	if summary.WSID != "00-051-01" {
+		t.Errorf("Expected WSID 00-051-01, got %s", summary.WSID)
 	}
 }
 

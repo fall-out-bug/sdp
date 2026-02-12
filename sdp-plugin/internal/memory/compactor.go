@@ -2,6 +2,8 @@ package memory
 
 import (
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/evidence"
 )
 
 // CompactionPolicy configures memory compaction behavior (AC1)
@@ -24,13 +26,9 @@ func DefaultCompactionPolicy() CompactionPolicy {
 	}
 }
 
-// CompactableEvent represents an event that can be compacted
-type CompactableEvent struct {
-	ID        string    `json:"id"`
-	Timestamp time.Time `json:"timestamp"`
-	Type      string    `json:"type"`
-	Data      string    `json:"data"`
-}
+// CompactableEvent is an alias for evidence.Event for backward compatibility
+// Deprecated: Use evidence.Event directly
+type CompactableEvent = evidence.Event
 
 // EventSummary represents a summarized group of events (AC2)
 type EventSummary struct {
@@ -104,20 +102,39 @@ func (c *Compactor) Summarize(events []CompactableEvent) EventSummary {
 		return EventSummary{}
 	}
 
-	// Find earliest and latest timestamps
-	startTime := events[0].Timestamp
-	endTime := events[len(events)-1].Timestamp
+	// Parse timestamps and find earliest/latest
+	startTime := parseEventTimestamp(events[0].Timestamp)
+	endTime := parseEventTimestamp(events[len(events)-1].Timestamp)
 
-	// Build a simple summary (in production, this would use LLM)
-	summary := "Compacted " + string(rune(len(events))) + " events"
+	// Group by WSID
+	wsidMap := make(map[string]int)
+	for _, ev := range events {
+		wsidMap[ev.WSID]++
+	}
+
+	// Build summary with WSID info
+	summary := "Compacted " + intToStr(len(events)) + " events across " + intToStr(len(wsidMap)) + " workstreams"
 
 	return EventSummary{
 		ID:         generateSummaryID(),
+		WSID:       events[0].WSID, // Primary WSID
 		Summary:    summary,
 		EventCount: len(events),
 		StartTime:  startTime,
 		EndTime:    endTime,
 	}
+}
+
+// parseEventTimestamp parses an evidence event timestamp string
+func parseEventTimestamp(s string) time.Time {
+	if s == "" {
+		return time.Now()
+	}
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		return time.Now()
+	}
+	return t
 }
 
 // generateSummaryID generates a unique summary ID
