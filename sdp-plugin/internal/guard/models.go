@@ -61,12 +61,27 @@ type CheckOptions struct {
 	Head   string // Head ref for diff (CI mode)
 }
 
+// ReviewFinding represents a finding from a review agent
+type ReviewFinding struct {
+	ID          string `json:"id"`           // Beads issue ID (e.g., sdp-abc123)
+	FeatureID   string `json:"feature_id"`   // Feature ID (e.g., F051)
+	ReviewArea  string `json:"review_area"`  // QA, Security, DevOps, SRE, TechLead, Documentation
+	Title       string `json:"title"`        // Issue title
+	Priority    int    `json:"priority"`     // 0=P0, 1=P1, 2=P2, 3=P3
+	BeadsID     string `json:"beads_id"`     // Beads issue ID if created
+	Status      string `json:"status"`       // open, in_progress, resolved
+	CreatedAt   string `json:"created_at"`   // ISO timestamp
+	ResolvedAt  string `json:"resolved_at"`  // ISO timestamp when resolved
+	ResolvedBy  string `json:"resolved_by"`  // How it was resolved
+}
+
 // GuardState represents the active workstream state
 type GuardState struct {
-	ActiveWS    string   `json:"active_ws"`
-	ActivatedAt string   `json:"activated_at"`
-	ScopeFiles  []string `json:"scope_files"`
-	Timestamp   string   `json:"timestamp"`
+	ActiveWS       string          `json:"active_ws"`
+	ActivatedAt    string          `json:"activated_at"`
+	ScopeFiles     []string        `json:"scope_files"`
+	Timestamp      string          `json:"timestamp"`
+	ReviewFindings []ReviewFinding `json:"review_findings,omitempty"`
 }
 
 // IsExpired checks if the guard state is expired (older than 24 hours)
@@ -81,4 +96,67 @@ func (gs *GuardState) IsExpired() bool {
 	}
 
 	return time.Since(activatedAt) > 24*time.Hour
+}
+
+// AddFinding adds a review finding to the state
+func (gs *GuardState) AddFinding(f ReviewFinding) {
+	if gs.ReviewFindings == nil {
+		gs.ReviewFindings = []ReviewFinding{}
+	}
+	gs.ReviewFindings = append(gs.ReviewFindings, f)
+}
+
+// ResolveFinding marks a finding as resolved
+func (gs *GuardState) ResolveFinding(id string, resolvedBy string) bool {
+	for i := range gs.ReviewFindings {
+		if gs.ReviewFindings[i].ID == id {
+			gs.ReviewFindings[i].Status = "resolved"
+			gs.ReviewFindings[i].ResolvedAt = time.Now().Format(time.RFC3339)
+			gs.ReviewFindings[i].ResolvedBy = resolvedBy
+			return true
+		}
+	}
+	return false
+}
+
+// GetOpenFindings returns all unresolved findings
+func (gs *GuardState) GetOpenFindings() []ReviewFinding {
+	var open []ReviewFinding
+	for _, f := range gs.ReviewFindings {
+		if f.Status != "resolved" {
+			open = append(open, f)
+		}
+	}
+	return open
+}
+
+// GetBlockingFindings returns P0/P1 findings that should block progress
+func (gs *GuardState) GetBlockingFindings() []ReviewFinding {
+	var blocking []ReviewFinding
+	for _, f := range gs.ReviewFindings {
+		if f.Status != "resolved" && f.Priority <= 1 {
+			blocking = append(blocking, f)
+		}
+	}
+	return blocking
+}
+
+// HasBlockingFindings returns true if there are unresolved P0/P1 findings
+func (gs *GuardState) HasBlockingFindings() bool {
+	return len(gs.GetBlockingFindings()) > 0
+}
+
+// FindingCount returns counts by status
+func (gs *GuardState) FindingCount() (open int, resolved int, blocking int) {
+	for _, f := range gs.ReviewFindings {
+		if f.Status == "resolved" {
+			resolved++
+		} else {
+			open++
+			if f.Priority <= 1 {
+				blocking++
+			}
+		}
+	}
+	return
 }

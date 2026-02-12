@@ -2,7 +2,7 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + Contract Validation)
 tools: Read, Bash, Grep, Task
-version: 10.0.0
+version: 10.1.0
 ---
 
 # @review - Multi-Agent Quality Review
@@ -116,7 +116,7 @@ Your task:
 3. Verify quality metrics (defect density, pass rate)
 4. Validate quality gates (entry/exit criteria)
 
-**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+**MANDATORY: For EACH finding, CREATE a beads issue AND register in guard:**
 ```bash
 # Check beads availability
 if bd --version &>/dev/null && [ -d .beads ]; then
@@ -125,12 +125,16 @@ fi
 
 # For coverage gaps
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="QA: Coverage {package} below 80%" --type=task --priority=2 --description="Found during QA review of {feature_id}. Package {package} has {X}% coverage, target is 80%."
+  BEADS_ID=$(bd create --title="QA: Coverage {package} below 80%" --type=task --priority=2 --description="Found during QA review of {feature_id}. Package {package} has {X}% coverage, target is 80%." --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=QA --title="Coverage {package} below 80%" --priority=2 --beads="$BEADS_ID"
 fi
 
-# For missing tests
+# For missing tests (P1 - blocking)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="QA: Add tests for {package}" --type=task --priority=1 --description="Found during QA review of {feature_id}. Tests needed for: {list of uncovered functions}"
+  BEADS_ID=$(bd create --title="QA: Add tests for {package}" --type=task --priority=1 --description="Found during QA review of {feature_id}. Tests needed for: {list of uncovered functions}" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=QA --title="Add tests for {package}" --priority=1 --beads="$BEADS_ID"
 fi
 ```
 
@@ -162,7 +166,7 @@ Your task:
 3. Verify compliance (GDPR/SOC2/etc if applicable)
 4. Review secrets management
 
-**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+**MANDATORY: For EACH finding, CREATE a beads issue AND register in guard:**
 ```bash
 # Check beads availability
 if bd --version &>/dev/null && [ -d .beads ]; then
@@ -171,12 +175,16 @@ fi
 
 # For vulnerabilities (P0 - critical)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="SEC: {vulnerability}" --type=bug --priority=0 --description="Found during Security review of {feature_id}. {detailed description of vulnerability and potential impact}"
+  BEADS_ID=$(bd create --title="SEC: {vulnerability}" --type=bug --priority=0 --description="Found during Security review of {feature_id}. {detailed description of vulnerability and potential impact}" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=Security --title="{vulnerability}" --priority=0 --beads="$BEADS_ID"
 fi
 
 # For hardening needs (P1)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="SEC: Hardening {component}" --type=task --priority=1 --description="Found during Security review of {feature_id}. {specific hardening recommendations}"
+  BEADS_ID=$(bd create --title="SEC: Hardening {component}" --type=task --priority=1 --description="Found during Security review of {feature_id}. {specific hardening recommendations}" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=Security --title="Hardening {component}" --priority=1 --beads="$BEADS_ID"
 fi
 ```
 
@@ -208,7 +216,7 @@ Your task:
 3. Verify deployment strategy (rollback procedures)
 4. Check environment management
 
-**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+**MANDATORY: For EACH finding, CREATE a beads issue AND register in guard:**
 ```bash
 # Check beads availability
 if bd --version &>/dev/null && [ -d .beads ]; then
@@ -217,12 +225,16 @@ fi
 
 # For CI/CD issues (P2)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="DevOps: Add missing CI workflow" --type=task --priority=2 --description="Found during DevOps review of {feature_id}. {specific workflow needed}"
+  BEADS_ID=$(bd create --title="DevOps: Add missing CI workflow" --type=task --priority=2 --description="Found during DevOps review of {feature_id}. {specific workflow needed}" --format=id)
+  # Register in guard
+  sdp guard finding add --feature={feature_id} --area=DevOps --title="Add missing CI workflow" --priority=2 --beads="$BEADS_ID"
 fi
 
 # For deployment safety issues (P0)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="DevOps: Fix rollback procedure" --type=bug --priority=0 --description="Found during DevOps review of {feature_id}. {specific rollback issue}"
+  BEADS_ID=$(bd create --title="DevOps: Fix rollback procedure" --type=bug --priority=0 --description="Found during DevOps review of {feature_id}. {specific rollback issue}" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=DevOps --title="Fix rollback procedure" --priority=0 --beads="$BEADS_ID"
 fi
 ```
 
@@ -254,7 +266,7 @@ Your task:
 3. Verify incident response procedures
 4. Review disaster recovery plan
 
-**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+**MANDATORY: For EACH finding, CREATE a beads issue AND register in guard:**
 ```bash
 # Check beads availability
 if bd --version &>/dev/null && [ -d .beads ]; then
@@ -263,17 +275,23 @@ fi
 
 # For missing observability (P1)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="SRE: Add logging to {component}" --type=task --priority=1 --description="Found during SRE review of {feature_id}. Component {component} has no logging/metrics"
+  BEADS_ID=$(bd create --title="SRE: Add logging to {component}" --type=task --priority=1 --description="Found during SRE review of {feature_id}. Component {component} has no logging/metrics" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=SRE --title="Add logging to {component}" --priority=1 --beads="$BEADS_ID"
 fi
 
 # For missing incident procedures (P1)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="SRE: Add incident procedures" --type=task --priority=1 --description="Found during SRE review of {feature_id}. No incident response documented"
+  BEADS_ID=$(bd create --title="SRE: Add incident procedures" --type=task --priority=1 --description="Found during SRE review of {feature_id}. No incident response documented" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=SRE --title="Add incident procedures" --priority=1 --beads="$BEADS_ID"
 fi
 
 # For missing context support (P2)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="SRE: Add context.Context support to {function}" --type=task --priority=2 --description="Found during SRE review of {feature_id}. Function {function} needs context for cancellation/timeout"
+  BEADS_ID=$(bd create --title="SRE: Add context.Context support to {function}" --type=task --priority=2 --description="Found during SRE review of {feature_id}. Function {function} needs context for cancellation/timeout" --format=id)
+  # Register in guard
+  sdp guard finding add --feature={feature_id} --area=SRE --title="Add context.Context to {function}" --priority=2 --beads="$BEADS_ID"
 fi
 ```
 
@@ -306,7 +324,7 @@ Your task:
 3. Verify team coordination (blockers)
 4. Review technical debt
 
-**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+**MANDATORY: For EACH finding, CREATE a beads issue AND register in guard:**
 ```bash
 # Check beads availability
 if bd --version &>/dev/null && [ -d .beads ]; then
@@ -315,17 +333,23 @@ fi
 
 # For code quality issues (P2)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="TechLead: Refactor {component}" --type=task --priority=2 --description="Found during TechLead review of {feature_id}. {specific quality issue}"
+  BEADS_ID=$(bd create --title="TechLead: Refactor {component}" --type=task --priority=2 --description="Found during TechLead review of {feature_id}. {specific quality issue}" --format=id)
+  # Register in guard
+  sdp guard finding add --feature={feature_id} --area=TechLead --title="Refactor {component}" --priority=2 --beads="$BEADS_ID"
 fi
 
 # For architecture decisions needed (P1)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="TechLead: Add ADR for {decision}" --type=task --priority=1 --description="Found during TechLead review of {feature_id}. Architecture decision needed for: {decision}"
+  BEADS_ID=$(bd create --title="TechLead: Add ADR for {decision}" --type=task --priority=1 --description="Found during TechLead review of {feature_id}. Architecture decision needed for: {decision}" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=TechLead --title="Add ADR for {decision}" --priority=1 --beads="$BEADS_ID"
 fi
 
 # For LOC violations (P1 - quality gate)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="TechLead: Split {file} ({loc} LOC > 200)" --type=task --priority=1 --description="Found during TechLead review of {feature_id}. File {file} has {loc} LOC, max is 200"
+  BEADS_ID=$(bd create --title="TechLead: Split {file} ({loc} LOC > 200)" --type=task --priority=1 --description="Found during TechLead review of {feature_id}. File {file} has {loc} LOC, max is 200" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=TechLead --title="Split {file} ({loc} LOC)" --priority=1 --beads="$BEADS_ID"
 fi
 ```
 
@@ -396,7 +420,7 @@ Final cross-check:
    - Features implemented but not in vision (scope creep)
    - Quality gaps (security, performance, UX)
 
-**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+**MANDATORY: For EACH finding, CREATE a beads issue AND register in guard:**
 ```bash
 # Check beads availability
 if bd --version &>/dev/null && [ -d .beads ]; then
@@ -405,17 +429,23 @@ fi
 
 # For missing requirements (P1)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="Drift: Missing requirement {requirement}" --type=task --priority=1 --description="Found during Documentation review of {feature_id}. Requirement from vision not implemented: {requirement}"
+  BEADS_ID=$(bd create --title="Drift: Missing requirement {requirement}" --type=task --priority=1 --description="Found during Documentation review of {feature_id}. Requirement from vision not implemented: {requirement}" --format=id)
+  # Register in guard for blocking check
+  sdp guard finding add --feature={feature_id} --area=Documentation --title="Missing requirement {requirement}" --priority=1 --beads="$BEADS_ID"
 fi
 
 # For scope creep (P2)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="Drift: Scope creep - {feature}" --type=task --priority=2 --description="Found during Documentation review of {feature_id}. Unplanned feature implemented: {feature}"
+  BEADS_ID=$(bd create --title="Drift: Scope creep - {feature}" --type=task --priority=2 --description="Found during Documentation review of {feature_id}. Unplanned feature implemented: {feature}" --format=id)
+  # Register in guard
+  sdp guard finding add --feature={feature_id} --area=Documentation --title="Scope creep: {feature}" --priority=2 --beads="$BEADS_ID"
 fi
 
 # For documentation gaps (P2)
 if [ "$BEADS_ENABLED" = true ]; then
-  bd create --title="Drift: Document {file} missing" --type=task --priority=2 --description="Found during Documentation review of {feature_id}. Missing documentation: {file}"
+  BEADS_ID=$(bd create --title="Drift: Document {file} missing" --type=task --priority=2 --description="Found during Documentation review of {feature_id}. Missing documentation: {file}" --format=id)
+  # Register in guard
+  sdp guard finding add --feature={feature_id} --area=Documentation --title="Missing doc: {file}" --priority=2 --beads="$BEADS_ID"
 fi
 ```
 
@@ -628,6 +658,11 @@ fi
 6 agents spawned simultaneously (via 6 Task calls) following `.claude/skills/think/SKILL.md` pattern.
 
 ## Version
+
+**10.1.0** - Guard Integration
+- Agents now register findings with `sdp guard finding add`
+- P0/P1 findings block merge via guard status
+- Each finding linked to beads issue
 
 **10.0.0** - Automatic Task Registration
 - **Agents create beads issues IMMEDIATELY for findings**
