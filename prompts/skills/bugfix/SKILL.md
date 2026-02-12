@@ -72,3 +72,25 @@ git status  # MUST show "up to date with origin"
 - Tests added with ≥80% coverage
 - Issue marked closed
 - Changes pushed to origin
+
+## Git Safety
+
+**CRITICAL:** Before ANY git operation, verify context.
+
+See [GIT_SAFETY.md](../../.claude/GIT_SAFETY.md) for full guidelines.
+
+**MANDATORY before any git command:**
+
+```bash
+# Step 1: Verify context
+pwd
+git branch --show-current
+sdp guard context check
+
+# Step 2: If check fails, recover
+sdp guard context go $FEATURE_ID
+
+# Step 3: Only then proceed
+git add .
+git commit -m "..."
+```
