@@ -262,9 +262,29 @@ SPEC: docs/workstreams/backlog/{WS-ID}.md
 
 Run comprehensive quality check:
 1. Test coverage (≥80%)
-2. Code quality (LOC, complexity)
-3. Security check
-4. Performance check
+2. **LOC check (≤200 lines per file)** - CRITICAL
+3. Code quality (complexity, duplication)
+4. Security check
+5. Performance check
+
+**LOC Gate (MANDATORY):**
+```bash
+# Check each scope file
+for file in $SCOPE_FILES; do
+  loc=$(wc -l < "$file" 2>/dev/null || echo 0)
+  if [ "$loc" -gt 200 ]; then
+    echo "ERROR: $file is $loc LOC (max: 200)"
+    echo "Split into smaller files before committing"
+    exit 1
+  fi
+done
+```
+
+**If LOC > 200:**
+1. DO NOT commit
+2. Split the file into smaller modules
+3. Re-run quality gates
+4. Only proceed when ALL files ≤ 200 LOC
 5. Documentation check
 
 Generate quality report.
