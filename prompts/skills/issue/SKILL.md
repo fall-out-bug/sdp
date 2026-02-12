@@ -13,7 +13,29 @@ Systematic bug analysis with severity classification and routing.
 ```bash
 /issue "description"
 /issue "description" --logs=error.log
+/issue "description" --feature=F064  # Attach to feature
 ```
+
+## Task Creation
+
+Uses `sdp task create` CLI for artifact creation:
+
+```bash
+# Create workstream (with feature context)
+sdp task create --type=bug --title="Fix CI Go version" --feature=F064 --priority=1 --goal="Fix the CI pipeline"
+
+# Create issue (no feature context)
+sdp task create --type=bug --title="Auth error" --issue --priority=1
+```
+
+## Auto-Classification
+
+| Severity | Keyword Signals | Route |
+|----------|----------------|-------|
+| **P0** | "production down", "crash", "blocked", "security" | /hotfix |
+| **P1** | "doesn't work", "failing", "error", "broken" | /bugfix |
+| **P2** | "edge case", "sometimes", "inconsistently" | backlog |
+| **P3** | "cosmetic", "typo", "minor" | defer |
 
 ## Master Prompt
 

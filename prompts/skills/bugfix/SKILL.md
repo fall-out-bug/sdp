@@ -17,9 +17,16 @@ Standard bug fixes with full quality cycle.
 
 ## Invocation
 
+Accepts **any** identifier format via unified resolver:
+
 ```bash
 /bugfix "description" --feature=F23 --issue-id=002
+/bugfix 99-F064-01     # Workstream ID (fix format)
+/bugfix sdp-xxx        # Beads task ID
+/bugfix ISSUE-0001     # Issue ID
 ```
+
+**Resolution:** Uses `sdp resolve <id>` to find task file.
 
 ## Workflow
 
