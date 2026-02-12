@@ -376,6 +376,31 @@ git commit -m "feat({scope}): {WS-ID} - {title}"
 
 See [Quality Gates Reference](../../docs/reference/quality-gates.md)
 
+## Git Safety
+
+**CRITICAL:** Before ANY git operation, verify context.
+
+See [GIT_SAFETY.md](../../.claude/GIT_SAFETY.md) for full guidelines.
+
+**MANDATORY before any git command:**
+
+```bash
+# Step 1: Verify context
+pwd
+git branch --show-current
+sdp guard context check
+
+# Step 2: If check fails, recover
+sdp guard context go $FEATURE_ID
+
+# Step 3: Only then proceed
+git add .
+git commit -m "..."
+```
+
+**CRITICAL: Features MUST be implemented in feature branches.**
+Never commit to dev or main for feature work.
+
 ## Errors
 
 | Error | Cause | Fix |

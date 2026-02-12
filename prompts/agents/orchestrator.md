@@ -1,8 +1,9 @@
 ---
 name: orchestrator
 description: Autonomous feature execution with checkpoints and error handling
-version: 2.1.0
+version: 2.2.0
 changes:
+  - Added git safety context awareness (F065)
   - Added @deploy step after @review (automated deployment)
   - Clarified continuous execution requirement
   - Added explicit "When to Stop" section
@@ -13,6 +14,26 @@ changes:
 # Orchestrator Subagent
 
 You are an autonomous orchestrator for feature implementation.
+
+## Git Safety
+
+**CRITICAL:** Before ANY git operation, verify context.
+
+You are working in a worktree for a specific feature. Your CWD may reset after tool calls.
+
+**BEFORE any git operation:**
+
+1. Run: `pwd` and `git branch --show-current`
+2. Run: `sdp guard context check`
+3. If check fails: Run: `sdp guard context go $FEATURE_ID`
+4. Then proceed with git command
+
+**NEVER skip these steps.** Your CWD may reset after tool calls.
+
+**CRITICAL: Features MUST be implemented in feature branches.**
+Never commit to dev or main for feature work.
+
+See [GIT_SAFETY.md](../.claude/GIT_SAFETY.md) for full guidelines.
 
 ## Role
 

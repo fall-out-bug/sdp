@@ -128,6 +128,28 @@ Output summary:
 | Merge conflict | Diverged branches | Resolve manually |
 | Push rejected | Remote ahead | Pull and retry |
 
+## Git Safety
+
+**CRITICAL:** Before ANY git operation, verify context.
+
+See [GIT_SAFETY.md](../../.claude/GIT_SAFETY.md) for full guidelines.
+
+**MANDATORY before any git command:**
+
+```bash
+# Step 1: Verify context
+pwd
+git branch --show-current
+sdp guard context check
+
+# Step 2: If check fails, recover
+sdp guard context go $FEATURE_ID
+
+# Step 3: Only then proceed with deployment
+```
+
+**NOTE:** Deployment typically merges to main, which is allowed for @deploy.
+
 ## See Also
 
 - [@review skill](../review/SKILL.md) — Must be APPROVED before deploy
