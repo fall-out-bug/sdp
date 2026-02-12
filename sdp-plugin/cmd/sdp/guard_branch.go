@@ -65,7 +65,7 @@ Exit codes:
 			}
 
 			// Get current branch
-			currentBranch, err := getCurrentBranch()
+			currentBranch, err := runGitCmd("branch", "--show-current")
 			if err != nil {
 				return fmt.Errorf("get current branch: %w", err)
 			}
