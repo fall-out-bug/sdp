@@ -195,7 +195,7 @@
 
 ### External Dependencies
 - **Claude Code/CLI:** Platform for agent execution
-- **Go:** Runtime environment (1.25.6+)
+- **Go:** Runtime environment (1.26+)
 - **Git:** Version control (required)
 - **GitHub Actions:** CI/CD (optional but recommended)
 
