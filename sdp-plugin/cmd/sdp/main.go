@@ -129,6 +129,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(decisionsCmd())
 	rootCmd.AddCommand(metricsCmd())
 	rootCmd.AddCommand(resolveCmd())
+	rootCmd.AddCommand(taskCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure
