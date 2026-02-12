@@ -5,11 +5,36 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/fall-out-bug/sdp/internal/config"
 )
 
 func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
+	// Load threshold from guard rules (AC6)
+	threshold := 200 // default
+	projectRoot, rootErr := config.FindProjectRoot()
+	if rootErr == nil {
+		guardRules, rulesErr := config.LoadGuardRules(projectRoot)
+		if rulesErr == nil {
+			// Find max-file-loc rule and get its threshold
+			for _, rule := range guardRules.Rules {
+				if rule.Enabled && rule.ID == "max-file-loc" {
+					if maxLines, ok := rule.Config["max_lines"]; ok {
+						switch v := maxLines.(type) {
+						case int:
+							threshold = v
+						case float64:
+							threshold = int(v)
+						}
+					}
+					break
+				}
+			}
+		}
+	}
+
 	result := &FileSizeResult{
-		Threshold: 200,
+		Threshold: threshold,
 		Strict:    c.strictMode,
 	}
 
@@ -18,9 +43,9 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 	var sumLOC int
 
 	// Walk the project directory
-	err := filepath.Walk(c.projectPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return err
+	err := filepath.Walk(c.projectPath, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil || info.IsDir() {
+			return walkErr
 		}
 
 		// Skip certain directories
