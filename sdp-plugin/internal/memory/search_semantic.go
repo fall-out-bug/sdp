@@ -2,6 +2,13 @@ package memory
 
 import "github.com/fall-out-bug/sdp/internal/safetylog"
 
+// Hybrid search weights (must sum to 1.0)
+const (
+	weightFTS      = 0.4 // Full-text search weight
+	weightSemantic = 0.4 // Semantic similarity weight
+	weightGraph    = 0.2 // Graph relationship weight
+)
+
 // semanticSearch performs semantic similarity search (AC2)
 func (s *Searcher) semanticSearch(query string, opts SearchOptions) ([]ScoredArtifact, error) {
 	if s.embeddingFn == nil {
@@ -74,24 +81,24 @@ func (s *Searcher) hybridSearch(query string, opts SearchOptions) ([]ScoredArtif
 	scoreMap := make(map[string]*ScoredArtifact)
 
 	for _, r := range ftsResults {
-		r.Score = r.Score * 0.4
+		r.Score = r.Score * weightFTS
 		scoreMap[r.ID] = &r
 	}
 
 	for _, r := range semResults {
 		if existing, ok := scoreMap[r.ID]; ok {
-			existing.Score += r.Score * 0.4
+			existing.Score += r.Score * weightSemantic
 		} else {
-			r.Score = r.Score * 0.4
+			r.Score = r.Score * weightSemantic
 			scoreMap[r.ID] = &r
 		}
 	}
 
 	for _, r := range graphResults {
 		if existing, ok := scoreMap[r.ID]; ok {
-			existing.Score += r.Score * 0.2
+			existing.Score += r.Score * weightGraph
 		} else {
-			r.Score = r.Score * 0.2
+			r.Score = r.Score * weightGraph
 			scoreMap[r.ID] = &r
 		}
 	}

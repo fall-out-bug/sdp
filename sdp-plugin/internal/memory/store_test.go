@@ -362,3 +362,60 @@ func TestStore_SearchFallback(t *testing.T) {
 		t.Error("Expected results from search")
 	}
 }
+
+func TestStore_SearchLike(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "memory-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	store, err := NewStore(filepath.Join(tmpDir, "memory.db"))
+	if err != nil {
+		t.Fatalf("Failed to create store: %v", err)
+	}
+	defer store.Close()
+
+	// Add test artifacts
+	artifacts := []*Artifact{
+		{ID: "like-1", Path: "docs/a.md", Type: "doc", Title: "Alpha Document", Content: "Content about alpha", FileHash: "h1"},
+		{ID: "like-2", Path: "docs/b.md", Type: "doc", Title: "Beta Document", Content: "Content about beta", FileHash: "h2"},
+		{ID: "like-3", Path: "docs/c.md", Type: "doc", Title: "Gamma", Content: "Alpha and beta combined", FileHash: "h3"},
+	}
+
+	for _, a := range artifacts {
+		if err := store.Save(a); err != nil {
+			t.Fatalf("Failed to save: %v", err)
+		}
+	}
+
+	// Direct test of searchLike method
+	results, err := store.searchLike("alpha")
+	if err != nil {
+		t.Fatalf("searchLike failed: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Errorf("Expected 2 results for 'alpha', got %d", len(results))
+	}
+
+	// Test search in content only
+	results, err = store.searchLike("combined")
+	if err != nil {
+		t.Fatalf("searchLike failed: %v", err)
+	}
+
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result for 'combined', got %d", len(results))
+	}
+
+	// Test no match
+	results, err = store.searchLike("nonexistent")
+	if err != nil {
+		t.Fatalf("searchLike failed: %v", err)
+	}
+
+	if len(results) != 0 {
+		t.Errorf("Expected 0 results for 'nonexistent', got %d", len(results))
+	}
+}
