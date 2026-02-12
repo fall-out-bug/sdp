@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// guardContextCmd returns the guard context command group
 func guardContextCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "context",
@@ -28,7 +27,6 @@ when the CWD may have reset after tool calls.`,
 	return cmd
 }
 
-// guardContextCheckCmd validates current context
 func guardContextCheckCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "check",
@@ -43,10 +41,7 @@ Exit codes:
   1 - Context mismatch
   2 - No session file
   3 - Hash mismatch`,
-		Example: `  # Check current context
-  sdp guard context check
-
-  # Use exit code for scripting
+		Example: `  sdp guard context check
   sdp guard context check && git commit -m "message"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root, err := config.FindProjectRoot()
@@ -71,7 +66,6 @@ Exit codes:
 	}
 }
 
-// guardContextShowCmd shows detailed context information
 func guardContextShowCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show",
@@ -106,141 +100,11 @@ func guardContextShowCmd() *cobra.Command {
 
 			if !result.Valid {
 				fmt.Println("\nErrors:")
-				for _, err := range result.Errors {
-					fmt.Printf("  - %s\n", err)
+				for _, e := range result.Errors {
+					fmt.Printf("  - %s\n", e)
 				}
 			}
 
-			return nil
-		},
-	}
-}
-
-// guardContextFindCmd locates worktree for a feature
-func guardContextFindCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "find <feature-id>",
-		Short: "Locate worktree for a feature",
-		Long: `Find the worktree path for a given feature ID.
-
-Uses hybrid recovery strategy:
-1. Search session files
-2. Parse git worktree list
-3. Check workstream metadata`,
-		Example: `  # Find worktree for F065
-  sdp guard context find F065
-
-  # Use in shell
-  cd $(sdp guard context find F065)`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			featureID := args[0]
-			root, err := config.FindProjectRoot()
-			if err != nil {
-				return fmt.Errorf("find project root: %w", err)
-			}
-
-			recovery := context.NewRecovery(root)
-			path, err := recovery.FindWorktree(featureID)
-			if err != nil {
-				return err
-			}
-
-			fmt.Println(path)
-			return nil
-		},
-	}
-}
-
-// guardContextGoCmd provides instructions to change to a worktree
-func guardContextGoCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "go <feature-id>",
-		Short: "Print command to change to feature worktree",
-		Long: `Print the path and command to change to a feature worktree.
-
-NOTE: This command cannot actually change your shell's CWD.
-It outputs the path and instructions for you to execute.`,
-		Example: `  # Get instructions to go to F065 worktree
-  sdp guard context go F065`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			featureID := args[0]
-			root, err := config.FindProjectRoot()
-			if err != nil {
-				return fmt.Errorf("find project root: %w", err)
-			}
-
-			recovery := context.NewRecovery(root)
-			path, err := recovery.GoToWorktree(featureID)
-			if err != nil {
-				return err
-			}
-
-			fmt.Printf("Worktree path: %s\n", path)
-			fmt.Printf("\nTo change directory, run:\n")
-			fmt.Printf("  cd %s\n", path)
-
-			return nil
-		},
-	}
-}
-
-// guardContextCleanCmd cleans up stale sessions
-func guardContextCleanCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "clean",
-		Short: "Clean up stale session files",
-		Long: `Remove invalid or stale session files from all worktrees.`,
-		Example: `  sdp guard context clean`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			root, err := config.FindProjectRoot()
-			if err != nil {
-				return fmt.Errorf("find project root: %w", err)
-			}
-
-			recovery := context.NewRecovery(root)
-			cleaned, err := recovery.Clean()
-			if err != nil {
-				return fmt.Errorf("clean failed: %w", err)
-			}
-
-			if len(cleaned) == 0 {
-				fmt.Println("No stale sessions found")
-			} else {
-				fmt.Printf("Cleaned %d stale session(s):\n", len(cleaned))
-				for _, path := range cleaned {
-					fmt.Printf("  - %s\n", path)
-				}
-			}
-
-			return nil
-		},
-	}
-}
-
-// guardContextRepairCmd rebuilds session from git state
-func guardContextRepairCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "repair",
-		Short: "Rebuild session from git state",
-		Long: `Repair a corrupted session file by rebuilding it from the current git state.
-
-Extracts feature ID from the current branch name and creates a new session.`,
-		Example: `  # Repair session in current directory
-  sdp guard context repair`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			root, err := config.FindProjectRoot()
-			if err != nil {
-				return fmt.Errorf("find project root: %w", err)
-			}
-
-			recovery := context.NewRecovery(root)
-			if err := recovery.Repair(); err != nil {
-				return fmt.Errorf("repair failed: %w", err)
-			}
-
-			fmt.Println("Session repaired successfully")
 			return nil
 		},
 	}
