@@ -1,293 +1,337 @@
 ---
 name: oneshot
-description: Autonomous multi-agent execution with checkpoints, resume, and PR-less modes
+description: Autonomous multi-agent execution with review-fix loop and PR creation
 tools: Task, Read, Bash
-version: 4.1.0
+version: 5.0.0
 ---
 
-# @oneshot - Multi-Agent Feature Execution
+# @oneshot - Autonomous Feature Execution with Review-Fix Loop
 
-Execute all workstreams for a feature using autonomous orchestrator agent with checkpoint/resume.
+Execute all workstreams, run review, auto-fix findings, create PR to dev.
 
 ## When to Use
 
 - Feature has multiple workstreams (5-30 WS)
-- Want autonomous execution with progress tracking
-- Need checkpoint/resume for long-running features
-- Parallel execution of independent workstreams
+- Want autonomous execution with quality gates
+- Need review-fix loop until approval
+- Create PR for CI validation
 
 ## Invocation
 
 ```bash
-@oneshot F050                       # Execute feature F050
-@oneshot F050 --agents 5            # Use 5 builder agents (default: 3)
+@oneshot F050                       # Execute + review + fix + PR to dev
+@oneshot F050 --max-reviews 5       # Allow 5 review iterations (default: 3)
 @oneshot F050 --resume abc123       # Resume from checkpoint
-@oneshot F050 --background          # Run in background
+@oneshot F050 --no-pr               # Skip PR creation (just review)
 ```
 
 ## How It Works
 
-### Step 1: Identify Feature Workstreams
-
-**Detect Beads:**
-```bash
-# Check if Beads is available
-if bd --version &>/dev/null && [ -d .beads ]; then
-    BEADS_ENABLED=true
-else
-    BEADS_ENABLED=false
-fi
+```
+@oneshot F051
+  │
+  ├─► Phase 1: Execute Workstreams
+  │     └─► @build 00-051-01, 00-051-02, ...
+  │
+  ├─► Phase 2: Review-Fix Loop (max 3 iterations)
+  │     ├─► @review F051
+  │     │     ├─► APPROVED → Exit loop
+  │     │     └─► CHANGES_REQUESTED → Fix findings
+  │     │           ├─► P0: Direct fix (security, blockers)
+  │     │           ├─► P1: @bugfix for each finding
+  │     │           └─► P2: Track only (don't block)
+  │     └─► Repeat until APPROVED or max iterations
+  │
+  ├─► Phase 3: Verify No Blocking Findings
+  │     └─► sdp guard finding list (must show 0 blocking)
+  │
+  └─► Phase 4: Create PR to dev
+        ├─► git push origin feature/F051-xxx
+        ├─► gh pr create --base dev --head feature/F051-xxx
+        └─► CI validates automatically
 ```
 
-**Find workstreams:**
-```bash
-# Method 1: Beads (if enabled)
-if [ "$BEADS_ENABLED" = true ]; then
-    bd list --parent F050 --json | jq -r '.[].id'
-fi
-
-# Method 2: Markdown (always works)
-grep -l "^feature: F050" docs/workstreams/backlog/*.md
-```
-
-### Step 2: Launch Orchestrator Agent
-
-**CRITICAL:** Use Task tool to spawn general-purpose agent with orchestrator instructions:
+## Orchestrator Agent Prompt
 
 ```python
-# Gather workstreams for this feature
-ws_files = Glob("docs/workstreams/backlog/00-050-*.md")  # Adjust pattern for feature
-workstreams = []
-for f in ws_files:
-    ws_id = parse_ws_id(f)  # e.g., "00-050-01" from filename
-    # Get beads_id from mapping
-    beads_id = Bash(f'grep "{{sdp_id: \\"{ws_id}\\"}}" .beads-sdp-mapping.jsonl | grep -o \'beads_id": "[^"]*"\' | cut -d\'"\' -f4')
-    workstreams.append({"ws_id": ws_id, "beads_id": beads_id})
-
-# Launch orchestrator agent
 Task(
     subagent_type="general-purpose",
     prompt=f"""
-You are executing feature {feature_id} autonomously as an orchestrator.
+You are executing feature {feature_id} autonomously with review-fix loop.
 
-**READ FIRST:** Read(".claude/agents/orchestrator.md") - This is your specification
+**READ FIRST:** Read(".claude/agents/orchestrator.md")
 
 **Workstreams to execute:**
-{chr(10).join([f"- {w['ws_id']}: {get_title(w['ws_id'])} ({w['beads_id']})" for w in workstreams])}
+{workstreams_list}
 
 **Your workflow:**
-1. Read .claude/agents/orchestrator.md - this defines your behavior
-2. Build dependency graph:
-   - For each WS, check dependencies in WS file
-   - Or use: `bd show {{beads_id}}` to see blocking relationships
-3. Execute in topological order:
-   - For each WS: @build {{ws_id}}
-   - @build handles: Beads status + TDD + quality gates + commit
-4. Update checkpoint after each WS
-5. **Continue until ALL workstreams are complete**
-6. On all complete: @review {feature_id}
-7. If review approved: @deploy {feature_id}
 
-**CRITICAL - DO NOT STOP UNTIL:**
-- ✅ ALL workstreams in execution_order are complete
-- ⛔ CRITICAL error that blocks progress
-- ⛔ Quality gate failure after 2 retries
+## Phase 1: Execute Workstreams
+1. Build dependency graph
+2. Execute in topological order: @build {{ws_id}}
+3. Update checkpoint after each WS
+4. Commit after each WS
 
-**This is NOT a demo or progress report. Execute the FULL feature.**
+## Phase 2: Review-Fix Loop (max {max_reviews} iterations)
 
-**Progress format (timestamps required):**
-[HH:MM] Executing {{ws_id}}...
-[HH:MM] ✅ COMPLETE (Xm, Y% coverage, commit: abc123)
+```
+iteration = 1
+while iteration <= {max_reviews}:
+    # Run review
+    result = @review {feature_id}
+
+    if result.verdict == "APPROVED":
+        print("✅ Review passed!")
+        break
+
+    # Review failed - fix findings
+    print(f"⚠️ Review iteration {{iteration}}: CHANGES_REQUESTED")
+
+    for finding in result.findings:
+        if finding.priority == 0:  # P0 - critical
+            # Fix immediately
+            fix_security_issue(finding)
+            git commit -m "fix: {{finding.title}}"
+
+        elif finding.priority == 1:  # P1 - high
+            # Create bugfix and execute
+            @bugfix {{finding.beads_id}}
+
+        else:  # P2+ - track only
+            print("📋 Tracking: {{finding.title}}")
+
+    iteration += 1
+
+if iteration > {max_reviews}:
+    escalate("Max review iterations reached")
+```
+
+## Phase 3: Verify Clean State
+```bash
+# Check for blocking findings
+sdp guard finding list
+# Must show: "0 blocking"
+
+# If blocking findings exist, resolve them
+for finding in $(sdp guard finding list --blocking); do
+    resolve_finding "$finding"
+done
+```
+
+## Phase 4: Create PR
+```bash
+# Ensure branch is pushed
+git push origin {branch_name}
+
+# Create PR to dev (NOT main)
+gh pr create \\
+    --base dev \\
+    --head {branch_name} \\
+    --title "feat({feature_id}): {feature_title}" \\
+    --body "## Summary
+{summary}
+
+## Test plan
+- [ ] All workstreams completed
+- [ ] Review passed
+- [ ] Tests pass locally
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+echo "✅ PR created: $PR_URL"
+echo "CI will validate automatically"
+```
+
+**CRITICAL RULES:**
+- DO NOT merge to main - create PR to dev only
+- Max {max_reviews} review iterations
+- P0 findings must be fixed immediately
+- P1 findings use @bugfix
+- P2+ findings are tracked, not blocking
+- Escalate if stuck after max iterations
+
+**Progress format:**
+```
+[HH:MM] Phase 1: Executing {{ws_id}}...
+[HH:MM] ✅ WS complete (Xm, Y% coverage)
+[HH:MM] Phase 2: Review iteration {{n}}
+[HH:MM] ⚠️ Found {{count}} findings, fixing...
+[HH:MM] ✅ Review PASSED
+[HH:MM] Phase 4: Creating PR...
+[HH:MM] ✅ PR created: https://github.com/...
+```
 
 **Checkpoint file (.oneshot/{feature_id}-checkpoint.json):**
 {{
   "feature": "{feature_id}",
-  "agent_id": "agent-{timestamp}",
-  "status": "in_progress",
-  "completed_ws": ["{{ws_id}}", ...],
-  "execution_order": ["{{ws_id}}", ...],
-  "started_at": "{datetime.now().isoformat()}"
+  "phase": "review_fix",
+  "iteration": 1,
+  "completed_ws": ["..."],
+  "review_result": "CHANGES_REQUESTED",
+  "findings_fixed": ["sdp-xxx", ...],
+  "pr_url": null
 }}
-
-**Escalate to human if:**
-- CRITICAL errors (blockers)
-- Circular dependencies
-- Quality gate fails after retry
-
-**Auto-fix:**
-- HIGH/MEDIUM issues (max 2 retries per WS)
-- Implementation details within WS scope
-""",
-    run_in_background=background_flag
+"""
 )
 ```
 
-### Step 3: Monitor Progress
+## Review-Fix Logic
 
-**Foreground mode** (default):
-```
-Agent provides real-time updates:
-→ [15:23] Executing 00-050-01...
-→ [15:45] ✅ COMPLETE (22m, 85% coverage, commit: a1b2c3d)
-→ [15:46] Executing 00-050-02...
-...
-```
+### Finding Priority Handling
 
-**Background mode** (`--background`):
-```bash
-# Agent runs in background, returns task_id
-task_id = "xyz789"
+| Priority | Name | Action | Blocks PR? |
+|----------|------|--------|------------|
+| P0 | Critical | Fix immediately in code | YES |
+| P1 | High | @bugfix for each | YES |
+| P2 | Medium | Track in beads, don't fix | NO |
+| P3 | Low | Track only | NO |
 
-# Check progress anytime
-Read("/tmp/agent_xyz789.log")
-
-# Or wait for completion
-TaskOutput(task_id="xyz789", block=True)
-```
-
-### Step 4: Resume from Checkpoint
-
-If execution interrupted:
+### Fix Commands by Review Area
 
 ```bash
-@oneshot F050 --resume agent-20260205-152300
+# Security findings (P0)
+# Fix in code directly, no new WS needed
+# Example: Replace filepath.Join with security.SafeJoinPath
+
+# TechLead findings (P1 - LOC violations)
+# Split file into smaller modules
+@build 99-{FEATURE}-01  # Refactor workstream
+
+# SRE findings (P1 - observability)
+# Add logging/context directly
+@bugfix sdp-xxx
+
+# Documentation findings (P1 - missing features)
+# May need new workstream or @bugfix
 ```
 
-Agent reads checkpoint file `.oneshot/F050-checkpoint.json` and continues from last completed workstream.
+### Guard Integration
+
+```bash
+# Before creating PR, verify no blocking findings
+sdp guard finding list
+
+# If blocking exists:
+sdp guard finding resolve finding-xxx --by="Fixed in commit abc123"
+
+# Clear resolved findings
+sdp guard finding clear
+```
 
 ## Output
 
 **Success:**
 ```
-✅ Feature F050 Execution Complete
+✅ Feature F051 Complete
 
-Agent: agent-20260205-152300
-Duration: 3h 45m
-Workstreams: 13/13 completed
-Avg Coverage: 84%
+Phase 1: 9/9 workstreams executed
+Phase 2: Review passed (2 iterations, 5 findings fixed)
+Phase 3: 0 blocking findings
+Phase 4: PR created
 
-Checkpoint: .oneshot/F050-checkpoint.json
+PR: https://github.com/owner/repo/pull/123
+Branch: feature/F051-long-term-memory → dev
+CI: Running...
 
-Next Steps:
-1. Human UAT (5-10 min)
-2. @review F050 (automated) - @deploy F050 runs automatically if approved
+Duration: 2h 30m
+Avg Coverage: 85%
 ```
 
-**Failure:**
+**Max Iterations Reached:**
 ```
-❌ Execution Failed: 00-050-09
+⚠️ Feature F051 Needs Human Attention
 
-Error: Circular dependency detected
-Checkpoint saved: .oneshot/F050-checkpoint.json
+Phase 1: 9/9 workstreams executed ✅
+Phase 2: Review iterations exhausted (3/3)
+Phase 3: 2 blocking findings remain
 
-Resume: @oneshot F050 --resume agent-20260205-152300
-Or fix manually: @build 00-050-09
+Blocking findings:
+  - [Security] P0 Path traversal in drift detector
+  - [TechLead] P1 store.go exceeds 200 LOC
+
+Checkpoint: .oneshot/F051-checkpoint.json
+Resume: @oneshot F051 --resume agent-xxx
+
+Manual fix required for remaining findings.
 ```
 
 ## Checkpoint Format
 
 ```json
 {
-  "feature": "F050",
-  "agent_id": "agent-20260205-152300",
-  "status": "in_progress",
-  "completed_ws": ["00-050-01", "00-050-02"],
-  "failed_ws": [],
-  "execution_order": ["00-050-01", "00-050-02", "00-050-03", ...],
-  "started_at": "2026-02-05T15:23:00Z"
+  "feature": "F051",
+  "phase": "review_fix",
+  "iteration": 2,
+  "completed_ws": ["00-051-01", "00-051-02", ...],
+  "review_results": [
+    {"iteration": 1, "verdict": "CHANGES_REQUESTED", "findings": 5},
+    {"iteration": 2, "verdict": "CHANGES_REQUESTED", "findings": 2}
+  ],
+  "findings_fixed": ["sdp-xxx", "sdp-yyy"],
+  "pr_url": null,
+  "started_at": "2026-02-12T10:00:00Z"
 }
 ```
 
-## Orchestrator Agent Capabilities
+## CLI Flags
 
-The orchestrator agent (`.claude/agents/orchestrator.md`) has:
-
-**Autonomous Decisions:**
-- Execution order based on dependencies
-- Implementation details within WS scope
-- Test strategy for each workstream
-- Auto-fix HIGH/MEDIUM issues (max 2 retries)
-
-**Human Escalation:**
-- CRITICAL errors that block feature
-- Circular dependencies
-- Scope overflow (>1500 LOC)
-- Quality gate failures after 2 retries
-- Architectural decisions not in spec
-
-**Quality Standards:**
-- All AC met ✅
-- Coverage ≥ 80%
-- All fast tests pass
-- Linters clean (ruff, mypy)
-- Clean Architecture compliance
-
-## Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **Auto dependencies** | Beads DAG tracks dependencies |
-| **Parallel execution** | Independent WS run in parallel |
-| **Checkpoint/resume** | Continue from interruption |
-| **Background mode** | Long-running features |
-| **Progress tracking** | Real-time timestamps |
+| Flag | Description |
+|------|-------------|
+| `--max-reviews N` | Max review iterations (default: 3) |
+| `--no-pr` | Skip PR creation |
+| `--resume ID` | Resume from checkpoint |
+| `--dry-run` | Show plan without execution |
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| No tasks executing | `bd list --parent {feature}` to check workstreams |
-| Agent not starting | Check `.claude/agents/orchestrator.md` exists |
-| Wrong execution order | Check dependency graph: `bd graph {feature}` |
-| Background agent silent | Read `/tmp/agent_{task_id}.log` |
-| Resume not working | Check checkpoint file: `.oneshot/{feature}-checkpoint.json` |
+| Review stuck in loop | Check findings - may need human fix |
+| CI failing on PR | Run `go test ./...` locally first |
+| Can't create PR | Check branch exists and is pushed |
+| Guard blocking PR | `sdp guard finding list` then fix |
 
-## Quick Reference
-
-| Command | Purpose |
-|---------|---------|
-| `@oneshot F050` | Execute with 3 agents |
-| `@oneshot F050 --background` | Run in background |
-| `@oneshot F050 --resume <id>` | Resume from checkpoint |
-| `bd ready` | List ready tasks |
-| `bd graph F050` | Show dependency graph |
-| `@review F050` | Automated review |
-
-## Example Execution
+## Example Session
 
 ```bash
-User: @oneshot F050
+User: @oneshot F051
 
 Claude:
-→ Launching orchestrator agent...
-→ Agent ID: agent-20260205-152300
-→ Task ID: xyz789
+→ Launching orchestrator with review-fix loop...
+→ Max iterations: 3
 
-[Agent Output]
-→ Reading feature spec: docs/drafts/F050.md
-→ Found 13 workstreams
-→ Building dependency graph from Beads...
-→ Execution order: 01→02→03→05→06→07→09→08→10→11→12→13→14
+[Phase 1: Execute Workstreams]
+→ [10:00] 00-051-01: Memory Store... ✅ (15m, 82%)
+→ [10:15] 00-051-02: Search Engine... ✅ (20m, 85%)
+→ ... (7 more workstreams)
+→ [11:30] All workstreams complete
 
-→ [15:23] Executing 00-050-01: Workstream Parser...
-→ [15:45] ✅ COMPLETE (22m, 85% coverage, commit: a1b2c3d)
-→ [15:46] Executing 00-050-02: TDD Runner...
-→ [16:12] ✅ COMPLETE (26m, 82% coverage, commit: d4e5f6g)
-...
+[Phase 2: Review-Fix Loop]
+→ [11:30] Review iteration 1/3
+→ ⚠️ CHANGES_REQUESTED: 5 findings
+→   - P0: Path traversal (fixing...)
+→   - P1: store.go 226 LOC (creating bugfix...)
+→   - P1: Missing context (creating bugfix...)
+→ [11:45] Fixed 3 findings, 2 tracked
 
-→ All workstreams complete!
-→ Running @review F050...
-→ Review verdict: APPROVED
-→ Running @deploy F050...
-→ Deployment complete: feature分支 merged to main
+→ [11:45] Review iteration 2/3
+→ ✅ APPROVED
 
-→ Feature complete! Duration: 3h 45m
-→ Checkpoint: .oneshot/F050-checkpoint.json
-→ Ready for human UAT
+[Phase 3: Verify Clean]
+→ sdp guard finding list: 0 blocking ✅
+
+[Phase 4: Create PR]
+→ git push origin feature/F051-long-term-memory
+→ gh pr create --base dev --head feature/F051-long-term-memory
+→ ✅ PR #123 created
+
+✅ Feature F051 Complete
+PR: https://github.com/owner/repo/pull/123
+CI: Running validation...
 ```
 
 ---
 
-**Version:** 4.0.0 (Task-based orchestration)
-**See Also:** `@idea`, `@design`, `@build`, `@review`, `@deploy`
+**Version:** 5.0.0 (Review-Fix Loop + PR Creation)
+**See Also:** `@review`, `@bugfix`, `@deploy`, `@build`
 **Agent:** `.claude/agents/orchestrator.md`

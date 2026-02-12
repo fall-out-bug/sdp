@@ -1,102 +1,209 @@
 ---
 name: deploy
-description: Deployment orchestration. Generates artifacts and EXECUTES GitFlow merge.
+description: Deployment orchestration. Creates PR to dev or merges dev to main for release.
 tools: Read, Write, Shell, Glob, Grep
+version: 2.0.0
 ---
 
 # @deploy - Deployment Orchestration
 
-Generate deployment artifacts and **EXECUTE** GitFlow merge. Do NOT propose — DO IT.
+Create PR to dev (after @oneshot) or merge dev to main for release.
 
 ## Invocation
 
 ```bash
-@deploy F020          # Feature ID
-@deploy F020 patch    # Specify version bump (patch/minor/major)
+@deploy F020              # Create PR to dev (after review passed)
+@deploy F020 --release    # Merge dev to main with version bump
+@deploy F020 --release minor  # Minor version bump
 ```
+
+## Two Deployment Modes
+
+### Mode 1: PR to Dev (default)
+
+Used after `@oneshot F020` completes with review passed.
+
+```
+feature/F020-xxx → dev (via PR)
+```
+
+**Steps:**
+1. Verify review passed
+2. Verify no blocking findings (`sdp guard finding list`)
+3. Push branch
+4. Create PR to dev
+5. CI validates
+
+### Mode 2: Release to Main (`--release`)
+
+Used after PR merged to dev and human UAT complete.
+
+```
+dev → main (with version bump)
+```
+
+**Steps:**
+1. Version resolution
+2. Generate artifacts (CHANGELOG, release notes)
+3. Commit artifacts to dev
+4. Merge dev to main (--no-ff)
+5. Tag + Push
+6. Report
 
 ## Quick Reference
 
-| Step | Action | Must Execute |
-|------|--------|--------------|
-| 1 | Pre-flight checks | pytest, verify APPROVED |
-| 2 | Version resolution | Read current, bump semver |
-| 3 | Generate artifacts | CHANGELOG, release notes, pyproject.toml |
-| 4 | Commit artifacts | `git add && git commit` |
-| 5 | GitFlow merge | dev → main (--no-ff) |
-| 6 | Tag + Push | `git tag && git push` |
-| 7 | Report | Summary to user |
+| Mode | Command | Action |
+|------|---------|--------|
+| PR | `@deploy F020` | Create PR: feature → dev |
+| Release | `@deploy F020 --release` | Merge: dev → main |
 
-**⚠️ CRITICAL:** Do NOT stop after generating artifacts. EXECUTE all git operations.
-
-## Workflow
+## Workflow: Mode 1 (PR to Dev)
 
 ### Step 1: Pre-flight Checks
 
 ```bash
-# Verify tests pass
-uv run pytest tests/ -q
+# Verify on feature branch
+git branch --show-current  # Should be feature/F020-xxx
 
-# Verify feature APPROVED (check review_verdict in WS files)
+# Verify no blocking findings
+sdp guard finding list
+# Must show: "0 blocking"
+
+# Verify tests pass
+go test ./... -q
 ```
 
-**Gate:** If tests fail or not APPROVED → STOP deployment.
+**Gate:** If blocking findings or tests fail → STOP.
+
+### Step 2: Push and Create PR
+
+```bash
+# Push feature branch
+git push origin feature/F020-xxx
+
+# Create PR to dev
+gh pr create \
+    --base dev \
+    --head feature/F020-xxx \
+    --title "feat(F020): Feature Title" \
+    --body "## Summary
+{summary_from_idea_file}
+
+## Workstreams
+{list_of_completed_workstreams}
+
+## Test plan
+- [x] All workstreams completed
+- [x] Review passed
+- [x] Tests pass locally
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+```
+
+### Step 3: Report
+
+```
+✅ PR Created: https://github.com/owner/repo/pull/123
+Base: dev
+Head: feature/F020-xxx
+CI: Running...
+
+Next steps:
+1. Wait for CI to pass
+2. Human UAT (5-10 min)
+3. Merge PR when ready
+4. Run @deploy F020 --release for production
+```
+
+## Workflow: Mode 2 (Release to Main)
+
+### Step 1: Pre-flight Checks
+
+```bash
+# Verify on dev branch
+git branch --show-current  # Should be dev
+
+# Verify dev is up to date
+git pull origin dev
+
+# Verify tests pass
+go test ./... -q
+```
 
 ### Step 2: Version Resolution
 
-Read `pyproject.toml` current version. Bump based on:
+Read current version from `go.mod` or version file. Bump based on:
 - `patch` (default): 0.5.0 → 0.5.1
 - `minor`: 0.5.0 → 0.6.0
 - `major`: 0.5.0 → 1.0.0
 
 ### Step 3: Generate Artifacts
 
-Create/update:
-- `pyproject.toml` — update version
-- `CHANGELOG.md` — add version section
-- `docs/releases/v{X.Y.Z}.md` — release notes
+```bash
+# Update CHANGELOG.md
+# Create docs/releases/v{X.Y.Z}.md
+```
 
 ### Step 4: Commit Artifacts
 
 ```bash
-git add pyproject.toml CHANGELOG.md docs/releases/v{X.Y.Z}.md
-git add .  # Include any other deploy-related changes
-git commit -m "chore(release): v{X.Y.Z} - {Feature} {Title}"
+git add CHANGELOG.md docs/releases/
+git commit -m "chore(release): v{X.Y.Z}"
 ```
 
-**⚠️ DO NOT ask user permission. Commit immediately.**
-
-### Step 5: GitFlow Merge
+### Step 5: Merge to Main
 
 ```bash
-# Push dev first
-git push origin dev
-
-# Switch to main, pull, merge
 git checkout main
 git pull origin main
-git merge dev --no-ff -m "Merge dev: v{X.Y.Z} {Feature}"
+git merge dev --no-ff -m "Release v{X.Y.Z}: F020 Feature Title"
 ```
-
-**⚠️ DO NOT ask user permission. Execute merge.**
 
 ### Step 6: Tag + Push
 
 ```bash
-# Create annotated tag
-git tag -a v{X.Y.Z} -m "Release v{X.Y.Z}: {Feature} - {Title}"
-
-# Push main + tag
+git tag -a v{X.Y.Z} -m "Release v{X.Y.Z}"
 git push origin main
 git push origin v{X.Y.Z}
-
-# Return to dev
 git checkout dev
 ```
 
-**⚠️ DO NOT ask user permission. Tag and push immediately.**
-
 ### Step 7: Report
+
+```
+✅ Released: v{X.Y.Z}
+Tag: v{X.Y.Z}
+Commit: abc123
+Features: F020
+
+CHANGELOG: docs/releases/v{X.Y.Z}.md
+```
+
+## Guard Integration
+
+Before any deployment, check for blocking findings:
+
+```bash
+sdp guard finding list
+
+# If blocking findings exist:
+sdp guard finding resolve finding-xxx --by="Fixed in commit abc123"
+sdp guard finding clear
+```
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| PR creation fails | Check branch exists and is pushed |
+| CI failing | Run `go test ./...` locally |
+| Blocking findings | `sdp guard finding list` then fix |
+| Merge conflict | Resolve in feature branch first |
+
+---
+
+**Version:** 2.0.0 (PR-based deployment)
+**See Also:** `@oneshot`, `@review`, `@build`
 
 Output summary:
 
