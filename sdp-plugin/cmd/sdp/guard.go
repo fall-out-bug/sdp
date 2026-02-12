@@ -16,13 +16,15 @@ This is part of TDD discipline - one workstream at a time.
 Examples:
   sdp guard activate 00-001-01
   sdp guard check internal/file.go
-  sdp guard status`,
+  sdp guard status
+  sdp guard context check`,
 	}
 
 	cmd.AddCommand(guardActivate())
 	cmd.AddCommand(guardCheck())
 	cmd.AddCommand(guardStatus())
 	cmd.AddCommand(guardDeactivate())
+	cmd.AddCommand(guardContextCmd())
 
 	return cmd
 }
