@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/safetylog"
 )
 
 const (
@@ -51,6 +53,7 @@ func Init(featureID, worktreePath, createdBy string) (*Session, error) {
 	}
 	s.Hash = s.calculateHash()
 
+	safetylog.Session("init", featureID, branch)
 	return s, nil
 }
 
@@ -97,6 +100,7 @@ func (s *Session) Save(projectRoot string) error {
 		return fmt.Errorf("write session file: %w", err)
 	}
 
+	safetylog.Debug("session saved: %s", sessionPath)
 	return nil
 }
 
