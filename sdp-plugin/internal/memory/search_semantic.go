@@ -1,5 +1,7 @@
 package memory
 
+import "github.com/fall-out-bug/sdp/internal/safetylog"
+
 // semanticSearch performs semantic similarity search (AC2)
 func (s *Searcher) semanticSearch(query string, opts SearchOptions) ([]ScoredArtifact, error) {
 	if s.embeddingFn == nil {
@@ -50,11 +52,23 @@ func (s *Searcher) graphSearch(query string, opts SearchOptions) ([]ScoredArtifa
 
 // hybridSearch combines FTS, semantic, and graph search (AC4)
 func (s *Searcher) hybridSearch(query string, opts SearchOptions) ([]ScoredArtifact, error) {
-	ftsResults, _ := s.fullTextSearch(query, opts)
-	semResults, _ := s.semanticSearch(query, opts)
+	ftsResults, ftsErr := s.fullTextSearch(query, opts)
+	if ftsErr != nil {
+		safetylog.Debug("hybrid: FTS search failed: %v", ftsErr)
+	}
+
+	semResults, semErr := s.semanticSearch(query, opts)
+	if semErr != nil {
+		safetylog.Debug("hybrid: semantic search failed: %v", semErr)
+	}
+
 	var graphResults []ScoredArtifact
 	if opts.FeatureID != "" {
-		graphResults, _ = s.graphSearch(query, opts)
+		var graphErr error
+		graphResults, graphErr = s.graphSearch(query, opts)
+		if graphErr != nil {
+			safetylog.Debug("hybrid: graph search failed: %v", graphErr)
+		}
 	}
 
 	scoreMap := make(map[string]*ScoredArtifact)

@@ -1,5 +1,7 @@
 package memory
 
+import "github.com/fall-out-bug/sdp/internal/safetylog"
+
 // Graph provides graph traversal for related artifacts (AC3)
 type Graph struct {
 	store *Store
@@ -18,6 +20,7 @@ func (g *Graph) FindRelated(featureID string, maxDepth int) []*Artifact {
 
 	artifacts, err := g.store.ListAll()
 	if err != nil {
+		safetylog.Warn("graph: FindRelated failed to list artifacts: %v", err)
 		return nil
 	}
 
@@ -56,6 +59,7 @@ func (g *Graph) FindRelated(featureID string, maxDepth int) []*Artifact {
 func (g *Graph) FindByWorkstream(wsID string) []*Artifact {
 	artifacts, err := g.store.ListAll()
 	if err != nil {
+		safetylog.Warn("graph: FindByWorkstream failed to list artifacts: %v", err)
 		return nil
 	}
 
@@ -72,6 +76,7 @@ func (g *Graph) FindByWorkstream(wsID string) []*Artifact {
 func (g *Graph) GetFeatureGraph() map[string][]*Artifact {
 	artifacts, err := g.store.ListAll()
 	if err != nil {
+		safetylog.Warn("graph: GetFeatureGraph failed to list artifacts: %v", err)
 		return nil
 	}
 

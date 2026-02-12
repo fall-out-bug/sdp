@@ -1,6 +1,9 @@
 package memory
 
-import "math"
+import (
+	"math"
+	"strings"
+)
 
 // cosineSimilarity calculates cosine similarity between two vectors
 func cosineSimilarity(a, b []float64) float64 {
@@ -22,7 +25,10 @@ func cosineSimilarity(a, b []float64) float64 {
 	return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB))
 }
 
-// containsMatch checks if text contains query (case-insensitive simplified)
+// containsMatch checks if text contains query (case-insensitive)
 func containsMatch(text, query string) bool {
-	return len(text) > 0 && len(query) > 0
+	if len(text) == 0 || len(query) == 0 {
+		return false
+	}
+	return strings.Contains(strings.ToLower(text), strings.ToLower(query))
 }
