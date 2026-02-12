@@ -419,3 +419,60 @@ func TestStore_SearchLike(t *testing.T) {
 		t.Errorf("Expected 0 results for 'nonexistent', got %d", len(results))
 	}
 }
+
+func TestStore_SchemaVersion(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "memory-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	store, err := NewStore(filepath.Join(tmpDir, "memory.db"))
+	if err != nil {
+		t.Fatalf("Failed to create store: %v", err)
+	}
+	defer store.Close()
+
+	// Check schema version
+	version, err := store.GetSchemaVersion()
+	if err != nil {
+		t.Fatalf("Failed to get schema version: %v", err)
+	}
+
+	if version != 1 {
+		t.Errorf("Expected schema version 1, got %d", version)
+	}
+}
+
+func TestStore_Checkpoint(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "memory-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	store, err := NewStore(filepath.Join(tmpDir, "memory.db"))
+	if err != nil {
+		t.Fatalf("Failed to create store: %v", err)
+	}
+
+	// Add some data
+	artifact := &Artifact{
+		ID:       "checkpoint-test",
+		Path:     "docs/checkpoint.md",
+		Type:     "doc",
+		Title:    "Checkpoint Test",
+		Content:  "Content",
+		FileHash: "cp-hash",
+	}
+	if err := store.Save(artifact); err != nil {
+		t.Fatalf("Failed to save: %v", err)
+	}
+
+	// Test checkpoint
+	if err := store.Checkpoint(); err != nil {
+		t.Fatalf("Checkpoint failed: %v", err)
+	}
+
+	store.Close()
+}
