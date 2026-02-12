@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/security"
 )
 
 // Verifier handles workstream completion verification
@@ -53,7 +54,7 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 	return checks
 }
 
-// VerifyCommands runs verification commands
+// VerifyCommands runs verification commands with security validation (sdp-5ho2)
 func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 	checks := []CheckResult{}
 
@@ -62,7 +63,7 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 			Name: fmt.Sprintf("Command: %s", truncate(cmd, 50)),
 		}
 
-		// Run command with timeout
+		// Run command with timeout and security validation
 		cmdParts := strings.Fields(cmd)
 		if len(cmdParts) == 0 {
 			check.Passed = false
@@ -75,7 +76,16 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer cancel()
 
-		command := exec.CommandContext(ctx, cmdParts[0], cmdParts[1:]...)
+		// Use SafeCommand for security validation to prevent command injection
+		command, err := security.SafeCommand(ctx, cmdParts[0], cmdParts[1:]...)
+		if err != nil {
+			// Command validation failed - security rejection
+			check.Passed = false
+			check.Message = fmt.Sprintf("Security validation: %v", err)
+			checks = append(checks, check)
+			continue
+		}
+
 		output, err := command.CombinedOutput()
 
 		if err != nil {
