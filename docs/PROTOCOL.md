@@ -502,6 +502,55 @@ pytest --cov=src/ --cov-report=term-missing
 
 ---
 
+## Feature Branch Rule
+
+**CRITICAL:** Features MUST be implemented in feature branches.
+
+### Allowed Branches
+
+| Branch Type | Purpose | Example |
+|-------------|---------|---------|
+| `feature/F###` | Feature implementation | `feature/F065` |
+| `bugfix/issue-id` | Bug fixes | `bugfix/sdp-1234` |
+| `hotfix/issue-id` | Emergency fixes | `hotfix/sdp-1234` |
+
+### Protected Branches
+
+| Branch | Allowed Operations |
+|--------|-------------------|
+| `main` | Merge only (via PR) |
+| `dev` | Merge only (via PR) |
+
+### Enforcement
+
+- Guard rejects commits to protected branches when `feature_id` is active
+- `@build` verifies feature branch before starting work
+- Pre-commit hooks block direct commits to `dev`/`main` for feature work
+
+### Commands
+
+```bash
+# Check if current branch is valid for feature
+sdp guard branch check --feature=F065
+
+# Validate branch naming convention
+sdp guard branch validate feature/F065
+```
+
+### Error Recovery
+
+If you're on `dev` or `main` when you should be on a feature branch:
+
+```bash
+# Create feature branch
+git checkout -b feature/F065
+
+# Or switch to existing branch
+git checkout feature/F065
+```
+
+---
+
 ## Documentation
 
 - `.claude/agents/README.md` - Agent roles guide

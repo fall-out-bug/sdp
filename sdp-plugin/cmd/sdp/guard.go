@@ -17,7 +17,8 @@ Examples:
   sdp guard activate 00-001-01
   sdp guard check internal/file.go
   sdp guard status
-  sdp guard context check`,
+  sdp guard context check
+  sdp guard branch check --feature=F065`,
 	}
 
 	cmd.AddCommand(guardActivate())
@@ -25,6 +26,7 @@ Examples:
 	cmd.AddCommand(guardStatus())
 	cmd.AddCommand(guardDeactivate())
 	cmd.AddCommand(guardContextCmd())
+	cmd.AddCommand(guardBranchCmd())
 
 	return cmd
 }
