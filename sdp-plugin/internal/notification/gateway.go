@@ -3,6 +3,8 @@ package notification
 import (
 	"sync"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/safetylog"
 )
 
 // NotificationType defines types of notifications (AC1)
@@ -124,10 +126,15 @@ func (g *Gateway) Send(n *Notification) error {
 	g.history = append(g.history, n)
 	g.historyMu.Unlock()
 
+	// Log the notification
+	safetylog.Info("notification: [%s] %s - %s", n.Severity, n.Type, n.Message)
+
 	// Send to all enabled channels
 	for _, channel := range g.channels {
 		if channel.IsEnabled() {
-			channel.Send(n)
+			if err := channel.Send(n); err != nil {
+				safetylog.Warn("notification: channel %s failed: %v", channel.Name(), err)
+			}
 		}
 	}
 

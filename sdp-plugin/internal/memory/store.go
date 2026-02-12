@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/safetylog"
 	_ "modernc.org/sqlite"
 )
 
@@ -45,6 +47,9 @@ func NewStore(dbPath string) (*Store, error) {
 
 // initSchema creates the database schema
 func (s *Store) initSchema() error {
+	start := time.Now()
+	safetylog.Debug("memory: initializing schema")
+
 	_, err := s.db.Exec(`
 		CREATE TABLE IF NOT EXISTS artifacts (
 			id TEXT PRIMARY KEY,
@@ -63,14 +68,27 @@ func (s *Store) initSchema() error {
 		return fmt.Errorf("failed to create artifacts table: %w", err)
 	}
 
-	s.db.Exec(`CREATE VIRTUAL TABLE IF NOT EXISTS artifacts_fts USING fts5(
+	// Create FTS virtual table with error handling
+	if _, err := s.db.Exec(`CREATE VIRTUAL TABLE IF NOT EXISTS artifacts_fts USING fts5(
 		id UNINDEXED, title, content, content='artifacts', content_rowid='rowid'
-	)`)
+	)`); err != nil {
+		safetylog.Warn("memory: failed to create FTS table: %v", err)
+		return fmt.Errorf("failed to create FTS table: %w", err)
+	}
 
-	s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_artifacts_type ON artifacts(type)`)
-	s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_artifacts_file_hash ON artifacts(file_hash)`)
-	s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_artifacts_feature_id ON artifacts(feature_id)`)
+	// Create indexes with error handling
+	indexes := []string{
+		"CREATE INDEX IF NOT EXISTS idx_artifacts_type ON artifacts(type)",
+		"CREATE INDEX IF NOT EXISTS idx_artifacts_file_hash ON artifacts(file_hash)",
+		"CREATE INDEX IF NOT EXISTS idx_artifacts_feature_id ON artifacts(feature_id)",
+	}
+	for _, idx := range indexes {
+		if _, err := s.db.Exec(idx); err != nil {
+			safetylog.Warn("memory: failed to create index: %v", err)
+		}
+	}
 
+	safetylog.Debug("memory: schema initialized (%v)", time.Since(start))
 	return nil
 }
 
@@ -84,8 +102,14 @@ func (s *Store) Close() error {
 
 // Save stores an artifact
 func (s *Store) Save(artifact *Artifact) error {
+	return s.SaveContext(context.Background(), artifact)
+}
+
+// SaveContext stores an artifact with context support
+func (s *Store) SaveContext(ctx context.Context, artifact *Artifact) error {
+	start := time.Now()
 	tagsStr := strings.Join(artifact.Tags, ",")
-	_, err := s.db.Exec(`
+	_, err := s.db.ExecContext(ctx, `
 		INSERT OR REPLACE INTO artifacts
 		(id, path, type, title, content, feature_id, workstream_id, tags, file_hash, indexed_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -95,15 +119,23 @@ func (s *Store) Save(artifact *Artifact) error {
 		return fmt.Errorf("failed to save artifact: %w", err)
 	}
 
-	s.db.Exec(`INSERT OR REPLACE INTO artifacts_fts(rowid, id, title, content)
-		SELECT rowid, id, title, content FROM artifacts WHERE id = ?`, artifact.ID)
+	if _, err := s.db.ExecContext(ctx, `INSERT OR REPLACE INTO artifacts_fts(rowid, id, title, content)
+		SELECT rowid, id, title, content FROM artifacts WHERE id = ?`, artifact.ID); err != nil {
+		safetylog.Warn("memory: failed to update FTS index for %s: %v", artifact.ID, err)
+	}
 
+	safetylog.Debug("memory: saved artifact %s (%v)", artifact.ID, time.Since(start))
 	return nil
 }
 
 // GetByID retrieves an artifact by ID
 func (s *Store) GetByID(id string) (*Artifact, error) {
-	return scanArtifact(s.db.QueryRow(
+	return s.GetByIDContext(context.Background(), id)
+}
+
+// GetByIDContext retrieves an artifact by ID with context support
+func (s *Store) GetByIDContext(ctx context.Context, id string) (*Artifact, error) {
+	return scanArtifact(s.db.QueryRowContext(ctx,
 		`SELECT `+selectArtifactFields+` FROM artifacts WHERE id = ?`, id))
 }
 
@@ -115,7 +147,13 @@ func (s *Store) GetByFileHash(hash string) (*Artifact, error) {
 
 // Search performs full-text search on artifacts
 func (s *Store) Search(query string) ([]*Artifact, error) {
-	rows, err := s.db.Query(`
+	return s.SearchContext(context.Background(), query)
+}
+
+// SearchContext performs full-text search with context support
+func (s *Store) SearchContext(ctx context.Context, query string) ([]*Artifact, error) {
+	start := time.Now()
+	rows, err := s.db.QueryContext(ctx, `
 		SELECT a.`+strings.ReplaceAll(selectArtifactFields, ", ", ", a.")+`
 		FROM artifacts a
 		JOIN artifacts_fts fts ON a.id = fts.id
@@ -123,10 +161,15 @@ func (s *Store) Search(query string) ([]*Artifact, error) {
 		ORDER BY bm25(artifacts_fts) LIMIT 50
 	`, query)
 	if err != nil {
+		safetylog.Debug("memory: FTS search failed, using LIKE fallback")
 		return s.searchLike(query)
 	}
 	defer rows.Close()
-	return scanArtifacts(rows)
+	results, err := scanArtifacts(rows)
+	if err == nil {
+		safetylog.Debug("memory: search '%s' found %d results (%v)", query, len(results), time.Since(start))
+	}
+	return results, err
 }
 
 // searchLike performs a LIKE-based search as fallback
@@ -144,11 +187,20 @@ func (s *Store) searchLike(query string) ([]*Artifact, error) {
 
 // Delete removes an artifact by ID
 func (s *Store) Delete(id string) error {
-	_, err := s.db.Exec(`DELETE FROM artifacts WHERE id = ?`, id)
+	return s.DeleteContext(context.Background(), id)
+}
+
+// DeleteContext removes an artifact by ID with context support
+func (s *Store) DeleteContext(ctx context.Context, id string) error {
+	start := time.Now()
+	_, err := s.db.ExecContext(ctx, `DELETE FROM artifacts WHERE id = ?`, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete artifact: %w", err)
 	}
-	s.db.Exec(`DELETE FROM artifacts_fts WHERE id = ?`, id)
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM artifacts_fts WHERE id = ?`, id); err != nil {
+		safetylog.Warn("memory: failed to delete from FTS index %s: %v", id, err)
+	}
+	safetylog.Debug("memory: deleted artifact %s (%v)", id, time.Since(start))
 	return nil
 }
 

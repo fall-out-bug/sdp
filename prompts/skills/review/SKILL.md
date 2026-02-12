@@ -2,7 +2,7 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + Contract Validation)
 tools: Read, Bash, Grep, Task
-version: 8.0.0
+version: 10.0.0
 ---
 
 # @review - Multi-Agent Quality Review
@@ -97,6 +97,8 @@ fi
 
 ### Step 2: Spawn Review Agents (PARALLEL)
 
+**CRITICAL: Each agent MUST create beads issues for findings IMMEDIATELY.**
+
 ```python
 # Agent 1: QA
 Task(
@@ -114,30 +116,33 @@ Your task:
 3. Verify quality metrics (defect density, pass rate)
 4. Validate quality gates (entry/exit criteria)
 
+**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+```bash
+# Check beads availability
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# For coverage gaps
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="QA: Coverage {package} below 80%" --type=task --priority=2 --description="Found during QA review of {feature_id}. Package {package} has {X}% coverage, target is 80%."
+fi
+
+# For missing tests
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="QA: Add tests for {package}" --type=task --priority=1 --description="Found during QA review of {feature_id}. Tests needed for: {list of uncovered functions}"
+fi
+```
+
 Output:
 ## QA Review
 - Coverage: {percentage}
 - Tests: {passing/total}
 - Quality metrics: {table}
+- **Issues Created:** {list of beads IDs}
 - Verdict: {PASS/FAIL}
 
-BEADS_INTEGRATION:
-If Beads enabled (bd --version &>/dev/null):
-1. Create issues for quality gaps:
-   ```bash
-   bd create --title="QA: Coverage {package} below 80%" --type=task --priority=2
-   bd create --title="QA: Add tests for {package}" --type=task --priority=1
-   ```
-
-2. Block workstreams failing gates:
-   ```bash
-   bd update beads-{ws-id} --status=blocked --notes="QA: Coverage {X}% < 80%"
-   ```
-
-3. Update quality metrics:
-   ```bash
-   bd update beads-{feature-id} --notes="QA: {coverage}%, {passing}/{total} tests"
-   ```
+**If FAIL:** You MUST have created at least one beads issue explaining the gap.
 """,
     description="QA review"
 )
@@ -157,30 +162,33 @@ Your task:
 3. Verify compliance (GDPR/SOC2/etc if applicable)
 4. Review secrets management
 
+**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+```bash
+# Check beads availability
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# For vulnerabilities (P0 - critical)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="SEC: {vulnerability}" --type=bug --priority=0 --description="Found during Security review of {feature_id}. {detailed description of vulnerability and potential impact}"
+fi
+
+# For hardening needs (P1)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="SEC: Hardening {component}" --type=task --priority=1 --description="Found during Security review of {feature_id}. {specific hardening recommendations}"
+fi
+```
+
 Output:
 ## Security Review
 - Threats: {mitigated/partial/open}
 - Vulnerabilities: {none/low/medium/high}
 - Compliance: {status}
+- **Issues Created:** {list of beads IDs}
 - Verdict: {PASS/FAIL}
 
-BEADS_INTEGRATION:
-If Beads enabled (bd --version &>/dev/null):
-1. Create issues for security findings:
-   ```bash
-   bd create --title="SEC: {vulnerability}" --type=bug --priority=0
-   bd create --title="SEC: Hardening {component}" --type=task --priority=1
-   ```
-
-2. Track compliance:
-   ```bash
-   bd update beads-{feature-id} --notes="Security: {OWASP} compliance, {vuln} vulns"
-   ```
-
-3. Link security issues to feature:
-   ```bash
-   bd dep add beads-{sec-issue} beads-{feature-id}
-   ```
+**If FAIL:** You MUST have created at least one beads issue explaining the security gap.
 """,
     description="Security review"
 )
@@ -200,25 +208,33 @@ Your task:
 3. Verify deployment strategy (rollback procedures)
 4. Check environment management
 
+**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+```bash
+# Check beads availability
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# For CI/CD issues (P2)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="DevOps: Add missing CI workflow" --type=task --priority=2 --description="Found during DevOps review of {feature_id}. {specific workflow needed}"
+fi
+
+# For deployment safety issues (P0)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="DevOps: Fix rollback procedure" --type=bug --priority=0 --description="Found during DevOps review of {feature_id}. {specific rollback issue}"
+fi
+```
+
 Output:
 ## DevOps Review
 - CI/CD: {status}
 - Infrastructure: {review findings}
 - Deployment: {safe/unsafe}
+- **Issues Created:** {list of beads IDs}
 - Verdict: {PASS/FAIL}
 
-BEADS_INTEGRATION:
-If Beads enabled (bd --version &>/dev/null):
-1. Track deployment status:
-   ```bash
-   bd update beads-{feature-id} --notes="DevOps: CI/CD {status}, deployment {safe/unsafe}"
-   ```
-
-2. Create deployment tasks:
-   ```bash
-   bd create --title="DevOps: Add missing CI workflow" --type=task --priority=2
-   bd create --title="DevOps: Fix Goreleaser config" --type=bug --priority=0
-   ```
+**If FAIL:** You MUST have created at least one beads issue explaining the DevOps gap.
 """,
     description="DevOps review"
 )
@@ -238,25 +254,38 @@ Your task:
 3. Verify incident response procedures
 4. Review disaster recovery plan
 
+**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+```bash
+# Check beads availability
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# For missing observability (P1)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="SRE: Add logging to {component}" --type=task --priority=1 --description="Found during SRE review of {feature_id}. Component {component} has no logging/metrics"
+fi
+
+# For missing incident procedures (P1)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="SRE: Add incident procedures" --type=task --priority=1 --description="Found during SRE review of {feature_id}. No incident response documented"
+fi
+
+# For missing context support (P2)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="SRE: Add context.Context support to {function}" --type=task --priority=2 --description="Found during SRE review of {feature_id}. Function {function} needs context for cancellation/timeout"
+fi
+```
+
 Output:
 ## SRE Review
 - SLOs: {defined/measurable}
 - Monitoring: {coverage}
 - Incidents: {procedures}
+- **Issues Created:** {list of beads IDs}
 - Verdict: {PASS/FAIL}
 
-BEADS_INTEGRATION:
-If Beads enabled (bd --version &>/dev/null):
-1. Track SLO compliance:
-   ```bash
-   bd update beads-{feature-id} --notes="SRE: Monitoring {X}%, SLOs {defined/not}"
-   ```
-
-2. Create incident tasks:
-   ```bash
-   bd create --title="SRE: Add incident procedures" --type=task --priority=1
-   bd create --title="SRE: Implement alerting" --type=task --priority=2
-   ```
+**If FAIL:** You MUST have created at least one beads issue explaining the SRE gap.
 """,
     description="SRE review"
 )
@@ -277,32 +306,38 @@ Your task:
 3. Verify team coordination (blockers)
 4. Review technical debt
 
+**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+```bash
+# Check beads availability
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# For code quality issues (P2)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="TechLead: Refactor {component}" --type=task --priority=2 --description="Found during TechLead review of {feature_id}. {specific quality issue}"
+fi
+
+# For architecture decisions needed (P1)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="TechLead: Add ADR for {decision}" --type=task --priority=1 --description="Found during TechLead review of {feature_id}. Architecture decision needed for: {decision}"
+fi
+
+# For LOC violations (P1 - quality gate)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="TechLead: Split {file} ({loc} LOC > 200)" --type=task --priority=1 --description="Found during TechLead review of {feature_id}. File {file} has {loc} LOC, max is 200"
+fi
+```
+
 Output:
 ## Technical Review
 - Code quality: {assessment}
 - Architecture: {review}
 - Blockers: {none/identified}
+- **Issues Created:** {list of beads IDs}
 - Verdict: {PASS/FAIL}
 
-BEADS_INTEGRATION:
-If Beads enabled (bd --version &>/dev/null):
-1. Unblock stuck tasks:
-   ```bash
-   for task in $(bd blocked | grep "blocked by: {feature-id}"); do
-       bd update $task --status=ready --notes="Unblocked by tech lead review"
-   done
-   ```
-
-2. Create technical debt tasks:
-   ```bash
-   bd create --title="TechDebt: Refactor {component}" --type=task --priority=3
-   bd create --title="TechDebt: Add ADR for {decision}" --type=task --priority=2
-   ```
-
-3. Update tasks with guidance:
-   ```bash
-   bd update beads-{ws-id} --notes="TechLead: {guidance on architecture}"
-   ```
+**If FAIL:** You MUST have created at least one beads issue explaining the technical gap.
 """,
     description="Technical lead review"
 )
@@ -361,6 +396,29 @@ Final cross-check:
    - Features implemented but not in vision (scope creep)
    - Quality gaps (security, performance, UX)
 
+**MANDATORY: For EACH finding, CREATE a beads issue IMMEDIATELY:**
+```bash
+# Check beads availability
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# For missing requirements (P1)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="Drift: Missing requirement {requirement}" --type=task --priority=1 --description="Found during Documentation review of {feature_id}. Requirement from vision not implemented: {requirement}"
+fi
+
+# For scope creep (P2)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="Drift: Scope creep - {feature}" --type=task --priority=2 --description="Found during Documentation review of {feature_id}. Unplanned feature implemented: {feature}"
+fi
+
+# For documentation gaps (P2)
+if [ "$BEADS_ENABLED" = true ]; then
+  bd create --title="Drift: Document {file} missing" --type=task --priority=2 --description="Found during Documentation review of {feature_id}. Missing documentation: {file}"
+fi
+```
+
 Output:
 ## Documentation & Drift Review
 
@@ -386,34 +444,13 @@ Output:
 ### Overall Verdict
 **{PASS/FAIL}**
 
+- **Issues Created:** {list of beads IDs}
+
 Criteria:
 - PASS: All 3 levels PASS, ≤5% drift, no critical gaps
 - FAIL: Any level FAIL, >10% drift, or missing critical features
 
-BEADS_INTEGRATION:
-If Beads enabled (bd --version works):
-1. Create issues for gaps:
-   ```bash
-   bd create --title="Drift: {description}" --type=bug --priority=2
-   bd create --title="Missing: {file/function}" --type=task --priority=1
-   ```
-
-2. Block workstreams with >10% drift:
-   ```bash
-   for ws in $(sdp drift detect {ws_id} | grep "Drift: >10%"); do
-       bd dep add beads-{ws} beads-parent
-   done
-   ```
-
-3. Update drift status in issues:
-   ```bash
-   bd update beads-{id} --notes="Drift check: {X}% drift, {N} gaps"
-   ```
-
-4. Link findings to parent feature:
-   ```bash
-   bd dep add beads-{finding-id} beads-{feature-id}
-   ```
+**If FAIL:** You MUST have created at least one beads issue explaining the gap.
 """,
     description="Documentation and drift review"
 )
@@ -463,116 +500,27 @@ No middle ground.
 | Missing | {...} | New WS | TBD |
 ```
 
-### Step 4: Create Actionable Artifacts (MANDATORY if CHANGES_REQUESTED)
+### Step 4: Verify Issues Created (MANDATORY)
 
-**Uses `sdp task create` CLI for unified artifact creation.**
-
-#### Task Creation CLI
+**Each review agent creates beads issues directly. Verify after all agents complete:**
 
 ```bash
-# Bug finding (with feature context)
-sdp task create \
-  --type=bug \
-  --title="FIX: {description}" \
-  --feature={FEATURE_ID} \
-  --priority=0 \
-  --goal="Fix the issue" \
-  --context="Found during {REVIEW_AREA} review"
+# Check beads is available
+if bd --version &>/dev/null && [ -d .beads ]; then
+  # List issues created during this review
+  bd list --status=open --search="{feature_id}"
 
-# Task finding (refactor, tech-debt)
-sdp task create \
-  --type=task \
-  --title="REFACTOR: {description}" \
-  --feature={FEATURE_ID} \
-  --priority=1 \
-  --goal="Refactor for quality" \
-  --scope={files}
-
-# Standalone issue (no feature context)
-sdp task create \
-  --type=bug \
-  --title="Auth error" \
-  --issue \
-  --priority=1
-```
-
-The CLI automatically:
-1. Generates correct WS ID format (99-{FEATURE}-{SEQ} for bugs)
-2. Creates workstream markdown file
-3. Updates .sdp/issues-index.jsonl
-4. If beads enabled: creates beads issue and links bidirectionally
-
-#### Why Both Tracks?
-
-| Beads Type | Execution Command | Needs Workstream MD? |
-|------------|-------------------|---------------------|
-| bug | `/bugfix sdp-xxx` or `/bugfix 99-XXX-XX` | NO (bugfix handles any ID) |
-| task | `/build 99-XXX-XX` | **YES** (build expects WS file) |
-
-**Note:** `sdp task create` CLI handles both artifact creation AND beads linking automatically.
-
-#### Beads Integration (if enabled)
-
-When beads is available (`bd --version` works and `.beads/` exists), `sdp task create` automatically:
-1. Creates beads issue via `bd create`
-2. Links workstream frontmatter with `beads_id`
-3. Updates beads notes with workstream path
-- Priority rationale: {why this priority}
-EOF
-```
-
-**Example:**
-
-```markdown
----
-ws_id: 99-F063-0001
-feature_id: F063
-title: "REFACTOR: Split cmd/sdp/guard.go (397 LOC)"
-status: backlog
-priority: 1
-depends_on: []
-blocks: []
-project_id: sdp
----
-
-## Goal
-
-Split guard.go into smaller files to meet 200 LOC limit.
-
-## Context
-
-Found during TechLead review of F063:
-- **Review Area**: TechLead
-- **Issue**: guard.go at 397 LOC exceeds 200 LOC limit
-- **File(s)**: sdp-plugin/cmd/sdp/guard.go
-
-## Acceptance Criteria
-
-- [ ] AC1: Split guard.go into guard.go + guard_check.go + guard_status.go
-- [ ] AC2: All resulting files < 200 LOC
-- [ ] AC3: All tests pass after refactor
-
-## Scope Files
-
-```yaml
-scope_files:
-  - sdp-plugin/cmd/sdp/guard.go
-  - sdp-plugin/cmd/sdp/guard_check.go  # NEW
-  - sdp-plugin/cmd/sdp/guard_status.go  # NEW
-```
-
-## Notes
-
-- Source: Review F063 (TechLead)
-- Beads ID: sdp-yxrn
-- Priority: P1 - quality gate violation
+  # If any FAIL verdicts but no issues, create summary issue
+  if [ "{fail_count}" -gt 0 ] && [ "{issue_count}" -eq 0 ]; then
+    bd create --title="Review: {feature_id} needs fixes" --type=task --priority=1 --description="Review found {fail_count} failures but agents did not create issues. Manual investigation required."
+  fi
+fi
 ```
 
 **Rules:**
-- **Bug findings**: Use `sdp task create --type=bug` → `/bugfix 99-XXX-XX`
-- **Task findings**: Use `sdp task create --type=task` → `/build 99-XXX-XX`
-- **WS ID format**: `99-{FEATURE_NUM}-{SEQ}` for fix/refactor (99 prefix)
-- **SEQ**: 2-digit sequential (01, 02, etc.)
+- **If any agent FAILs:** At least one beads issue MUST exist
+- **Issue format:** `{REVIEW_AREA}: {description}` (e.g., "SRE: Add logging to memory.Store")
+- **Priority:** P0 for bugs, P1 for missing features, P2 for quality improvements
 
 ## Output
 
@@ -680,6 +628,13 @@ fi
 6 agents spawned simultaneously (via 6 Task calls) following `.claude/skills/think/SKILL.md` pattern.
 
 ## Version
+
+**10.0.0** - Automatic Task Registration
+- **Agents create beads issues IMMEDIATELY for findings**
+- Removed non-existent `sdp task create` CLI references
+- Each agent prompt includes `bd create` commands
+- Step 4 simplified: verify issues exist, create fallback if needed
+- Clear rule: FAIL verdict MUST have at least one beads issue
 
 **9.0.0** - Unified Task Resolver Integration (F064)
 - **Uses `sdp task create` CLI** for all artifact creation

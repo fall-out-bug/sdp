@@ -1,8 +1,10 @@
 # F051: SDP Long-term Memory System
 
-> **Status:** Draft
+> **Status:** Implemented
 > **Created:** 2026-02-12
+> **Updated:** 2026-02-12
 > **Beads:** sdp-6fx
+> **Branch:** feature/F051-long-term-memory
 
 ## Problem Statement
 
