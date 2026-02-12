@@ -10,10 +10,16 @@ Execute a single workstream following TDD discipline with automatic guard.
 
 ## Invocation (BEADS-001)
 
-Accepts **both** formats:
+Accepts **any** identifier format via unified resolver:
 
-- `@build 00-001-01` — WS-ID (PP-FFF-SS), resolve beads_id from `.beads-sdp-mapping.jsonl`
-- `@build sdp-xxx` — Beads task ID directly
+```bash
+@build 00-001-01       # Workstream ID (PP-FFF-SS)
+@build 99-F064-01      # Fix workstream ID (99-{FEATURE}-{SEQ})
+@build sdp-xxx         # Beads task ID (resolved to workstream)
+@build ISSUE-0001      # Issue ID (resolved to file path)
+```
+
+**Resolution:** Uses `sdp resolve <id>` CLI command to detect ID type and find file.
 
 ## Verbosity Tiers
 
@@ -114,14 +120,25 @@ Accepts **both** formats:
 
 ### Step 0: Resolve Task ID
 
+**Uses unified resolver (sdp resolve):**
+
 ```bash
-# Input: ws_id (00-001-01) OR beads_id (sdp-xxx)
-# If ws_id: beads_id = grep mapping for sdp_id
-# If beads_id: ws_id = grep mapping for beads_id (reverse lookup)
-# Guard needs ws_id; Beads needs beads_id
-beads_id=$(grep -m1 "\"sdp_id\": \"{WS-ID}\"" .beads-sdp-mapping.jsonl 2>/dev/null | grep -o '"beads_id": "[^"]*"' | cut -d'"' -f4)
-ws_id=$(grep -m1 "\"beads_id\": \"{beads_id}\"" .beads-sdp-mapping.jsonl 2>/dev/null | grep -o '"sdp_id": "[^"]*"' | cut -d'"' -f4)
+# Input: any ID format (ws_id, beads_id, issue_id)
+# Output: JSON with type, path, ws_id, beads_id
+
+result=$(sdp resolve {ID} --json)
+
+# Extract values from JSON
+type=$(echo "$result" | jq -r '.Type')
+ws_id=$(echo "$result" | jq -r '.WSID // .ID')
+ws_path=$(echo "$result" | jq -r '.Path')
+beads_id=$(echo "$result" | jq -r '.BeadsID // empty')
 ```
+
+**Supported formats:**
+- Workstream: `00-064-01`, `99-F064-01` (auto-detected via pattern)
+- Beads: `sdp-uhsp`, `abc-123` (searches workstream frontmatter)
+- Issue: `ISSUE-0001` (searches docs/issues/ or index)
 
 ### Step 1: Beads IN_PROGRESS (when Beads enabled)
 

@@ -465,87 +465,58 @@ No middle ground.
 
 ### Step 4: Create Actionable Artifacts (MANDATORY if CHANGES_REQUESTED)
 
-**ALWAYS create markdown workstream files - required for `/build` execution.**
+**Uses `sdp task create` CLI for unified artifact creation.**
+
+#### Task Creation CLI
+
+```bash
+# Bug finding (with feature context)
+sdp task create \
+  --type=bug \
+  --title="FIX: {description}" \
+  --feature={FEATURE_ID} \
+  --priority=0 \
+  --goal="Fix the issue" \
+  --context="Found during {REVIEW_AREA} review"
+
+# Task finding (refactor, tech-debt)
+sdp task create \
+  --type=task \
+  --title="REFACTOR: {description}" \
+  --feature={FEATURE_ID} \
+  --priority=1 \
+  --goal="Refactor for quality" \
+  --scope={files}
+
+# Standalone issue (no feature context)
+sdp task create \
+  --type=bug \
+  --title="Auth error" \
+  --issue \
+  --priority=1
+```
+
+The CLI automatically:
+1. Generates correct WS ID format (99-{FEATURE}-{SEQ} for bugs)
+2. Creates workstream markdown file
+3. Updates .sdp/issues-index.jsonl
+4. If beads enabled: creates beads issue and links bidirectionally
 
 #### Why Both Tracks?
 
 | Beads Type | Execution Command | Needs Workstream MD? |
 |------------|-------------------|---------------------|
-| bug | `/bugfix beads-xxx` | NO (bugfix handles beads directly) |
-| task | `/build 99-XXX-XXXX` | **YES** (build expects WS file) |
+| bug | `/bugfix sdp-xxx` or `/bugfix 99-XXX-XX` | NO (bugfix handles any ID) |
+| task | `/build 99-XXX-XX` | **YES** (build expects WS file) |
 
-**Conclusion:** For task-type findings (refactor, tech-debt), ALWAYS create workstream markdown.
+**Note:** `sdp task create` CLI handles both artifact creation AND beads linking automatically.
 
-#### Track A: Beads Issues (if enabled)
+#### Beads Integration (if enabled)
 
-```bash
-# Detect Beads
-if bd --version &>/dev/null && [ -d .beads ]; then
-  BEADS_ENABLED=true
-fi
-
-# Bugs (P0-P1) - /bugfix handles these
-bd create --title="FIX: {description}" --type=bug --priority=0|1
-bd dep add beads-{bug-id} beads-{feature-id}
-
-# Tasks (P1-P3) - need workstream MD for /build
-bd create --title="REFACTOR: {description}" --type=task --priority=1|2
-bd dep add beads-{task-id} beads-{feature-id}
-
-# Sync to remote
-bd sync
-```
-
-#### Track B: Markdown Workstreams (ALWAYS for task-type findings)
-
-**Create workstream file for every task-type finding (refactor, tech-debt, new-work):**
-
-```bash
-# Generate WS ID for fix/refactor task
-# Format: 99-{FEATURE_ID}-{SEQ} (99 prefix = fix/refactor tasks)
-WS_ID="99-{FEATURE_ID}-{SEQ:0001}"
-
-# Create workstream file
-cat > "docs/workstreams/backlog/${WS_ID}.md" << 'EOF'
----
-ws_id: {WS_ID}
-feature_id: {FEATURE_ID}
-title: "{FINDING_TITLE}"
-status: backlog
-priority: {P0-P3}
-depends_on: []
-blocks: []
-project_id: sdp
----
-
-## Goal
-
-{Description of what needs to be fixed/refactored}
-
-## Context
-
-Found during review of {FEATURE_ID}:
-- **Review Area**: {QA|Security|DevOps|SRE|TechLead|Documentation}
-- **Issue**: {Detailed description}
-- **File(s)**: {Affected files}
-
-## Acceptance Criteria
-
-- [ ] AC1: {Specific fix requirement}
-- [ ] AC2: {Verification requirement}
-
-## Scope Files
-
-```yaml
-scope_files:
-  - path/to/file1.go
-  - path/to/file2.go
-```
-
-## Notes
-
-- Source: Review {FEATURE_ID}
-- Beads ID: sdp-xxxx (if applicable)
+When beads is available (`bd --version` works and `.beads/` exists), `sdp task create` automatically:
+1. Creates beads issue via `bd create`
+2. Links workstream frontmatter with `beads_id`
+3. Updates beads notes with workstream path
 - Priority rationale: {why this priority}
 EOF
 ```
@@ -598,10 +569,10 @@ scope_files:
 ```
 
 **Rules:**
-- **Bug findings**: Create beads issue only → `/bugfix beads-xxx`
-- **Task findings**: Create BOTH beads issue AND workstream MD → `/build 99-XXX-XXXX`
-- **WS ID format**: `99-{FEATURE_ID}-{SEQ}` for fix/refactor (99 prefix)
-- **SEQ**: 4-digit sequential (0001, 0002, etc.)
+- **Bug findings**: Use `sdp task create --type=bug` → `/bugfix 99-XXX-XX`
+- **Task findings**: Use `sdp task create --type=task` → `/build 99-XXX-XX`
+- **WS ID format**: `99-{FEATURE_NUM}-{SEQ}` for fix/refactor (99 prefix)
+- **SEQ**: 2-digit sequential (01, 02, etc.)
 
 ## Output
 
@@ -709,6 +680,13 @@ fi
 6 agents spawned simultaneously (via 6 Task calls) following `.claude/skills/think/SKILL.md` pattern.
 
 ## Version
+
+**9.0.0** - Unified Task Resolver Integration (F064)
+- **Uses `sdp task create` CLI** for all artifact creation
+- **Uses `sdp resolve` CLI** for unified ID lookup
+- **Auto-beads integration** when beads enabled
+- Supports workstream ID, beads ID, and issue ID formats
+- WS ID format: `99-{FEATURE_NUM}-{SEQ}` (2-digit sequence)
 
 **8.0.0** - Dual-Track Artifact Creation
 - **Step 4 renamed**: "Create Actionable Artifacts" (was "Post-Review")
