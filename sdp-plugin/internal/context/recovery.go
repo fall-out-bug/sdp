@@ -4,8 +4,10 @@ package context
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/fall-out-bug/sdp/internal/config"
+	"github.com/fall-out-bug/sdp/internal/safetylog"
 	"github.com/fall-out-bug/sdp/internal/session"
 )
 
@@ -43,6 +45,7 @@ func NewRecovery(projectRoot string) *Recovery {
 
 // Check validates the current context (AC1).
 func (r *Recovery) Check() (*ContextCheckResult, error) {
+	start := time.Now()
 	result := &ContextCheckResult{
 		Valid:    true,
 		ExitCode: ExitCodeOK,
@@ -96,6 +99,13 @@ func (r *Recovery) Check() (*ContextCheckResult, error) {
 		result.Errors = append(result.Errors,
 			fmt.Sprintf("Branch mismatch: expected %s, on %s", s.ExpectedBranch, currentBranch))
 	}
+
+	status := "valid"
+	if !result.Valid {
+		status = "invalid"
+	}
+	safetylog.Context("check", cwd)
+	safetylog.Debug("context check: %s (%v)", status, time.Since(start))
 
 	return result, nil
 }
