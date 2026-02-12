@@ -2,7 +2,7 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + Contract Validation)
 tools: Read, Bash, Grep, Task
-version: 7.0.0
+version: 8.0.0
 ---
 
 # @review - Multi-Agent Quality Review
@@ -463,31 +463,145 @@ No middle ground.
 | Missing | {...} | New WS | TBD |
 ```
 
-### Step 4: Post-Review (MANDATORY if CHANGES_REQUESTED)
+### Step 4: Create Actionable Artifacts (MANDATORY if CHANGES_REQUESTED)
 
-**Track findings in Beads (if enabled):**
+**ALWAYS create markdown workstream files - required for `/build` execution.**
+
+#### Why Both Tracks?
+
+| Beads Type | Execution Command | Needs Workstream MD? |
+|------------|-------------------|---------------------|
+| bug | `/bugfix beads-xxx` | NO (bugfix handles beads directly) |
+| task | `/build 99-XXX-XXXX` | **YES** (build expects WS file) |
+
+**Conclusion:** For task-type findings (refactor, tech-debt), ALWAYS create workstream markdown.
+
+#### Track A: Beads Issues (if enabled)
 
 ```bash
-# Bugs
-bd create --title="BUG: {description}" --type=bug --priority=1
+# Detect Beads
+if bd --version &>/dev/null && [ -d .beads ]; then
+  BEADS_ENABLED=true
+fi
+
+# Bugs (P0-P1) - /bugfix handles these
+bd create --title="FIX: {description}" --type=bug --priority=0|1
 bd dep add beads-{bug-id} beads-{feature-id}
 
-# Planned work (new workstreams)
-bd create --title="WS: {workstream name}" --type=task --priority=2
-bd dep add beads-{ws-id} beads-{feature-id}
-
-# Tech debt
-bd create --title="TechDebt: {description}" --type=task --priority=3
-bd dep add beads-{debt-id} beads-{feature-id}
+# Tasks (P1-P3) - need workstream MD for /build
+bd create --title="REFACTOR: {description}" --type=task --priority=1|2
+bd dep add beads-{task-id} beads-{feature-id}
 
 # Sync to remote
 bd sync
 ```
 
+#### Track B: Markdown Workstreams (ALWAYS for task-type findings)
+
+**Create workstream file for every task-type finding (refactor, tech-debt, new-work):**
+
+```bash
+# Generate WS ID for fix/refactor task
+# Format: 99-{FEATURE_ID}-{SEQ} (99 prefix = fix/refactor tasks)
+WS_ID="99-{FEATURE_ID}-{SEQ:0001}"
+
+# Create workstream file
+cat > "docs/workstreams/backlog/${WS_ID}.md" << 'EOF'
+---
+ws_id: {WS_ID}
+feature_id: {FEATURE_ID}
+title: "{FINDING_TITLE}"
+status: backlog
+priority: {P0-P3}
+depends_on: []
+blocks: []
+project_id: sdp
+---
+
+## Goal
+
+{Description of what needs to be fixed/refactored}
+
+## Context
+
+Found during review of {FEATURE_ID}:
+- **Review Area**: {QA|Security|DevOps|SRE|TechLead|Documentation}
+- **Issue**: {Detailed description}
+- **File(s)**: {Affected files}
+
+## Acceptance Criteria
+
+- [ ] AC1: {Specific fix requirement}
+- [ ] AC2: {Verification requirement}
+
+## Scope Files
+
+```yaml
+scope_files:
+  - path/to/file1.go
+  - path/to/file2.go
+```
+
+## Notes
+
+- Source: Review {FEATURE_ID}
+- Beads ID: sdp-xxxx (if applicable)
+- Priority rationale: {why this priority}
+EOF
+```
+
+**Example:**
+
+```markdown
+---
+ws_id: 99-F063-0001
+feature_id: F063
+title: "REFACTOR: Split cmd/sdp/guard.go (397 LOC)"
+status: backlog
+priority: 1
+depends_on: []
+blocks: []
+project_id: sdp
+---
+
+## Goal
+
+Split guard.go into smaller files to meet 200 LOC limit.
+
+## Context
+
+Found during TechLead review of F063:
+- **Review Area**: TechLead
+- **Issue**: guard.go at 397 LOC exceeds 200 LOC limit
+- **File(s)**: sdp-plugin/cmd/sdp/guard.go
+
+## Acceptance Criteria
+
+- [ ] AC1: Split guard.go into guard.go + guard_check.go + guard_status.go
+- [ ] AC2: All resulting files < 200 LOC
+- [ ] AC3: All tests pass after refactor
+
+## Scope Files
+
+```yaml
+scope_files:
+  - sdp-plugin/cmd/sdp/guard.go
+  - sdp-plugin/cmd/sdp/guard_check.go  # NEW
+  - sdp-plugin/cmd/sdp/guard_status.go  # NEW
+```
+
+## Notes
+
+- Source: Review F063 (TechLead)
+- Beads ID: sdp-yxrn
+- Priority: P1 - quality gate violation
+```
+
 **Rules:**
-- Never create new feature for follow-up
-- All findings MUST be tracked in Beads (if enabled)
-- Use dependencies: findings depend on feature parent
+- **Bug findings**: Create beads issue only → `/bugfix beads-xxx`
+- **Task findings**: Create BOTH beads issue AND workstream MD → `/build 99-XXX-XXXX`
+- **WS ID format**: `99-{FEATURE_ID}-{SEQ}` for fix/refactor (99 prefix)
+- **SEQ**: 4-digit sequential (0001, 0002, etc.)
 
 ## Output
 
@@ -595,6 +709,13 @@ fi
 6 agents spawned simultaneously (via 6 Task calls) following `.claude/skills/think/SKILL.md` pattern.
 
 ## Version
+
+**8.0.0** - Dual-Track Artifact Creation
+- **Step 4 renamed**: "Create Actionable Artifacts" (was "Post-Review")
+- **ALWAYS creates markdown workstream files** for `/build` compatibility
+- **IF Beads enabled**: ALSO creates beads issues
+- **WS ID format**: `99-{FEATURE_ID}-{SEQ}` for fix/refactor tasks
+- Ensures findings are actionable with or without Beads
 
 **7.0.0** - Contract Validation Integration
 - Added Step 5: Contract Validation (CRITICAL QUALITY GATE)
