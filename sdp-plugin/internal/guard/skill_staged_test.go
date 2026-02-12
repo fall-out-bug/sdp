@@ -248,6 +248,10 @@ func TestStagedCheckOutsideScope(t *testing.T) {
 
 // TestCIDiffRangeDetection tests AC6: CI diff-range auto-detection
 func TestCIDiffRangeDetection(t *testing.T) {
+	// Valid 40-character SHA values for testing
+	validBaseSHA := "abc123def456789012345678901234567890abcd"
+	validHeadSHA := "def456abc789012345678901234567890abcdef0"
+
 	tests := []struct {
 		name           string
 		setCIEnvs      bool
@@ -256,15 +260,22 @@ func TestCIDiffRangeDetection(t *testing.T) {
 		expectFallback bool
 	}{
 		{
-			name:           "CI env vars set",
+			name:           "CI env vars set with valid SHA",
 			setCIEnvs:      true,
-			baseSHA:        "abc123",
-			headSHA:        "def456",
+			baseSHA:        validBaseSHA,
+			headSHA:        validHeadSHA,
 			expectFallback: false,
 		},
 		{
 			name:           "CI env vars not set",
 			setCIEnvs:      false,
+			expectFallback: true,
+		},
+		{
+			name:           "CI env vars set with invalid SHA - fallback",
+			setCIEnvs:      true,
+			baseSHA:        "invalid",
+			headSHA:        "also-invalid",
 			expectFallback: true,
 		},
 	}
@@ -298,6 +309,12 @@ func TestCIDiffRangeDetection(t *testing.T) {
 				}
 				if options.Head != tt.headSHA {
 					t.Errorf("Head = %s, want %s", options.Head, tt.headSHA)
+				}
+			}
+			if tt.expectFallback {
+				// When expecting fallback, Base and Head should be empty
+				if options.Base != "" || options.Head != "" {
+					t.Errorf("Expected fallback (empty options), got Base=%s, Head=%s", options.Base, options.Head)
 				}
 			}
 		})

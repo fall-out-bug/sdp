@@ -11,12 +11,6 @@ import (
 )
 
 // ParseCheckOptions parses check options from environment variables (AC6: CI diff-range auto-detection)
-<<<<<<< HEAD
-func ParseCheckOptions() CheckOptions {
-	options := CheckOptions{
-		Base: os.Getenv("CI_BASE_SHA"),
-		Head: os.Getenv("CI_HEAD_SHA"),
-=======
 // Validates SHA format for CI_BASE_SHA and CI_HEAD_SHA (sdp-67l6)
 func ParseCheckOptions() CheckOptions {
 	base := os.Getenv("CI_BASE_SHA")
@@ -35,7 +29,6 @@ func ParseCheckOptions() CheckOptions {
 	options := CheckOptions{
 		Base: base,
 		Head: head,
->>>>>>> bugfix/sdp-67l6
 	}
 
 	return options
@@ -201,8 +194,6 @@ func getStagedFiles(opts CheckOptions) ([]string, error) {
 
 	return files, nil
 }
-<<<<<<< HEAD
-=======
 
 // isValidSHA validates SHA format (sdp-67l6)
 // Empty string is valid (no CI diff range)
@@ -232,4 +223,3 @@ func isValidSHA(sha string) bool {
 func isHexChar(c rune) bool {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
->>>>>>> bugfix/sdp-67l6
