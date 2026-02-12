@@ -11,3 +11,9 @@ if [ -d "sdp-plugin" ]; then
     go build ./...
     go test ./... -count=1 -short
 fi
+
+# AC7: Run staged guard checks before push
+# Ensures all commits being pushed comply with guard policies
+if command -v sdp &> /dev/null; then
+    sdp guard check --staged
+fi

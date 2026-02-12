@@ -13,3 +13,12 @@ evidence:
 quality:
   coverage_threshold: 80
   max_file_loc: 200
+
+# Guard policy settings (WS-063-03: AC3)
+guard:
+  mode: "standard"  # standard | strict | permissive
+  rules_file: ".sdp/guard-rules.yml"
+  severity_mapping:
+    error: "block"   # Block workflow execution
+    warning: "warn"   # Display warning, continue
+    info: "log"       # Log only, no display

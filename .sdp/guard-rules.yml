@@ -1,0 +1,91 @@
+# SDP Guard Rules Configuration (WS-063-03: AC1, AC6)
+# Version: 1
+# This is the canonical source for guard rules across local and CI environments
+
+version: 1
+
+rules:
+  # AI-Readiness Rules
+  - id: "max-file-loc"
+    enabled: true
+    severity: "error"
+    description: "Files must not exceed 200 lines of code"
+    config:
+      max_lines: 200
+
+  - id: "max-function-length"
+    enabled: true
+    severity: "warning"
+    description: "Functions should not exceed 50 lines"
+    config:
+      max_lines: 50
+
+  - id: "require-type-hints"
+    enabled: true
+    severity: "error"
+    description: "All functions must have complete type hints"
+    config:
+      require_return_types: true
+      require_param_types: true
+
+  # Quality Rules
+  - id: "coverage-threshold"
+    enabled: true
+    severity: "error"
+    description: "Test coverage must meet minimum threshold"
+    config:
+      minimum: 80
+      fail_under: 80
+
+  - id: "max-cyclomatic-complexity"
+    enabled: true
+    severity: "error"
+    description: "Cyclomatic complexity must not exceed threshold"
+    config:
+      max_cc: 10
+      max_average_cc: 5
+
+  # Error Handling Rules
+  - id: "no-bare-except"
+    enabled: true
+    severity: "error"
+    description: "Bare except clauses are forbidden"
+    config:
+      forbidden_patterns: ["except:", "except Exception:"]
+
+  - id: "require-explicit-errors"
+    enabled: true
+    severity: "error"
+    description: "Errors must be explicitly handled and logged"
+    config:
+      require_logging: true
+
+  # Code Quality Rules
+  - id: "no-orphaned-todos"
+    enabled: true
+    severity: "error"
+    description: "TODOs must reference a workstream ID"
+    config:
+      require_ws_id: true
+      pattern: "TODO.*\\(WS-[0-9]{3}-[0-9]{2}\\)"
+
+  - id: "no-commented-code"
+    enabled: true
+    severity: "warning"
+    description: "Commented-out code should be removed"
+    config:
+      detection_mode: "heuristic"
+
+  # Architecture Rules
+  - id: "clean-architecture-layers"
+    enabled: true
+    severity: "error"
+    description: "Enforce clean architecture layer separation"
+    config:
+      layers:
+        domain:
+          forbidden_imports: ["infrastructure", "application", "presentation"]
+        application:
+          forbidden_imports: ["presentation", "infrastructure"]
+        infrastructure:
+          forbidden_imports: ["presentation"]
