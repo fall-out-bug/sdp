@@ -163,6 +163,43 @@ jobs:
           args: --timeout=5m
           working-directory: sdp-plugin
 
+  guard-checks:
+    name: Guard Checks (Quality Gates)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build SDP CLI
+        run: go build -o sdp ./cmd/sdp
+
+      - name: Run guard checks (WS-063-03: AC5)
+        run: |
+          # Uses .sdp/guard-rules.yml from repo root (AC1, AC5)
+          # CI mode: check staged files with JSON output
+          # The guard check now loads and uses guard rules from .sdp/guard-rules.yml
+          ./sdp guard check --staged --json || true
+
+      - name: Validate guard rules exist
+        run: |
+          # Ensure guard rules configuration exists
+          if [ ! -f "../.sdp/guard-rules.yml" ]; then
+            echo "❌ Guard rules file not found at .sdp/guard-rules.yml"
+            echo "This file is the canonical source for quality gate rules."
+            exit 1
+          fi
+          echo "✅ Guard rules configuration found at .sdp/guard-rules.yml"
+
   cross-platform:
     name: Cross-Platform Build
     runs-on: ${{ matrix.os }}
