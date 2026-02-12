@@ -3,12 +3,12 @@ package drift
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/parser"
+	"github.com/fall-out-bug/sdp/internal/security"
 )
 
 // Detector detects documentation-code drift
@@ -42,10 +42,17 @@ func (d *Detector) DetectDrift(wsPath string) (*DriftReport, error) {
 
 	// Check each file in scope
 	for _, filePath := range allFiles {
-		// Make path absolute
-		fullPath := filePath
-		if !filepath.IsAbs(filePath) {
-			fullPath = filepath.Join(d.projectRoot, filePath)
+		// Make path absolute with security validation
+		fullPath, pathErr := security.SafeJoinPath(d.projectRoot, filePath)
+		if pathErr != nil {
+			report.AddIssue(DriftIssue{
+				File:           filePath,
+				Status:         StatusError,
+				Expected:       "Valid file path",
+				Actual:         pathErr.Error(),
+				Recommendation: "Fix path in workstream specification",
+			})
+			continue
 		}
 
 		// Check file existence
