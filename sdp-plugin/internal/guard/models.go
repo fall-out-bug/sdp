@@ -6,8 +6,8 @@ import (
 
 // Exit codes for guard check command
 const (
-	ExitCodePass        = 0 // All checks passed
-	ExitCodeViolation   = 1 // Policy violation (ERROR findings)
+	ExitCodePass         = 0 // All checks passed
+	ExitCodeViolation    = 1 // Policy violation (ERROR findings)
 	ExitCodeRuntimeError = 2 // Runtime or configuration error
 )
 
@@ -30,20 +30,20 @@ type GuardResult struct {
 
 // CheckResult represents the result of a staged/CI guard check
 type CheckResult struct {
-	Success  bool          `json:"success"`
-	ExitCode int           `json:"exit_code"`
-	Findings []Finding     `json:"findings"`
-	Summary  CheckSummary  `json:"summary"`
+	Success  bool         `json:"success"`
+	ExitCode int          `json:"exit_code"`
+	Findings []Finding    `json:"findings"`
+	Summary  CheckSummary `json:"summary"`
 }
 
 // Finding represents a single policy finding
 type Finding struct {
-	Severity   Severity `json:"severity"`
-	Rule       string   `json:"rule"`
-	File       string   `json:"file"`
-	Line       int      `json:"line,omitempty"`
-	Column     int      `json:"column,omitempty"`
-	Message    string   `json:"message"`
+	Severity Severity `json:"severity"`
+	Rule     string   `json:"rule"`
+	File     string   `json:"file"`
+	Line     int      `json:"line,omitempty"`
+	Column   int      `json:"column,omitempty"`
+	Message  string   `json:"message"`
 }
 
 // CheckSummary provides a summary of findings
