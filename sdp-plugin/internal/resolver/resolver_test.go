@@ -266,3 +266,82 @@ func TestResolver_ErrorHandling(t *testing.T) {
 		}
 	})
 }
+
+func TestResolver_PathTraversalProtection(t *testing.T) {
+	// SECURITY: Test that path traversal attacks via index file are blocked
+	tmpDir := t.TempDir()
+	issuesDir := filepath.Join(tmpDir, "docs", "issues")
+	if err := os.MkdirAll(issuesDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a secret file outside the issues directory
+	secretDir := filepath.Join(tmpDir, "secret")
+	if err := os.MkdirAll(secretDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	secretContent := []byte("SECRET DATA")
+	secretPath := filepath.Join(secretDir, "secret.txt")
+	if err := os.WriteFile(secretPath, secretContent, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create index file with path traversal attempt
+	indexDir := filepath.Join(tmpDir, ".sdp")
+	if err := os.MkdirAll(indexDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Calculate relative path from index to secret file (traversal attack)
+	// Index is at tmpDir/.sdp/issues-index.jsonl
+	// Secret is at tmpDir/secret/secret.txt
+	// Traversal path: ../secret/secret.txt
+	traversalPath := filepath.Join("..", "secret", "secret.txt")
+	indexContent := `{"issue_id":"ISSUE-9991","title":"Malicious","status":"open","file":"` + traversalPath + "\"}\n"
+	indexFile := filepath.Join(indexDir, "issues-index.jsonl")
+	if err := os.WriteFile(indexFile, []byte(indexContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	r := NewResolver(
+		WithIssuesDir(issuesDir),
+		WithIndexFile(indexFile),
+	)
+
+	t.Run("path traversal from index file is blocked", func(t *testing.T) {
+		result, err := r.Resolve("ISSUE-9991")
+		if err == nil {
+			t.Errorf("Expected error for path traversal attempt, got result: %+v", result)
+		}
+		// Verify the error mentions path traversal or security
+		if err != nil && !containsString(err.Error(), "path") && !containsString(err.Error(), "security") && !containsString(err.Error(), "outside") {
+			t.Errorf("Error message should mention path/security/outside: %v", err)
+		}
+	})
+
+	t.Run("absolute path traversal is blocked", func(t *testing.T) {
+		// Create index with absolute path pointing to secret
+		absIndexContent := `{"issue_id":"ISSUE-9992","title":"Abs Path","status":"open","file":"` + secretPath + "\"}\n"
+		if err := os.WriteFile(indexFile, []byte(absIndexContent), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		result, err := r.Resolve("ISSUE-9992")
+		if err == nil {
+			t.Errorf("Expected error for absolute path traversal, got result: %+v", result)
+		}
+	})
+}
+
+func containsString(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsSubstring(s, substr))
+}
+
+func containsSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}

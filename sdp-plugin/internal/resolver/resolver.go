@@ -122,9 +122,15 @@ func (r *Resolver) Resolve(id string) (*Result, error) {
 func (r *Resolver) resolveIssue(issueID string) (*Result, error) {
 	// First try index file for O(1) lookup
 	if r.indexFile != "" {
-		if result, err := r.resolveIssueFromIndex(issueID); err == nil {
+		result, err := r.resolveIssueFromIndex(issueID)
+		if err == nil {
 			return result, nil
 		}
+		// SECURITY: Propagate security errors - don't fall back to filesystem
+		if strings.HasPrefix(err.Error(), "security:") {
+			return nil, err
+		}
+		// For other errors (not found, etc), fall through to filesystem
 	}
 
 	// Fallback to filesystem search
@@ -182,11 +188,18 @@ func (r *Resolver) resolveIssueFromIndex(issueID string) (*Result, error) {
 				// Assume relative to project root
 				path = filepath.Join(filepath.Dir(r.indexFile), "..", entry.File)
 			}
+			path = filepath.Clean(path)
+
+			// SECURITY: Validate path is within expected issues directory
+			// to prevent path traversal attacks
+			if err := r.validatePathInIssuesDir(path); err != nil {
+				return nil, fmt.Errorf("security: path validation failed: %w", err)
+			}
 
 			return &Result{
 				Type:   TypeIssue,
 				ID:     issueID,
-				Path:   filepath.Clean(path),
+				Path:   path,
 				Title:  entry.Title,
 				Status: entry.Status,
 			}, nil
@@ -194,4 +207,27 @@ func (r *Resolver) resolveIssueFromIndex(issueID string) (*Result, error) {
 	}
 
 	return nil, fmt.Errorf("issue not found in index: %s", issueID)
+}
+
+// validatePathInIssuesDir ensures the resolved path is within the issues directory
+func (r *Resolver) validatePathInIssuesDir(resolvedPath string) error {
+	// Get absolute paths for comparison
+	absResolved, err := filepath.Abs(resolvedPath)
+	if err != nil {
+		return fmt.Errorf("cannot resolve absolute path: %w", err)
+	}
+
+	absIssuesDir, err := filepath.Abs(r.issuesDir)
+	if err != nil {
+		return fmt.Errorf("cannot resolve issues directory: %w", err)
+	}
+
+	// Ensure path is within issues directory
+	// Use HasPrefix check with separator to prevent /docs/issues-other from matching
+	expectedPrefix := absIssuesDir + string(filepath.Separator)
+	if absResolved != absIssuesDir && !strings.HasPrefix(absResolved, expectedPrefix) {
+		return fmt.Errorf("path '%s' is outside issues directory '%s'", resolvedPath, r.issuesDir)
+	}
+
+	return nil
 }
