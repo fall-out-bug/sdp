@@ -27,6 +27,7 @@ Examples:
 	cmd.AddCommand(guardDeactivate())
 	cmd.AddCommand(guardContextCmd())
 	cmd.AddCommand(guardBranchCmd())
+	cmd.AddCommand(guardFindingCmd())
 
 	return cmd
 }

@@ -52,6 +52,23 @@ func guardStatus() *cobra.Command {
 				fmt.Println("Scope: No restrictions")
 			}
 
+			// Show review findings
+			if len(state.ReviewFindings) > 0 {
+				open, resolved, blocking := state.FindingCount()
+				fmt.Printf("\nReview Findings: %d open (%d blocking), %d resolved\n", open, blocking, resolved)
+
+				// Show blocking findings first
+				if blocking > 0 {
+					fmt.Println("\n⚠️  BLOCKING FINDINGS (must resolve before merge):")
+					for _, f := range state.GetBlockingFindings() {
+						fmt.Printf("  [%s] P%d %s\n", f.ReviewArea, f.Priority, f.Title)
+						if f.BeadsID != "" {
+							fmt.Printf("    → Beads: %s\n", f.BeadsID)
+						}
+					}
+				}
+			}
+
 			return nil
 		},
 	}
