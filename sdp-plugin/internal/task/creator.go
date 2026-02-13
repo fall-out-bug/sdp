@@ -93,7 +93,7 @@ func (c *Creator) ReadIndex() ([]issueIndexEntry, error) {
 		}
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }() //nolint:errcheck // cleanup
 
 	var entries []issueIndexEntry
 	scanner := bufio.NewScanner(f)

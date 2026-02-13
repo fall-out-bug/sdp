@@ -50,7 +50,7 @@ func (c *LogChannel) Send(n *Notification) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // cleanup
 
 	// Format as JSON line
 	data, err := json.Marshal(n)

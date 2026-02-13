@@ -94,7 +94,7 @@ func (v *ADRValidator) extractKeywords(content string) []string {
 	}
 
 	for _, p := range patterns {
-		if matched, _ := regexp.MatchString(p, content); matched {
+		if matched, _ := regexp.MatchString(p, content); matched { //nolint:errcheck // pattern is hardcoded
 			keywords = append(keywords, p)
 		}
 	}
