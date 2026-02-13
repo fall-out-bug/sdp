@@ -59,7 +59,7 @@ Example:
 
 		// Create components
 		loader := orchestrator.NewBeadsLoader(wsDir, ".beads-sdp-mapping.jsonl")
-		executor := orchestrator.NewCLIExecutor("sdp")
+		executor := orchestrator.NewCLIExecutor("")
 		checkpointMgr := checkpoint.NewManager(dir)
 
 		// Create orchestrator
@@ -130,7 +130,7 @@ Example:
 
 		// Create components
 		loader := orchestrator.NewBeadsLoader(wsDir, ".beads-sdp-mapping.jsonl")
-		executor := orchestrator.NewCLIExecutor("sdp")
+		executor := orchestrator.NewCLIExecutor("")
 		checkpointMgr := checkpoint.NewManager(dir)
 
 		// Create orchestrator
