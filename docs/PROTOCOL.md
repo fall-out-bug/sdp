@@ -68,8 +68,8 @@ Skills reference beads IDs directly: `@build sdp-xxx`
 ## Quick Start
 
 ```bash
-# Install
-go install github.com/fall-out-bug/sdp@latest
+# Install (WS-067-11: corrected path to sdp-plugin)
+go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
 
 # Create feature (interactive)
 @feature "Add user authentication"
