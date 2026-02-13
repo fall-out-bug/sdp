@@ -2,8 +2,9 @@ package drift
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/fall-out-bug/sdp/internal/security"
 )
 
 // Analyzer analyzes source code for purpose and structure
@@ -20,10 +21,10 @@ func NewAnalyzer(projectRoot string) *Analyzer {
 
 // AnalyzeFile analyzes a file and returns its purpose
 func (a *Analyzer) AnalyzeFile(filePath string) (string, error) {
-	// Make path absolute
-	fullPath := filePath
-	if !filepath.IsAbs(filePath) {
-		fullPath = filepath.Join(a.projectRoot, filePath)
+	// Make path absolute with security validation
+	fullPath, err := security.SafeJoinPath(a.projectRoot, filePath)
+	if err != nil {
+		return "", err
 	}
 
 	// Read file
