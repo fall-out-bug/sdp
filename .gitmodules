@@ -1,3 +1,2 @@
-[submodule ".sdp/.sdp"]
-	path = .sdp/.sdp
-	url = https://github.com/fall-out-bug/sdp.git
+# SDP uses direct path references for dogfooding, not submodules.
+# See CLAUDE.md and .claude/ -> prompts/ symlinks.

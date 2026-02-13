@@ -6,3 +6,4 @@
 {"id":"evt-1770988606999768000","type":"plan","timestamp":"2026-02-13T13:16:46Z","ws_id":"00-000-00","prev_hash":"476be6b9ef7aeb84fe928495b8a169fae1cf601c7348579843298d4db44b52fb","data":{"feature_id":"F067","skill":"oneshot"}}
 {"id":"evt-1770988625231458000","type":"plan","timestamp":"2026-02-13T13:17:05Z","ws_id":"00-000-00","prev_hash":"6855a85a464d7d2bb3e5b371cb9562af1f4dccc92cf94adc1d1bbdc60668a7f3","data":{"feature_id":"F067","skill":"oneshot"}}
 {"id":"evt-1770995496841582000","type":"plan","timestamp":"2026-02-13T15:11:36Z","ws_id":"00-067-07","prev_hash":"35db66647e1f963c1845a0fff5f43852c9dd8823586e8eecede6ba99e3187a99","data":{"action":"activate","scope_files":null}}
+{"id":"evt-1770995783144893000","type":"plan","timestamp":"2026-02-13T15:16:23Z","ws_id":"00-067-11","prev_hash":"bab81770a319ca83eadce5de08e6e01192d3e74c35a50878c3b1611e79835957","data":{"action":"activate","scope_files":null}}
