@@ -72,10 +72,10 @@ func TestSessionInit(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		featureID  string
+		name         string
+		featureID    string
 		worktreePath string
-		wantErr    bool
+		wantErr      bool
 	}{
 		{
 			name:         "create session for feature",

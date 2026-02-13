@@ -155,9 +155,9 @@ func TestCreator_CreateWorkstreamWithBeads(t *testing.T) {
 
 func TestInsertBeadsID(t *testing.T) {
 	tests := []struct {
-		name     string
-		content  string
-		beadsID  string
+		name    string
+		content string
+		beadsID string
 	}{
 		{
 			"simple frontmatter",

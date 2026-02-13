@@ -91,12 +91,12 @@ func TestCreator_CreateWorkstream(t *testing.T) {
 
 	t.Run("create task workstream", func(t *testing.T) {
 		task := &Task{
-			Type:       TypeTask,
-			Title:      "Add user authentication",
-			Priority:   PriorityP2,
-			FeatureID:  "F064",
-			Goal:       "Implement OAuth2",
-			DependsOn:  []string{"00-064-01"},
+			Type:      TypeTask,
+			Title:     "Add user authentication",
+			Priority:  PriorityP2,
+			FeatureID: "F064",
+			Goal:      "Implement OAuth2",
+			DependsOn: []string{"00-064-01"},
 		}
 
 		ws, err := c.CreateWorkstream(task)
@@ -112,11 +112,11 @@ func TestCreator_CreateWorkstream(t *testing.T) {
 
 	t.Run("create hotfix workstream", func(t *testing.T) {
 		task := &Task{
-			Type:      TypeHotfix,
-			Title:     "Production database connection fix",
-			Priority:  PriorityP0,
-			FeatureID: "F064",
-			Goal:      "Restore database connectivity",
+			Type:       TypeHotfix,
+			Title:      "Production database connection fix",
+			Priority:   PriorityP0,
+			FeatureID:  "F064",
+			Goal:       "Restore database connectivity",
 			BranchBase: "main",
 		}
 

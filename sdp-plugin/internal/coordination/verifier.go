@@ -15,15 +15,15 @@ type VerificationResult struct {
 
 // WorkstreamSpec represents a workstream specification (AC1)
 type WorkstreamSpec struct {
-	ID                string
+	ID                 string
 	AcceptanceCriteria []string
-	ScopeFiles        []string
+	ScopeFiles         []string
 }
 
 // CodeSnapshot represents current code state
 type CodeSnapshot struct {
-	Files    []string
-	Entities []string
+	Files     []string
+	Entities  []string
 	LOCMetric map[string]int
 }
 
