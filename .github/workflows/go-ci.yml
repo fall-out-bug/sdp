@@ -20,7 +20,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version: '1.24'
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
@@ -65,7 +65,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version: '1.24'
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
@@ -152,7 +152,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version: '1.24'
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
@@ -177,7 +177,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version: '1.24'
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
@@ -232,7 +232,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version: '1.24'
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
@@ -252,3 +252,25 @@ jobs:
         with:
           name: sdp-${{ matrix.goos }}-${{ matrix.goarch }}
           path: sdp-plugin/dist/sdp-*
+
+      # AC8: Verify Go version consistency across project
+      - name: Verify Go version consistency
+        run: |
+          EXPECTED=$(cat .go-version)
+          echo "Expected Go version: $EXPECTED"
+          
+          # Check root go.mod
+          ROOT_V=$(grep "^go " go.mod | awk '{print $2}')
+          if [ "$ROOT_V" != "$EXPECTED" ]; then
+            echo "ERROR: root go.mod has go $ROOT_V, expected $EXPECTED"
+            exit 1
+          fi
+          
+          # Check plugin go.mod
+          PLUGIN_V=$(grep "^go " sdp-plugin/go.mod | awk '{print $2}')
+          if [ "$PLUGIN_V" != "$EXPECTED" ]; then
+            echo "ERROR: sdp-plugin/go.mod has go $PLUGIN_V, expected $EXPECTED"
+            exit 1
+          fi
+          
+          echo "✅ All Go versions aligned to $EXPECTED"
