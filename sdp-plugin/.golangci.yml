@@ -77,6 +77,10 @@ issues:
       linters:
         - prealloc
       text: ".*"
+    - path: cmd/sdp/
+      linters:
+        - errcheck
+      text: ".*"
     - path: internal/watcher/
       linters:
         - errcheck
