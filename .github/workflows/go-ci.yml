@@ -183,7 +183,7 @@ jobs:
       - name: Build SDP CLI
         run: go build -o sdp ./cmd/sdp
 
-      - name: Run guard checks (WS-063-03: AC5)
+      - name: "Run guard checks (WS-063-03: AC5)"
         run: |
           # Uses .sdp/guard-rules.yml from repo root (AC1, AC5)
           # CI mode: check staged files with JSON output
