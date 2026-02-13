@@ -12,3 +12,4 @@
 {"id":"evt-1770996625378077000","type":"plan","timestamp":"2026-02-13T15:30:25Z","ws_id":"00-067-03","prev_hash":"809c51aa8266eb5ec6190524825c6aea134d0aa32b8f0eb36eeb341341198d85","data":{"action":"activate","scope_files":null}}
 {"id":"evt-1770997004385209000","type":"plan","timestamp":"2026-02-13T15:36:44Z","ws_id":"00-067-13","prev_hash":"a4709f3f923aa2f9e4b1af1e1708669a4a46225471222b378fb6db1fd3ae893b","data":{"action":"activate","scope_files":null}}
 {"id":"evt-1770997168333930000","type":"plan","timestamp":"2026-02-13T15:39:28Z","ws_id":"00-067-06","prev_hash":"aa3eb3478be6c977e53a47aa316afed6bcb1db9331b600efdf0b5e43aa67b1b1","data":{"action":"activate","scope_files":null}}
+{"id":"evt-1770997524432787000","type":"plan","timestamp":"2026-02-13T15:45:24Z","ws_id":"00-067-08","prev_hash":"1f49ee50c68826e02d42e02b63a83c0cbfd0b14b6afcb6b1af37adead48810b4","data":{"action":"activate","scope_files":null}}

@@ -4,7 +4,7 @@
 
 [![Go](https://img.shields.io/badge/go-1.24+-blue.svg)](https://go.dev/dl/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.0-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.0-brightgreen.svg)](CHANGELOG.md)
 
 ## What is SDP
 
@@ -249,7 +249,7 @@ Or configure in `.sdp/config.json`:
 
 ```json
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "model_api": "anthropic:claude-sonnet-4-20250514",
   "evidence": {
     "enabled": true,
