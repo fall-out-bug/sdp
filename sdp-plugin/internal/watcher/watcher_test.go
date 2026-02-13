@@ -33,6 +33,109 @@ func TestNewWatcher(t *testing.T) {
 	watcher.Close()
 }
 
+func TestMatchesPatterns(t *testing.T) {
+	tests := []struct {
+		name            string
+		includePatterns []string
+		excludePatterns []string
+		filename        string
+		expected        bool
+	}{
+		{
+			name:            "match include pattern",
+			includePatterns: []string{"*.go"},
+			excludePatterns: nil,
+			filename:        "main.go",
+			expected:        true,
+		},
+		{
+			name:            "no patterns - match all",
+			includePatterns: nil,
+			excludePatterns: nil,
+			filename:        "any.txt",
+			expected:        true,
+		},
+		{
+			name:            "exclude pattern takes precedence",
+			includePatterns: []string{"*.go"},
+			excludePatterns: []string{"*_test.go"},
+			filename:        "main_test.go",
+			expected:        false,
+		},
+		{
+			name:            "not matching include pattern",
+			includePatterns: []string{"*.go"},
+			excludePatterns: nil,
+			filename:        "main.py",
+			expected:        false,
+		},
+		{
+			name:            "multiple include patterns",
+			includePatterns: []string{"*.go", "*.py"},
+			excludePatterns: nil,
+			filename:        "main.py",
+			expected:        true,
+		},
+		{
+			name:            "exclude only",
+			includePatterns: nil,
+			excludePatterns: []string{"*.log"},
+			filename:        "debug.log",
+			expected:        false,
+		},
+		{
+			name:            "include and exclude with matching include",
+			includePatterns: []string{"*.txt"},
+			excludePatterns: []string{"temp*"},
+			filename:        "notes.txt",
+			expected:        true,
+		},
+		{
+			name:            "include and exclude with matching exclude",
+			includePatterns: []string{"*.txt"},
+			excludePatterns: []string{"temp*"},
+			filename:        "temp.txt",
+			expected:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &Watcher{
+				config: &WatcherConfig{
+					IncludePatterns: tt.includePatterns,
+					ExcludePatterns: tt.excludePatterns,
+				},
+			}
+
+			result := w.matchesPatterns("/some/path/" + tt.filename)
+			if result != tt.expected {
+				t.Errorf("matchesPatterns(%q) = %v, want %v", tt.filename, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestNewWatcher_NilConfig(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "watcher-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Nil config should use defaults
+	watcher, err := NewWatcher(tmpDir, nil)
+	if err != nil {
+		t.Fatalf("Failed to create watcher with nil config: %v", err)
+	}
+
+	if watcher.config.DebounceInterval != 100*time.Millisecond {
+		t.Errorf("Expected default debounce interval, got %v", watcher.config.DebounceInterval)
+	}
+
+	watcher.Close()
+}
+
 func TestWatcher_StartStop(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "watcher-test")
 	if err != nil {
