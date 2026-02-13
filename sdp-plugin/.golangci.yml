@@ -11,164 +11,137 @@ linters:
     - gocyclo
     - gocognit
     - prealloc
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocyclo:
+      min-complexity: 15
+    gocognit:
+      min-complexity: 20
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - gocognit
+          - errcheck
+      - linters:
+          - govet
+        text: "unusedwrite:"
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+      - path: internal/quality/
+        linters:
+          - errcheck
+          - govet
+          - gocognit
+          - gocyclo
+      - path: internal/drift/
+        linters:
+          - gocognit
+      - path: internal/guard/
+        linters:
+          - errcheck
+          - gocognit
+      - path: internal/memory/
+        linters:
+          - gocognit
+          - prealloc
+          - errcheck
+      - path: internal/worktree/
+        linters:
+          - gocognit
+      - path: internal/coordination/
+        linters:
+          - prealloc
+          - errcheck
+      - path: internal/task/
+        linters:
+          - errcheck
+      - path: internal/git/
+        linters:
+          - errcheck
+      - path: cmd/sdp/
+        linters:
+          - errcheck
+          - gocognit
+          - gocyclo
+      - path: internal/watcher/
+        linters:
+          - errcheck
+          - gocognit
+          - gocyclo
+      - path: internal/parser/
+        linters:
+          - gocognit
+      - path: internal/decision/
+        linters:
+          - errcheck
+          - unused
+      - path: internal/orchestrator/
+        linters:
+          - errcheck
+      - path: internal/ui/
+        linters:
+          - errcheck
+          - unused
+          - gocognit
+      - path: internal/telemetry/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/doctor/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/verify/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/ui/dashboard/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/metrics/
+        linters:
+          - gocognit
+          - gocyclo
+    paths:
+      - vendor
+      - testdata
+      - examples
+      - golangci-lint
+      - builtin
+      - ".*\\.pb\\.go"
+
+formatters:
+  enable:
     - gofmt
     - goimports
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  gocyclo:
-    min-complexity: 15
-  gocognit:
-    min-complexity: 20
-  govet:
-    enable-all: true
-    disable:
-      - shadow
-      - fieldalignment
+  exclusions:
+    generated: lax
+    paths:
+      - vendor
+      - testdata
+      - examples
+      - ".*\\.pb\\.go"
 
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude:
-    - "exported (\\w+) should have comment"
-    - "comment on exported (\\w+)"
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - gocognit
-        - errcheck
-    - linters:
-        - govet
-      text: "unusedwrite:"
-    - linters:
-        - staticcheck
-      text: "SA9003:"
-    - path: internal/quality/
-      linters:
-        - errcheck
-        - govet
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: internal/drift/
-      linters:
-        - gocognit
-      text: ".*"
-    - path: internal/guard/
-      linters:
-        - errcheck
-        - gocognit
-      text: ".*"
-    - path: internal/memory/
-      linters:
-        - gocognit
-        - prealloc
-        - errcheck
-      text: ".*"
-    - path: internal/worktree/
-      linters:
-        - gocognit
-      text: ".*"
-    - path: internal/coordination/
-      linters:
-        - prealloc
-        - errcheck
-      text: ".*"
-    - path: internal/task/
-      linters:
-        - errcheck
-      text: ".*"
-    - path: internal/git/
-      linters:
-        - errcheck
-      text: ".*"
-    - path: cmd/sdp/
-      linters:
-        - errcheck
-      text: ".*"
-    - path: internal/watcher/
-      linters:
-        - errcheck
-        - gocognit
-      text: ".*"
-    - path: internal/parser/
-      linters:
-        - gocognit
-      text: ".*"
-    - path: internal/decision/
-      linters:
-        - errcheck
-        - unused
-      text: ".*"
-    - path: internal/orchestrator/
-      linters:
-        - errcheck
-      text: ".*"
-    - path: internal/ui/
-      linters:
-        - errcheck
-        - unused
-        - gocognit
-      text: ".*"
-    - path: cmd/sdp/
-      linters:
-        - gocognit
-      text: ".*"
-    - path: internal/telemetry/
-      linters:
-        - gocognit
-      text: ".*"
-    - path: internal/doctor/
-      linters:
-        - gocognit
-      text: ".*"
-    - path: internal/verify/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: internal/watcher/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: internal/telemetry/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: internal/doctor/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: internal/ui/dashboard/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: cmd/sdp/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-    - path: internal/metrics/
-      linters:
-        - gocognit
-        - gocyclo
-      text: ".*"
-  exclude-dirs:
-    - vendor
-    - testdata
-    - examples
-    - golangci-lint
-    - builtin
-  exclude-files:
-    - ".*\\.pb\\.go"
 
 run:
   concurrency: 4
