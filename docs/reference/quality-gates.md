@@ -2,6 +2,14 @@
 
 **Binary pass/fail criteria** for workstream completion and quality assurance.
 
+> **Note (WS-067-05: AC7):** This document contains Python-specific examples (pytest, mypy, ruff) for illustration purposes. SDP is primarily a Go project. For Go, use equivalent tools:
+> - `pytest` → `go test`
+> - `mypy --strict` → `go vet` + static analysis
+> - `ruff` → `golangci-lint`
+> - Coverage → `go test -cover`
+>
+> The quality gate **principles** are language-agnostic; only the tool commands differ.
+
 ---
 
 ## Overview
@@ -677,6 +685,54 @@ jobs:
 **SDP Version:** 0.9.0
 **Updated:** 2026-01-29
 **Status:** Active (enforced in CI/CD)
+
+---
+
+## Blocking Contract (WS-067-05: AC6)
+
+Each quality gate has a defined blocking behavior. This contract ensures consistent enforcement across local and CI environments.
+
+| Gate | Command | Threshold | Blocks CI | Local Behavior |
+|------|---------|-----------|-----------|----------------|
+| **Coverage** | `go test -cover` | 80% | YES (exit 1) | warn |
+| **Guard Check** | `sdp guard check` | per-rule severity | YES for errors | YES for errors |
+| **Go Vet** | `go vet ./...` | 0 errors | YES (exit 1) | YES (exit 1) |
+| **Vuln Check** | `govulncheck` | 0 vulnerabilities | YES (exit 1) | YES (exit 1) |
+| **Lint** | `golangci-lint` | 0 errors | YES (exit 1) | warn |
+| **File Size** | `sdp guard check` (max-file-loc) | 200 LOC | YES (error) | YES (error) |
+| **Complexity** | `sdp guard check` (max-cyclomatic) | 10 | YES (error) | YES (error) |
+
+### Canonical Configuration Source
+
+| Config File | Purpose | Status |
+|-------------|---------|--------|
+| `.sdp/guard-rules.yml` | Quality gate rules (coverage, complexity, LOC) | **CANONICAL** |
+| `.sdp/config.yml` | Project settings, acceptance command | Supplementary |
+
+**Removed (WS-067-05):**
+- `quality-gate.toml` - Deprecated, removed
+- `ci-gates.toml` - Deprecated, removed
+
+### CI Enforcement
+
+```yaml
+# From .github/workflows/go-ci.yml
+
+# Coverage gate (BLOCKING)
+- name: Check coverage threshold
+  run: |
+    go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 80.0) {print "Coverage " $3 " is below 80% threshold"; exit 1}}'
+
+# Guard check (BLOCKING)
+- name: Run guard checks
+  run: ./sdp guard check --staged --json
+  # Note: No || true - violations block the build
+
+# Config consistency (BLOCKING)
+- name: Validate quality config consistency
+  run: |
+    # Ensures thresholds match across all config sources
+```
 
 ---
 
