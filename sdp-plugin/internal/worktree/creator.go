@@ -25,8 +25,8 @@ func NewCreator(mainRepoPath string) *Creator {
 	// Default worktrees to be siblings of the main repo
 	worktreesDir := filepath.Dir(mainRepoPath)
 	return &Creator{
-		MainRepoPath:  mainRepoPath,
-		WorktreesDir:  worktreesDir,
+		MainRepoPath: mainRepoPath,
+		WorktreesDir: worktreesDir,
 	}
 }
 

@@ -33,16 +33,16 @@ const (
 
 // Task represents a task to be created
 type Task struct {
-	Type        Type
-	Title       string
-	Priority    Priority
-	FeatureID   string // Optional: parent feature
-	BranchBase  string // "dev" (default) or "main" (hotfix)
-	Goal        string
-	Context     string
-	ScopeFiles  []string
-	BeadsID     string // Optional: linked beads ID
-	DependsOn   []string
+	Type       Type
+	Title      string
+	Priority   Priority
+	FeatureID  string // Optional: parent feature
+	BranchBase string // "dev" (default) or "main" (hotfix)
+	Goal       string
+	Context    string
+	ScopeFiles []string
+	BeadsID    string // Optional: linked beads ID
+	DependsOn  []string
 }
 
 // Workstream represents the created workstream artifact

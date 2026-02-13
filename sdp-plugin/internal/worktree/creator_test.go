@@ -131,8 +131,8 @@ detached
 			},
 		},
 		{
-			name: "empty input",
-			input: ``,
+			name:     "empty input",
+			input:    ``,
 			expected: []WorktreeInfo(nil),
 		},
 	}
@@ -191,8 +191,8 @@ func TestCreateResult(t *testing.T) {
 
 func TestCreatorWithCustomWorktreesDir(t *testing.T) {
 	creator := &Creator{
-		MainRepoPath:  "/path/to/repo",
-		WorktreesDir:  "/custom/worktrees",
+		MainRepoPath: "/path/to/repo",
+		WorktreesDir: "/custom/worktrees",
 	}
 
 	if creator.WorktreesDir != "/custom/worktrees" {

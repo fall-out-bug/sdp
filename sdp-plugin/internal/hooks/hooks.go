@@ -97,10 +97,10 @@ func installFromDirectory(gitDir, sourceDir string) error {
 // This is used when the hooks/ directory is not available.
 func installEmbeddedHooks(gitDir string) error {
 	embeddedHooks := map[string]string{
-		"pre-commit": getPreCommitTemplate(),
-		"pre-push":   getPrePushTemplate(),
+		"pre-commit":    getPreCommitTemplate(),
+		"pre-push":      getPrePushTemplate(),
 		"post-checkout": getPostCheckoutTemplate(),
-		"post-merge": getPostMergeTemplate(),
+		"post-merge":    getPostMergeTemplate(),
 	}
 
 	for name, content := range embeddedHooks {

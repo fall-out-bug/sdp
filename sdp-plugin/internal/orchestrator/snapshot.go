@@ -12,23 +12,23 @@ import (
 
 // Snapshot represents a point-in-time state (AC1, AC2)
 type Snapshot struct {
-	ID          string           `json:"id"`
-	FeatureID   string           `json:"feature_id"`
-	Timestamp   time.Time        `json:"timestamp"`
-	CompletedWS []string         `json:"completed_ws"`
-	PendingWS   []string         `json:"pending_ws"`
-	InProgress  *WorkInProgress  `json:"in_progress,omitempty"`
-	Metrics     SnapshotMetrics  `json:"metrics"`
-	ParentID    string           `json:"parent_id,omitempty"`
-	Trigger     string           `json:"trigger,omitempty"`
+	ID          string          `json:"id"`
+	FeatureID   string          `json:"feature_id"`
+	Timestamp   time.Time       `json:"timestamp"`
+	CompletedWS []string        `json:"completed_ws"`
+	PendingWS   []string        `json:"pending_ws"`
+	InProgress  *WorkInProgress `json:"in_progress,omitempty"`
+	Metrics     SnapshotMetrics `json:"metrics"`
+	ParentID    string          `json:"parent_id,omitempty"`
+	Trigger     string          `json:"trigger,omitempty"`
 }
 
 // WorkInProgress represents work in progress state (AC2)
 type WorkInProgress struct {
-	WSID              string    `json:"ws_id"`
-	Stage             string    `json:"stage"`
-	StartedAt         time.Time `json:"started_at"`
-	PartialArtifacts  []string  `json:"partial_artifacts,omitempty"`
+	WSID             string    `json:"ws_id"`
+	Stage            string    `json:"stage"`
+	StartedAt        time.Time `json:"started_at"`
+	PartialArtifacts []string  `json:"partial_artifacts,omitempty"`
 }
 
 // SnapshotMetrics tracks execution metrics
@@ -41,12 +41,12 @@ type SnapshotMetrics struct {
 
 // SnapshotDiff represents differences between snapshots (AC4)
 type SnapshotDiff struct {
-	FromID          string   `json:"from_id"`
-	ToID            string   `json:"to_id"`
-	AddedCompleted  []string `json:"added_completed"`
+	FromID           string   `json:"from_id"`
+	ToID             string   `json:"to_id"`
+	AddedCompleted   []string `json:"added_completed"`
 	RemovedCompleted []string `json:"removed_completed"`
-	AddedPending    []string `json:"added_pending"`
-	RemovedPending  []string `json:"removed_pending"`
+	AddedPending     []string `json:"added_pending"`
+	RemovedPending   []string `json:"removed_pending"`
 }
 
 // SnapshotManager manages snapshots (AC1, AC3, AC4, AC5)

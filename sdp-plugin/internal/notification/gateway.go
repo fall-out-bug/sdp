@@ -31,12 +31,12 @@ const (
 
 // Notification represents a notification (AC3)
 type Notification struct {
-	Type      NotificationType `json:"type"`
-	Severity  Severity         `json:"severity"`
-	Message   string           `json:"message"`
-	FeatureID string           `json:"feature_id,omitempty"`
-	WSID      string           `json:"ws_id,omitempty"`
-	Timestamp time.Time        `json:"timestamp"`
+	Type      NotificationType  `json:"type"`
+	Severity  Severity          `json:"severity"`
+	Message   string            `json:"message"`
+	FeatureID string            `json:"feature_id,omitempty"`
+	WSID      string            `json:"ws_id,omitempty"`
+	Timestamp time.Time         `json:"timestamp"`
 	Variables map[string]string `json:"variables,omitempty"`
 }
 
@@ -49,10 +49,10 @@ type Channel interface {
 
 // Gateway manages notification delivery (AC4, AC5)
 type Gateway struct {
-	channels   []Channel
-	history    []*Notification
-	historyMu  sync.RWMutex
-	rateLimit  *RateLimiter
+	channels  []Channel
+	history   []*Notification
+	historyMu sync.RWMutex
+	rateLimit *RateLimiter
 }
 
 // RateLimiter controls notification frequency (AC4)

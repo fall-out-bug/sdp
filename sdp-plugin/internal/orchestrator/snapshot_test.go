@@ -46,10 +46,10 @@ func TestSnapshotManager_SaveAndLoad(t *testing.T) {
 
 	snap := mgr.Create("F051", []string{"00-051-01"}, []string{"00-051-02", "00-051-03"})
 	snap.Metrics = SnapshotMetrics{
-		Duration:     30 * time.Minute,
-		Coverage:     85.5,
-		TestsPassed:  10,
-		TestsTotal:   10,
+		Duration:    30 * time.Minute,
+		Coverage:    85.5,
+		TestsPassed: 10,
+		TestsTotal:  10,
 	}
 
 	// Save
