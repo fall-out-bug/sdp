@@ -57,7 +57,7 @@ func (r *Resolver) resolveIssueFromIndex(issueID string) (*Result, error) {
 		return nil, err
 	}
 	defer func() {
-		_ = file.Close()
+		_ = file.Close() //nolint:errcheck // cleanup
 	}()
 
 	scanner := bufio.NewScanner(file)

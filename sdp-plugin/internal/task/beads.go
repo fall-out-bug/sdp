@@ -140,7 +140,7 @@ func ReadBeadsMapping(path string) (map[string]string, error) {
 		}
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }() //nolint:errcheck // cleanup
 
 	mapping := make(map[string]string)
 	scanner := bufio.NewScanner(file)

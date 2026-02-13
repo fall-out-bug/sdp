@@ -71,7 +71,7 @@ func (r *Resolver) parseFrontmatter(path string) (map[string]string, error) {
 		return nil, err
 	}
 	defer func() {
-		_ = file.Close()
+		_ = file.Close() //nolint:errcheck // cleanup
 	}()
 
 	scanner := bufio.NewScanner(file)

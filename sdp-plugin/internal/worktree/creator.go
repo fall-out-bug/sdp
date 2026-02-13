@@ -92,14 +92,14 @@ func (c *Creator) Create(opts CreateOptions) (*CreateResult, error) {
 	s, err := session.Init(opts.FeatureID, worktreePath, "sdp worktree create")
 	if err != nil {
 		// Rollback: remove the worktree if session init fails
-		_ = c.removeWorktree(worktreePath)
+		_ = c.removeWorktree(worktreePath) //nolint:errcheck // rollback best effort
 		return nil, fmt.Errorf("init session: %w", err)
 	}
 
 	// Save the session
 	if err := s.Save(worktreePath); err != nil {
 		// Rollback: remove the worktree if session save fails
-		_ = c.removeWorktree(worktreePath)
+		_ = c.removeWorktree(worktreePath) //nolint:errcheck // rollback best effort
 		return nil, fmt.Errorf("save session: %w", err)
 	}
 
