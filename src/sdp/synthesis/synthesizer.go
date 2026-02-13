@@ -103,7 +103,7 @@ func (s *Synthesizer) DetectConflict() ConflictType {
 	}
 
 	// Multiple different solutions - major conflict
-	// (TODO: implement minor/medium conflict detection)
+	// TODO: implement minor/medium conflict detection (future enhancement)
 	return MajorConflict
 }
 
