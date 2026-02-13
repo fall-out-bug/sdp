@@ -1,14 +1,14 @@
 ---
 name: oneshot
 description: Autonomous multi-agent execution with review-fix loop and PR creation
-cli: sdp orchestrate
-version: 7.0.0
+cli: sdp orchestrate (file ops only - requires @build for actual work)
+version: 7.1.0
 ---
 
 # oneshot
 
-> **CLI (primary):** `sdp orchestrate <feature-id>`
-> **Protocol (fallback):** Manual execution if CLI unavailable
+> **CLI:** `sdp orchestrate <feature-id>` — handles file loading, dependency graph, checkpoints
+> **LLM:** Required for actual workstream execution via `@build`
 
 Autonomous feature execution with review-fix loop and PR creation.
 
@@ -18,21 +18,7 @@ Autonomous feature execution with review-fix loop and PR creation.
 
 When user invokes `@oneshot F067`:
 
-### Try CLI First (if available)
-
-```bash
-sdp orchestrate F067
-```
-
-If CLI succeeds, skip to **Step 4: Review-Fix Loop**.
-
-If CLI fails or is unavailable, continue with manual execution below.
-
----
-
-### Manual Execution (if CLI unavailable)
-
-#### Step 1: Load Workstreams
+### Step 1: Load Workstreams
 
 ```bash
 ls docs/workstreams/backlog/00-067-*.md
@@ -40,21 +26,29 @@ ls docs/workstreams/backlog/00-067-*.md
 
 Read each file for: WS ID, dependencies, AC, scope files.
 
-#### Step 2: Build Dependency Graph
+### Step 2: Build Dependency Graph
 
+Determine execution order:
 - Empty `depends_on` → run first
 - Has dependencies → run after deps complete
 - Topological sort for valid order
 
-#### Step 3: Execute Workstreams
+### Step 3: Execute Workstreams (LLM required)
 
-For each WS in order:
-1. Invoke `@build {ws_id}`
-2. Wait for completion
-3. Checkpoint
-4. Retry failures (max 2)
+For each WS in dependency order:
 
----
+1. **Invoke @build** with the workstream ID:
+   ```
+   @build 00-067-01
+   ```
+
+2. **Wait for completion** before starting dependent WS
+
+3. **Checkpoint** after each successful WS
+
+4. **Handle failures**: Retry up to 2 times, then escalate
+
+**CRITICAL:** The CLI (`sdp orchestrate`) only handles file operations. Actual code changes require `@build` which spawns LLM subagents.
 
 ### Step 4: Review-Fix Loop (max 3 iterations)
 
@@ -67,8 +61,6 @@ After all workstreams complete:
    - P1: Create bugfix, then fix
    - P2+: Track only
 4. Repeat
-
----
 
 ### Step 5: Verify Clean State
 
@@ -85,13 +77,16 @@ gh pr create --base dev --head feature/F067-xxx
 
 ---
 
-## CLI Reference
+## CLI Reference (Optional Optimization)
+
+The CLI can handle Steps 1-2 and checkpointing:
 
 ```bash
-sdp orchestrate F067              # Execute all workstreams
+sdp orchestrate F067              # Load workstreams, build graph
 sdp orchestrate resume F067       # Resume from checkpoint
-sdp orchestrate --retry 3 F067    # Allow 3 retries per WS
 ```
+
+But Step 3 (actual execution) still requires `@build` invocation by an LLM.
 
 ---
 
@@ -111,10 +106,12 @@ sdp orchestrate --retry 3 F067    # Allow 3 retries per WS
 cat .sdp/checkpoints/F067-*.json
 ```
 
+Continue from the first incomplete workstream.
+
 ---
 
 ## See Also
 
-- `@build` - Execute single workstream
+- `@build` - Execute single workstream (REQUIRED)
 - `@review` - Quality review
 - `.claude/patterns/tdd.md` - TDD pattern
