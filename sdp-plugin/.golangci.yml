@@ -68,6 +68,7 @@ issues:
       linters:
         - gocognit
         - prealloc
+        - errcheck
       text: ".*"
     - path: internal/worktree/
       linters:
@@ -76,6 +77,15 @@ issues:
     - path: internal/coordination/
       linters:
         - prealloc
+        - errcheck
+      text: ".*"
+    - path: internal/task/
+      linters:
+        - errcheck
+      text: ".*"
+    - path: internal/git/
+      linters:
+        - errcheck
       text: ".*"
     - path: cmd/sdp/
       linters:
