@@ -2,6 +2,41 @@
 
 Skill → event types emitted. Use for pipeline verification and `sdp log show --type=X`.
 
+---
+
+## Evidence Tracking Policy (WS-067-07: AC4)
+
+### Tracked in Git (Source of Truth)
+
+| Path | Purpose | Why Tracked |
+|------|---------|-------------|
+| `.sdp/log/events.jsonl` | Evidence event log | Audit trail for AI decisions |
+| `.sdp/config.yml` | Project configuration | Required for reproducibility |
+| `.sdp/guard-rules.yml` | Quality gate rules | Required for CI/local consistency |
+| `.beads/issues.jsonl` | Task tracking | Session persistence |
+
+### Not Tracked (Generated/Runtime)
+
+| Pattern | Why Not Tracked |
+|---------|-----------------|
+| `*.out` | Build/test coverage artifacts |
+| `.sdp/memory.db` | SQLite index (rebuildable) |
+| `.sdp/checkpoints/` | Runtime state (resumable) |
+| `coverage.html` | Generated report |
+| `bin/`, `dist/` | Compiled binaries |
+
+### Merge Strategy (.gitattributes)
+
+```gitattributes
+# Union merge for concurrent appends
+.sdp/log/events.jsonl merge=union
+
+# Beads custom merge
+.beads/issues.jsonl merge=beads
+```
+
+---
+
 ## Pipeline chain (idea → deploy)
 
 | Phase   | Skill     | Event type(s)     | CLI / trigger                          |

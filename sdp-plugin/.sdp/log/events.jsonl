@@ -5,3 +5,4 @@
 {"id":"evt-1770987658693096000","type":"plan","timestamp":"2026-02-13T13:00:58Z","ws_id":"00-000-00","prev_hash":"11c9fbcd68290bb49130bc2ffd9521fe303caef833d716b75b0b876828acdce6","data":{"feature_id":"F067","skill":"oneshot"}}
 {"id":"evt-1770988606999768000","type":"plan","timestamp":"2026-02-13T13:16:46Z","ws_id":"00-000-00","prev_hash":"476be6b9ef7aeb84fe928495b8a169fae1cf601c7348579843298d4db44b52fb","data":{"feature_id":"F067","skill":"oneshot"}}
 {"id":"evt-1770988625231458000","type":"plan","timestamp":"2026-02-13T13:17:05Z","ws_id":"00-000-00","prev_hash":"6855a85a464d7d2bb3e5b371cb9562af1f4dccc92cf94adc1d1bbdc60668a7f3","data":{"feature_id":"F067","skill":"oneshot"}}
+{"id":"evt-1770995496841582000","type":"plan","timestamp":"2026-02-13T15:11:36Z","ws_id":"00-067-07","prev_hash":"35db66647e1f963c1845a0fff5f43852c9dd8823586e8eecede6ba99e3187a99","data":{"action":"activate","scope_files":null}}
