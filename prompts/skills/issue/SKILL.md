@@ -1,80 +1,93 @@
 ---
 name: issue
-description: Analyze bugs, classify severity (P0-P3), route to appropriate fix command (/hotfix, /bugfix, or backlog).
-tools: Read, Write, Edit, Bash, Glob, Grep
+description: Analyze bugs, classify severity (P0-P3), route to appropriate fix command (@hotfix, @bugfix, or backlog).
+version: 2.0.0
+changes:
+  - Converted to LLM-agnostic format
+  - Removed tool-specific API references
+  - Focus on WHAT, not HOW to invoke
 ---
 
-# /issue - Analyze & Route Issues
+# @issue - Analyze & Route Issues
 
 Systematic bug analysis with severity classification and routing.
 
-## Invocation
+---
 
-```bash
-/issue "description"
-/issue "description" --logs=error.log
-/issue "description" --feature=F064  # Attach to feature
-```
+## EXECUTE THIS NOW
 
-## Task Creation
+When user invokes `@issue "description"`:
 
-Uses `sdp task create` CLI for artifact creation:
+### Step 1: Systematic Debugging
 
-```bash
-# Create workstream (with feature context)
-sdp task create --type=bug --title="Fix CI Go version" --feature=F064 --priority=1 --goal="Fix the CI pipeline"
+**Phase 1: Symptom Documentation**
+- Record exact error messages
+- Note reproduction steps
+- Document environment
 
-# Create issue (no feature context)
-sdp task create --type=bug --title="Auth error" --issue --priority=1
-```
+**Phase 2: Hypothesis Formation**
+- List all possible causes
+- Rank by likelihood
+- Select top theory to test
 
-## Auto-Classification
+**Phase 3: Systematic Elimination**
+- Test hypotheses one at a time
+- Record results objectively
+
+**Phase 4: Root Cause Isolation**
+- Confirm root cause
+- Document findings
+
+### Step 2: Severity Classification
 
 | Severity | Keyword Signals | Route |
 |----------|----------------|-------|
-| **P0** | "production down", "crash", "blocked", "security" | /hotfix |
-| **P1** | "doesn't work", "failing", "error", "broken" | /bugfix |
+| **P0** | "production down", "crash", "blocked", "security" | @hotfix |
+| **P1** | "doesn't work", "failing", "error", "broken" | @bugfix |
 | **P2** | "edge case", "sometimes", "inconsistently" | backlog |
 | **P3** | "cosmetic", "typo", "minor" | defer |
 
-## Master Prompt
+### Step 3: Create Issue & Route
 
-📄 **sdp/prompts/commands/issue.md** (640+ lines)
+```bash
+# Create issue
+bd create --title="Bug: {description}" --type=bug --priority={0-3}
 
-**Contains:**
-- 5-phase systematic debugging workflow
-- Hypothesis formation and testing
-- Root cause isolation
-- Severity classification (P0/P1/P2/P3)
-- Routing rules (hotfix/bugfix/backlog)
-- Issue file format
-- GitHub integration
+# Route to appropriate fix
+@hotfix {issue}  # P0 - emergency
+@bugfix {issue}  # P1 - quality fix
+# P2/P3 - schedule as workstream
+```
 
-## Workflow
+---
 
-1. **Systematic Debugging:**
-   - Phase 1: Symptom Documentation
-   - Phase 2: Hypothesis Formation (ranked)
-   - Phase 3: Systematic Elimination
-   - Phase 4: Root Cause Isolation
-   - Phase 5: Impact Chain Analysis
+## Auto-Classification Rules
 
-2. **Severity Classification:**
-   - P0 (CRITICAL): Production down → `/hotfix`
-   - P1 (HIGH): Feature broken → `/bugfix`
-   - P2 (MEDIUM): Edge case → New WS
-   - P3 (LOW): Cosmetic → Defer
+- **P0 (CRITICAL)**: Production down -> @hotfix
+- **P1 (HIGH)**: Feature broken -> @bugfix
+- **P2 (MEDIUM)**: Edge case -> New WS
+- **P3 (LOW)**: Cosmetic -> Defer
 
-3. **Route to Fix**
+---
 
-## Key Output
+## Output
 
-Issue file: `docs/issues/{ID}-{slug}.md`  
-GitHub issue (if gh available)  
-Routing recommendation
+- Issue file: `docs/issues/{ID}-{slug}.md`
+- GitHub issue (if gh available)
+- Routing recommendation
+
+---
 
 ## Quick Reference
 
-**Input:** Bug description  
-**Output:** Issue file + Routing  
-**Next:** `/hotfix` or `/bugfix` or schedule WS
+| Input | Output | Next |
+|-------|--------|------|
+| Bug description | Issue file + Routing | @hotfix or @bugfix or schedule WS |
+
+---
+
+## See Also
+
+- `@debug` - Systematic debugging workflow
+- `@hotfix` - Emergency P0 fixes
+- `@bugfix` - Quality P1/P2 fixes

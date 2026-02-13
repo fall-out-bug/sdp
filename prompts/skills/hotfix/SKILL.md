@@ -1,39 +1,51 @@
 ---
 name: hotfix
 description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, immediate deploy.
-tools: Read, Write, Edit, Bash, Glob, Grep
+version: 2.0.0
+changes:
+  - Converted to LLM-agnostic format
+  - Removed tool-specific API references
+  - Focus on WHAT, not HOW to invoke
 ---
 
-# /hotfix - Emergency Production Fixes
+# @hotfix - Emergency Production Fixes
 
 Fast-track critical bug fixes for production.
 
-## When to Use
+---
 
-- P0 CRITICAL issues only
-- Production down or severely degraded
-- All/most users affected
-- Data loss/corruption risk
+## EXECUTE THIS NOW
 
-## Invocation
+When user invokes `@hotfix "description"` or `@hotfix <issue-id>`:
+
+### Step 1: Create Branch
 
 ```bash
-/hotfix "description" --issue-id=001
+git checkout -b hotfix/{issue-id}-{slug} main
 ```
 
-## Workflow
+Branch from main (NOT dev or feature).
 
-1. **Create branch** — `git checkout -b hotfix/{issue-id}-{slug}` from main
-2. **Minimal fix** — No refactoring, fix bug only
-3. **Fast testing** — Smoke + critical path (no full suite)
-4. **Commit** — `fix(scope): description (issue NNN)`
-5. **MERGE, TAG, PUSH** — See critical section below
-6. **Backport** — Merge to dev and feature branches
-7. **Close issue** — Update status in issue file
+### Step 2: Minimal Fix
 
-## CRITICAL: Completion Requirements
+- No refactoring!
+- No new features!
+- Fix bug only!
 
-**You MUST execute these commands yourself. Do NOT give instructions to user.**
+### Step 3: Fast Testing
+
+- Smoke tests only
+- Critical path verification
+- No full test suite required
+
+### Step 4: Commit
+
+```bash
+git add .
+git commit -m "fix(scope): description (issue NNN)"
+```
+
+### Step 5: Merge, Tag, Push (CRITICAL)
 
 ```bash
 # 1. Merge to main and tag
@@ -53,13 +65,32 @@ git status  # MUST show "up to date with origin"
 
 **Work is NOT complete until all `git push` commands succeed.**
 
+### Step 6: Close Issue
+
+Update status in issue file.
+
+---
+
+## When to Use
+
+- P0 CRITICAL issues only
+- Production down or severely degraded
+- All/most users affected
+- Data loss/corruption risk
+
+---
+
 ## Key Rules
 
-- **Minimal changes** — No refactoring!
-- **No new features** — Fix bug only
-- **Fast testing** — Smoke + critical path
-- **SLA target: Immediate** — Emergency response
-- **Backport mandatory** — To dev and feature branches
+| Rule | Description |
+|------|-------------|
+| **Minimal changes** | No refactoring! |
+| **No new features** | Fix bug only |
+| **Fast testing** | Smoke + critical path |
+| **SLA target** | Immediate (emergency) |
+| **Backport mandatory** | To dev and feature branches |
+
+---
 
 ## Output
 
@@ -67,3 +98,11 @@ git status  # MUST show "up to date with origin"
 - Backported to dev
 - All changes pushed to origin
 - Issue marked closed
+
+---
+
+## See Also
+
+- `@bugfix` - Quality fixes (P1/P2)
+- `@issue` - Bug classification and routing
+- `@deploy` - Standard deployment
