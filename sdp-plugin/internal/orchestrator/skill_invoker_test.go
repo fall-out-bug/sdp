@@ -170,7 +170,7 @@ func TestSkillInvoker_InvokeIdea_Failure(t *testing.T) {
 	}
 
 	// Error should wrap ErrSkillInvocationFailed or contain "failed to invoke @idea"
-	if err == nil || (!strings.Contains(err.Error(), "failed to invoke @idea")) {
+	if !strings.Contains(err.Error(), "failed to invoke @idea") {
 		t.Errorf("Expected error to contain 'failed to invoke @idea', got %v", err)
 	}
 }

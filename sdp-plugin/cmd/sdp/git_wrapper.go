@@ -63,7 +63,7 @@ perform post-execution checks to ensure branch hasn't changed.`,
 
 			// Check if session exists
 			if !wrapper.HasSession() {
-				return fmt.Errorf(`No session found. Initialize one first:
+				return fmt.Errorf(`no session found. Initialize one first:
 
   sdp session init --feature=F###`)
 			}

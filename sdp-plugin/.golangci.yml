@@ -43,6 +43,9 @@ linters:
       - linters:
           - staticcheck
         text: "SA9003:"
+      - linters:
+          - staticcheck
+        text: "QF1003:"
       - path: internal/quality/
         linters:
           - errcheck

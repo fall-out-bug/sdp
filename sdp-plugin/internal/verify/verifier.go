@@ -25,7 +25,7 @@ func NewVerifier(wsDir string) *Verifier {
 
 // VerifyOutputFiles checks all scope_files exist
 func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
-	checks := []CheckResult{}
+	checks := make([]CheckResult, 0, len(wsData.ScopeFiles))
 
 	for _, filePath := range wsData.ScopeFiles {
 		check := CheckResult{
