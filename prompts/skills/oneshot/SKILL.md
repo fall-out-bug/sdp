@@ -2,12 +2,13 @@
 name: oneshot
 description: Autonomous multi-agent execution with review-fix loop and PR creation
 cli: sdp orchestrate
-version: 6.0.0
+version: 7.0.0
 ---
 
 # oneshot
 
-> **CLI:** `sdp orchestrate <feature-id>`
+> **CLI (primary):** `sdp orchestrate <feature-id>`
+> **Protocol (fallback):** Manual execution if CLI unavailable
 
 Autonomous feature execution with review-fix loop and PR creation.
 
@@ -15,17 +16,76 @@ Autonomous feature execution with review-fix loop and PR creation.
 
 ## EXECUTE THIS NOW
 
-When user invokes `@oneshot F067`, run the CLI command:
+When user invokes `@oneshot F067`:
+
+### Try CLI First (if available)
 
 ```bash
 sdp orchestrate F067
 ```
 
-This is not an example. Execute this command.
+If CLI succeeds, skip to **Step 4: Review-Fix Loop**.
+
+If CLI fails or is unavailable, continue with manual execution below.
 
 ---
 
-## Quick Start
+### Manual Execution (if CLI unavailable)
+
+#### Step 1: Load Workstreams
+
+```bash
+ls docs/workstreams/backlog/00-067-*.md
+```
+
+Read each file for: WS ID, dependencies, AC, scope files.
+
+#### Step 2: Build Dependency Graph
+
+- Empty `depends_on` → run first
+- Has dependencies → run after deps complete
+- Topological sort for valid order
+
+#### Step 3: Execute Workstreams
+
+For each WS in order:
+1. Invoke `@build {ws_id}`
+2. Wait for completion
+3. Checkpoint
+4. Retry failures (max 2)
+
+---
+
+### Step 4: Review-Fix Loop (max 3 iterations)
+
+After all workstreams complete:
+
+1. Run `@review F067`
+2. If APPROVED → proceed to Step 5
+3. If CHANGES_REQUESTED:
+   - P0: Fix immediately
+   - P1: Create bugfix, then fix
+   - P2+: Track only
+4. Repeat
+
+---
+
+### Step 5: Verify Clean State
+
+```bash
+sdp guard finding list  # Must show 0 blocking
+```
+
+### Step 6: Create PR
+
+```bash
+git push origin feature/F067-xxx
+gh pr create --base dev --head feature/F067-xxx
+```
+
+---
+
+## CLI Reference
 
 ```bash
 sdp orchestrate F067              # Execute all workstreams
@@ -35,81 +95,26 @@ sdp orchestrate --retry 3 F067    # Allow 3 retries per WS
 
 ---
 
-## What Happens
-
-```
-Phase 1: Execute Workstreams (CLI handles this)
-    └─ Loads docs/workstreams/backlog/00-067-*.md
-    └─ Builds dependency graph
-    └─ Executes in topological order
-    └─ Checkpoints after each WS
-
-Phase 2: Review-Fix Loop
-    └─ Run @review after all WS complete
-    └─ Fix P0/P1 findings
-    └─ Repeat until approved (max 3)
-
-Phase 3: Verify Clean
-    └─ sdp guard finding list (0 blocking)
-
-Phase 4: Create PR
-    └─ Push to feature branch
-    └─ PR to dev (NOT main)
-```
-
----
-
 ## Finding Priority
 
-| Priority | Action |
-|----------|--------|
-| P0 | Fix immediately, commit |
-| P1 | Create bugfix with `bd create` |
-| P2+ | Track only, don't block |
+| Priority | Action | Blocks? |
+|----------|--------|---------|
+| P0 | Fix immediately | YES |
+| P1 | Create bugfix | YES |
+| P2+ | Track only | NO |
 
 ---
 
 ## Resume After Interruption
 
 ```bash
-# Check checkpoint
 cat .sdp/checkpoints/F067-*.json
-
-# Resume execution
-sdp orchestrate resume F067
 ```
-
----
-
-## Output
-
-```
-🚀 Orchestrating feature F067
-   Workstream dir: docs/workstreams/backlog
-   Checkpoint dir: .sdp/checkpoints
-
-→ [14:30] Executing 00-067-01...
-→ [14:35] ✅ 00-067-01 complete
-...
-✅ Feature F067 completed successfully
-```
-
----
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Command not found | `go install ./sdp-plugin/cmd/sdp` |
-| Checkpoint corrupted | Delete `.sdp/checkpoints/F067-*.json` |
-| WS blocked | Check dependencies in WS frontmatter |
 
 ---
 
 ## See Also
 
-- `@build` - Single workstream
+- `@build` - Execute single workstream
 - `@review` - Quality review
 - `.claude/patterns/tdd.md` - TDD pattern
-
-**Implementation:** `sdp-plugin/cmd/sdp/orchestrate.go`
