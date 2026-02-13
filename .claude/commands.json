@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "LLM-agnostic command to skill mapping for SDP",
+  "commands": {
+    "oneshot": {
+      "file": "skills/oneshot.md",
+      "cli": "sdp orchestrate",
+      "description": "Autonomous feature execution with review-fix loop",
+      "phase": "execution",
+      "requires": ["workstreams exist", "feature ID provided"]
+    },
+    "build": {
+      "file": "skills/build.md",
+      "cli": "sdp apply --ws",
+      "description": "Execute single workstream with TDD",
+      "phase": "execution",
+      "requires": ["workstream ID provided"]
+    },
+    "review": {
+      "file": "skills/review.md",
+      "cli": "sdp quality review",
+      "description": "Multi-agent quality review",
+      "phase": "execution",
+      "requires": ["feature ID or workstream ID"]
+    },
+    "deploy": {
+      "file": "skills/deploy.md",
+      "cli": "sdp deploy",
+      "description": "Deployment orchestration",
+      "phase": "execution",
+      "requires": ["feature complete", "review passed"]
+    },
+    "bugfix": {
+      "file": "skills/bugfix.md",
+      "cli": "sdp apply --ws",
+      "description": "Quality bug fix (P1/P2)",
+      "phase": "debug",
+      "requires": ["beads issue ID"]
+    },
+    "hotfix": {
+      "file": "skills/hotfix.md",
+      "cli": "sdp apply --ws",
+      "description": "Emergency P0 fix",
+      "phase": "debug",
+      "requires": ["critical issue identified"]
+    },
+    "issue": {
+      "file": "skills/issue.md",
+      "cli": "bd show",
+      "description": "Bug analysis and routing",
+      "phase": "debug",
+      "requires": ["issue description"]
+    },
+    "debug": {
+      "file": "skills/debug.md",
+      "cli": null,
+      "description": "Systematic debugging with scientific method",
+      "phase": "debug",
+      "requires": ["error or failure to investigate"]
+    },
+    "vision": {
+      "file": "skills/vision.md",
+      "cli": "sdp prd generate",
+      "description": "Strategic product planning",
+      "phase": "strategic",
+      "requires": ["product idea or direction"]
+    },
+    "reality": {
+      "file": "skills/reality.md",
+      "cli": "sdp drift detect",
+      "description": "Codebase analysis",
+      "phase": "analysis",
+      "requires": null
+    },
+    "feature": {
+      "file": "skills/feature.md",
+      "cli": "sdp plan",
+      "description": "Feature planning orchestrator",
+      "phase": "planning",
+      "requires": ["feature description"]
+    },
+    "idea": {
+      "file": "skills/idea.md",
+      "cli": "sdp idea",
+      "description": "Interactive requirements gathering",
+      "phase": "planning",
+      "requires": ["feature concept"]
+    },
+    "design": {
+      "file": "skills/design.md",
+      "cli": "sdp design",
+      "description": "System design with progressive disclosure",
+      "phase": "planning",
+      "requires": ["requirements gathered"]
+    },
+    "init": {
+      "file": "skills/init.md",
+      "cli": "sdp init",
+      "description": "Initialize SDP in project",
+      "phase": "setup",
+      "requires": null
+    },
+    "tdd": {
+      "file": "skills/tdd.md",
+      "cli": "sdp tdd",
+      "description": "Test-Driven Development enforcement",
+      "phase": "execution",
+      "internal": true
+    },
+    "guard": {
+      "file": "skills/guard.md",
+      "cli": "sdp guard",
+      "description": "Pre-edit scope enforcement",
+      "phase": "execution",
+      "internal": true
+    },
+    "beads": {
+      "file": "skills/beads.md",
+      "cli": "bd",
+      "description": "Task tracking integration",
+      "phase": "tracking",
+      "requires": null
+    }
+  },
+  "patterns": {
+    "tdd": "patterns/tdd.md",
+    "git-safety": "patterns/git-safety.md",
+    "quality-gates": "patterns/quality-gates.md",
+    "session-complete": "patterns/session-complete.md"
+  },
+  "agents": {
+    "orchestrator": "agents/orchestrator.md",
+    "reviewer": "agents/reviewer.md",
+    "builder": "agents/builder.md",
+    "deployer": "agents/deployer.md",
+    "tester": "agents/tester.md",
+    "architect": "agents/architect.md",
+    "analyst": "agents/analyst.md",
+    "developer": "agents/developer.md"
+  },
+  "notes": {
+    "llm_agnostic": "All skills must work with any LLM (Opus, GLM, Codex) in any tool (Claude Code, Cursor, Windsurf)",
+    "cli_first": "CLI is the foundation - skills document CLI capabilities, not replace them",
+    "plain_language": "No tool-specific syntax like Task() or Python code blocks",
+    "progressive_disclosure": "Quick start -> patterns -> details"
+  }
+}

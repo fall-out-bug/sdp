@@ -1,438 +1,152 @@
 ---
 name: build
 description: Execute workstream with TDD and guard enforcement
-tools: Read, Write, StrReplace, Shell, Skill
+cli: sdp apply --ws
+version: 6.0.0
 ---
 
-# @build - Execute Workstream
+# build
 
-Execute a single workstream following TDD discipline with automatic guard.
+> **CLI:** `sdp apply --ws <workstream-id>`
 
-## Invocation (BEADS-001)
+Execute a single workstream following TDD discipline with guard enforcement.
 
-Accepts **any** identifier format via unified resolver:
+---
 
-```bash
-@build 00-001-01       # Workstream ID (PP-FFF-SS)
-@build 99-F064-01      # Fix workstream ID (99-{FEATURE}-{SEQ})
-@build sdp-xxx         # Beads task ID (resolved to workstream)
-@build ISSUE-0001      # Issue ID (resolved to file path)
-```
+## EXECUTE THIS NOW
 
-**Resolution:** Uses `sdp resolve <id>` CLI command to detect ID type and find file.
-
-## Verbosity Tiers
+When user invokes `@build 00-067-01`, run:
 
 ```bash
-@build 00-050-01 --quiet     # Exit status only: ✅
-@build 00-050-01             # Summary: ✅ 00-050-01: Workstream Parser (22m, 85%, commit:abc123)
-@build 00-050-01 --verbose   # Step-by-step progress
-@build 00-050-01 --debug     # Internal state + API calls
+sdp apply --ws 00-067-01
 ```
 
-**Examples:**
+This is not an example. Execute this command.
+
+---
+
+## Quick Start
 
 ```bash
-# Quiet mode
-@build 00-050-01 --quiet
-# Output: ✅
-
-# Default mode
-@build 00-050-01
-# Output: ✅ 00-050-01: Workstream Parser (22m, 85%, commit:abc123)
-
-# Verbose mode
-@build 00-050-01 --verbose
-# Output:
-# → Activating guard...
-# → Reading WS spec...
-# → Stage 1: Implementer (TDD cycle)
-#   → Red: Writing failing test (3m)
-#   → Green: Implementing minimum code (12m)
-#   → Refactor: Improving code (7m)
-# → Stage 2: Spec Reviewer
-#   → Verifying implementation matches spec (5m)
-# → Stage 3: Quality Reviewer
-#   → Running quality gates (3m)
-# ✅ COMPLETE
-
-# Debug mode
-@build 00-050-01 --debug
-# Output:
-# [DEBUG] WS ID: 00-050-01
-# [DEBUG] Beads ID: sdp-abc123
-# [DEBUG] Activating guard...
-# [DEBUG] Guard activated: /tmp/guard-00-050-01.json
-# [DEBUG] Reading WS spec: docs/workstreams/backlog/00-050-01.md
-# [DEBUG] Scope files: [src/sdp/parser.py, tests/sdp/test_parser.py]
-# → Activating guard...
-# → Reading WS spec...
-# [DEBUG] Starting Stage 1: Implementer...
-# → Stage 1: Implementer (TDD cycle)
-#   [DEBUG] Test file: tests/sdp/test_parser.py
-#   → Red: Writing failing test (3m)
-#   [DEBUG] Implementing in: src/sdp/parser.py
-#   → Green: Implementing minimum code (12m)
-#   → Refactor: Improving code (7m)
-# [DEBUG] Coverage: 85.3%
-# → Stage 2: Spec Reviewer
-#   [DEBUG] Verifying: all AC implemented
-#   → Verifying implementation matches spec (5m)
-# → Stage 3: Quality Reviewer
-#   [DEBUG] Running: pytest --cov
-#   → Running quality gates (3m)
-# ✅ COMPLETE
+sdp apply --ws 00-067-01         # Execute workstream
+sdp apply --ws 00-067-01 --retry 3  # Allow 3 retries
+sdp apply                         # Execute all ready workstreams
 ```
 
-## Beads Integration (optional)
+---
 
-**When Beads is enabled** (bd installed, `.beads/` exists):
+## What Happens
 
-1. **Resolve ID:** ws_id → beads_id via mapping (if ws_id given)
-2. **Before work:** `bd update {beads_id} --status in_progress`
-3. **Execute:** TDD cycle
-4. **On success:** `bd close {beads_id} --reason "WS completed" --suggest-next`
-5. **On failure:** `bd update {beads_id} --status blocked`
-6. **Before commit:** `bd sync`
+```
+Step 1: Resolve Task ID
+    └─ sdp resolve {ID} (detects ws_id, beads_id, issue_id)
 
-**When Beads NOT enabled:** Skip all Beads steps. Use ws_id only.
+Step 2: Activate Guard
+    └─ sdp guard activate {WS-ID}
 
-**Detection:** Check if `bd --version` works and `.beads/` exists.
+Step 3: Read Workstream Spec
+    └─ docs/workstreams/backlog/{WS-ID}.md
 
-## Quick Reference
+Step 4: TDD Cycle
+    └─ RED: Write failing test
+    └─ GREEN: Implement minimum code
+    └─ REFACTOR: Clean up
 
-| Step | Action | Gate | Beads? | Retries |
-|------|--------|------|--------|---------|
-| 0 | Detect Beads | Check `bd --version` + `.beads/` | Detection | - |
-| 0a | Resolve beads_id | ws_id → mapping (if Beads) | Optional | - |
-| 0b | Beads IN_PROGRESS | `bd update --status in_progress` (if Beads) | Optional | - |
-| 1 | Activate guard | `sdp guard activate {ws_id}` | Always | - |
-| 2 | Read WS spec | AC present and clear | Always | - |
-| 3 | **Stage 1: Implementer** | TDD cycle | Always | 2 |
-| 4 | **Stage 2: Spec Reviewer** | Spec compliance | Always | 2 |
-| 5 | **Stage 3: Quality Reviewer** | Final quality check | Always | 2 |
-| 6 | All stages pass? | If yes, proceed | Always | - |
-| 7 | Beads CLOSED/blocked | `bd close` or `bd update --status blocked` (if Beads) | Optional | - |
-| 8 | Beads sync + commit | `bd sync` then commit (if Beads) | Optional | - |
-| 9 | Commit only | `git commit` (if no Beads) | Fallback | - |
+Step 5: Quality Gates
+    └─ Test coverage >= 80%
+    └─ LOC <= 200 per file
+    └─ Lint passes
 
-## Workflow
+Step 6: Commit
+    └─ git commit with workstream reference
+```
 
-### Step 0: Resolve Task ID
+---
 
-**Uses unified resolver (sdp resolve):**
+## Identifier Formats
+
+Accepts any format:
 
 ```bash
-# Input: any ID format (ws_id, beads_id, issue_id)
-# Output: JSON with type, path, ws_id, beads_id
-
-result=$(sdp resolve {ID} --json)
-
-# Extract values from JSON
-type=$(echo "$result" | jq -r '.Type')
-ws_id=$(echo "$result" | jq -r '.WSID // .ID')
-ws_path=$(echo "$result" | jq -r '.Path')
-beads_id=$(echo "$result" | jq -r '.BeadsID // empty')
+@build 00-067-01      # Workstream ID (PP-FFF-SS)
+@build 99-F064-01     # Fix workstream (99-{FEATURE}-{SEQ})
+@build sdp-xxx        # Beads task ID (resolved)
+@build ISSUE-0001     # Issue ID (resolved)
 ```
 
-**Supported formats:**
-- Workstream: `00-064-01`, `99-F064-01` (auto-detected via pattern)
-- Beads: `sdp-uhsp`, `abc-123` (searches workstream frontmatter)
-- Issue: `ISSUE-0001` (searches docs/issues/ or index)
+---
 
-### Step 1: Beads IN_PROGRESS (when Beads enabled)
+## Verbosity
 
 ```bash
-[ -n "$beads_id" ] && bd update "$beads_id" --status in_progress
+@build 00-067-01 --quiet    # Exit status only: ✅
+@build 00-067-01            # Summary
+@build 00-067-01 --verbose  # Step-by-step
+@build 00-067-01 --debug    # Internal state
 ```
 
-### Step 2: Activate Guard
+---
 
+## Quality Gates
+
+| Gate | Threshold | Check Command |
+|------|-----------|---------------|
+| Tests | 100% pass | `go test ./...` |
+| Coverage | >= 80% | `go test -cover ./...` |
+| Lint | 0 errors | `golangci-lint run` |
+| File Size | <= 200 LOC | `wc -l *.go` |
+
+**LOC check (MANDATORY):**
 ```bash
-sdp guard activate {WS-ID}
-```
-
-**Gate:** Must succeed. If fails, WS not ready.
-
-### Step 3: Read Workstream
-
-```bash
-Read("docs/workstreams/backlog/{WS-ID}-*.md")
-```
-
-Extract:
-- Goal and Acceptance Criteria
-- Input/Output files
-- Steps to execute
-
-### Step 4: Two-Stage Review (Three Stages)
-
-**IMPORTANT:** Execute all three stages with retry logic.
-
-#### Stage 1: Implementer Agent
-
-**Purpose:** Execute TDD cycle (Red → Green → Refactor)
-
-```python
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the IMPLEMENTER agent.
-
-Read .claude/agents/implementer.md for your specification.
-
-WORKSTREAM: {WS-ID}
-SPEC: docs/workstreams/backlog/{WS-ID}.md
-
-Execute TDD cycle for each AC:
-1. RED: Write failing test
-2. GREEN: Implement minimum code
-3. REFACTOR: Improve code
-
-Generate self-report with metrics.
-Run quality gates.
-
-Return verdict: PASS/FAIL
-""",
-    description="Implementer agent - Stage 1"
-)
-```
-
-**Retry Logic:**
-- Max 2 retries
-- If FAIL: Fix issues, retry
-- If FAIL after 2 retries: Stop, report failure
-
-**Success Criteria:**
-- ✅ All AC implemented
-- ✅ All tests passing
-- ✅ Quality gates passed
-- ✅ Self-report generated
-
-#### Stage 2: Spec Compliance Reviewer Agent
-
-**Purpose:** Verify implementation matches specification
-
-```python
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the SPEC COMPLIANCE REVIEWER agent.
-
-Read .claude/agents/spec-reviewer.md for your specification.
-
-WORKSTREAM: {WS-ID}
-SPEC: docs/workstreams/backlog/{WS-ID}.md
-IMPLEMENTER REPORT: {from stage 1}
-
-CRITICAL: DO NOT TRUST implementer report.
-Verify everything yourself:
-1. Read actual code
-2. Run tests yourself
-3. Check coverage yourself
-4. Verify each AC manually
-
-Generate evidence-based verdict.
-Return verdict: PASS/FAIL
-""",
-    description="Spec compliance reviewer - Stage 2"
-)
-```
-
-**Retry Logic:**
-- Max 2 retries
-- If FAIL: Implementer fixes issues, retry
-- If FAIL after 2 retries: Stop, report failure
-
-**Success Criteria:**
-- ✅ All AC verified (evidence provided)
-- ✅ Implementation matches spec
-- ✅ Tests are real (not mocked)
-- ✅ Quality gates passed (verified)
-
-#### Stage 3: Quality Reviewer Agent
-
-**Purpose:** Final quality check (comprehensive review)
-
-```python
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the QUALITY REVIEWER agent.
-
-WORKSTREAM: {WS-ID}
-SPEC: docs/workstreams/backlog/{WS-ID}.md
-
-Run comprehensive quality check:
-1. Test coverage (≥80%)
-2. **LOC check (≤200 lines per file)** - CRITICAL
-3. Code quality (complexity, duplication)
-4. Security check
-5. Performance check
-
-**LOC Gate (MANDATORY):**
-```bash
-# Check each scope file
-for file in $SCOPE_FILES; do
-  loc=$(wc -l < "$file" 2>/dev/null || echo 0)
+for file in *.go; do
+  loc=$(wc -l < "$file")
   if [ "$loc" -gt 200 ]; then
     echo "ERROR: $file is $loc LOC (max: 200)"
-    echo "Split into smaller files before committing"
     exit 1
   fi
 done
 ```
 
-**If LOC > 200:**
-1. DO NOT commit
-2. Split the file into smaller modules
-3. Re-run quality gates
-4. Only proceed when ALL files ≤ 200 LOC
-5. Documentation check
+---
 
-Generate quality report.
-Return verdict: PASS/FAIL
-""",
-    description="Quality reviewer - Stage 3"
-)
-```
+## Beads Integration
 
-**Retry Logic:**
-- Max 2 retries
-- If FAIL: Fix quality issues, retry
-- If FAIL after 2 retries: Stop, report failure
+When Beads is enabled (`bd --version` works and `.beads/` exists):
 
-**Success Criteria:**
-- ✅ All quality gates passed
-- ✅ No security issues
-- ✅ No performance issues
-- ✅ Documentation complete
+1. **Before work:** `bd update {beads_id} --status in_progress`
+2. **On success:** `bd close {beads_id} --reason "WS completed"`
+3. **On failure:** `bd update {beads_id} --status blocked`
 
-#### Retry Logic Summary
-
-```python
-def execute_stage(stage_name, agent, max_retries=2):
-    for attempt in range(1, max_retries + 1):
-        print(f"Stage: {stage_name}, Attempt: {attempt}/{max_retries}")
-
-        result = agent.execute()
-
-        if result.verdict == "PASS":
-            print(f"✅ {stage_name} PASSED")
-            return True
-        else:
-            print(f"❌ {stage_name} FAILED")
-            if attempt < max_retries:
-                print(f"Retrying...")
-                # Fix issues and retry
-            else:
-                print(f"Failed after {max_retries} retries")
-                return False
-
-    return False
-
-# Execute all stages
-stages = [
-    ("Implementer", implementer_agent),
-    ("Spec Reviewer", spec_reviewer_agent),
-    ("Quality Reviewer", quality_reviewer_agent)
-]
-
-all_passed = True
-for stage_name, agent in stages:
-    if not execute_stage(stage_name, agent):
-        all_passed = False
-        break  # Stop if any stage fails
-
-if all_passed:
-    print("✅ All stages passed - proceeding to commit")
-else:
-    print("❌ Stage failed - workstream blocked")
-```
-
-### Step 5: Verify All Stages Passed
-
-**If all three stages passed:**
-```markdown
-✅ All Stages Passed:
-- Stage 1 (Implementer): ✅ PASS
-- Stage 2 (Spec Reviewer): ✅ PASS
-- Stage 3 (Quality Reviewer): ✅ PASS
-
-Proceeding to commit...
-```
-
-**If any stage failed:**
-```markdown
-❌ Stage Failed:
-- Stage 1 (Implementer): ❌ FAIL (after 2 retries)
-  Reason: {details}
-  Action: Fix issues, retry
-
-Workstream blocked.
-```
-
-### Step 6: Beads CLOSED or blocked
-
-**On success (all 3 stages passed):**
-```bash
-[ -n "$beads_id" ] && bd close "$beads_id" --reason "WS completed (3-stage review passed)" --suggest-next
-```
-
-**On failure (any stage failed after retries):**
-```bash
-[ -n "$beads_id" ] && bd update "$beads_id" --status blocked --notes="Failed at {stage}: {reason}"
-```
-
-### Step 7: Complete
-
-```bash
-# When Beads enabled: sync before commit
-[ -d .beads ] && bd sync
-
-sdp guard complete {WS-ID}
-git add .
-git commit -m "feat({scope}): {WS-ID} - {title}"
-```
-
-## Quality Gates
-
-See [Quality Gates Reference](../../docs/reference/quality-gates.md)
+---
 
 ## Git Safety
 
-**CRITICAL:** Before ANY git operation, verify context.
+**CRITICAL:** Features MUST be in feature branches. Never commit to dev or main.
 
-See [GIT_SAFETY.md](../../.claude/GIT_SAFETY.md) for full guidelines.
-
-**MANDATORY before any git command:**
-
+Before any git command:
 ```bash
-# Step 1: Verify context
 pwd
 git branch --show-current
 sdp guard context check
-
-# Step 2: If check fails, recover
-sdp guard context go $FEATURE_ID
-
-# Step 3: Only then proceed
-git add .
-git commit -m "..."
 ```
 
-**CRITICAL: Features MUST be implemented in feature branches.**
-Never commit to dev or main for feature work.
+---
 
 ## Errors
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| No active WS | Guard not activated | `sdp guard activate` |
-| File not in scope | Editing wrong file | Check WS scope |
-| Coverage <80% | Missing tests | Add tests |
+| Error | Fix |
+|-------|-----|
+| No active WS | `sdp guard activate {WS-ID}` |
+| File not in scope | Check WS scope_files |
+| Coverage <80% | Add tests |
+| LOC >200 | Split file |
+
+---
 
 ## See Also
 
-- [BEADS-001 Phase 2.3](../../docs/workstreams/backlog/BEADS-001-skills-integration.md) — Beads @build spec
-- [WorkstreamExecutor](../../src/sdp/beads/skills_build.py) — Python implementation
-- [Full Build Spec](../../docs/reference/build-spec.md)
-- [TDD Skill](../tdd/SKILL.md)
-- [Guard Skill](../guard/SKILL.md)
+- `.claude/patterns/tdd.md` - TDD pattern
+- `.claude/patterns/quality-gates.md` - Quality gates
+- `@oneshot` - Execute all workstreams
+
+**Implementation:** `sdp-plugin/cmd/sdp/apply.go`
