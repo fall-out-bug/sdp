@@ -32,6 +32,7 @@ func NewCommandValidator() *CommandValidator {
 			"pytest":    true,
 			"pytest-3":  true,
 			"python":    true, // When used with -m pytest
+			"python3":   true,
 			"go":        true, // When used with test, vet, build
 			"mvn":       true,
 			"mvnw":      true,
@@ -52,6 +53,16 @@ func NewCommandValidator() *CommandValidator {
 			"git":    true,
 			"claude": true,
 			"gh":     true, // GitHub CLI
+
+			// Basic shell commands (safe for acceptance tests)
+			"echo":  true,
+			"true":  true,
+			"false": true,
+			"cat":   true,
+			"ls":    true,
+			"pwd":   true,
+			"date":  true,
+			"which": true,
 		},
 	}
 }

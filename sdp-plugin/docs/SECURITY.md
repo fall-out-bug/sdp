@@ -176,9 +176,10 @@ if err != nil {
 - ✅ All exec.Command calls use whitelisted commands
 - ✅ All arguments validated for injection patterns
 - ✅ All subprocess calls have context with timeout
-- ✅ No shell execution (sh -c, cmd /c)
+- ✅ No shell execution (sh -c, cmd /c) - acceptance runner uses direct execution with validation
 - ✅ Environment variables sanitized if passed
 - ✅ All user-provided paths validated for traversal
+- ⚠️ Note: Some internal packages (git, worktree, context) use fixed git commands without SafeCommand wrapper - low risk due to fixed command structure
 
 ## Examples
 
