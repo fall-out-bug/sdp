@@ -18,7 +18,27 @@ SDP is a protocol for AI-assisted development. You describe what to build, SDP b
 
 ## Installation
 
-### Option 1: Submodule (recommended)
+### Option 1: curl install (recommended for CLI)
+
+```bash
+# Install latest release
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash
+
+# Or install specific version
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash -s -- v0.10.0
+
+# Add to PATH (if needed)
+export PATH="${HOME}/.local/bin:${PATH}"
+```
+
+### Option 2: go install
+
+```bash
+# Install from source (requires Go 1.24+)
+go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
+```
+
+### Option 3: Submodule (for project integration)
 
 Add SDP to your project. The AI tools read skills, agents, and hooks directly.
 
@@ -33,9 +53,7 @@ cd sdp && bash hooks/install-hooks.sh && cd ..
 Canonical prompts live in `sdp/prompts/skills/` and `sdp/prompts/agents/`.
 Tool adapters (`sdp/.claude/`, `sdp/.cursor/`, `sdp/.opencode/`) point to the same source via symlinks.
 
-### Option 2: Build the CLI (optional)
-
-The `sdp` CLI provides health checks, guard enforcement, workstream parsing, and telemetry. It's optional — all core workflows work through AI tool skills alone.
+### Option 4: Build from source
 
 ```bash
 cd sdp/sdp-plugin
@@ -47,7 +65,7 @@ sdp doctor
 sdp status
 ```
 
-### Option 3: Clone standalone
+### Option 5: Clone standalone
 
 For exploring or contributing without a parent project:
 
