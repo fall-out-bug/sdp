@@ -26,8 +26,17 @@ func NewBeadsLoader(workstreamDir, mappingPath string) *BeadsLoader {
 
 // LoadWorkstreams loads all workstreams for a feature
 func (b *BeadsLoader) LoadWorkstreams(featureID string) ([]WorkstreamNode, error) {
-	// Get all workstream files (pattern: PP-FFF-SS.md)
-	matches, err := filepath.Glob(filepath.Join(b.workstreamDir, "*.md"))
+	// Extract feature number from featureID (e.g., "F067" -> "067")
+	featureNum := strings.TrimPrefix(featureID, "F")
+	if featureNum == featureID {
+		// No "F" prefix, use as-is
+		featureNum = featureID
+	}
+
+	// Get workstream files for this feature only (pattern: PP-FFF-SS.md)
+	// Use pattern like "00-067-*.md" for feature F067
+	pattern := filepath.Join(b.workstreamDir, "*-"+featureNum+"-*.md")
+	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("failed to glob workstream files: %w", err)
 	}
@@ -139,13 +148,13 @@ func NewCLIExecutor(sdpCommand string) *CLIExecutor {
 
 // Execute executes a workstream by calling the SDP CLI
 func (e *CLIExecutor) Execute(wsID string) error {
-	// Call: sdp build <ws-id>
-	cmd := exec.Command(e.sdpCommand, "build", wsID)
+	// Call: sdp apply --ws <ws-id>
+	cmd := exec.Command(e.sdpCommand, "apply", "--ws", wsID)
 
 	// Capture output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("sdp build %s failed: %w\nOutput: %s", wsID, err, string(output))
+		return fmt.Errorf("sdp apply --ws %s failed: %w\nOutput: %s", wsID, err, string(output))
 	}
 
 	return nil
