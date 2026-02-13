@@ -162,6 +162,7 @@ jobs:
           version: latest
           args: --timeout=5m
           working-directory: sdp-plugin
+          install-mode: goinstall
 
   guard-checks:
     name: Guard Checks (Quality Gates)
