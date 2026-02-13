@@ -63,16 +63,16 @@ type CheckOptions struct {
 
 // ReviewFinding represents a finding from a review agent
 type ReviewFinding struct {
-	ID          string `json:"id"`           // Beads issue ID (e.g., sdp-abc123)
-	FeatureID   string `json:"feature_id"`   // Feature ID (e.g., F051)
-	ReviewArea  string `json:"review_area"`  // QA, Security, DevOps, SRE, TechLead, Documentation
-	Title       string `json:"title"`        // Issue title
-	Priority    int    `json:"priority"`     // 0=P0, 1=P1, 2=P2, 3=P3
-	BeadsID     string `json:"beads_id"`     // Beads issue ID if created
-	Status      string `json:"status"`       // open, in_progress, resolved
-	CreatedAt   string `json:"created_at"`   // ISO timestamp
-	ResolvedAt  string `json:"resolved_at"`  // ISO timestamp when resolved
-	ResolvedBy  string `json:"resolved_by"`  // How it was resolved
+	ID         string `json:"id"`          // Beads issue ID (e.g., sdp-abc123)
+	FeatureID  string `json:"feature_id"`  // Feature ID (e.g., F051)
+	ReviewArea string `json:"review_area"` // QA, Security, DevOps, SRE, TechLead, Documentation
+	Title      string `json:"title"`       // Issue title
+	Priority   int    `json:"priority"`    // 0=P0, 1=P1, 2=P2, 3=P3
+	BeadsID    string `json:"beads_id"`    // Beads issue ID if created
+	Status     string `json:"status"`      // open, in_progress, resolved
+	CreatedAt  string `json:"created_at"`  // ISO timestamp
+	ResolvedAt string `json:"resolved_at"` // ISO timestamp when resolved
+	ResolvedBy string `json:"resolved_by"` // How it was resolved
 }
 
 // GuardState represents the active workstream state

@@ -95,8 +95,8 @@ func (a *DriftAdapter) enhancedReportToArtifact(report *drift.EnhancedDriftRepor
 	ts := report.Timestamp.Format("20060102-150405")
 	artifactID := "drift-enh-" + report.WorkstreamID + "-" + ts
 
-	// Serialize report to JSON for content
-	dataBytes, _ := json.Marshal(report)
+	// Serialize report to JSON for content (ignore error - content is optional)
+	dataBytes, _ := json.Marshal(report) //nolint:errcheck // content is optional
 
 	// Build searchable content
 	content := a.buildEnhancedDriftContent(report, dataBytes)
@@ -180,13 +180,19 @@ func (a *DriftAdapter) buildDriftTags(report *drift.EnhancedDriftReport) []strin
 // hashDriftReport generates a hash for a drift report
 func hashDriftReport(report *drift.DriftReport) string {
 	// Simple hash based on content
-	data, _ := json.Marshal(report)
+	data, err := json.Marshal(report)
+	if err != nil {
+		return "hash-error"
+	}
 	return simpleHash(string(data))
 }
 
 // hashEnhancedDriftReport generates a hash for an enhanced drift report
 func hashEnhancedDriftReport(report *drift.EnhancedDriftReport) string {
-	data, _ := json.Marshal(report)
+	data, err := json.Marshal(report)
+	if err != nil {
+		return "hash-error"
+	}
 	return simpleHash(string(data))
 }
 

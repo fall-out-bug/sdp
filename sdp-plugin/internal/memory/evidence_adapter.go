@@ -93,8 +93,8 @@ func (a *EvidenceAdapter) buildEventContent(ev evidence.Event) string {
 		}
 	}
 
-	// Include full data as JSON
-	dataBytes, _ := json.Marshal(ev.Data)
+	// Include full data as JSON (ignore error - content is optional)
+	dataBytes, _ := json.Marshal(ev.Data) //nolint:errcheck // content is optional
 	content += " " + string(dataBytes)
 
 	return content

@@ -166,13 +166,13 @@ func TestIndexer_IncrementalUpdate(t *testing.T) {
 
 func TestIndexer_ExtractMetadata(t *testing.T) {
 	tests := []struct {
-		name         string
-		content      string
-		filename     string
-		expectTitle  string
-		expectFID    string
-		expectWSID   string
-		expectTags   int
+		name        string
+		content     string
+		filename    string
+		expectTitle string
+		expectFID   string
+		expectWSID  string
+		expectTags  int
 	}{
 		{
 			name: "full frontmatter",
@@ -237,8 +237,8 @@ invalid yaml content [
 			expectTitle: "Fallback Title",
 		},
 		{
-			name: "no title uses filename",
-			content: `Just some content without headings.`,
+			name:        "no title uses filename",
+			content:     `Just some content without headings.`,
 			filename:    "no-title-file.md",
 			expectTitle: "no-title-file",
 		},

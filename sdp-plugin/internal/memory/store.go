@@ -36,7 +36,7 @@ func NewStore(dbPath string) (*Store, error) {
 
 	// Enable WAL mode for better concurrency and crash recovery
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-		db.Close()
+		_ = db.Close() //nolint:errcheck // cleanup on error path
 		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
 	}
 
@@ -47,7 +47,7 @@ func NewStore(dbPath string) (*Store, error) {
 
 	store := &Store{db: db, dbPath: dbPath}
 	if err := store.initSchema(); err != nil {
-		db.Close()
+		_ = db.Close() //nolint:errcheck // cleanup on error path
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
 

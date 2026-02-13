@@ -66,11 +66,11 @@ var remoteCommands = map[string]bool{
 
 // branchChangeCommands lists commands that change branches.
 var branchChangeCommands = map[string]bool{
-	"checkout":     true,
-	"switch":       true,
-	"merge":        true,
-	"rebase":       true,
-	"cherry-pick":  true,
+	"checkout":    true,
+	"switch":      true,
+	"merge":       true,
+	"rebase":      true,
+	"cherry-pick": true,
 }
 
 // CategorizeCommand determines the category of a git command.

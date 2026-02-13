@@ -128,11 +128,11 @@ func TestFormatError(t *testing.T) {
 		{
 			name: "worktree error",
 			result: ValidationResult{
-				Valid:          false,
-				WorktreePath:   "/path/to/expected",
-				ActualPath:     "/path/to/actual",
-				Error:          "worktree mismatch",
-				Fix:            "sdp guard context go F065",
+				Valid:        false,
+				WorktreePath: "/path/to/expected",
+				ActualPath:   "/path/to/actual",
+				Error:        "worktree mismatch",
+				Fix:          "sdp guard context go F065",
 			},
 			expected: "ERROR: worktree mismatch",
 		},
@@ -332,11 +332,11 @@ func TestValidationResultFormatErrorBranchOnly(t *testing.T) {
 func TestValidationResultFormatErrorWorktreeOnly(t *testing.T) {
 	// Test error formatting with only worktree mismatch
 	result := ValidationResult{
-		Valid:         false,
-		WorktreePath:  "/expected/path",
-		ActualPath:    "/actual/path",
-		Error:         "worktree mismatch",
-		Fix:           "sdp guard context go F065",
+		Valid:        false,
+		WorktreePath: "/expected/path",
+		ActualPath:   "/actual/path",
+		Error:        "worktree mismatch",
+		Fix:          "sdp guard context go F065",
 	}
 
 	msg := result.FormatError()
