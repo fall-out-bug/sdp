@@ -121,7 +121,7 @@ func TestFormatCheckResult(t *testing.T) {
 func TestContextCheckResultWithErrors(t *testing.T) {
 	// Test result with multiple errors
 	result := &ContextCheckResult{
-		Valid:   false,
+		Valid:    false,
 		ExitCode: ExitCodeContextMismatch,
 		Errors: []string{
 			"Worktree mismatch",

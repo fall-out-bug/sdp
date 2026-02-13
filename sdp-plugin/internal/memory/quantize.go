@@ -69,14 +69,14 @@ func DequantizeEmbedding(quantized []int8, scale float32) []float32 {
 
 // QuantizationStats tracks quantization metrics
 type QuantizationStats struct {
-	OriginalSize int64   `json:"original_size"`
-	QuantizedSize int64  `json:"quantized_size"`
-	SavingsPct   float64 `json:"savings_pct"`
+	OriginalSize  int64   `json:"original_size"`
+	QuantizedSize int64   `json:"quantized_size"`
+	SavingsPct    float64 `json:"savings_pct"`
 }
 
 // CalculateQuantizationSavings returns storage savings from quantization
 func CalculateQuantizationSavings(embeddingCount, dimensions int) QuantizationStats {
-	originalSize := int64(embeddingCount * dimensions * 4) // float32
+	originalSize := int64(embeddingCount * dimensions * 4)  // float32
 	quantizedSize := int64(embeddingCount * dimensions * 1) // int8
 
 	savings := float64(originalSize-quantizedSize) / float64(originalSize) * 100

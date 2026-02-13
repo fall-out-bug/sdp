@@ -40,9 +40,9 @@ type EmbeddingFunc func(text string) ([]float64, error)
 
 // Searcher provides hybrid search capabilities
 type Searcher struct {
-	store        *Store
-	embeddingFn  EmbeddingFunc
-	graph        *Graph
+	store       *Store
+	embeddingFn EmbeddingFunc
+	graph       *Graph
 }
 
 // NewSearcher creates a new searcher
