@@ -49,7 +49,6 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  L4: AI-Human Collaboration                                     │
-│  ├── Beads Issues (shared workspace)                            │
 │  ├── Notification Channels (Webhook, Desktop, Log)              │
 │  └── Cross-Review (AI ↔ Human)                                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -67,13 +66,15 @@
 │  L1: Hooks & Basic CLI                                          │
 │  ├── Git Hooks (pre-commit, pre-push, post-checkout)            │
 │  ├── sdp init / doctor / hooks                                  │
-│  └── Claude Code Hooks (PreToolUse, PostToolUse)                │
+│  └── Tool Adapters (Claude/Cursor/Windsurf invocation)          │
 ├─────────────────────────────────────────────────────────────────┤
 │  L0: Protocol (Foundation)                                      │
 │  ├── Workstream format (PP-FFF-SS, YAML frontmatter)            │
 │  ├── Quality gates (coverage, LOC, type hints, clean arch)      │
 │  ├── TDD workflow (Red → Green → Refactor)                      │
-│  └── Skills/Agents (tool-agnostic definitions)                  │
+│  ├── Skills (@build, @review, @oneshot, etc.)                   │
+│  ├── Agent roles (implementer, reviewer, architect, etc.)        │
+│  └── Beads integration (bd create/close/sync)                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -129,26 +130,46 @@ blocks: [ws-id, ...]
 {Files that may be modified}
 ```
 
+### What Belongs in L0 (Updated)
+
+**Skills & Agent Behavior:**
+- Skill definitions (@vision, @build, @review, etc.) — tool-agnostic descriptions
+- Agent roles (implementer, reviewer, architect) — behavioral specifications
+- Execution patterns (TDD cycle, review-fix loop) — workflow definitions
+
+**Beads Integration (L0-compatible):**
+- Issue format and conventions — shared workspace with humans
+- Task tracking via `bd` CLI — shell commands, no Go required
+- `bd create`, `bd close`, `bd sync` — work with any LLM tool
+- `.beads/issues.jsonl` — git-tracked, human-readable
+- Skills reference beads IDs (e.g., `@build sdp-xxx`)
+
 ### What Does NOT Belong in L0
 
-- Skill definitions (@vision, @build, etc.) → Tool-specific L1
-- Agent roles (implementer, reviewer) → Tool-specific L1
-- Tool-specific APIs (AskUserQuestion, Task) → L1 adapters
+- Tool-specific APIs (AskUserQuestion, Task) → L1 adapters (HOW to invoke)
 - CLI commands (sdp plan, sdp apply) → L2
-- Evidence logging, Beads integration → L2
+- Evidence logging with hash-chaining → L2
+- Guard automation → L2
 
-### L1 Adapters per Tool
+### L1 Adapters per Tool (Invocation Only)
 
-| Tool | L1 Location | Adapter Pattern |
-|------|-------------|-----------------|
-| Claude Code | `.claude/` | Skills use AskUserQuestion, Task tools |
-| Cursor | `.cursor/` | Skills use Cursor's agent panel |
-| Windsurf | `.windsurf/` | Skills use Windsurf's cascade |
-| Codex | `.codex/` | Skills use Codex's capabilities |
+| Tool | L1 Location | What It Provides |
+|------|-------------|------------------|
+| Claude Code | `.claude/` | Skill invocation via Skill tool, Task subagent spawning |
+| Cursor | `.cursor/` | Agent panel integration, skill loading |
+| Windsurf | `.windsurf/` | Cascade integration |
+| Codex | `.codex/` | Codex-specific invocation |
+
+**L1 = HOW to invoke, L0 = WHAT to do**
+
+Skills themselves are in L0 (protocol). L1 adapters only provide:
+- Tool-specific invocation mechanisms
+- Subagent spawning patterns
+- Interactive prompt handling
 
 **Translation Layer:**
-- L0 "ask questions" → Claude Code `AskUserQuestion(...)` or Cursor interactive prompts
-- L0 "spawn specialist agents" → Claude Code `Task(subagent_type=...)` or Cursor agent panel
+- L0 skill "@build: spawn implementer agent" → L1 adapter knows HOW (Task tool, agent panel, etc.)
+- L0 skill "ask user questions" → L1 adapter provides the mechanism (AskUserQuestion, interactive prompt, etc.)
 
 ---
 
