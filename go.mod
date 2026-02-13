@@ -1,6 +1,6 @@
 module github.com/fall-out-bug/sdp
 
-go 1.24.12
+go 1.26
 
 require (
 	github.com/spf13/cobra v1.10.2
