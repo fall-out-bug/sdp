@@ -281,9 +281,9 @@ func TestContractCmd_HasSubcommands(t *testing.T) {
 // TestContractCmd_FlagParsing tests that flags are properly defined
 func TestContractCmd_FlagParsing(t *testing.T) {
 	tests := []struct {
-		command    string
-		flagName   string
-		flagType   string
+		command  string
+		flagName string
+		flagType string
 	}{
 		{"synthesize", "feature", "string"},
 		{"synthesize", "requirements", "string"},
@@ -427,8 +427,8 @@ func TestCalculateSHA256(t *testing.T) {
 		input    string
 		expected string // First 16 chars of SHA256
 	}{
-		{"", "e3b0c44298fc1c14"}, // SHA256 of empty string
-		{"test", "9f86d081884c7d6"}, // SHA256 of "test"
+		{"", "e3b0c44298fc1c14"},           // SHA256 of empty string
+		{"test", "9f86d081884c7d6"},        // SHA256 of "test"
 		{"hello world", "b94d27b9934d3e0"}, // SHA256 of "hello world"
 	}
 
@@ -655,9 +655,9 @@ func TestSynthesize_Defaults(t *testing.T) {
 // TestValidate_RequiresContracts tests validation contract count requirement
 func TestValidate_RequiresContracts(t *testing.T) {
 	tests := []struct {
-		name     string
-		paths    []string
-		valid    bool
+		name  string
+		paths []string
+		valid bool
 	}{
 		{"empty", []string{}, false},
 		{"one", []string{"a.yaml"}, false},
@@ -700,9 +700,9 @@ func TestContractLock_DeriveLockPath(t *testing.T) {
 // TestContractVerify_DeriveLockPath tests verify lock path derivation
 func TestContractVerify_DeriveLockPath(t *testing.T) {
 	tests := []struct {
-		featureName   string
-		contractPath  string
-		expectedPath  string
+		featureName  string
+		contractPath string
+		expectedPath string
 	}{
 		{"F050", "", ".contracts/F050.yaml"},
 		{"", ".contracts/api.yaml", ".contracts/api.yaml"},
@@ -725,8 +725,8 @@ func TestContractVerify_DeriveLockPath(t *testing.T) {
 // TestGenerate_FeatureParsing tests feature flag parsing for generate
 func TestGenerate_FeatureParsing(t *testing.T) {
 	tests := []struct {
-		input       string
-		expected    []string
+		input    string
+		expected []string
 	}{
 		{"", []string{}},
 		{"F050", []string{"F050"}},
@@ -760,8 +760,8 @@ func TestGenerate_FeatureParsing(t *testing.T) {
 // TestContractLock_FeatureNameExtraction tests feature name from contract path
 func TestContractLock_FeatureNameExtraction(t *testing.T) {
 	tests := []struct {
-		contractPath   string
-		expectedName   string
+		contractPath string
+		expectedName string
 	}{
 		{".contracts/F050.yaml", "F050"},
 		{"/path/to/api.yaml", "api"},

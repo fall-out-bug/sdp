@@ -157,13 +157,19 @@ jobs:
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
+      # Build golangci-lint from source with Go 1.26
+      # Required until golangci-lint releases a version built with Go 1.26
+      - name: Build golangci-lint from source
+        run: |
+          cd /tmp
+          git clone --depth 1 https://github.com/golangci/golangci-lint.git
+          cd golangci-lint
+          sed -i 's/^go .*/go 1.26/' go.mod
+          go build -o /tmp/golangci-lint ./cmd/golangci-lint
+          echo "Built golangci-lint: $(/tmp/golangci-lint version)"
+
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          args: --timeout=5m
-          working-directory: sdp-plugin
-          install-mode: goinstall
+        run: /tmp/golangci-lint run --timeout=5m
 
   guard-checks:
     name: Guard Checks (Quality Gates)

@@ -16,7 +16,7 @@ func TestNewParser(t *testing.T) {
 func TestNewVerifier(t *testing.T) {
 	verifier := NewVerifier("/tmp/workstreams")
 	if verifier == nil {
-		t.Error("Expected verifier to be created")
+		t.Fatal("Expected verifier to be created")
 	}
 	if verifier.parser == nil {
 		t.Error("Expected parser to be created")
@@ -145,7 +145,7 @@ func TestVerifierVerifyCoverage(t *testing.T) {
 	wsData = &WorkstreamData{CoverageThreshold: 80.0}
 	result = verifier.VerifyCoverage(wsData)
 	if result == nil {
-		t.Error("Expected result with coverage threshold")
+		t.Fatal("Expected result with coverage threshold")
 	}
 	if !result.Passed {
 		t.Error("Expected coverage check to pass (placeholder)")
@@ -209,7 +209,7 @@ func TestVerifierCommandsMultipleCommands(t *testing.T) {
 
 	wsData := &WorkstreamData{
 		VerificationCommands: []string{
-			"", // Empty - should fail
+			"",                        // Empty - should fail
 			"nonexistent_command_xyz", // Should fail security validation
 		},
 	}

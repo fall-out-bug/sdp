@@ -72,10 +72,10 @@ func TestGuardState_GetOpenFindings(t *testing.T) {
 func TestGuardState_GetBlockingFindings(t *testing.T) {
 	gs := &GuardState{
 		ReviewFindings: []ReviewFinding{
-			{ID: "F001", Priority: 0, Status: "open"},       // Blocking
-			{ID: "F002", Priority: 1, Status: "open"},       // Blocking
-			{ID: "F003", Priority: 2, Status: "open"},       // Not blocking
-			{ID: "F004", Priority: 0, Status: "resolved"},   // Not blocking (resolved)
+			{ID: "F001", Priority: 0, Status: "open"},     // Blocking
+			{ID: "F002", Priority: 1, Status: "open"},     // Blocking
+			{ID: "F003", Priority: 2, Status: "open"},     // Not blocking
+			{ID: "F004", Priority: 0, Status: "resolved"}, // Not blocking (resolved)
 		},
 	}
 

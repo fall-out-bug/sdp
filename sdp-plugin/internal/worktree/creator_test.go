@@ -333,38 +333,38 @@ func TestParseWorktreeListWithSession(t *testing.T) {
 
 func TestParseWorktreeListEdgeCases(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       string
-		wantLen     int
-		wantPaths   []string
+		name         string
+		input        string
+		wantLen      int
+		wantPaths    []string
 		wantBranches []string
 	}{
 		{
-			name:        "no trailing newline",
-			input:       "worktree /path/to/main\nbranch refs/heads/main",
-			wantLen:     1,
-			wantPaths:   []string{"/path/to/main"},
+			name:         "no trailing newline",
+			input:        "worktree /path/to/main\nbranch refs/heads/main",
+			wantLen:      1,
+			wantPaths:    []string{"/path/to/main"},
 			wantBranches: []string{"main"},
 		},
 		{
-			name:        "multiple blank lines",
-			input:       "worktree /path/to/main\nbranch refs/heads/main\n\n\n",
-			wantLen:     1,
-			wantPaths:   []string{"/path/to/main"},
+			name:         "multiple blank lines",
+			input:        "worktree /path/to/main\nbranch refs/heads/main\n\n\n",
+			wantLen:      1,
+			wantPaths:    []string{"/path/to/main"},
 			wantBranches: []string{"main"},
 		},
 		{
-			name:        "mixed refs format",
-			input:       "worktree /path/to/main\nbranch refs/heads/feature/new-feature\n\n",
-			wantLen:     1,
-			wantPaths:   []string{"/path/to/main"},
+			name:         "mixed refs format",
+			input:        "worktree /path/to/main\nbranch refs/heads/feature/new-feature\n\n",
+			wantLen:      1,
+			wantPaths:    []string{"/path/to/main"},
 			wantBranches: []string{"feature/new-feature"},
 		},
 		{
-			name:        "lines with extra spaces - trimmed by parser",
-			input:       "worktree /path/to/main\nbranch refs/heads/main\n\n",
-			wantLen:     1,
-			wantPaths:   []string{"/path/to/main"},
+			name:         "lines with extra spaces - trimmed by parser",
+			input:        "worktree /path/to/main\nbranch refs/heads/main\n\n",
+			wantLen:      1,
+			wantPaths:    []string{"/path/to/main"},
 			wantBranches: []string{"main"},
 		},
 	}
