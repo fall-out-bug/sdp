@@ -563,8 +563,16 @@ func runContractVerifyInternal(contractPath, lockPath string) (bool, error) {
 
 	// Mismatch
 	fmt.Printf("✗ Contract mismatch detected!\n")
-	fmt.Printf("  Expected hash: %s\n", lock.ContractHash[:16]+"...")
-	fmt.Printf("  Actual hash:   %s\n", currentHash[:16]+"...")
+	expectedHashDisplay := lock.ContractHash
+	if len(expectedHashDisplay) > 16 {
+		expectedHashDisplay = expectedHashDisplay[:16] + "..."
+	}
+	actualHashDisplay := currentHash
+	if len(actualHashDisplay) > 16 {
+		actualHashDisplay = actualHashDisplay[:16] + "..."
+	}
+	fmt.Printf("  Expected hash: %s\n", expectedHashDisplay)
+	fmt.Printf("  Actual hash:   %s\n", actualHashDisplay)
 	fmt.Println()
 	fmt.Println("Contract has been modified since lock.")
 	fmt.Println("Please re-lock or restore original contract.")
