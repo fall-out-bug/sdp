@@ -85,7 +85,7 @@ func (r *Runner) RunPhase(ctx context.Context, phase Phase, wsPath string) (*Pha
 		if phase == Red {
 			// Red phase expects failure
 			if err == nil {
-				return result, fmt.Errorf("Red phase expected failure but tests passed")
+				return result, fmt.Errorf("red phase expected failure but tests passed")
 			}
 			return result, nil
 		}
