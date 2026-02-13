@@ -290,6 +290,7 @@ jobs:
 
       # AC8: Verify Go version consistency across project
       - name: Verify Go version consistency
+        shell: bash
         run: |
           EXPECTED=$(cat ../.go-version)
           echo "Expected Go version: $EXPECTED"
@@ -312,6 +313,7 @@ jobs:
 
       # AC3: Verify no duplicate prompt trees
       - name: Verify prompt tree consistency
+        shell: bash
         run: |
           echo "Checking for duplicate prompt files outside canonical path..."
           DUPLICATES=$(find . -path ./prompts -prune -o -path ./.git -prune -o -name "*.md" -path "*prompts/agents*" -print 2>/dev/null)
@@ -324,6 +326,7 @@ jobs:
 
       # WS-067-07: AC6 - Detect newly tracked binary artifacts
       - name: Verify no tracked binary artifacts
+        shell: bash
         run: |
           echo "Checking for tracked binary/build artifacts..."
 
@@ -347,6 +350,7 @@ jobs:
 
       # WS-067-03: AC5 - Validate adapter configs reference existing files
       - name: Validate adapter configurations
+        shell: bash
         run: |
           echo "Validating adapter configuration files..."
 
@@ -379,6 +383,7 @@ jobs:
 
       # WS-067-09: AC6 - Check for oversized files (warning for now)
       - name: Check file size limits
+        shell: bash
         run: |
           echo "Checking for files exceeding 200 LOC..."
 
