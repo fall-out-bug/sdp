@@ -162,14 +162,14 @@ jobs:
       - name: Build golangci-lint from source
         run: |
           cd /tmp
-          git clone --depth 1 https://github.com/golangci/golangci-lint.git
-          cd golangci-lint
+          git clone --depth 1 https://github.com/golangci/golangci-lint.git golangci-lint-src
+          cd golangci-lint-src
           sed -i 's/^go .*/go 1.26/' go.mod
-          go build -o /tmp/golangci-lint ./cmd/golangci-lint
-          echo "Built golangci-lint: $(/tmp/golangci-lint version)"
+          go build -o /tmp/golangci-lint-bin ./cmd/golangci-lint
+          echo "Built golangci-lint: $(/tmp/golangci-lint-bin version)"
 
       - name: Run golangci-lint
-        run: /tmp/golangci-lint run --timeout=5m
+        run: /tmp/golangci-lint-bin run --timeout=5m
 
   guard-checks:
     name: Guard Checks (Quality Gates)
