@@ -4,7 +4,7 @@
     "builder": {
       "mode": "primary",
       "description": "TDD execution agent. Implements workstreams following Red-Green-Refactor cycle.",
-      "prompt": "See @sdp/prompts/commands/build.md for full TDD workflow and execution report template",
+      "prompt": "See prompts/skills/build/SKILL.md for full TDD workflow",
       "tools": {
         "write": true,
         "edit": true,
@@ -18,26 +18,50 @@
     "reviewer": {
       "mode": "primary",
       "description": "Code review agent. Performs 17-point quality checks for workstreams.",
-      "prompt": "See @sdp/prompts/commands/codereview.md for full review workflow",
+      "prompt": "See prompts/skills/review/SKILL.md for full review workflow",
       "tools": { "write": false, "edit": false }
     },
     "planner": {
       "mode": "primary",
       "description": "Planning agent. Analyzes requirements and creates workstream specifications.",
-      "prompt": "See @sdp/prompts/commands/design.md for full design workflow",
+      "prompt": "See prompts/skills/design/SKILL.md for full design workflow",
       "tools": { "read": true, "glob": true, "grep": true }
     },
     "deployer": {
       "mode": "primary",
       "description": "Deployment agent. Generates DevOps, CI/CD, and release notes.",
-      "prompt": "See @sdp/prompts/commands/deploy.md for full deployment workflow",
+      "prompt": "See prompts/skills/deploy/SKILL.md for full deployment workflow",
       "tools": { "bash": true, "read": true }
     },
     "orchestrator": {
       "mode": "primary",
       "description": "Orchestration agent. Manages autonomous feature execution with checkpoint/resume support.",
-      "prompt": "See @sdp/prompts/commands/oneshot.md for full oneshot workflow",
+      "prompt": "See prompts/skills/oneshot/SKILL.md for full oneshot workflow",
       "tools": { "bash": true, "read": true }
+    },
+    "debugger": {
+      "mode": "primary",
+      "description": "Debug agent. Systematic debugging using scientific method.",
+      "prompt": "See prompts/skills/debug/SKILL.md for debugging workflow",
+      "tools": { "read": true, "bash": true, "grep": true }
+    },
+    "visionary": {
+      "mode": "primary",
+      "description": "Strategic planning agent. Creates vision, PRD, and roadmap.",
+      "prompt": "See prompts/skills/vision/SKILL.md for strategic planning",
+      "tools": { "read": true, "glob": true }
+    },
+    "analyst": {
+      "mode": "primary",
+      "description": "Codebase analysis agent. Validates architecture vs documentation.",
+      "prompt": "See prompts/skills/reality/SKILL.md for analysis workflow",
+      "tools": { "read": true, "glob": true, "grep": true }
+    },
+    "fixer": {
+      "mode": "primary",
+      "description": "Bug fix agent. Quality fixes for P1/P2 issues.",
+      "prompt": "See prompts/skills/bugfix/SKILL.md for fix workflow",
+      "tools": { "read": true, "edit": true, "bash": true }
     }
   }
 }

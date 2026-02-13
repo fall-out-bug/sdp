@@ -344,3 +344,35 @@ jobs:
           fi
 
           echo "✅ No tracked binary artifacts"
+
+      # WS-067-03: AC5 - Validate adapter configs reference existing files
+      - name: Validate adapter configurations
+        run: |
+          echo "Validating adapter configuration files..."
+
+          # Check OpenCode config references
+          if [ -f ".opencode/opencode.json" ]; then
+            echo "Checking .opencode/opencode.json references..."
+            # Extract prompt paths and verify they exist
+            PROMPTS=$(grep -o 'prompts/skills/[^"]*SKILL\.md' .opencode/opencode.json || true)
+            for path in $PROMPTS; do
+              if [ ! -f "$path" ]; then
+                echo "ERROR: OpenCode config references missing file: $path"
+                exit 1
+              fi
+              echo "  ✅ $path exists"
+            done
+          fi
+
+          # Check Cursor config for outdated references
+          if [ -f ".cursor/worktrees.json" ]; then
+            echo "Checking .cursor/worktrees.json for outdated references..."
+            if grep -q "poetry" .cursor/worktrees.json; then
+              echo "ERROR: Cursor config still references Poetry (Python)"
+              echo "This is a Go project - use 'go mod download' instead"
+              exit 1
+            fi
+            echo "  ✅ No Python references in Cursor config"
+          fi
+
+          echo "✅ All adapter configurations valid"
