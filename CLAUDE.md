@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP v0.9.0 with Claude Code.
+Quick reference for using SDP v0.10.0 with Claude Code.
 
 ## Quick Start
 
@@ -227,6 +227,22 @@ The SDP CLI provides terminal commands for planning, executing, and tracking wor
 | `sdp log export` | Export events as CSV/JSON | `sdp log export --format=json` |
 | `sdp log stats` | Show event statistics | `sdp log stats` |
 
+### Memory Commands (F051)
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `sdp memory index` | Index project artifacts | `sdp memory index` |
+| `sdp memory search` | Search indexed artifacts | `sdp memory search "authentication"` |
+| `sdp memory stats` | Show index statistics | `sdp memory stats` |
+| `sdp memory compact` | Compact old entries | `sdp memory compact` |
+
+### Drift Commands (F051)
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `sdp drift detect` | Detect code↔docs drift | `sdp drift detect 00-054-01` |
+| `sdp drift report` | Generate drift report | `sdp drift report --output=drift.md` |
+
 ### Plan Modes
 
 - **Drive mode** (default): Shows plan, waits for confirmation
@@ -271,7 +287,7 @@ Or configure in `.sdp/config.json`:
 
 ```json
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "model_api": "anthropic:claude-sonnet-4-20250514",
   "evidence": {
     "enabled": true,
@@ -293,6 +309,37 @@ Build and verify flows emit events to `.sdp/log/events.jsonl` (hash-chained). Us
 | `sdp collision check` | Detect scope overlaps between active workstreams |
 
 Config: `.sdp/config.yml` with `version`, `acceptance.command`, `evidence.enabled`, `evidence.log_path`. @build emits plan/generation/verification events when evidence is enabled.
+
+---
+
+## Long-term Memory (F051)
+
+Project memory system for avoiding duplicated work. Integrates with evidence.jsonl, Beads issues, and .sdp/session.json.
+
+### Architecture
+
+```
+.sdp/
+├── memory.db        # SQLite + FTS5 index (NEW)
+├── log/
+│   └── events.jsonl # Evidence log (hash-chained)
+└── notifications.log # Notification channel log
+```
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp memory index` | Index all docs/ artifacts into memory.db |
+| `sdp memory search <query>` | Full-text search across indexed artifacts |
+| `sdp memory stats` | Show index statistics |
+| `sdp drift detect [ws_id]` | Detect code↔docs and decision↔code drift |
+
+### Use Cases
+
+1. **Context Recovery:** After session compaction, search memory to restore context
+2. **Decision Discovery:** Find related ADRs before proposing approaches
+3. **Drift Detection:** Detect code-documentation discrepancies before merge
 
 ---
 
@@ -390,4 +437,4 @@ Validates: scope files exist, functions/classes match docs, architectural layers
 
 ---
 
-**Version:** 0.9.0
+**Version:** 0.10.0
