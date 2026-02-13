@@ -1,45 +1,39 @@
 ---
 name: design
 description: System design with progressive disclosure
-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
-version: 5.1.0
+version: 6.0.0
 changes:
-  - Added Phase 5: Cross-feature boundary detection
-  - Added sdp collision detect --deep integration
-  - Added sdp contract generate for shared boundaries
-  - AC4 implementation for F060
+  - Converted to LLM-agnostic format
+  - Removed tool-specific API references
+  - Focus on WHAT, not HOW to invoke
 ---
 
 # @design - System Design with Progressive Disclosure
 
 Multi-agent system design (Arch + Security + SRE) with progressive discovery blocks.
 
-## When to Use
+---
 
-- After @idea requirements gathering
-- Need architecture decisions
-- Creating workstream breakdown
+## EXECUTE THIS NOW
 
-## Invocation
+When user invokes `@design <task_id>`:
 
-```bash
-@design <task_id>
-@design <task_id> --quiet    # Minimal design blocks
-@design "feature description"  # Skip @idea, design directly
-```
+### Step 1: Load Requirements
 
-## Progressive Discovery Workflow
+Load requirements from:
+- `docs/intent/{task_id}.json` - Machine-readable intent from @idea
+- `docs/drafts/idea-*.md` - Feature spec from @idea
 
-### Overview
+Skip topics already covered by @idea.
 
-**Discovery Blocks:** 3-5 focused blocks (not one big questionnaire)
+### Step 2: Progressive Discovery (3-5 blocks)
 
 **Block Structure:**
 - Each block: 3 questions
 - After each block: trigger point (Continue / Skip block / Done)
 - User can skip blocks not relevant to feature
 
-### Discovery Blocks
+**Discovery Blocks:**
 
 **Block 1: Data & Storage (3 questions)**
 - Data models?
@@ -66,107 +60,70 @@ Multi-agent system design (Arch + Security + SRE) with progressive discovery blo
 - Deployment?
 - Rollback strategy?
 
-### Phase 5: Contract Synthesis (CRITICAL - Before Implementation)
+**After Each Block: Trigger Point**
+- Continue (next discovery block)
+- Skip block (skip remaining blocks)
+- Done (generate workstreams with current info)
 
-**Purpose:** Multi-agent contract agreement BEFORE parallel implementation begins.
+### Step 3: Cross-Feature Boundary Detection
 
-**Why Now:** Prevents component integration failures (404 Not Found) when agents work in parallel.
+**Before parallel implementation, check for shared boundaries:**
 
-**Workflow:**
+```bash
+sdp collision detect
+```
 
-1. **Check for Cross-Feature Boundaries** (NEW - AC4 for F060)
-   ```bash
-   sdp collision detect
-   ```
-   - Analyzes scope files for shared types/interfaces across parallel features
-   - Reports: shared types, fields needed by each feature, merge recommendations
-   - If boundaries found → suggest shared contracts
-   - JSON output: `sdp collision detect --output-json`
+- Analyzes scope files for shared types/interfaces across parallel features
+- Reports: shared types, fields needed by each feature, merge recommendations
+- If boundaries found -> suggest shared contracts
 
-2. **Generate Shared Contracts** (if boundaries detected)
-   ```bash
-   sdp contract generate --features=F054,F055
-   ```
-   - Creates `.contracts/<type>.yaml` files for shared boundaries
-   - Contract includes: typeName, fields, requiredBy features, status
-   - Example: `.contracts/User.yaml`
+**If boundaries detected:**
+```bash
+sdp contract generate --features=F054,F055
+sdp contract lock .contracts/User.yaml
+```
 
-3. **Lock Shared Contracts**
-   ```bash
-   sdp contract lock .contracts/User.yaml
-   ```
-   - Creates .lock file with SHA256 checksum
-   - Prevents modifications during implementation
+### Step 4: Workstream Generation
 
-4. **API Contract Synthesis** (if applicable)
-   ```bash
-   sdp contract synthesize \
-     --feature=<feature-name> \
-     --requirements=<idea-doc>
-   ```
-   - OpenAPI 3.0 contract for API endpoints
-   - Endpoints, methods, request/response schemas
-
-5. **Multi-Agent Review** (if contracts exist)
-   - Frontend Agent: "Need /batch endpoint"
-   - Backend Agent: "Works for us"
-   - Security Agent: "Add authentication headers"
-   - Synthesizer resolves conflicts
-
-**Exit Criteria:**
-- [ ] Cross-feature boundaries checked (if parallel features)
-- [ ] Shared contracts generated (if boundaries found)
-- [ ] Shared contracts locked (if generated)
-- [ ] API contracts generated (if applicable)
-- [ ] No ERROR-level conflicts
-
-**Skip Only If:**
-- Feature has NO shared boundaries (single feature)
-- Feature has NO API contracts (pure computation)
-
-### Phase 6: Workstream Generation
-
-**Generate workstreams based on:**
-- Shared contracts (from Phase 5)
-- API contracts (from Phase 5)
+Generate workstreams based on:
+- Shared contracts (from Step 3)
 - Architecture decisions (from discovery blocks)
+- Quality gates (TDD, coverage, type hints)
 
-**Output:** Workstream files in `docs/workstreams/backlog/`
+**Output:** Workstream files in `docs/workstreams/backlog/00-FFF-SS.md`
 
-### After Each Block: Trigger Point
+### Step 5: Create Beads Tasks
 
-```markdown
-AskUserQuestion({
-  "questions": [
-    {"question": "Block complete. Continue to next block?",
-     "header": "Discovery",
-     "options": [
-       {"label": "Continue (Recommended)", "description": "Next discovery block"},
-       {"label": "Skip block", "description": "Skip remaining blocks"},
-       {"label": "Done", "description": "Generate workstreams with current info"}
-     ]}
-  ]
-})
+```bash
+bd create --title="WS-FFF-01: {title}" --type=task --priority=2
 ```
 
-## Integration with @idea
+---
 
-```python
-# Uses requirements from @idea
-idea_result = load_idea_result(task_id)
+## When to Use
 
-# Skip already covered topics
-skip_topics = idea_result.covered_topics
+- After @idea requirements gathering
+- Need architecture decisions
+- Creating workstream breakdown
 
-# Focus on design-specific questions
-design_blocks = filter_blocks(skip_topics)
-```
+---
+
+## Modes
+
+| Mode | Blocks | Purpose |
+|------|--------|---------|
+| Default | 3-5 | Full discovery |
+| `--quiet` | 2 | Minimal (Data + Architecture) |
+
+---
 
 ## --quiet Mode
 
 Minimal blocks (2 blocks, 6 questions):
 1. Data & Storage
 2. Core Architecture
+
+---
 
 ## Output
 
@@ -175,17 +132,28 @@ Minimal blocks (2 blocks, 6 questions):
 **Secondary:**
 - `docs/drafts/<task_id>-design.md` - Design document
 
+---
+
 ## Next Steps
 
 ```bash
-@oneshot <feature>  # Execute all workstreams (includes contract validation)
-@build <ws_id>      # Execute workstream
+@oneshot <feature>  # Execute all workstreams
+@build <ws_id>      # Execute single workstream
 ```
-
-**Note:** Contract validation workstream (created in Phase 5) runs AFTER implementation to detect drift.
 
 ---
 
-**Version:** 5.1.0 (Cross-Feature Contract Detection - F060 AC4)
-**See Also:** `@idea`, `@build`, `@oneshot`
-**Related Features:** F054 (scope collision), F060 (cross-feature boundaries)
+## Contract Validation
+
+If shared contracts were generated:
+- Contract validation workstream runs AFTER implementation
+- Detects drift between contract and implementation
+
+---
+
+## See Also
+
+- `@idea` - Requirements gathering
+- `@build` - Execute workstream
+- `@oneshot` - Execute all workstreams
+- `@feature` - Orchestrator that calls @idea + @design

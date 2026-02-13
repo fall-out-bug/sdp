@@ -1,31 +1,30 @@
 ---
 name: idea
 description: Interactive requirements gathering with progressive disclosure
-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
-version: 4.0.0
+version: 5.0.0
+changes:
+  - Converted to LLM-agnostic format
+  - Removed tool-specific API references
+  - Focus on WHAT, not HOW to invoke
 ---
 
 # @idea - Requirements Gathering with Progressive Disclosure
 
 Deep interviewing to capture comprehensive feature requirements using progressive disclosure (3-question cycles). Creates markdown spec, optionally creates Beads task.
 
-## When to Use
+---
 
-- Starting new feature
-- Unclear requirements
-- Need comprehensive spec with tradeoffs explored
+## EXECUTE THIS NOW
 
-## Invocation
+When user invokes `@idea "feature description"`:
 
-```bash
-@idea "feature description"
-@idea "feature description" --quiet    # Minimal questions (core only)
-@idea "feature description" --spec path/to/SPEC.md  # with existing spec
-```
+### Step 1: Read Context
 
-## Progressive Disclosure Workflow
+Read existing project files to understand context:
+- `PRODUCT_VISION.md` - Align with project goals
+- `docs/specs/**/*` - Similar features
 
-### Overview
+### Step 2: Progressive Interview (3-Question Cycles)
 
 **Question Target:**
 - Minimum: 12 questions (bounded exploration)
@@ -33,64 +32,20 @@ Deep interviewing to capture comprehensive feature requirements using progressiv
 - Average: 18-20 questions per feature
 
 **3-Question Cycles:**
+
 1. Ask 3 focused questions
 2. Offer trigger point after each cycle
 3. User chooses: continue / deep design / skip to @design
 
-### Step 1: Read Context
+**Cycle 1 - Vision (3 questions):**
+- What is the core mission of this feature?
+- How does this align with PRODUCT_VISION.md?
+- Who are the primary users?
 
-```bash
-Read(PRODUCT_VISION.md)  # Align with project goals
-Glob("docs/specs/**/*")   # Similar features
-```
-
-### Step 2: Vision Interview (Cycle 1 - 3 Questions)
-
-AskUserQuestion with trigger point:
-
-```markdown
-AskUserQuestion({
-  "questions": [
-    {"question": "What is the core mission of this feature?", "header": "Mission",
-     "options": [
-       {"label": "Solve pain point", "description": "Addresses user frustration"},
-       {"label": "Enable capability", "description": "Unlocks new possibility"},
-       {"label": "Improve efficiency", "description": "Faster/cheaper process"}
-     ]},
-    {"question": "How does this align with PRODUCT_VISION.md?", "header": "Alignment",
-     "options": [
-       {"label": "Core to mission", "description": "Directly supports vision"},
-       {"label": "Enables mission", "description": "Supporting capability"},
-       {"label": "New direction", "description": "May need vision update"}
-     ]},
-    {"question": "Who are the primary users?", "header": "Users",
-     "options": [
-       {"label": "End users", "description": "Direct consumers"},
-       {"label": "Developers", "description": "Internal tooling"},
-       {"label": "Admins", "description": "Management/ops"}
-     ]}
-  ],
-  "multiSelect": false
-})
-
-# TRIGGER POINT (after 3 questions)
-AskUserQuestion({
-  "questions": [
-    {"question": "Continue exploring requirements? (3-question cycle complete)",
-     "header": "Depth",
-     "multiSelect": false,
-     "options": [
-       {"label": "Continue (Recommended)", "description": "More questions to understand requirements"},
-       {"label": "Deep design", "description": "Jump to @design with detailed architectural exploration"},
-       {"label": "Skip to @design", "description": "Move to workstream decomposition with current info"}
-     ]}
-  ]
-})
-```
-
-### Step 3: Technical Interview (Cycles 2-5)
-
-Continue 3-question cycles based on user choice:
+**TRIGGER POINT (after each cycle):**
+- Continue (more questions)
+- Deep design (jump to @design with architectural exploration)
+- Skip to @design (move to workstream decomposition)
 
 **Cycle 2 - Problem & Users (3 questions):**
 - What problem does this solve?
@@ -112,120 +67,125 @@ Continue 3-question cycles based on user choice:
 - Edge cases to handle?
 - Success metrics?
 
-After each cycle, offer trigger point (Continue / Deep design / Skip).
+### Step 3: TMI Detection
 
-### Step 4: TMI Detection
-
-If user provides extensive detail upfront (indicators):
-
-```markdown
-# TMI Indicators:
+If user provides extensive detail upfront:
 - "detailed spec", "full implementation", "complete architecture"
-- "here's the full code", "let me describe everything"
 - User writes >500 characters in initial prompt
 
-# Response:
-"I notice you've provided detailed context. Would you like me to:
+Offer shortcuts:
 - Continue with targeted questions (recommended)
-- Skip to @design with your detailed spec
-- Use --quiet mode for minimal questions"
+- Skip to @design with detailed spec
+- Use --quiet mode for minimal questions
+
+### Step 4: Create Beads Task
+
+```bash
+bd create --title="{feature_title}" --type=feature --priority=2
 ```
 
-### Step 5: Create Beads Task
+Include in description:
+- Context & Problem
+- Goals & Non-Goals
+- Technical Approach
+- Concerns & Tradeoffs
 
-```python
-from sdp.beads import create_beads_client, BeadsTaskCreate, BeadsPriority
+### Step 5: Create Spec File
 
-client = create_beads_client()
+Create `docs/intent/{task_id}.json` with machine-readable intent.
 
-task = client.create_task(BeadsTaskCreate(
-    title=feature_title,
-    description=f"""## Context & Problem
-{problem_answer}
+---
 
-## Goals & Non-Goals
-{goals_answer}
+## When to Use
 
-## Technical Approach
-{technical_answer}
+- Starting new feature
+- Unclear requirements
+- Need comprehensive spec with tradeoffs explored
 
-## Concerns & Tradeoffs
-{concerns_answer}
-""",
-    priority=BeadsPriority.HIGH,
-    sdp_metadata={
-        "feature_type": "idea",
-        "mission": mission_answer,
-        "product_vision_alignment": alignment_answer,
-        "question_count": len(interview_answers),
-    }
-))
+---
 
-print(f"✅ Created: {task.id}")
-```
+## Modes
+
+| Mode | Questions | Purpose |
+|------|-----------|---------|
+| Default | 12-27 | Full progressive interview |
+| `--quiet` | 3-5 | Minimal questions (core only) |
+| `--spec path` | Varies | Use existing spec as base |
+
+---
 
 ## --quiet Mode
 
-Minimal questions (3-5 core questions only):
+Minimal questions (3-5 core only):
 1. Mission?
 2. Users?
 3. Core requirement?
 
 Skip deep-dive cycles, move directly to @design.
 
+---
+
 ## Output
 
-**Primary:** Beads task ID (e.g., `bd-0001`)
+**Primary:** Beads task ID (e.g., `sdp-xxx`)
 
 **Secondary:**
-- `docs/intent/{task_id}.json` — Machine-readable intent
+- `docs/intent/{task_id}.json` - Machine-readable intent
 - Question count included in metadata
+
+---
 
 ## Next Steps
 
 ```bash
-@design bd-0001      # Decompose into workstreams
-bd show bd-0001      # View task details
+@design sdp-xxx      # Decompose into workstreams
+bd show sdp-xxx      # View task details
 bd ready             # Check ready tasks
 ```
 
+---
+
 ## Key Principles
 
-1. **Progressive disclosure** — 3 questions at a time
-2. **User-controlled depth** — trigger points after each cycle
-3. **Respect brevity** --quiet mode for experienced users
-4. **No obvious questions** — explore tradeoffs, not yes/no
-5. **TMI detection** — offer shortcuts when user over-explains
+1. **Progressive disclosure** - 3 questions at a time
+2. **User-controlled depth** - trigger points after each cycle
+3. **Respect brevity** - --quiet mode for experienced users
+4. **No obvious questions** - explore tradeoffs, not yes/no
+5. **TMI detection** - offer shortcuts when user over-explains
+
+---
 
 ## Example Session
 
-```bash
+```
 @idea "Add user authentication"
 
 # Cycle 1: Vision (3 questions)
-# [Mission] What is the core mission?
-# [Alignment] How does this align with vision?
-# [Users] Who are the primary users?
+[Mission] What is the core mission?
+[Alignment] How does this align with vision?
+[Users] Who are the primary users?
 
 # TRIGGER: Continue? (yes/deep design/skip)
-# User selects: Continue
+User selects: Continue
 
 # Cycle 2: Problem (3 questions)
-# ...
+...
 
 # TRIGGER: Continue? (yes/deep design/skip)
-# User selects: Deep design
+User selects: Deep design
 
 # Jump to @design with architectural exploration
 
-✅ Created Beads task: bd-0001
+Created Beads task: sdp-xxx
    Title: Add user authentication
    Questions asked: 6
-   Priority: HIGH
+   Priority: P2
 
 # Next:
-@design bd-0001
+@design sdp-xxx
 ```
+
+---
 
 ## Quick Reference
 
@@ -233,11 +193,13 @@ bd ready             # Check ready tasks
 |---------|---------|
 | `@idea "feature"` | Create task with progressive interview |
 | `@idea "feature" --quiet` | Minimal questions (3-5 core only) |
-| `@think "complex"` | Deep analysis before @idea |
 | `bd show {id}` | View task details |
 | `@design {id}` | Decompose into workstreams |
 
 ---
 
-**Version:** 4.0.0 (Progressive Disclosure)
-**See Also:** `@design`, `@build`, `@think`
+## See Also
+
+- `@design` - Workstream decomposition
+- `@build` - Execute workstream
+- `@feature` - Orchestrator that calls @idea + @design

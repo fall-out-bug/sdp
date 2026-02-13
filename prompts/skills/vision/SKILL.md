@@ -1,231 +1,117 @@
 ---
 name: vision
 description: Strategic product planning - vision, PRD, roadmap from expert analysis
-tools: Read, Write, Edit, AskUserQuestion, Task, Skill
-version: 1.0.0
+version: 2.0.0
+changes:
+  - Converted to LLM-agnostic format
+  - Removed tool-specific API references
+  - Focus on WHAT, not HOW to invoke
 ---
 
 # @vision - Strategic Product Planning
 
 **Transform project ideas into product vision, PRD, and roadmap.**
 
+---
+
+## EXECUTE THIS NOW
+
+When user invokes `@vision "AI task manager"`:
+
+### Step 1: Quick Interview (3-5 questions)
+
+Ask the user to understand:
+- What problem are you solving?
+- Who are your target users?
+- What defines success in 1 year?
+- What's your MVP?
+- Who are your competitors?
+
+### Step 2: Deep-Thinking Analysis (7 Expert Agents)
+
+Run parallel expert analysis:
+
+1. **Product Expert** - Product-market fit analysis
+2. **Market Expert** - Competitive landscape analysis
+3. **Technical Expert** - Technical feasibility analysis
+4. **UX Expert** - User experience analysis
+5. **Business Expert** - Business model analysis
+6. **Growth Expert** - Growth strategy analysis
+7. **Risk Expert** - Risk and mitigation analysis
+
+Synthesize outputs into coherent strategy.
+
+### Step 3: Generate Artifacts
+
+**PRODUCT_VISION.md** (project root):
+- Why: Problem statement
+- What: Product description
+- Who: Target users
+- Goals (1 year)
+- Success Metrics
+- Non-Goals
+
+**docs/prd/PRD.md**:
+- Functional Requirements
+- Non-Functional Requirements
+- Features (Prioritized P0/P1/P2)
+
+**docs/roadmap/ROADMAP.md**:
+- Q1: Foundation
+- Q2: Growth
+- Q3: Scale
+- Q4: Maturity
+
+### Step 4: Extract Features
+
+For each P0/P1 feature, create draft in `docs/drafts/feature-{slug}.md`.
+
+---
+
 ## When to Use
+
 - **Initial project setup** - "What are we building?"
 - **Quarterly review** - `@vision --review` - update vision based on progress
 - **Major pivot** - "Is the direction changing?"
 - **New market entry** - "Entering a new market?"
 
-## Verbosity Tiers
+---
 
-```bash
-@vision "AI task manager" --quiet     # Exit status only: ✅
-@vision "AI task manager"             # Summary: ✅ Vision: AI-Powered Task Manager (7 experts, 45m)
-@vision "AI task manager" --verbose   # Step-by-step progress
-@vision "AI task manager" --debug     # Internal state + API calls
-```
+## Modes
 
-**Examples:**
+| Mode | Output | Purpose |
+|------|--------|---------|
+| Default | Summary | Vision: AI-Powered Task Manager (7 experts) |
+| `--quiet` | Exit status | Just check if complete |
+| `--verbose` | Step-by-step | Full progress output |
+| `--debug` | Internal state | Debug mode |
 
-```bash
-# Quiet mode
-@vision "AI task manager" --quiet
-# Output: ✅
+---
 
-# Default mode
-@vision "AI task manager"
-# Output: ✅ Vision: AI-Powered Task Manager (7 experts, 45m)
+## Output
 
-# Verbose mode
-@vision "AI task manager" --verbose
-# Output:
-# → Quick interview: 5 questions (8m)
-# → Deep-thinking: 7 parallel experts (30m)
-# → Artifacts generated: PRODUCT_VISION.md, PRD.md, ROADMAP.md
-# ✅ COMPLETE
+- `PRODUCT_VISION.md` (project root)
+- `docs/prd/PRD.md`
+- `docs/roadmap/ROADMAP.md`
+- `docs/drafts/feature-*.md` (5-10 drafts)
 
-# Debug mode
-@vision "AI task manager" --debug
-# Output:
-# [DEBUG] Product idea: "AI task manager"
-# [DEBUG] Starting quick interview...
-# [DEBUG] Question 1: What problem are you solving?
-# [DEBUG] Question 2: Who are your target users?
-# [DEBUG] Question 3: What defines success in 1 year?
-# [DEBUG] Question 4: What's your MVP?
-# [DEBUG] Question 5: Who are your competitors?
-# → Quick interview: 5 questions (8m)
-# [DEBUG] Spawning 7 parallel experts...
-# [DEBUG] Expert 1: Product (subagent_type=general-purpose)
-# [DEBUG] Expert 2: Market (subagent_type=general-purpose)
-# [DEBUG] Expert 3: Technical (subagent_type=general-purpose)
-# [DEBUG] Expert 4: UX (subagent_type=general-purpose)
-# [DEBUG] Expert 5: Business (subagent_type=general-purpose)
-# [DEBUG] Expert 6: Growth (subagent_type=general-purpose)
-# [DEBUG] Expert 7: Risk (subagent_type=general-purpose)
-# → Deep-thinking: 7 parallel experts (30m)
-# [DEBUG] Generating artifacts...
-# [DEBUG] Created: PRODUCT_VISION.md
-# [DEBUG] Created: docs/prd/PRD.md
-# [DEBUG] Created: docs/roadmap/ROADMAP.md
-# → Artifacts generated: PRODUCT_VISION.md, PRD.md, ROADMAP.md
-# ✅ COMPLETE
-```
-
-## Workflow
-
-### Step 1: Quick Interview (3-5 questions)
-
-Use AskUserQuestion to understand:
-- What problem are you solving?
-- Who are your target users?
-- What defines success in 1 year?
-
-**Example:**
-```python
-AskUserQuestion(
-    questions=[
-        {
-            "question": "What problem are you solving?",
-            "header": "Problem",
-            "options": [
-                {"label": "User pain point", "description": "Fixes existing frustration"},
-                {"label": "New opportunity", "description": "Enables new capabilities"},
-                {"label": "Technical debt", "description": "Improves foundation"}
-            ]
-        },
-        {
-            "question": "Who are your target users?",
-            "header": "Users",
-            "options": [
-                {"label": "Developers", "description": "Tools, libraries, platforms"},
-                {"label": "Business", "description": "SaaS, enterprise software"},
-                {"label": "Consumers", "description": "End-user applications"}
-            ]
-        },
-        {
-            "question": "What defines success in 1 year?",
-            "header": "Success",
-            "options": [
-                {"label": "Adoption", "description": "1000+ active users"},
-                {"label": "Revenue", "description": "$10K+ MRR"},
-                {"label": "Impact", "description": "Open source community"}
-            ],
-            "multiSelect": True
-        }
-    ]
-)
-```
-
-### Step 2: Deep-Thinking Analysis (7 Expert Agents)
-
-Spawn parallel expert agents via Task tool:
-
-```python
-experts = [
-    Task("Product expert", prompt="Analyze product-market fit for: {project}"),
-    Task("Market expert", prompt="Analyze competitive landscape for: {project}"),
-    Task("Technical expert", prompt="Analyze technical feasibility for: {project}"),
-    Task("UX expert", prompt="Analyze user experience for: {project}"),
-    Task("Business expert", prompt="Analyze business model for: {project}"),
-    Task("Growth expert", prompt="Analyze growth strategy for: {project}"),
-    Task("Risk expert", prompt="Analyze risks and mitigation for: {project}")
-]
-
-# Wait for all experts and synthesize
-outputs = {e.description: e.result for e in experts}
-synthesis = synthesize_expert_outputs(outputs)
-```
-
-### Step 3: Generate Artifacts
-
-**PRODUCT_VISION.md** (project root):
-```markdown
-# Product Vision
-
-## Why
-{Problem statement}
-
-## What
-{Product description}
-
-## Who
-{Target users}
-
-## Goals (1 year)
-- [ ] {Goal 1}
-- [ ] {Goal 2}
-
-## Success Metrics
-- Adoption: {metric}
-- Quality: {metric}
-- Growth: {metric}
-
-## Non-Goals
-{What we're NOT building}
-```
-
-**docs/prd/PRD.md**:
-```markdown
-# Product Requirements Document
-
-## Requirements
-### Functional
-- FR1: {requirement}
-- FR2: {requirement}
-
-### Non-Functional
-- NFR1: Performance <200ms
-- NFR2: 99.9% uptime
-
-## Features (Prioritized)
-### P0 (Must Have)
-- Feature 1: {description}
-- Feature 2: {description}
-
-### P1 (Should Have)
-- Feature 3: {description}
-```
-
-**docs/roadmap/ROADMAP.md**:
-```markdown
-# Product Roadmap
-
-## Q1 2026: Foundation
-- MVP: {core features}
-
-## Q2 2026: Growth
-- Feature expansion: {features}
-
-## Q3 2026: Scale
-- Performance: {improvements}
-
-## Q4 2026: Maturity
-- Platform: {capabilities}
-```
-
-### Step 4: Extract Features
-
-Use `src/sdp/vision/extractor.py` to extract features from PRD.
-
-For each P0/P1 feature, create draft in `docs/drafts/feature-{slug}.md`.
-
-## Outputs
-- PRODUCT_VISION.md (project root)
-- docs/prd/PRD.md
-- docs/roadmap/ROADMAP.md
-- docs/drafts/feature-*.md (5-10 drafts)
+---
 
 ## Example
 
-```bash
+```
 @vision "AI-powered task manager"
 
-→ Interview (3-5 questions)
-→ Deep-thinking (7 expert agents)
-→ Artifacts generated
-→ 8 feature drafts created in docs/drafts/
+Interview (3-5 questions)
+Deep-thinking (7 expert agents)
+Artifacts generated
+8 feature drafts created in docs/drafts/
 ```
 
+---
+
 ## See Also
-- `.claude/skills/idea/SKILL.md` - Feature-level requirements
-- `.claude/skills/reality/SKILL.md` - Reality check for completed projects
+
+- `@idea` - Feature-level requirements
+- `@reality` - Reality check for completed projects
+- `@feature` - Feature planning orchestrator
