@@ -1,6 +1,6 @@
 module github.com/fall-out-bug/sdp
 
-go 1.24.2
+go 1.24.12
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
