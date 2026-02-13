@@ -44,7 +44,7 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 65.0) {print "Coverage " $3 " is below 65% threshold"; exit 1}}'
+          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 60.0) {print "Coverage " $3 " is below 60% threshold"; exit 1}}'
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

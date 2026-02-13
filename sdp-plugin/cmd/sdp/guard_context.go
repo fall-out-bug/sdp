@@ -68,9 +68,9 @@ Exit codes:
 
 func guardContextShowCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "show",
-		Short: "Display full context details",
-		Long:  `Show detailed information about the current worktree context.`,
+		Use:     "show",
+		Short:   "Display full context details",
+		Long:    `Show detailed information about the current worktree context.`,
 		Example: `  sdp guard context show`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root, err := config.FindProjectRoot()
