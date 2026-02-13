@@ -32,7 +32,7 @@ func (r *Reader) Verify() error {
 		}
 	}()
 	sc := bufio.NewScanner(f)
-	var prevHash string = genesisHash
+	var prevHash = genesisHash
 	lineNum := 0
 	for sc.Scan() {
 		lineNum++
