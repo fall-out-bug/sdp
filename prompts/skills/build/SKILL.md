@@ -2,101 +2,106 @@
 name: build
 description: Execute workstream with TDD and guard enforcement
 cli: sdp apply --ws
-version: 6.0.0
+llm: Spawn subagents for 3-stage review
+version: 6.1.0
 ---
 
 # build
 
-> **CLI:** `sdp apply --ws <workstream-id>`
+> **CLI:** `sdp apply --ws <workstream-id>` (file operations only)
+> **LLM:** Spawn 3 subagents for TDD cycle + review
 
-Execute a single workstream following TDD discipline with guard enforcement.
+Execute a single workstream following TDD discipline.
 
 ---
 
 ## EXECUTE THIS NOW
 
-When user invokes `@build 00-067-01`, run:
+When user invokes `@build 00-067-01`:
 
+1. Run CLI to setup and validate:
 ```bash
-sdp apply --ws 00-067-01
+sdp guard activate 00-067-01
+sdp apply --ws 00-067-01 --dry-run  # Preview first
 ```
 
-This is not an example. Execute this command.
+2. Then spawn 3 subagents for TDD cycle:
+   - **Implementer** - Write tests and code
+   - **Spec Reviewer** - Verify matches spec
+   - **Quality Reviewer** - Run quality gates
+
+**DO NOT skip step 2.** The CLI only handles file operations. TDD cycle requires spawning subagents.
 
 ---
 
-## Quick Start
+## How to Spawn Subagents
 
-```bash
-sdp apply --ws 00-067-01         # Execute workstream
-sdp apply --ws 00-067-01 --retry 3  # Allow 3 retries
-sdp apply                         # Execute all ready workstreams
-```
-
----
-
-## What Happens
-
-```
-Step 1: Resolve Task ID
-    └─ sdp resolve {ID} (detects ws_id, beads_id, issue_id)
-
-Step 2: Activate Guard
-    └─ sdp guard activate {WS-ID}
-
-Step 3: Read Workstream Spec
-    └─ docs/workstreams/backlog/{WS-ID}.md
-
-Step 4: TDD Cycle
-    └─ RED: Write failing test
-    └─ GREEN: Implement minimum code
-    └─ REFACTOR: Clean up
-
-Step 5: Quality Gates
-    └─ Test coverage >= 80%
-    └─ LOC <= 200 per file
-    └─ Lint passes
-
-Step 6: Commit
-    └─ git commit with workstream reference
-```
+Use your tool's subagent capability. For example:
+- Claude Code: Use Task tool with `subagent_type="general-purpose"`
+- Cursor: Use agent panel
+- Windsurf: Use agent spawning
 
 ---
 
-## Identifier Formats
+## Subagent 1: Implementer
 
-Accepts any format:
+**Role file:** `.claude/agents/implementer.md`
 
-```bash
-@build 00-067-01      # Workstream ID (PP-FFF-SS)
-@build 99-F064-01     # Fix workstream (99-{FEATURE}-{SEQ})
-@build sdp-xxx        # Beads task ID (resolved)
-@build ISSUE-0001     # Issue ID (resolved)
+**Task:**
+```
+You are the IMPLEMENTER for workstream 00-067-01.
+
+Read the spec: docs/workstreams/backlog/00-067-01.md
+
+Execute TDD cycle for each Acceptance Criteria:
+1. RED: Write failing test first
+2. GREEN: Write minimum code to pass
+3. REFACTOR: Clean up while keeping tests green
+
+Quality gates:
+- Test coverage >= 80%
+- All tests passing
+- No lint errors
+
+Output: Verdict PASS or FAIL with evidence
 ```
 
 ---
 
-## Verbosity
+## Subagent 2: Spec Reviewer
 
-```bash
-@build 00-067-01 --quiet    # Exit status only: ✅
-@build 00-067-01            # Summary
-@build 00-067-01 --verbose  # Step-by-step
-@build 00-067-01 --debug    # Internal state
+**Role file:** `.claude/agents/spec-reviewer.md`
+
+**Task:**
+```
+You are the SPEC COMPLIANCE REVIEWER for workstream 00-067-01.
+
+CRITICAL: Do NOT trust the implementer's report. Verify yourself.
+
+1. Read the actual code
+2. Run tests yourself
+3. Check coverage yourself
+4. Verify each AC is implemented
+
+Output: Verdict PASS or FAIL with evidence
 ```
 
 ---
 
-## Quality Gates
+## Subagent 3: Quality Reviewer
 
-| Gate | Threshold | Check Command |
-|------|-----------|---------------|
-| Tests | 100% pass | `go test ./...` |
-| Coverage | >= 80% | `go test -cover ./...` |
-| Lint | 0 errors | `golangci-lint run` |
-| File Size | <= 200 LOC | `wc -l *.go` |
+**Task:**
+```
+You are the QUALITY REVIEWER for workstream 00-067-01.
 
-**LOC check (MANDATORY):**
+Run comprehensive quality check:
+1. Test coverage (>=80%)
+2. LOC check (<=200 lines per file) - MANDATORY
+3. Code quality (complexity, duplication)
+4. Security check
+5. Lint passes
+
+LOC Gate (MANDATORY):
 ```bash
 for file in *.go; do
   loc=$(wc -l < "$file")
@@ -107,39 +112,51 @@ for file in *.go; do
 done
 ```
 
----
-
-## Beads Integration
-
-When Beads is enabled (`bd --version` works and `.beads/` exists):
-
-1. **Before work:** `bd update {beads_id} --status in_progress`
-2. **On success:** `bd close {beads_id} --reason "WS completed"`
-3. **On failure:** `bd update {beads_id} --status blocked`
-
----
-
-## Git Safety
-
-**CRITICAL:** Features MUST be in feature branches. Never commit to dev or main.
-
-Before any git command:
-```bash
-pwd
-git branch --show-current
-sdp guard context check
+Output: Verdict PASS or FAIL with evidence
 ```
 
 ---
 
-## Errors
+## After All Subagents Complete
 
-| Error | Fix |
-|-------|-----|
-| No active WS | `sdp guard activate {WS-ID}` |
-| File not in scope | Check WS scope_files |
-| Coverage <80% | Add tests |
-| LOC >200 | Split file |
+**If all 3 PASS:**
+```bash
+sdp guard complete 00-067-01
+git add .
+git commit -m "feat(F067): 00-067-01 - {title}"
+```
+
+**If any FAIL:** Report failure, do not commit.
+
+---
+
+## Identifier Formats
+
+```bash
+@build 00-067-01      # Workstream ID (PP-FFF-SS)
+@build 99-F064-01     # Fix workstream (99-{FEATURE}-{SEQ})
+@build sdp-xxx        # Beads task ID (resolved)
+```
+
+---
+
+## Quality Gates
+
+| Gate | Threshold | Check |
+|------|-----------|-------|
+| Tests | 100% pass | `go test ./...` |
+| Coverage | >= 80% | `go test -cover ./...` |
+| Lint | 0 errors | `golangci-lint run` |
+| File Size | <= 200 LOC | `wc -l *.go` |
+
+---
+
+## Beads Integration
+
+When Beads enabled:
+1. **Before:** `bd update {beads_id} --status in_progress`
+2. **Success:** `bd close {beads_id} --reason "WS completed"`
+3. **Failure:** `bd update {beads_id} --status blocked`
 
 ---
 
