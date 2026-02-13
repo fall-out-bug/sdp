@@ -48,6 +48,7 @@ sdp/
 │   ├── reference/        # API and command reference
 │   ├── vision/           # Strategic vision documents
 │   ├── drafts/           # Feature specifications
+│   ├── decisions/        # Architecture Decision Records
 │   └── workstreams/      # Backlog and completed WS
 ├── hooks/                # Git hooks and validators
 ├── templates/            # Workstream templates
@@ -56,6 +57,39 @@ sdp/
 ├── AGENTS.md             # Agent instructions
 └── go.mod                # Go module definition
 ```
+
+## Go Module Structure (WS-067-10)
+
+SDP uses two separate Go modules:
+
+| Module | Location | Module Path | Purpose |
+|--------|----------|-------------|---------|
+| **Root** | `go.mod` | `github.com/fall-out-bug/sdp` | Core libraries (src/sdp/) |
+| **Plugin** | `sdp-plugin/go.mod` | `github.com/fall-out-bug/sdp` | CLI implementation |
+
+### Building
+
+```bash
+# Build CLI (primary development)
+cd sdp-plugin && go build -o sdp ./cmd/sdp
+
+# Build root module (if needed)
+go build ./...
+```
+
+### Testing
+
+```bash
+# Test CLI module
+cd sdp-plugin && go test ./...
+
+# Test root module
+go test ./...
+```
+
+### Why No go.work?
+
+Both modules share the same module path (`github.com/fall-out-bug/sdp`), which prevents using Go workspaces. See [ADR-001](docs/decisions/ADR-001-dual-module-structure.md) for the consolidation decision.
 
 ## Using SDP for Contributions
 
