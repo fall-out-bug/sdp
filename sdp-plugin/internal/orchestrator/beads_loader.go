@@ -141,7 +141,12 @@ type CLIExecutor struct {
 // NewCLIExecutor creates a new CLI executor
 func NewCLIExecutor(sdpCommand string) *CLIExecutor {
 	if sdpCommand == "" {
-		sdpCommand = "sdp"
+		// Try to use the same binary that's currently running
+		if execPath, err := os.Executable(); err == nil {
+			sdpCommand = execPath
+		} else {
+			sdpCommand = "sdp"
+		}
 	}
 	return &CLIExecutor{sdpCommand: sdpCommand}
 }
