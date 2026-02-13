@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing!
 
+**New contributors:** See [DEVELOPMENT.md](DEVELOPMENT.md) for setup instructions.
+
 ## Ways to Contribute
 
 - **Report bugs** — Open an issue describing the problem
