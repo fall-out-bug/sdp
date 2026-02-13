@@ -376,3 +376,27 @@ jobs:
           fi
 
           echo "✅ All adapter configurations valid"
+
+      # WS-067-09: AC6 - Check for oversized files (warning for now)
+      - name: Check file size limits
+        run: |
+          echo "Checking for files exceeding 200 LOC..."
+
+          # Find oversized Go files (excluding tests)
+          OVERSIZED=$(find . -name "*.go" -not -name "*_test.go" -exec sh -c '
+            lines=$(wc -l < "$1")
+            if [ "$lines" -gt 200 ]; then
+              echo "$1: $lines LOC"
+            fi
+          ' _ {} \; 2>/dev/null | sort -t: -k2 -nr | head -20 || true)
+
+          if [ -n "$OVERSIZED" ]; then
+            echo ""
+            echo "⚠️  Files exceeding 200 LOC (should be split):"
+            echo "$OVERSIZED"
+            echo ""
+            echo "Total: $(echo "$OVERSIZED" | wc -l | tr -d ' ') files need refactoring"
+            # For now, this is a warning. Future: exit 1
+          else
+            echo "✅ All files under 200 LOC"
+          fi
