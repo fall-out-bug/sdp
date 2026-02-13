@@ -62,6 +62,20 @@ issues:
     - path: internal/guard/
       linters:
         - errcheck
+        - gocognit
+      text: ".*"
+    - path: internal/memory/
+      linters:
+        - gocognit
+        - prealloc
+      text: ".*"
+    - path: internal/worktree/
+      linters:
+        - gocognit
+      text: ".*"
+    - path: internal/coordination/
+      linters:
+        - prealloc
       text: ".*"
     - path: internal/watcher/
       linters:

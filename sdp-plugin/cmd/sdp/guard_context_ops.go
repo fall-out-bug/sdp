@@ -49,7 +49,7 @@ func guardContextGoCmd() *cobra.Command {
 NOTE: This command cannot actually change your shell's CWD.
 It outputs the path and instructions for you to execute.`,
 		Example: `  sdp guard context go F065`,
-		Args: cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			featureID := args[0]
 			root, err := config.FindProjectRoot()
@@ -74,9 +74,9 @@ It outputs the path and instructions for you to execute.`,
 
 func guardContextCleanCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "clean",
-		Short: "Clean up stale session files",
-		Long:  `Remove invalid or stale session files from all worktrees.`,
+		Use:     "clean",
+		Short:   "Clean up stale session files",
+		Long:    `Remove invalid or stale session files from all worktrees.`,
 		Example: `  sdp guard context clean`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root, err := config.FindProjectRoot()

@@ -25,15 +25,15 @@ func taskCmd() *cobra.Command {
 // taskCreateCmd represents the task create command
 func taskCreateCmd() *cobra.Command {
 	var (
-		taskType      string
-		title         string
-		priority      int
-		featureID     string
-		goal          string
-		context       string
-		branchBase    string
-		outputJSON    bool
-		createIssue   bool
+		taskType    string
+		title       string
+		priority    int
+		featureID   string
+		goal        string
+		context     string
+		branchBase  string
+		outputJSON  bool
+		createIssue bool
 	)
 
 	cmd := &cobra.Command{
