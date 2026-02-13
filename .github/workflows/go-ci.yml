@@ -274,3 +274,15 @@ jobs:
           fi
           
           echo "✅ All Go versions aligned to $EXPECTED"
+
+      # AC3: Verify no duplicate prompt trees
+      - name: Verify prompt tree consistency
+        run: |
+          echo "Checking for duplicate prompt files outside canonical path..."
+          DUPLICATES=$(find . -path ./prompts -prune -o -path ./.git -prune -o -name "*.md" -path "*prompts/agents*" -print 2>/dev/null)
+          if [ -n "$DUPLICATES" ]; then
+            echo "ERROR: Duplicate prompt files found outside canonical prompts/"
+            echo "$DUPLICATES"
+            exit 1
+          fi
+          echo "✅ No duplicate prompt trees"

@@ -89,6 +89,23 @@ Examples:
 - **Markdown** — Consistent formatting, no trailing whitespace
 - **Skills** — Follow `prompts/skills/` SKILL.md format
 
+## Canonical Prompt Paths
+
+**CRITICAL:** All prompt/agent definitions have a single canonical location.
+
+| Content | Canonical Path | Symlink |
+|---------|---------------|---------|
+| Skills | `prompts/skills/` | `.claude/skills` |
+| Agents | `prompts/agents/` | `.claude/agents` |
+
+**Rules:**
+1. **Never create duplicate prompt files** in other locations
+2. **Always edit canonical files** in `prompts/`
+3. **Tool adapters** should reference canonical paths or symlinks
+4. **CI validates** no duplicate prompt trees exist
+
+To check for drift: `./hooks/check-prompt-drift.sh`
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
