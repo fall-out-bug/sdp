@@ -478,3 +478,168 @@ func TestAC6_HooksWarnWhenSDPMissing(t *testing.T) {
 		}
 	}
 }
+
+// TestInstallFromDirectory tests installing hooks from a local directory
+func TestInstallFromDirectory(t *testing.T) {
+	// Create temp directories
+	tmpDir := t.TempDir()
+	gitDir := filepath.Join(tmpDir, ".git", "hooks")
+	hooksSourceDir := filepath.Join(tmpDir, "hooks")
+
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		t.Fatalf("mkdir gitDir: %v", err)
+	}
+	if err := os.MkdirAll(hooksSourceDir, 0755); err != nil {
+		t.Fatalf("mkdir hooksSourceDir: %v", err)
+	}
+
+	// Create source hook files
+	sourceHooks := map[string]string{
+		"pre-commit.sh": "#!/bin/sh\necho 'custom pre-commit'\n",
+		"pre-push.sh":   "#!/bin/sh\necho 'custom pre-push'\n",
+	}
+
+	for name, content := range sourceHooks {
+		path := filepath.Join(hooksSourceDir, name)
+		if err := os.WriteFile(path, []byte(content), 0755); err != nil {
+			t.Fatalf("WriteFile %s: %v", name, err)
+		}
+	}
+
+	// Run installFromDirectory
+	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+		t.Fatalf("installFromDirectory failed: %v", err)
+	}
+
+	// Verify hooks were installed
+	for hookName := range map[string]bool{"pre-commit": true, "pre-push": true} {
+		hookPath := filepath.Join(gitDir, hookName)
+		content, err := os.ReadFile(hookPath)
+		if err != nil {
+			t.Errorf("Hook %s was not created: %v", hookName, err)
+			continue
+		}
+
+		// Check that SDP marker was added
+		if !strings.Contains(string(content), sdpManagedMarker) {
+			t.Errorf("Hook %s missing SDP marker", hookName)
+		}
+	}
+}
+
+// TestInstallFromDirectorySkipNonSDP tests that existing non-SDP hooks are skipped
+func TestInstallFromDirectorySkipNonSDP(t *testing.T) {
+	tmpDir := t.TempDir()
+	gitDir := filepath.Join(tmpDir, ".git", "hooks")
+	hooksSourceDir := filepath.Join(tmpDir, "hooks")
+
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.MkdirAll(hooksSourceDir, 0755); err != nil {
+		t.Fatalf("mkdir hooksSourceDir: %v", err)
+	}
+
+	// Create existing non-SDP hook
+	existingHook := filepath.Join(gitDir, "pre-commit")
+	existingContent := "#!/bin/sh\necho 'existing non-SDP hook'\n"
+	if err := os.WriteFile(existingHook, []byte(existingContent), 0755); err != nil {
+		t.Fatalf("WriteFile existing hook: %v", err)
+	}
+
+	// Create source hook
+	sourceHook := filepath.Join(hooksSourceDir, "pre-commit.sh")
+	if err := os.WriteFile(sourceHook, []byte("#!/bin/sh\necho 'new hook'\n"), 0755); err != nil {
+		t.Fatalf("WriteFile source hook: %v", err)
+	}
+
+	// Run installFromDirectory
+	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+		t.Fatalf("installFromDirectory failed: %v", err)
+	}
+
+	// Verify existing hook was not overwritten
+	content, err := os.ReadFile(existingHook)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+
+	if string(content) != existingContent {
+		t.Errorf("Non-SDP hook was overwritten. Expected:\n%s\nGot:\n%s", existingContent, string(content))
+	}
+}
+
+// TestInstallFromDirectoryUpdateSDPHook tests that existing SDP hooks are updated
+func TestInstallFromDirectoryUpdateSDPHook(t *testing.T) {
+	tmpDir := t.TempDir()
+	gitDir := filepath.Join(tmpDir, ".git", "hooks")
+	hooksSourceDir := filepath.Join(tmpDir, "hooks")
+
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.MkdirAll(hooksSourceDir, 0755); err != nil {
+		t.Fatalf("mkdir hooksSourceDir: %v", err)
+	}
+
+	// Create existing SDP-managed hook
+	existingHook := filepath.Join(gitDir, "pre-commit")
+	existingContent := "#!/bin/sh\n" + sdpManagedMarker + "\necho 'old SDP hook'\n"
+	if err := os.WriteFile(existingHook, []byte(existingContent), 0755); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	// Create source hook with new content
+	sourceHook := filepath.Join(hooksSourceDir, "pre-commit.sh")
+	newContent := "#!/bin/sh\necho 'new SDP hook'\n"
+	if err := os.WriteFile(sourceHook, []byte(newContent), 0755); err != nil {
+		t.Fatalf("WriteFile source: %v", err)
+	}
+
+	// Run installFromDirectory
+	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+		t.Fatalf("installFromDirectory failed: %v", err)
+	}
+
+	// Verify hook was updated
+	content, err := os.ReadFile(existingHook)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+
+	// Should contain the new content
+	if !strings.Contains(string(content), "new SDP hook") {
+		t.Errorf("SDP hook was not updated. Got:\n%s", string(content))
+	}
+}
+
+// TestInstallFromDirectoryMissingHook tests graceful handling of missing source hooks
+func TestInstallFromDirectoryMissingHook(t *testing.T) {
+	tmpDir := t.TempDir()
+	gitDir := filepath.Join(tmpDir, ".git", "hooks")
+	hooksSourceDir := filepath.Join(tmpDir, "hooks")
+
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.MkdirAll(hooksSourceDir, 0755); err != nil {
+		t.Fatalf("mkdir hooksSourceDir: %v", err)
+	}
+
+	// Only create one hook (not all managed hooks)
+	sourceHook := filepath.Join(hooksSourceDir, "pre-commit.sh")
+	if err := os.WriteFile(sourceHook, []byte("#!/bin/sh\necho 'hook'\n"), 0755); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	// Should not fail even if some hooks are missing
+	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+		t.Fatalf("installFromDirectory should not fail for missing hooks: %v", err)
+	}
+
+	// Verify the one hook that exists was installed
+	hookPath := filepath.Join(gitDir, "pre-commit")
+	if _, err := os.Stat(hookPath); os.IsNotExist(err) {
+		t.Error("pre-commit hook should have been installed")
+	}
+}

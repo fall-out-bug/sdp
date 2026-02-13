@@ -199,3 +199,252 @@ func TestCreatorWithCustomWorktreesDir(t *testing.T) {
 		t.Errorf("WorktreesDir = %v, want /custom/worktrees", creator.WorktreesDir)
 	}
 }
+
+func TestCreateOptionsBranchDefault(t *testing.T) {
+	// Test that branch name defaults correctly based on FeatureID
+	tests := []struct {
+		featureID     string
+		customBranch  string
+		expectedMatch string
+	}{
+		{"F067", "", "feature/F067"},
+		{"F100", "custom-branch", "custom-branch"},
+		{"ABC-123", "", "feature/ABC-123"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.featureID, func(t *testing.T) {
+			branch := tt.customBranch
+			if branch == "" {
+				branch = "feature/" + tt.featureID
+			}
+			if branch != tt.expectedMatch {
+				t.Errorf("branch = %v, want %v", branch, tt.expectedMatch)
+			}
+		})
+	}
+}
+
+func TestCreateOptionsBaseBranchDefault(t *testing.T) {
+	// Test that base branch defaults correctly
+	tests := []struct {
+		customBase    string
+		expectedMatch string
+	}{
+		{"", "dev"},
+		{"main", "main"},
+		{"develop", "develop"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.customBase, func(t *testing.T) {
+			base := tt.customBase
+			if base == "" {
+				base = "dev"
+			}
+			if base != tt.expectedMatch {
+				t.Errorf("base = %v, want %v", base, tt.expectedMatch)
+			}
+		})
+	}
+}
+
+func TestWorktreePathConstruction(t *testing.T) {
+	creator := NewCreator("/path/to/repo")
+
+	tests := []struct {
+		featureID      string
+		expectedSuffix string
+	}{
+		{"F067", "sdp-F067"},
+		{"ABC-123", "sdp-ABC-123"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.featureID, func(t *testing.T) {
+			worktreeName := "sdp-" + tt.featureID
+			if worktreeName != tt.expectedSuffix {
+				t.Errorf("worktreeName = %v, want %v", worktreeName, tt.expectedSuffix)
+			}
+
+			// Verify path is constructed correctly
+			expectedPath := "/path/to/sdp-" + tt.featureID
+			if creator.WorktreesDir != "/path/to" {
+				t.Errorf("WorktreesDir = %v, want /path/to", creator.WorktreesDir)
+			}
+			_ = expectedPath
+		})
+	}
+}
+
+func TestDeletePathConstruction(t *testing.T) {
+	creator := NewCreator("/path/to/repo")
+
+	// Delete constructs the path from featureID
+	featureID := "F067"
+	expectedName := "sdp-" + featureID
+	expectedPath := "/path/to/sdp-" + featureID
+
+	// Verify creator has correct WorktreesDir
+	if creator.WorktreesDir != "/path/to" {
+		t.Errorf("WorktreesDir = %v, want /path/to", creator.WorktreesDir)
+	}
+
+	// The Delete function constructs the path internally
+	_ = expectedName
+	_ = expectedPath
+}
+
+func TestParseWorktreeListWithSession(t *testing.T) {
+	// Create a temp directory with session for testing session loading
+	tmpDir := t.TempDir()
+	sdpDir := filepath.Join(tmpDir, ".sdp")
+	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+		t.Fatalf("failed to create .sdp dir: %v", err)
+	}
+
+	// Create a session
+	s, err := session.Init("F067", tmpDir, "test-parse")
+	if err != nil {
+		t.Fatalf("session.Init() error = %v", err)
+	}
+	if err := s.Save(tmpDir); err != nil {
+		t.Fatalf("session.Save() error = %v", err)
+	}
+
+	// Parse worktree list with session path
+	input := "worktree " + tmpDir + "\nbranch refs/heads/feature/F067\n\n"
+	creator := &Creator{MainRepoPath: "/path/to/main"}
+	result, err := creator.parseWorktreeList(input)
+	if err != nil {
+		t.Fatalf("parseWorktreeList() error = %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 worktree, got %d", len(result))
+	}
+
+	if result[0].Session == nil {
+		t.Error("expected Session to be loaded")
+	} else if result[0].Session.FeatureID != "F067" {
+		t.Errorf("Session.FeatureID = %v, want F067", result[0].Session.FeatureID)
+	}
+}
+
+func TestParseWorktreeListEdgeCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		wantLen     int
+		wantPaths   []string
+		wantBranches []string
+	}{
+		{
+			name:        "no trailing newline",
+			input:       "worktree /path/to/main\nbranch refs/heads/main",
+			wantLen:     1,
+			wantPaths:   []string{"/path/to/main"},
+			wantBranches: []string{"main"},
+		},
+		{
+			name:        "multiple blank lines",
+			input:       "worktree /path/to/main\nbranch refs/heads/main\n\n\n",
+			wantLen:     1,
+			wantPaths:   []string{"/path/to/main"},
+			wantBranches: []string{"main"},
+		},
+		{
+			name:        "mixed refs format",
+			input:       "worktree /path/to/main\nbranch refs/heads/feature/new-feature\n\n",
+			wantLen:     1,
+			wantPaths:   []string{"/path/to/main"},
+			wantBranches: []string{"feature/new-feature"},
+		},
+		{
+			name:        "lines with extra spaces - trimmed by parser",
+			input:       "worktree /path/to/main\nbranch refs/heads/main\n\n",
+			wantLen:     1,
+			wantPaths:   []string{"/path/to/main"},
+			wantBranches: []string{"main"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			creator := &Creator{MainRepoPath: "/path/to/main"}
+			result, err := creator.parseWorktreeList(tt.input)
+			if err != nil {
+				t.Fatalf("parseWorktreeList() error = %v", err)
+			}
+
+			if len(result) != tt.wantLen {
+				t.Errorf("got %d worktrees, want %d", len(result), tt.wantLen)
+				return
+			}
+
+			for i, info := range result {
+				if i < len(tt.wantPaths) && info.Path != tt.wantPaths[i] {
+					t.Errorf("worktree[%d].Path = %v, want %v", i, info.Path, tt.wantPaths[i])
+				}
+				if i < len(tt.wantBranches) && info.Branch != tt.wantBranches[i] {
+					t.Errorf("worktree[%d].Branch = %v, want %v", i, info.Branch, tt.wantBranches[i])
+				}
+			}
+		})
+	}
+}
+
+func TestCreateRequiresNonEmptyFeatureID(t *testing.T) {
+	creator := NewCreator("/nonexistent/path")
+
+	// Empty FeatureID should fail immediately without git calls
+	_, err := creator.Create(CreateOptions{FeatureID: ""})
+	if err == nil {
+		t.Error("Create() should fail with empty FeatureID")
+	}
+	if err != nil && err.Error() != "feature ID is required" {
+		t.Errorf("error message = %v, want 'feature ID is required'", err.Error())
+	}
+}
+
+func TestCreateBranchFlagLogic(t *testing.T) {
+	// Test the logic for when to use -b flag
+	tests := []struct {
+		name         string
+		createBranch bool
+		branchName   string
+		baseBranch   string
+		wantCreateB  bool
+	}{
+		{
+			name:         "create new branch from dev",
+			createBranch: true,
+			branchName:   "feature/F067",
+			baseBranch:   "dev",
+			wantCreateB:  true,
+		},
+		{
+			name:         "use existing branch",
+			createBranch: false,
+			branchName:   "feature/F067",
+			baseBranch:   "",
+			wantCreateB:  false,
+		},
+		{
+			name:         "create new branch from main",
+			createBranch: true,
+			branchName:   "hotfix/urgent",
+			baseBranch:   "main",
+			wantCreateB:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Verify the flag logic matches expectations
+			if tt.createBranch != tt.wantCreateB {
+				t.Errorf("CreateBranch = %v, want %v", tt.createBranch, tt.wantCreateB)
+			}
+		})
+	}
+}

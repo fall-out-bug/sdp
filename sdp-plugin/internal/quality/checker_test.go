@@ -38,6 +38,31 @@ func TestNewChecker(t *testing.T) {
 	}
 }
 
+func TestCheckTypesUnsupportedProjectType(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-test-unsupported-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create checker with unsupported project type
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckTypes()
+	if err == nil {
+		t.Fatal("Expected error for unsupported project type")
+	}
+	if !strings.Contains(err.Error(), "unsupported project type") {
+		t.Errorf("Expected 'unsupported project type' error, got: %v", err)
+	}
+	if result == nil {
+		t.Error("Expected non-nil result even on error")
+	}
+}
+
 func TestDetectProjectTypePython(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "sdp-test-detect-py-*")
 	if err != nil {

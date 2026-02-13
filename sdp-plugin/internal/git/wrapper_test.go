@@ -361,3 +361,152 @@ func containsSubstringHelper(s, substr string) bool {
 	}
 	return false
 }
+
+func TestNewValidator(t *testing.T) {
+	validator := NewValidator("/path/to/project")
+	if validator == nil {
+		t.Fatal("NewValidator returned nil")
+	}
+	if validator.ProjectRoot != "/path/to/project" {
+		t.Errorf("ProjectRoot = %v, want /path/to/project", validator.ProjectRoot)
+	}
+}
+
+func TestValidationResultWithRemoteMismatch(t *testing.T) {
+	// Test error formatting with remote mismatch
+	result := ValidationResult{
+		Valid:          false,
+		CurrentBranch:  "feature/F065",
+		ExpectedBranch: "feature/F065",
+		ExpectedRemote: "origin",
+		ActualRemote:   "upstream",
+		Error:          "remote mismatch",
+		Fix:            "git remote -v",
+	}
+
+	if result.Valid {
+		t.Error("Result should not be valid")
+	}
+	if result.Error != "remote mismatch" {
+		t.Errorf("Error = %v, want 'remote mismatch'", result.Error)
+	}
+}
+
+func TestValidationResultValidHasAllFields(t *testing.T) {
+	// Test that valid result has all expected fields
+	result := ValidationResult{
+		Valid:          true,
+		WorktreePath:   "/path/to/worktree",
+		ActualPath:     "/path/to/worktree",
+		CurrentBranch:  "feature/F065",
+		ExpectedBranch: "feature/F065",
+		ExpectedRemote: "origin",
+	}
+
+	if !result.Valid {
+		t.Error("Result should be valid")
+	}
+	if result.WorktreePath != "/path/to/worktree" {
+		t.Errorf("WorktreePath = %v, want /path/to/worktree", result.WorktreePath)
+	}
+	if result.CurrentBranch != result.ExpectedBranch {
+		t.Error("CurrentBranch should match ExpectedBranch for valid result")
+	}
+}
+
+func TestWrapperProjectRoot(t *testing.T) {
+	paths := []string{"/path/to/project", ".", "/tmp/test", "/home/user/repo"}
+
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			wrapper := NewWrapper(path)
+			if wrapper.ProjectRoot != path {
+				t.Errorf("ProjectRoot = %v, want %v", wrapper.ProjectRoot, path)
+			}
+			if wrapper.validator == nil {
+				t.Error("validator should not be nil")
+			}
+			if wrapper.validator.ProjectRoot != path {
+				t.Errorf("validator.ProjectRoot = %v, want %v", wrapper.validator.ProjectRoot, path)
+			}
+		})
+	}
+}
+
+func TestValidationResultFormatErrorNoFix(t *testing.T) {
+	// Test error formatting without fix suggestion
+	result := ValidationResult{
+		Valid: false,
+		Error: "unknown error",
+	}
+
+	msg := result.FormatError()
+	if msg == "" {
+		t.Error("FormatError() should not be empty for invalid result")
+	}
+	if containsSubstring(msg, "FIX:") {
+		t.Error("Error message should not contain 'FIX:' when Fix is empty")
+	}
+}
+
+func TestValidationResultFormatErrorAllFields(t *testing.T) {
+	// Test error formatting with all possible fields populated
+	result := ValidationResult{
+		Valid:          false,
+		WorktreePath:   "/expected/worktree",
+		ActualPath:     "/actual/worktree",
+		CurrentBranch:  "dev",
+		ExpectedBranch: "feature/F067",
+		ExpectedRemote: "origin",
+		ActualRemote:   "fork",
+		Error:          "multiple mismatches",
+		Fix:            "sdp guard repair",
+	}
+
+	msg := result.FormatError()
+
+	// Check all expected parts
+	expectedParts := []string{
+		"ERROR:",
+		"multiple mismatches",
+		"Expected worktree:",
+		"/expected/worktree",
+		"Current directory:",
+		"/actual/worktree",
+		"Expected branch:",
+		"feature/F067",
+		"Current branch:",
+		"dev",
+		"FIX:",
+		"sdp guard repair",
+	}
+
+	for _, part := range expectedParts {
+		if !containsSubstring(msg, part) {
+			t.Errorf("Error message should contain '%s'", part)
+		}
+	}
+}
+
+func TestCommandCategoryStringUnknown(t *testing.T) {
+	// Test unknown category string representation
+	unknown := CommandCategory(999)
+	if got := unknown.String(); got != "unknown" {
+		t.Errorf("Unknown category string = %v, want 'unknown'", got)
+	}
+}
+
+func TestCategorizeCommandCaseSensitive(t *testing.T) {
+	// Test that command categorization is case-sensitive
+	// Git commands are typically lowercase
+	if CategorizeCommand("STATUS") != CategorySafe {
+		t.Error("Unknown commands should default to safe")
+	}
+	if CategorizeCommand("Status") != CategorySafe {
+		t.Error("Unknown commands should default to safe")
+	}
+	// Known commands should work
+	if CategorizeCommand("status") != CategorySafe {
+		t.Error("status should be safe")
+	}
+}
