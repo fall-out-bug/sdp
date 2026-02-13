@@ -44,7 +44,8 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 60.0) {print "Coverage " $3 " is below 60% threshold"; exit 1}}'
+          # WS-067-05: AC1 - Aligned to 80% per .sdp/guard-rules.yml
+          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 80.0) {print "Coverage " $3 " is below 80% threshold"; exit 1}}'
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -184,12 +185,12 @@ jobs:
       - name: Build SDP CLI
         run: go build -o sdp ./cmd/sdp
 
-      - name: "Run guard checks (WS-063-03: AC5)"
+      - name: "Run guard checks (WS-063-03: AC5, WS-067-05: AC2)"
         run: |
           # Uses .sdp/guard-rules.yml from repo root (AC1, AC5)
-          # CI mode: check staged files with JSON output
+          # WS-067-05: AC2 - Guard checks are now BLOCKING (removed || true)
           # The guard check now loads and uses guard rules from .sdp/guard-rules.yml
-          ./sdp guard check --staged --json || true
+          ./sdp guard check --staged --json
 
       - name: Validate guard rules exist
         run: |
@@ -200,6 +201,40 @@ jobs:
             exit 1
           fi
           echo "✅ Guard rules configuration found at .sdp/guard-rules.yml"
+
+      # WS-067-05: AC5 - Validate config consistency
+      - name: Validate quality config consistency
+        run: |
+          echo "Checking quality gate configuration consistency..."
+
+          # Extract coverage threshold from guard-rules.yml (canonical source)
+          GUARD_COVERAGE=$(grep -A2 "coverage-threshold" ../.sdp/guard-rules.yml | grep "minimum:" | awk '{print $2}')
+          echo "Guard rules coverage threshold: $GUARD_COVERAGE%"
+
+          # Check against .sdp/config.yml
+          CONFIG_COVERAGE=$(grep "coverage_threshold" ../.sdp/config.yml | awk '{print $2}')
+          if [ "$CONFIG_COVERAGE" != "$GUARD_COVERAGE" ]; then
+            echo "❌ Mismatch: .sdp/config.yml has $CONFIG_COVERAGE%, guard-rules.yml has $GUARD_COVERAGE%"
+            exit 1
+          fi
+
+          # Check against CI workflow threshold (hardcoded check)
+          CI_THRESHOLD=80
+          if [ "$GUARD_COVERAGE" != "$CI_THRESHOLD" ]; then
+            echo "❌ Mismatch: CI workflow has $CI_THRESHOLD%, guard-rules.yml has $GUARD_COVERAGE%"
+            exit 1
+          fi
+
+          # Check for deprecated TOML config files
+          DEPRECATED_FILES="../quality-gate.toml ../ci-gates.toml"
+          for f in $DEPRECATED_FILES; do
+            if [ -f "$f" ]; then
+              echo "⚠️  Deprecated config file exists: $f"
+              echo "   Consider removing - .sdp/guard-rules.yml is canonical"
+            fi
+          done
+
+          echo "✅ Quality config consistency validated"
 
   cross-platform:
     name: Cross-Platform Build
