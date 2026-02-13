@@ -125,6 +125,19 @@ Examples:
 - **Markdown** — Consistent formatting, no trailing whitespace
 - **Skills** — Follow `prompts/skills/` SKILL.md format
 
+## PR Checklist (F067)
+
+Before submitting a PR, ensure:
+
+- [ ] Go version is 1.24 (`go version`)
+- [ ] Tests pass (`cd sdp-plugin && go test ./...`)
+- [ ] Coverage ≥80% (`go test -cover ./... | grep total`)
+- [ ] Guard checks pass (`./sdp guard check --staged`)
+- [ ] Prompt edits are in `prompts/` only (not `.claude/` or `sdp-plugin/prompts/`)
+- [ ] No `.out`, `bin/`, or `dist/` files staged
+- [ ] Run drift check: `./hooks/check-prompt-drift.sh`
+- [ ] Update relevant documentation if behavior changed
+
 ## Canonical Prompt Paths
 
 **CRITICAL:** All prompt/agent definitions have a single canonical location.
@@ -148,4 +161,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-**Version:** 0.9.0
+**Version:** 0.10.0
