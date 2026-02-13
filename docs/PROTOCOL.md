@@ -4,6 +4,67 @@
 
 ---
 
+## Multi-Level Architecture
+
+SDP is designed as a multi-level product. Each level builds on the previous, but works independently.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  L4: Collaboration (Notifications, Cross-Review)               │
+├─────────────────────────────────────────────────────────────────┤
+│  L3: Orchestration (Distributed Agents, k8s) — Future          │
+├─────────────────────────────────────────────────────────────────┤
+│  L2: Go Tools (Evidence Log, Guard, Checkpoints)               │
+├─────────────────────────────────────────────────────────────────┤
+│  L1: Adapters (Claude Code, Cursor, Windsurf invocation)       │
+├─────────────────────────────────────────────────────────────────┤
+│  L0: Protocol (THIS DOCUMENT)                                  │
+│  ├── Workstream format + Quality gates + TDD                   │
+│  ├── Skills (@build, @review, @oneshot, etc.)                  │
+│  ├── Agent roles (implementer, reviewer, etc.)                 │
+│  └── Beads integration (bd create/close/sync)                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Principle:** L0 works with ANY AI (Opus, GLM, Codex) in ANY tool (Claude Code, Cursor, Windsurf).
+
+### Level Descriptions
+
+| Level | What It Provides | Required? |
+|-------|------------------|-----------|
+| **L0** | Protocol, skills, agents, beads | Yes (foundation) |
+| **L1** | Tool-specific invocation adapters | Optional |
+| **L2** | Go CLI: evidence, guard, checkpoints | Optional |
+| **L3** | Distributed orchestration | Future |
+| **L4** | AI-Human collaboration features | Future |
+
+### Skills in L0
+
+Skills are LLM-agnostic descriptions of workflows:
+
+```
+@build 00-001-01    # Execute workstream with TDD
+@review F001        # Multi-agent quality review
+@oneshot F001       # Autonomous feature execution
+@deploy F001        # Create PR and merge
+```
+
+Each skill describes WHAT to do. L1 adapters provide HOW to invoke (Task tool, agent panel, etc.).
+
+### Beads in L0
+
+Task tracking works without Go tools:
+
+```bash
+bd create --title="Fix bug" --priority=1
+bd close sdp-xxx
+bd sync
+```
+
+Skills reference beads IDs directly: `@build sdp-xxx`
+
+---
+
 ## Quick Start
 
 ```bash
