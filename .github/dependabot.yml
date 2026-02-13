@@ -1,32 +1,50 @@
-# Dependabot configuration for automated dependency updates
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# Dependabot Configuration (WS-067-12)
+# Automatically updates dependencies for security and compatibility
 
 version: 2
 updates:
-  # Python dependencies (Poetry/pyproject.toml)
-  - package-ecosystem: "pip"
+  # Root go.mod (if used)
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "security"
+      - "go"
     commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    allow:
-      - dependency-type: "direct"
-      - dependency-type: "indirect"
+      prefix: "deps"
+
+  # sdp-plugin module (main CLI)
+  - package-ecosystem: "gomod"
+    directory: "/sdp-plugin"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "go"
+    commit-message:
+      prefix: "deps"
+    ignore:
+      # Ignore major version updates for stable dependencies
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
-      - "ci"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
