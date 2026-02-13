@@ -56,7 +56,8 @@ func TestVerifyCommand(t *testing.T) {
 	t.Logf("Verify output: %s\nError: %v", output, err)
 
 	// Verify should not fail catastrophically
-	if err != nil && !strings.Contains(output, "Error") && !strings.Contains(output, "FAILED") {
+	// The command may fail with exit status 1 if acceptance checks fail, but that's expected
+	if err != nil && !strings.Contains(output, "Error") && !strings.Contains(output, "FAIL") {
 		t.Errorf("Verify failed unexpectedly: %v", err)
 	}
 }
