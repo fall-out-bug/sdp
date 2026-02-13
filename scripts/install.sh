@@ -61,22 +61,38 @@ if ! curl -sSLf "$DOWNLOAD_URL" -o "${TMP_DIR}/${ARCHIVE_NAME}"; then
     exit 1
 fi
 
-# Download and verify checksum
+# Download and verify checksum (FATAL on failure - security)
 CHECKSUM_URL="https://github.com/${REPO}/releases/download/${VERSION}/checksums.txt"
 echo "Verifying checksum..."
-curl -sSLf "$CHECKSUM_URL" -o "${TMP_DIR}/checksums.txt" || echo "Warning: Could not download checksums"
-
-if [ -f "${TMP_DIR}/checksums.txt" ]; then
-    cd "$TMP_DIR"
-    if grep -q "${ARCHIVE_NAME}" checksums.txt; then
-        if command -v sha256sum &> /dev/null; then
-            sha256sum -c --ignore-missing checksums.txt || echo "Warning: Checksum verification failed"
-        elif command -v shasum &> /dev/null; then
-            shasum -a 256 -c checksums.txt 2>/dev/null || echo "Warning: Checksum verification failed"
-        fi
-    fi
-    cd - > /dev/null
+if ! curl -sSLf "$CHECKSUM_URL" -o "${TMP_DIR}/checksums.txt"; then
+    echo "ERROR: Could not download checksums from $CHECKSUM_URL"
+    echo "This could indicate a network issue or tampered release."
+    exit 1
 fi
+
+cd "$TMP_DIR"
+if grep -q "${ARCHIVE_NAME}" checksums.txt; then
+    if command -v sha256sum &> /dev/null; then
+        if ! sha256sum -c --ignore-missing checksums.txt; then
+            echo "ERROR: Checksum verification FAILED!"
+            echo "The downloaded archive may have been tampered with."
+            exit 1
+        fi
+    elif command -v shasum &> /dev/null; then
+        if ! shasum -a 256 -c checksums.txt 2>/dev/null; then
+            echo "ERROR: Checksum verification FAILED!"
+            echo "The downloaded archive may have been tampered with."
+            exit 1
+        fi
+    else
+        echo "WARNING: No sha256 tool found, skipping checksum verification"
+    fi
+    echo "✅ Checksum verified"
+else
+    echo "ERROR: Archive ${ARCHIVE_NAME} not found in checksums file"
+    exit 1
+fi
+cd - > /dev/null
 
 # Extract binary
 echo "Extracting..."
