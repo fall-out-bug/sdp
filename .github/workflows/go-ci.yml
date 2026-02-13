@@ -321,3 +321,26 @@ jobs:
             exit 1
           fi
           echo "✅ No duplicate prompt trees"
+
+      # WS-067-07: AC6 - Detect newly tracked binary artifacts
+      - name: Verify no tracked binary artifacts
+        run: |
+          echo "Checking for tracked binary/build artifacts..."
+
+          # Check for tracked .out files (coverage, etc.)
+          TRACKED_OUT=$(git ls-files | grep -E '\.out$' || true)
+          if [ -n "$TRACKED_OUT" ]; then
+            echo "ERROR: Tracked .out files found (should be in .gitignore):"
+            echo "$TRACKED_OUT"
+            exit 1
+          fi
+
+          # Check for tracked binaries in bin/ or dist/
+          TRACKED_BINS=$(git ls-files | grep -E '^(bin/|dist/)' || true)
+          if [ -n "$TRACKED_BINS" ]; then
+            echo "ERROR: Tracked build output found (should be in .gitignore):"
+            echo "$TRACKED_BINS"
+            exit 1
+          fi
+
+          echo "✅ No tracked binary artifacts"

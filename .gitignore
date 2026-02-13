@@ -57,6 +57,12 @@ artifacts/
 archive/
 .oneshot
 .sdp/audit.log
+.sdp/memory.db
+.sdp/checkpoints/
+
+# Build output
+bin/
+dist/
 
 # Temporary status files
 *_STATUS.md
