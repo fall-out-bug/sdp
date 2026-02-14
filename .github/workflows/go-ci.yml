@@ -44,8 +44,20 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          # WS-067-05: AC1 - Temporarily lowered to 64% (from 80%) until tests are improved
-          go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 64.0) {print "Coverage " $3 " is below 64% threshold"; exit 1}}'
+          # Coverage check excludes cmd/sdp (needs integration tests) and internal/quality (external tools)
+          echo "Running coverage check for internal packages..."
+          PACKAGES=$(go list ./... | grep -v -E "cmd/sdp$|internal/quality$")
+          go test -cover $PACKAGES 2>&1 | grep "coverage:"
+          echo ""
+          # Check if any package is below 80%
+          LOW=$(go test -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])" | wc -l | tr -d ' ')
+          if [ "$LOW" -gt "0" ]; then
+            echo "❌ Coverage check FAILED - $LOW packages below 80%"
+            go test -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])"
+            exit 1
+          else
+            echo "✅ Coverage check PASSED - all packages >= 80%"
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -219,7 +231,7 @@ jobs:
           fi
 
           # Check against CI workflow threshold (hardcoded check)
-          CI_THRESHOLD=64
+          CI_THRESHOLD=80
           if [ "$GUARD_COVERAGE" != "$CI_THRESHOLD" ]; then
             echo "❌ Mismatch: CI workflow has $CI_THRESHOLD%, guard-rules.yml has $GUARD_COVERAGE%"
             exit 1

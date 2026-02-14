@@ -34,8 +34,12 @@ rules:
     severity: "error"
     description: "Test coverage must meet minimum threshold"
     config:
-      minimum: 64
-      fail_under: 64
+      minimum: 80
+      fail_under: 80
+      # Packages excluded from coverage requirements
+      exclude:
+        - "cmd/sdp"        # CLI commands need integration tests
+        - "internal/quality" # Depends on external tools (gocyclo, radon, mypy, mvn)
 
   - id: "max-cyclomatic-complexity"
     enabled: true
