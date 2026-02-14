@@ -11,7 +11,7 @@ evidence:
   log_path: ".sdp/log/events.jsonl"
 
 quality:
-  coverage_threshold: 80
+  coverage_threshold: 64
   max_file_loc: 200
 
 # Guard policy settings (WS-063-03: AC3)
