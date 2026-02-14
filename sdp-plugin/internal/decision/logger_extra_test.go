@@ -142,3 +142,84 @@ func TestLogger_Log_ConcurrentSafe(t *testing.T) {
 		t.Errorf("Expected 10 decisions, got %d", len(loaded))
 	}
 }
+
+func TestLogger_Log_AllFields(t *testing.T) {
+	tempDir := t.TempDir()
+	logger, _ := decision.NewLogger(tempDir)
+
+	// Log decision with all fields populated
+	presetTime := time.Date(2025, 6, 15, 10, 30, 0, 0, time.UTC)
+	d := decision.Decision{
+		Type:          decision.DecisionTypeTechnical,
+		Question:      "Should we use Go?",
+		Decision:      "Yes, use Go",
+		Rationale:     "Go provides good performance",
+		Alternatives:  []string{"Python", "Rust"},
+		Outcome:       "Chose Go for backend",
+		DecisionMaker: "team",
+		FeatureID:     "F001",
+		WorkstreamID:  "00-001-01",
+		Tags:          []string{"language", "backend"},
+		Timestamp:     presetTime,
+	}
+
+	if err := logger.Log(d); err != nil {
+		t.Fatalf("Log failed: %v", err)
+	}
+
+	loaded, _ := logger.LoadAll()
+	if len(loaded) != 1 {
+		t.Fatalf("Expected 1 decision, got %d", len(loaded))
+	}
+
+	// Verify all fields were persisted
+	if loaded[0].Type != decision.DecisionTypeTechnical {
+		t.Errorf("Type = %s", loaded[0].Type)
+	}
+	if loaded[0].FeatureID != "F001" {
+		t.Errorf("FeatureID = %s", loaded[0].FeatureID)
+	}
+	if len(loaded[0].Alternatives) != 2 {
+		t.Errorf("Alternatives count = %d", len(loaded[0].Alternatives))
+	}
+	if len(loaded[0].Tags) != 2 {
+		t.Errorf("Tags count = %d", len(loaded[0].Tags))
+	}
+}
+
+func TestLogger_LogBatch_MultipleWithAllFields(t *testing.T) {
+	tempDir := t.TempDir()
+	logger, _ := decision.NewLogger(tempDir)
+
+	decisions := []decision.Decision{
+		{
+			Type:         decision.DecisionTypeTechnical,
+			Question:     "Q1",
+			Decision:     "D1",
+			Rationale:    "R1",
+			Alternatives: []string{"A1"},
+			FeatureID:    "F001",
+			WorkstreamID: "00-001-01",
+			Tags:         []string{"tag1"},
+		},
+		{
+			Type:         decision.DecisionTypeVision,
+			Question:     "Q2",
+			Decision:     "D2",
+			Rationale:    "R2",
+			Alternatives: []string{"A2", "A3"},
+			FeatureID:    "F002",
+			WorkstreamID: "00-002-01",
+			Tags:         []string{"tag2", "tag3"},
+		},
+	}
+
+	if err := logger.LogBatch(decisions); err != nil {
+		t.Fatalf("LogBatch failed: %v", err)
+	}
+
+	loaded, _ := logger.LoadAll()
+	if len(loaded) != 2 {
+		t.Errorf("Expected 2 decisions, got %d", len(loaded))
+	}
+}
