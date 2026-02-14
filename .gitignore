@@ -59,6 +59,9 @@ archive/
 .sdp/audit.log
 .sdp/memory.db
 .sdp/checkpoints/
+.sdp/log/events.jsonl
+sdp-plugin/.sdp/log/events.jsonl
+**/events.jsonl
 
 # Build output
 bin/
