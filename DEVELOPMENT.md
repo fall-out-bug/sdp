@@ -260,3 +260,40 @@ go tool cover -html=coverage.out
 
 **Version:** 1.0.0
 **Updated:** 2026-02-13
+
+---
+
+## F067 Repository Hardening Notes
+
+### Changes Applied (2026-02-14)
+
+| Area | Change |
+|------|--------|
+| Coverage threshold | 64% → 80% |
+| Evidence logs | Removed from git tracking |
+| Agent files | Added debugger.md, visionary.md, fixer.md |
+| Git ignore | Added events.jsonl patterns |
+| Quality gates | Aligned CI with local config |
+
+### Evidence Log Policy
+
+Evidence logs (`.sdp/log/events.jsonl`) are auto-generated session data:
+- **Do not commit** - added to `.gitignore`
+- **Retention**: 90 days
+- **Max size**: 10MB with auto-compaction
+
+### Dual Module Structure
+
+SDP uses two Go modules (see ADR-001):
+- `go.mod` (root) - Core modules
+- `sdp-plugin/go.mod` - CLI implementation
+
+Both use `github.com/fall-out-bug/sdp` module path. Work in `sdp-plugin/` for CLI development.
+
+### Deferred Items
+
+| Item | Reason |
+|------|--------|
+| go.work | Same module name conflict (ADR-001) |
+| Release process | Requires version tagging workflow |
+| src/sdp LOC violations | Legacy code, separate module |
