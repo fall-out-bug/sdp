@@ -319,3 +319,184 @@ func TestComplexityThresholdComparison(t *testing.T) {
 		t.Error("Expected 15 > 10 to fail")
 	}
 }
+
+func TestCheckPythonCoverage_WithCoverageFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .coverage file
+	covFile := filepath.Join(tmpDir, ".coverage")
+	if err := os.WriteFile(covFile, []byte(""), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create coverage.json
+	jsonContent := `{
+		"meta": {},
+		"files": {},
+		"totals": {"percent_covered": 85.5}
+	}`
+	jsonFile := filepath.Join(tmpDir, "coverage.json")
+	if err := os.WriteFile(jsonFile, []byte(jsonContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result := &CoverageResult{
+		Threshold: 80,
+	}
+
+	got, err := checker.checkPythonCoverage(result)
+	if err != nil {
+		t.Logf("checkPythonCoverage error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("checkPythonCoverage should return result")
+	}
+
+	t.Logf("Coverage: %.1f%%, Passed: %v", got.Coverage, got.Passed)
+}
+
+func TestCheckJavaCoverage_WithJacocoCsv(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create target directory with jacoco.csv
+	targetDir := filepath.Join(tmpDir, "target", "site", "jacoco")
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create jacoco.csv with valid format
+	csvContent := `Group,Package,Class,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED,CLASS_MISSED,CLASS_COVERED
+Total,,-,100,400,10,40,10,40,5,15,2,8,0,1
+`
+	jacocoFile := filepath.Join(targetDir, "jacoco.csv")
+	if err := os.WriteFile(jacocoFile, []byte(csvContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result := &CoverageResult{
+		Threshold: 80,
+	}
+
+	got, err := checker.checkJavaCoverage(result)
+	if err != nil {
+		t.Logf("checkJavaCoverage error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("checkJavaCoverage should return result")
+	}
+
+	// 400/(100+400) = 80%
+	t.Logf("Coverage: %.1f%%, Passed: %v", got.Coverage, got.Passed)
+}
+
+func TestCheckComplexity_GoFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create Go files with various complexity
+	for i := 0; i < 3; i++ {
+		content := "package main\n\nfunc test" + string(rune('A'+i)) + "() {\n"
+		for j := 0; j < 10; j++ {
+			content += "\tprintln(\"line\")\n"
+		}
+		content += "}\n"
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go"), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	got, err := checker.CheckComplexity()
+	if err != nil {
+		t.Logf("CheckComplexity error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("CheckComplexity should return result")
+	}
+
+	t.Logf("Complexity: AvgCC=%.1f, MaxCC=%d, Passed=%v", got.AverageCC, got.MaxCC, got.Passed)
+}
+
+func TestCheckComplexity_PythonFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create Python files
+	for i := 0; i < 3; i++ {
+		content := "def test_" + string(rune('a'+i)) + "():\n"
+		for j := 0; j < 10; j++ {
+			content += "    print('line')\n"
+		}
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('a'+i))+".py"), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	got, err := checker.CheckComplexity()
+	if err != nil {
+		t.Logf("CheckComplexity error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("CheckComplexity should return result")
+	}
+
+	t.Logf("Complexity: AvgCC=%.1f, MaxCC=%d, Passed=%v", got.AverageCC, got.MaxCC, got.Passed)
+}
+
+func TestCoverageResult_AllFields(t *testing.T) {
+	result := &CoverageResult{
+		ProjectType: "Go",
+		Coverage:    85.5,
+		Threshold:   80,
+		Passed:      true,
+		Report:      "Coverage report content",
+		FilesBelow: []FileCoverage{
+			{File: "file1.go", Coverage: 45.5},
+			{File: "file2.go", Coverage: 60.0},
+		},
+	}
+
+	if result.ProjectType != "Go" {
+		t.Errorf("ProjectType = %s", result.ProjectType)
+	}
+	if result.Coverage != 85.5 {
+		t.Errorf("Coverage = %f", result.Coverage)
+	}
+	if result.Report != "Coverage report content" {
+		t.Errorf("Report = %s", result.Report)
+	}
+	if len(result.FilesBelow) != 2 {
+		t.Errorf("FilesBelow count = %d", len(result.FilesBelow))
+	}
+}
