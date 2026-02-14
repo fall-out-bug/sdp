@@ -116,7 +116,7 @@ The data is the leverage for platform adoption. Not the spec. Not the SDK.
 
 ### 6. The Real Pricing Is Compliance
 
-**PG:** "Developer-tool pricing is a race to zero. Compliance-driven pricing could work."
+**PG:** "Просто tool-features commoditize quickly. Устойчивее выглядит trust/value layer с измеримыми outcome-метриками."
 
 The buyer: **SOC2 auditors, not developers.**
 
@@ -135,7 +135,7 @@ That's a line item in a compliance budget. Not a dev tools budget.
 | **P1** | Collect measurable verification data | Ongoing | The evidence that breaks chicken-and-egg |
 | **P1** | Static analysis pipeline (mypy + semgrep) | 1 month | Higher ROI than cross-model review |
 | **P2** | Property-based test generation | 2 months | Second-highest ROI verification layer |
-| **P2** | Compliance reporting (SOC2 audit trail) | 2 months | The pricing moat |
+| **P2** | Compliance reporting (SOC2 audit trail) | 2 months | Governance moat via measurable trust outcomes |
 | **P3** | Cross-model review (high-risk WS only) | 3 months | Marginal but marketable |
 | **P3** | Agent SDK for platform embedding | 3 months | Only after measurable data exists |
 | **LATER** | Protocol extraction | 6+ months | Only if framework wins |

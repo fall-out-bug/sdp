@@ -20,7 +20,7 @@
 
 ## Consensus Points (All Four Agree)
 
-1. **The existing system is real.** Not a prototype, not a deck. Working engine with paying customers.
+1. **The existing system is real.** Not a prototype, not a deck. Working engine with real users.
 2. **The provenance gap is real.** AI-generated code without records is a growing problem.
 3. **The kill criteria need fixing.** "500 runs, catch rate < 5%" is either too vague (what is "catch"?), measures the wrong thing (MTTR not catch rate), or is toothless (who enforces?).
 4. **Six weeks is aggressive** for the full Phase 1 scope.

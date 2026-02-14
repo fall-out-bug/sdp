@@ -1,6 +1,7 @@
 # SDP Roadmap
 
 > What we build and in what order.
+> Scope of this document: public OSS repository (`L0-L2`, MIT).
 
 ---
 
@@ -12,7 +13,7 @@
 - **Go engine**: decomposition, dependency graph, parallel dispatcher, synthesis engine, circuit breaker
 - **Verification**: TDD (red → green → refactor), coverage ≥80%, contract validation, types, semgrep
 - **Telemetry**: append-only JSONL collector, atomic write-fsync-rename checkpoints
-- **Enterprise**: 2 contracts (bank, airline), 1 evaluating (marketplace)
+- **Adoption signal**: active dogfooding across multiple production-style projects
 
 ### Broken
 
@@ -22,6 +23,24 @@
 - No model provenance — unknown which model generated what
 - No forensic trace — no way to reconstruct the chain from commit to spec
 - No protocol schema — "protocol" is informal, lives in skill code
+
+---
+
+## Delivery Model (Layered Adoption)
+
+SDP ships as a progressive stack so teams can adopt in slices:
+
+| Level | Scope | Distribution | License |
+|-------|-------|--------------|---------|
+| `L0` | Protocol, prompts, guides, schemas | Claude plugin distribution | MIT |
+| `L1` | Hooks, guard, traces, provenance | Homebrew package | MIT |
+| `L2` | Orchestrator and core tools | Homebrew package | MIT |
+
+### Packaging Rules
+
+- `L0-L2` must be independently installable and useful.
+- Any feature touching adoption must declare target level(s).
+- Default onboarding path starts at `L0`, then opt-in upgrades.
 
 ---
 
@@ -111,11 +130,17 @@ When 10 agents and 5 humans work on 5 features in parallel — who's touching wh
 
 ### Compliance Design Doc
 
-Not code — a document for enterprise conversations.
+Not code — a document for compliance and governance conversations.
 
 - Data residency, retention, RBAC, integrity guarantees
 - Prompt privacy (hash only, never raw prompts)
 - What the hash chain guarantees and what it doesn't
+
+### L0 Distribution Track (MIT)
+
+- Publish protocol starter as Claude plugin/prompt kit
+- Include onboarding flow for protocol-only usage (no orchestrator required)
+- Provide migration path from protocol-only to `L1/L2`
 
 ---
 
@@ -159,7 +184,13 @@ sdp log show --unit 00-001-03           # Evidence for specific unit
 - Verification on every AI-generated PR
 - Evidence chain summary in PR comment
 - Provenance gate: block merge if AI code lacks evidence
-- Free tier: 50 runs/month
+- OSS-friendly defaults for local and CI usage
+
+**L1-L2 Distribution Track (MIT, Homebrew).**
+
+- Package safety bundle (`L1`) and core orchestrator tools (`L2`) via brew
+- Support profile-based install (`protocol`, `safety`, `core`)
+- Keep install path progressive and reversible
 
 **Observability bridge (design).**
 - Deploy markers: tie evidence records to deploy events
@@ -181,7 +212,7 @@ sdp log show --unit 00-001-03           # Evidence for specific unit
 
 ---
 
-## P2 — SDK + Enterprise + Observability
+## P2 — SDK + High-Assurance + Observability
 
 **Verification + Evidence SDK.**
 
@@ -213,13 +244,13 @@ evidence := sdp.Evidence(result)  // Schema-compliant evidence bundle
 - Cross-feature test matrix: "Feature A still works after Feature B's latest workstream"
 - Cost-aware: full matrix for high-risk features, smoke-only for low-risk
 
-**Enterprise features.**
+**High-assurance governance features.**
 - Compliance export: SOC2/HIPAA/DORA-ready evidence format
 - Verification certificates (signed, timestamped)
 - Risk-proportional verification: `auth/` → full trail, `components/` → light
 - Team policies: "all AI PRs need evidence chain"
 - Shared decomposition templates
-- Billing/metering
+- Public policy profiles and stricter verification presets
 
 **IDE.**
 - Cursor plugin
@@ -270,7 +301,7 @@ evidence := sdp.Evidence(result)  // Schema-compliant evidence bundle
 | Scope creep through deep questioning | Scope limiter + ship gate (P0) |
 | Evidence log adds friction | Automatic emission, no opt-in |
 | Models improve, decomposition unnecessary | Provenance valuable regardless. Decomposition is a technique, not the core |
-| Hash chain oversold to enterprise | Honest labeling: corruption detection, not non-repudiation |
+| Hash chain oversold as tamper-proof | Honest labeling: corruption detection, not non-repudiation |
 | Evidence never consulted during incidents | Observability bridge: deploy markers, OTel |
 | Schemas diverge again | Single namespace, CI validation |
 | Cursor/GitHub ships native verification | Protocol + evidence log is the moat |

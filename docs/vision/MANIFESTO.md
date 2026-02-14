@@ -143,21 +143,21 @@ sdp incident <commit>                 # Forensic trace
 
 What already exists is a Claude Code plugin with 19 agent roles [⁴](#footnotes). That's a protocol implementation — not a CLI.
 
-**The order:** Protocol (open standard) → Plugin → CLI → SDK → Enterprise.
+**The order:** Protocol (open standard) → Plugin → CLI → SDK → Ecosystem.
 
 Why:
 - Open protocol gets embedded everywhere. If Cursor, Replit, and others can speak SDP — the standard wins.
-- Enterprise adopts specs, not tools. A bank implements your protocol with their infra team.
+- High-assurance teams adopt specs, not tools. They can implement the protocol inside their own infra.
 - Plugin-first is the fastest path to real users.
 
-### Open-Core
+### Public OSS Scope
 
 | Layer | License |
 |-------|---------|
 | Protocol schema | CC-BY (open) |
-| Verification engine | Open-source |
-| Orchestration + evidence analysis | Proprietary |
-| Enterprise features | Commercial |
+| Verification engine | Open-source (MIT) |
+| Orchestration + evidence analysis | Open-source (MIT) |
+| Public adoption layers (`L0-L2`) | Open-source (MIT) |
 
 ---
 
@@ -165,9 +165,7 @@ Why:
 
 **Code that costs more to fix than to write.**
 
-Fintech. Healthcare. Infrastructure. Enterprise SaaS. Regulated industries.
-
-Enterprise interest validated: a top-3 bank, a major airline, the largest online marketplace — all engaged.
+Fintech. Healthcare. Infrastructure. High-assurance SaaS. Regulated industries.
 
 **Not for:** Landing pages, MVPs, prototypes. If rewriting is cheaper than recording — don't record. Just ship.
 

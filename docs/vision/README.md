@@ -16,7 +16,7 @@ This directory contains strategic thinking about SDP's future direction.
 |----------|--------|
 | What is SDP? | A trust standard for AI-generated software |
 | What is it NOT? | A coding framework, project manager, or prompt library |
-| Who is it for? | Deeptech/enterprise where code costs more to fix than write |
+| Who is it for? | High-assurance teams where code costs more to fix than write |
 | UX model? | One command: `sdp ship "description"` — invisible internals |
 | Architecture? | Protocol (spec) + Framework (implementation), two repos |
 | Integration? | Git hooks + CI (path 1), Agent SDK (path 2) |

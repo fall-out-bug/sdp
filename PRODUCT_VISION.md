@@ -1,11 +1,11 @@
 # PRODUCT_VISION.md
 
-> **Last Updated:** 2026-02-07
-> **Version:** 3.0 (Multi-Agent Architecture)
+> **Last Updated:** 2026-02-14
+> **Version:** 3.2 (Multi-Agent, Public OSS Layered Platform)
 
 ## Mission
 
-Transform SDP into a **multi-agent orchestration system** that enables autonomous feature execution through intelligent agent collaboration, strategic planning, and codebase analysis.
+Transform SDP into a **multi-agent, multi-layer platform** for autonomous software delivery: protocol-first planning, guided CLI UX, and resilient orchestration.
 
 ### Architecture Evolution (v2.0 → v3.0)
 
@@ -17,6 +17,48 @@ Transform SDP into a **multi-agent orchestration system** that enables autonomou
 - Multi-agent architecture enables autonomous execution (higher value)
 - Strategic planning (@vision) and reality checking (@reality) prevent drift
 - Parallel execution achieves 5x speedup vs sequential workflows
+
+## Platform Topology (Public OSS Scope)
+
+SDP is currently delivered as a monorepo, but product direction is explicit: split into multiple repositories once interfaces stabilize.
+
+| Layer | Future Repository | Responsibility |
+|-------|-------------------|----------------|
+| Protocol | `sdp-protocol` | Core spec, schemas, event formats, frontmatter contracts, compatibility policy |
+| CLI | `sdp-cli` | Developer-facing command UX, onboarding, status/help/next-step flow |
+| Orchestrator | `sdp-orchestrator` | Planning/execution engine, dependency graph, dispatch, checkpoint/recovery |
+
+Private extensions may exist outside this repository, but are intentionally out of scope for public OSS planning docs.
+
+## Progressive Adoption Model (L0-L2, Public OSS)
+
+SDP must be adoptable without "the whole spaceship." The operating model is progressive:
+
+| Level | Product Scope | Primary Buyer/User | Distribution Channel | License |
+|-------|---------------|--------------------|----------------------|---------|
+| `L0` | Protocol assets only (prompts, guides, templates, schemas) | Individual developers and teams validating method | Claude plugin + prompt package | MIT |
+| `L1` | Safety and evidence layer (hooks, guard, traces, provenance) | Teams needing control and auditability | Homebrew package | MIT |
+| `L2` | Orchestrator and core SDP tooling | Teams scaling spec-driven execution | Homebrew package | MIT |
+
+### Adoption Principle
+
+- Every level must be independently valuable.
+- `L0-L2` must be installable without non-public dependencies.
+- Upgrade path is additive (`L0` -> `L1` -> `L2`), not all-or-nothing.
+- Feature work must declare which level it belongs to.
+
+### Monorepo-to-Multi-Repo Rules
+
+- Keep layer boundaries explicit in workstreams and architecture docs
+- Evolve contracts before extracting code
+- Avoid hidden cross-layer dependencies that block future split
+- Treat extraction readiness as a roadmap KPI, not an ad-hoc refactor
+
+## Public OSS Commitment
+
+- Public SDP layers in this repository (`L0-L2`) remain MIT.
+- Public docs in this repository track public OSS scope only.
+- Non-public extensions must not become a hard dependency for public layers.
 
 ## Users
 
@@ -35,7 +77,7 @@ Transform SDP into a **multi-agent orchestration system** that enables autonomou
    - Need reality checks on code quality
    - Require autonomous execution of repetitive tasks
 
-## Success Metrics (v3.0 - Multi-Agent)
+## Success Metrics (v3.2 - Public OSS Platform)
 
 ### Delivered ✅
 - [x] Multi-agent orchestration with 19 specialized agents
@@ -57,7 +99,7 @@ Transform SDP into a **multi-agent orchestration system** that enables autonomou
 - [x] Language-agnostic validation (works on any project)
 - [x] Backward compatibility with Python SDP (protocol unchanged)
 
-## Strategic Tradeoffs (v3.0)
+## Strategic Tradeoffs (v3.1)
 
 | Aspect | Decision | Rationale |
 |--------|----------|-----------|
@@ -68,8 +110,10 @@ Transform SDP into a **multi-agent orchestration system** that enables autonomou
 | **Fault Tolerance** | Circuit breaker + checkpoint | Crash-safe execution with automatic recovery |
 | **Language Support** | Go binary with protocol enforcement | Language-agnostic rules via prompts, Go provides performance |
 | **Distribution** | Binary (Go) + Claude skills | Binary for orchestration, skills for protocol definition |
+| **Repository Strategy** | Monorepo now, split later | Faster iteration now; clearer ownership and scaling after contract maturity |
+| **Adoption Model** | Progressive (`L0-L2`) | Low-friction entry with independent OSS adoption layers |
 
-## Architecture Overview (v3.0)
+## Architecture Overview (v3.x Monorepo Runtime)
 
 ```
 Strategic Level                 Analysis Level                 Feature Level                Execution Level

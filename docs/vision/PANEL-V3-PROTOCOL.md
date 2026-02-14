@@ -2,7 +2,7 @@
 
 > **Панель:** Hashimoto (Terraform), Masad (Replit), Collison (Stripe), Dario (Anthropic)
 > **Дата:** 2026-02-08
-> **Фокус:** protocol design, adoption, enterprise readiness, evidence format
+> **Фокус:** protocol design, adoption, high-assurance readiness, evidence format
 
 ---
 
@@ -12,7 +12,7 @@
 |---------|---------|---------|
 | **Hashimoto** | Conditional YES | Schema-first protocol + independent implementation |
 | **Masad** | YES на протокол, NO на методологию | Clean separation protocol/methodology |
-| **Collison** | NOT YET | Compliance design doc, data residency, RBAC, per-seat pricing |
+| **Collison** | NOT YET | Compliance design doc, data residency, RBAC, usage governance model |
 | **Dario** | Interested | Multi-vendor standard, would participate in working group |
 
 ---
@@ -48,11 +48,11 @@
 
 ### Collison: compliance design doc → Phase 1
 
-> "Каждый месяц задержки с compliance doc = 3 месяца задержки enterprise sales cycle."
+> "Каждый месяц задержки с compliance doc = 3 месяца задержки внедрения в high-assurance среды."
 
 Конкретно: data residency, retention policies, RBAC, audit trail immutability. Не build — document the plan.
 
-**Ценообразование:** Per-seat/per-repo annual для enterprise, не usage-based. "Compliance — не фича, которую включают по ситуации. Это checkbox."
+**Модель внедрения:** Compliance должен быть базовой возможностью, а не опциональным дополнением.
 
 ### Dario: third-party verification
 
@@ -75,13 +75,11 @@
 
 ---
 
-## Open-core: уроки HashiCorp
+## Уроки позиционирования формата
 
-> "Don't start Apache 2.0 if you think you might change later. BSL transition was painful."
+**Решение Hashimoto:** Moat = не hash function, а corpus of evidence (failure patterns, risk profiles). Ключевая ценность — накопленный operational corpus.
 
-**Решение Hashimoto:** Moat = не hash function, а corpus of evidence (failure patterns, risk profiles). Evidence DATA — proprietary by nature.
-
-**Формула:** Open ФОРМАТ evidence, proprietary ХРАНЕНИЕ и АНАЛИЗ. Docker model: OCI spec open, Docker Desktop commercial.
+**Формула:** Open ФОРМАТ evidence, open-readability для экосистемы, и реализация хранения/аналитики как отдельный слой вне стандарта формата.
 
 **Dario:** "Evidence format MUST be open. If there's a real AI incident, any auditor/regulator/court must be able to read it."
 

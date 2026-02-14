@@ -463,7 +463,7 @@ A compromised agent injecting malicious code is caught at multiple layers:
 
 ### The Problem
 
-Zero cost awareness. The dispatcher treats all executions equally. Real-world pricing varies 100x across providers.
+Zero cost awareness. The dispatcher treats all executions equally. Real-world provider costs vary 100x across providers.
 
 ### The Solution: Full Economic Router
 

@@ -13,11 +13,11 @@ Enterprise customers (bank, airline, marketplace evaluating) need answers before
 - Are raw prompts ever stored?
 - How does this align with SOC2/HIPAA/DORA?
 
-Without a clear document, every sales conversation reinvents these answers.
+Without a clear document, every stakeholder conversation reinvents these answers.
 
 ## Solution
 
-A single document answering all enterprise compliance questions. Not code — a reference document that sales, legal, and security teams can use.
+A single document answering all enterprise compliance questions. Not code — a reference document that legal, security, and engineering teams can use.
 
 ## Sections
 
