@@ -500,3 +500,51 @@ func TestCoverageResult_AllFields(t *testing.T) {
 		t.Errorf("FilesBelow count = %d", len(result.FilesBelow))
 	}
 }
+
+func TestCheckComplexity_UnsupportedType(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckComplexity()
+	if err == nil {
+		t.Error("Expected error for unsupported project type")
+	}
+
+	t.Logf("Error: %v, Result: %+v", err, result)
+}
+
+func TestCheckTypes_UnsupportedType(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckTypes()
+	if err == nil {
+		t.Error("Expected error for unsupported project type")
+	}
+
+	t.Logf("Error: %v, Result: %+v", err, result)
+}
+
+func TestCheckCoverage_UnsupportedType(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckCoverage()
+	if err == nil {
+		t.Error("Expected error for unsupported project type")
+	}
+
+	t.Logf("Error: %v, Result: %+v", err, result)
+}
