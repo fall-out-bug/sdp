@@ -225,10 +225,12 @@ func TestRecovery_Check_CorruptedSession(t *testing.T) {
 	r := NewRecovery(tmpDir)
 	result, _ := r.Check()
 
-	t.Logf("Check result: Valid=%v, ExitCode=%d, SessionValid=%v", result.Valid, result.ExitCode, result.SessionValid)
+	if result != nil {
+		t.Logf("Check result: Valid=%v, ExitCode=%d, SessionValid=%v", result.Valid, result.ExitCode, result.SessionValid)
 
-	// Corrupted session should result in invalid
-	if result != nil && result.Valid {
-		t.Error("Check should return invalid for corrupted session")
+		// Corrupted session should result in invalid
+		if result.Valid {
+			t.Error("Check should return invalid for corrupted session")
+		}
 	}
 }
