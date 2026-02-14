@@ -90,6 +90,70 @@ This feature provides agents with quick access to decision history, their ration
 
 ---
 
+### Feature F067: Repository Hardening
+
+**🎯 Theme:** Quality Gates Enforcement & Repository Hygiene
+
+This feature enforces 80% test coverage threshold in CI, fixes LOC violations, and improves repository hygiene by removing tracked auto-generated files.
+
+### Added - Quality Gates
+
+**00-067-01: CI Coverage Gate**
+- Enforce 80% coverage threshold in GitHub Actions
+- Fail CI when coverage drops below threshold
+- Coverage report on every push/PR
+
+**00-067-08: DEVELOPMENT.md F067 Notes**
+- Document F067 changes in development guide
+- Reference ADR-001 for evidence log policy
+
+### Changed - Code Quality
+
+**00-067-09: LOC Violation Remediation**
+- Split synthesis_agent.go (560 LOC → 4 files under 200 LOC each)
+- synthesis_agent.go (180 LOC)
+- synthesis_parser.go (146 LOC)
+- synthesis_types.go (96 LOC)
+- synthesis_validation.go (108 LOC)
+
+**00-067-15: Test Coverage Improvement (62% → 79%)**
+- safetylog: 0% → 90.9%
+- verify: 0% → 85.5%
+- hooks: 52.6% → 89.5%
+- guard: 90.0%
+- All packages now at or near 80% threshold
+
+### Fixed - Repository Hygiene
+
+**00-067-03: Missing Agent Files**
+- Added prompts/agents/debugger.md
+- Added prompts/agents/visionary.md
+- Added prompts/agents/fixer.md
+
+**00-067-07: Evidence Log Policy**
+- Removed tracked events.jsonl files
+- Added *.jsonl patterns to .gitignore
+- Configured evidence log policy in .sdp/config.yml
+
+**00-067-10: Module Name Conflict (Deferred)**
+- Deferred per ADR-001 (module name collision)
+- Tracked for future resolution
+
+**What's New:**
+- **CI coverage gate:** 80% threshold enforced in CI/CD
+- **LOC compliance:** All files now < 200 LOC
+- **Repository hygiene:** Auto-generated files excluded from git
+- **Test coverage:** Improved from 62% to 79%+
+
+**Architecture:**
+```
+.sdp/config.yml      # Evidence log policy
+.gitignore           # events.jsonl patterns
+src/sdp/agents/      # Split into 4 files
+```
+
+---
+
 ### Fixed - CI/CD & Quality
 
 - **Go version:** Updated all workflows to Go 1.26 (latest stable)
