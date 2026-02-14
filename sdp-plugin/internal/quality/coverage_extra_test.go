@@ -175,9 +175,9 @@ func TestCheckGoComplexity_NoGocyclo(t *testing.T) {
 // TestNewChecker_DetectByFileExtensions tests project type detection by file count
 func TestNewChecker_DetectByFileExtensions(t *testing.T) {
 	tests := []struct {
-		name          string
-		files         []string
-		expectedType  Type
+		name         string
+		files        []string
+		expectedType Type
 	}{
 		{
 			name:         "Python by majority",

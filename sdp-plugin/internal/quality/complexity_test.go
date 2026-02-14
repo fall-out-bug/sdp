@@ -95,6 +95,7 @@ func TestBasicGoComplexity_EmptyDir(t *testing.T) {
 
 	if got == nil {
 		t.Error("basicGoComplexity should return non-nil result")
+		return
 	}
 
 	if !got.Passed {
@@ -191,6 +192,7 @@ func TestBasicPythonComplexity_EmptyDir(t *testing.T) {
 
 	if got == nil {
 		t.Error("basicPythonComplexity should return non-nil result")
+		return
 	}
 
 	if !got.Passed {
@@ -227,6 +229,7 @@ func TestBasicPythonComplexity_SkipsTestFiles(t *testing.T) {
 
 	if got == nil {
 		t.Error("basicPythonComplexity should return non-nil result")
+		return
 	}
 
 	// Test files should be skipped, so no complex files
