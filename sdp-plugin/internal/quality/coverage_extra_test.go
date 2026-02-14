@@ -36,6 +36,142 @@ func TestCheckPythonCoverageParseOutput(t *testing.T) {
 	_ = result.Coverage
 }
 
+func TestCheckPythonTypes_NoMypy(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a simple Python file
+	pyFile := filepath.Join(tmpDir, "test.py")
+	if err := os.WriteFile(pyFile, []byte("def hello(): pass\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.checkPythonTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkPythonTypes failed: %v", err)
+	}
+
+	if result.ProjectType != "Python" {
+		t.Errorf("ProjectType = %s, want Python", result.ProjectType)
+	}
+
+	t.Logf("Passed: %v, Errors: %d, Warnings: %d", result.Passed, len(result.Errors), len(result.Warnings))
+}
+
+func TestCheckJavaTypes_NoMvn(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a simple Java file structure
+	javaFile := filepath.Join(tmpDir, "Test.java")
+	if err := os.WriteFile(javaFile, []byte("public class Test {}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result, err := checker.checkJavaTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkJavaTypes failed: %v", err)
+	}
+
+	if result.ProjectType != "Java" {
+		t.Errorf("ProjectType = %s, want Java", result.ProjectType)
+	}
+
+	t.Logf("Passed: %v, Errors: %d, Warnings: %d", result.Passed, len(result.Errors), len(result.Warnings))
+}
+
+func TestCheckGoTypes_ValidProject(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a simple Go file
+	goFile := filepath.Join(tmpDir, "test.go")
+	if err := os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.checkGoTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkGoTypes failed: %v", err)
+	}
+
+	if result.ProjectType != "Go" {
+		t.Errorf("ProjectType = %s, want Go", result.ProjectType)
+	}
+
+	t.Logf("Passed: %v, Errors: %d", result.Passed, len(result.Errors))
+}
+
+func TestCheckPythonComplexity_NoRadon(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create Python files
+	pyFile := filepath.Join(tmpDir, "complex.py")
+	content := strings.Repeat("def func(): pass\n", 30)
+	if err := os.WriteFile(pyFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.checkPythonComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("checkPythonComplexity failed: %v", err)
+	}
+
+	t.Logf("AvgCC: %.1f, MaxCC: %d, Passed: %v", result.AverageCC, result.MaxCC, result.Passed)
+}
+
+func TestCheckGoComplexity_NoGocyclo(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create Go files
+	goFile := filepath.Join(tmpDir, "simple.go")
+	content := strings.Repeat("// line\n", 50)
+	if err := os.WriteFile(goFile, []byte("package main\n\n"+content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.checkGoComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("checkGoComplexity failed: %v", err)
+	}
+
+	t.Logf("AvgCC: %.1f, MaxCC: %d, Passed: %v", result.AverageCC, result.MaxCC, result.Passed)
+}
+
 func TestCheckJavaCoverage(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "sdp-cov-java-*")
 	if err != nil {
