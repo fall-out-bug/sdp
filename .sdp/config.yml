@@ -9,6 +9,15 @@ acceptance:
 evidence:
   enabled: true
   log_path: ".sdp/log/events.jsonl"
+  # Evidence Log Policy (F067-07):
+  # - events.jsonl is auto-generated and should NOT be committed
+  # - Each session appends hash-chained events for traceability
+  # - Use 'sdp log trace' to verify chain integrity
+  # - Use 'sdp log export' for archival if needed
+  policy:
+    retention_days: 90
+    max_size_mb: 10
+    auto_compact: true
 
 quality:
   coverage_threshold: 80
