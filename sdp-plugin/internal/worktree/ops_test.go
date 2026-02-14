@@ -16,8 +16,8 @@ func TestDelete_NoWorktree(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	creator := &Creator{
-		MainRepoPath:  tmpDir,
-		WorktreesDir:  tmpDir,
+		MainRepoPath: tmpDir,
+		WorktreesDir: tmpDir,
 	}
 
 	// Delete should fail for non-existent worktree
