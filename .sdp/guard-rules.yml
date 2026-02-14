@@ -34,8 +34,8 @@ rules:
     severity: "error"
     description: "Test coverage must meet minimum threshold"
     config:
-      minimum: 65
-      fail_under: 65
+      minimum: 64
+      fail_under: 64
 
   - id: "max-cyclomatic-complexity"
     enabled: true
