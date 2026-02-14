@@ -30,8 +30,10 @@ func TestGetCurrentBranch(t *testing.T) {
 	}
 
 	// Branch should not contain newlines or spaces
-	if len(branch) != len(branch) {
-		t.Errorf("Branch name contains unexpected characters: %q", branch)
+	for _, r := range branch {
+		if r == '\n' || r == ' ' {
+			t.Errorf("Branch name contains unexpected character: %q", r)
+		}
 	}
 }
 
