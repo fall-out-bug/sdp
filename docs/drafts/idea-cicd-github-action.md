@@ -86,4 +86,4 @@ Chain integrity: ✅ valid (12 events, no breaks)
 
 - Start with GitHub only — GitLab CI as separate workstream
 - Action is open source — the verification logic is the open core
-- Free tier encourages adoption; enterprise features (signed certs) are paid
+- Public OSS distribution encourages adoption; advanced signed-certificate workflows can stay outside this repository scope

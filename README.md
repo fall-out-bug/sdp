@@ -14,6 +14,30 @@ SDP is a protocol for AI-assisted development. You describe what to build, SDP b
 **Written in:** Go (protocol is language-agnostic)
 **Tracks tasks with:** [Beads CLI](https://github.com/beads-dev/beads)
 
+### Product Direction (Multi-Layer SDP)
+
+SDP is evolving as a **multi-layer platform**. Today it ships from one repository; in the long term it will split into dedicated repositories with clean contracts:
+
+- `sdp-protocol` - protocol spec, schemas, frontmatter contracts, compatibility rules
+- `sdp-cli` - developer CLI, onboarding UX, status/help/next-step surfaces
+- `sdp-orchestrator` - execution engine, dependency scheduler, recovery/checkpoint logic
+
+Public repository scope is `protocol + cli + orchestrator` with clear contracts and progressive adoption.
+
+Current roadmap work (F068+) is planned with these boundaries so extraction to multi-repo stays low-risk.
+
+### Progressive OSS Adoption
+
+SDP is packaged as a progressive stack so teams can adopt only what they need:
+
+| Level | Scope | Distribution | License |
+|-------|-------|--------------|---------|
+| `L0` | Protocol-only (`prompts`, guides, schemas) | Claude plugin/prompt distribution | MIT |
+| `L1` | Safety bundle (hooks, guard, traces, provenance) | Homebrew (`brew install`) | MIT |
+| `L2` | Orchestrator and core SDP tools | Homebrew (`brew install`) | MIT |
+
+Public commitment: `L0-L2` in this repository remain MIT and independently adoptable.
+
 ---
 
 ## Installation
@@ -350,7 +374,7 @@ your-project/
 │   │   ├── adr/              # Architecture decisions
 │   │   └── workstreams/      # Backlog and completed
 │   ├── CLAUDE.md             # Claude Code guide
-│   ├── PRODUCT_VISION.md     # Product vision v3.0
+│   ├── PRODUCT_VISION.md     # Product vision v3.1
 │   └── CHANGELOG.md          # Version history
 ├── docs/workstreams/         # Your project's workstreams
 └── .beads/                   # Task tracking (auto-created)
@@ -366,10 +390,12 @@ your-project/
 | [CLAUDE.md](CLAUDE.md) | Claude Code quick reference |
 | [PRODUCT_VISION.md](PRODUCT_VISION.md) | Product vision and architecture |
 | [docs/reference/](docs/reference/) | Commands, quality gates, configuration |
+| [docs/reference/installation.md](docs/reference/installation.md) | Profile-based installation (`protocol`, `safety`, `core`) |
 | [docs/reference/agent-catalog.md](docs/reference/agent-catalog.md) | All 19+ agent definitions |
 | [docs/vision/](docs/vision/) | Strategic vision and roadmap |
+| [docs/vision/LAYERED-ADOPTION.md](docs/vision/LAYERED-ADOPTION.md) | Progressive public OSS adoption model (`L0-L2`) |
 | [docs/runbooks/](docs/runbooks/) | Operational runbooks |
-| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance (evidence, GDPR, SOC2) |
+| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Compliance and governance reference (evidence, GDPR, SOC2) |
 | [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model and accepted risks |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 

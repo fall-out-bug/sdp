@@ -16,9 +16,9 @@ SDP already has a functioning engine. This is not aspirational — it's running 
 
 **Two modes.** `ship` (autonomous) and `drive` (human-in-the-loop). Progressive disclosure — start simple, deepen when needed. Works.
 
-**Enterprise traction.** Top-3 bank (contracted). Major airline (contracted). Largest marketplace (evaluating). Real money, not letters of intent.
+**Real-world traction.** Used in production-style workflows with strict quality and traceability requirements.
 
-**This is not a prototype.** It's a working system with paying customers.
+**This is not a prototype.** It's a working system with real operational usage.
 
 ---
 
@@ -161,7 +161,7 @@ The 19 skills are the implementation. The three commands are the interface. User
 2. **"What happened?" will be mandatory.** Courtrooms, audits, incident reviews will demand records.
 3. **Provenance is permanent.** Regardless of model capability — the record of what generated what never stops being valuable.
 4. **Forensics > Verification.** "Did it pass?" is table stakes. "What happened?" is the moat.
-5. **Protocol > Product.** A schema that others implement beats a tool that only we sell.
+5. **Protocol > Product.** A schema that others implement beats a closed tool.
 
 ---
 
@@ -174,7 +174,7 @@ The 19 skills are the implementation. The three commands are the interface. User
 | Fintech | Forensic proof that payment code was verified, by which model |
 | Healthcare | HIPAA audit trail for AI code provenance |
 | Infrastructure | `terraform plan` for AI code — see before you execute |
-| Enterprise SaaS | Policy: "all AI PRs need evidence chain" |
+| High-assurance SaaS | Policy: "all AI PRs need evidence chain" |
 | Regulated industries | SOC2/DORA/ISO 27001 compliance export |
 
 **Not for:** Landing pages, MVPs, disposable code. If rewriting is cheaper than recording — just ship.

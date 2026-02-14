@@ -226,7 +226,7 @@ User interacts at two points: **the prompt** (input) and **the PR** (output). Ev
 2. AI-native dev agencies ($100-300/project) — orchestration layer
 3. Platform companies (licensing) — Cursor/Replit adding "structured mode"
 
-**Vibe coders will never pay for SDP.** The money is B2B.
+**Vibe coders may not be the first adopters.** Initial traction is stronger in high-assurance teams.
 
 ---
 
@@ -348,7 +348,7 @@ That's it. Everything else is ceremony.
 
 6. **The escape hatches are the confession.** `@prototype`, `--quiet`, `--skip-interview` prove the main path is too heavy.
 
-7. **The money is B2B/enterprise, not vibecoders.** Don't try to be approachable to everyone. Be essential for teams that need predictability guarantees.
+7. **Primary fit is high-assurance teams, not vibecoders.** Don't try to be approachable to everyone. Be essential for teams that need predictability guarantees.
 
 ### The Uncomfortable Truths
 
@@ -393,7 +393,7 @@ That's it. Everything else is ceremony.
 
 8. **Extract the protocol layer.** Coordination semantics (dependency graphs, checkpoints, agent contracts) into `sdp-spec`. Shed methodology opinions.
 9. **Build the "one command" UX:** `sdp "Add OAuth2 login"` → invisible planning → invisible execution → PR.
-10. **Target B2B explicitly.** Audit trails, cost tracking, compliance features. This is where the money is.
+10. **Target high-assurance workflows explicitly.** Audit trails, cost tracking, compliance features. This is where adoption stickiness is strongest.
 
 ### Long Term (This Year)
 
@@ -411,4 +411,4 @@ The verification properties (tests, types, small files, adversarial review) and 
 
 The ceremony (24 skills, 42 questions, guard activation, workstream IDs, four-level planning model) is a tax that fights against every trend in AI-assisted development.
 
-**Strip the ceremony. Keep the verification. Make it invisible. Sell it to enterprises.**
+**Strip the ceremony. Keep the verification. Make it invisible.**

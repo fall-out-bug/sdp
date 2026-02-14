@@ -32,7 +32,7 @@ Complete catalog of all 19 agents in the SDP multi-agent system.
 **Role:** Analyzes business model and ROI
 **When to use:** Need business case
 **Input:** Product concept
-**Output:** Business model, revenue projections
+**Output:** Business model, adoption projections
 
 ### 6. Growth Strategist
 **Role:** Plans user acquisition and growth

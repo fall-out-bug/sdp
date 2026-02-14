@@ -191,7 +191,7 @@ This is the vibe-coder's feedback loop (run it after every change), formalized i
 
 ---
 
-## P2 — SDK + Enterprise + Observability
+## P2 — SDK + High-Assurance + Observability
 
 ### SDK
 
@@ -229,7 +229,7 @@ SDK = verification + evidence. Decomposition stays in CLI/plugin.
 | Risk-triggered | Auto for auth, payments, data deletion |
 | Model selection policy | Route by risk |
 
-### Enterprise
+### High-Assurance Governance
 
 | Feature | Description |
 |---------|-------------|
@@ -238,7 +238,7 @@ SDK = verification + evidence. Decomposition stays in CLI/plugin.
 | Risk-proportional | `auth/` → full trail, `components/` → light |
 | Team policies | "All AI PRs need evidence" |
 | Decomposition templates | Per-company patterns |
-| Billing/metering | Usage tracking |
+| Policy profiles | Stricter verification presets for critical paths |
 
 ### IDE
 

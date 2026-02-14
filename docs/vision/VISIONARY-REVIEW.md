@@ -11,7 +11,7 @@
 | Expert | Verdict |
 |--------|---------|
 | **Karpathy** | "Decomposition compensates for specification sparsity, not model weakness. That's a stronger argument — even perfect models benefit." |
-| **Masad** | "Sell to developers first, compliance second. Free GitHub Action → devs love it → managers notice → compliance asks for audit trails → enterprise sale." |
+| **Masad** | "Adopt with developers first, compliance second. Free GitHub Action → devs use it → managers notice → compliance asks for audit trails." |
 | **Levels** | "Ship it yesterday. The manifesto is 2x too long. The tool is the manifesto." |
 | **Willison** | "Ship a semgrep ruleset for AI-generated code in week 1. The Action follows. The CLI follows. The data collection starts immediately." |
 
