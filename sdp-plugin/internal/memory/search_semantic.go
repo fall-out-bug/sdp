@@ -3,10 +3,13 @@ package memory
 import "github.com/fall-out-bug/sdp/internal/safetylog"
 
 // Hybrid search weights (must sum to 1.0)
+// Rationale: FTS and semantic search are equally important for finding relevant content.
+// Graph relationships are supplementary, providing context from related artifacts.
+// These weights can be tuned based on domain-specific evaluation metrics.
 const (
-	weightFTS      = 0.4 // Full-text search weight
-	weightSemantic = 0.4 // Semantic similarity weight
-	weightGraph    = 0.2 // Graph relationship weight
+	weightFTS      = 0.4 // Full-text search weight - exact keyword matching
+	weightSemantic = 0.4 // Semantic similarity weight - conceptual relevance
+	weightGraph    = 0.2 // Graph relationship weight - contextual connections
 )
 
 // semanticSearch performs semantic similarity search (AC2)

@@ -1,5 +1,5 @@
 # Multi-stage build for SDP
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 # Build version can be overridden at build time
 ARG VERSION=dev

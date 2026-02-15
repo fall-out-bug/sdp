@@ -158,8 +158,8 @@ func (a *App) fetchIdeas() []IdeaSummary {
 
 // fetchTestResults fetches test results
 func (a *App) fetchTestResults() TestSummary {
-	// TODO: Actually run tests or read coverage files
-	// For now, return placeholder data
+	// Future: Integrate with go test -cover output
+	// For now, return placeholder data (dashboard MVP)
 	return TestSummary{
 		Coverage: "N/A",
 		Passing:  0,
