@@ -403,3 +403,292 @@ func indexOfStr(s, substr string) int {
 	}
 	return -1
 }
+
+// TestCreateBackup_ReadError verifies error handling for missing file
+func TestCreateBackup_ReadError(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	_, err := manager.CreateBackup("/nonexistent/path/lock.json", "test")
+	if err == nil {
+		t.Error("expected error for nonexistent file")
+	}
+	if !contains(err.Error(), "failed to read lock file") {
+		t.Errorf("expected read error, got: %v", err)
+	}
+}
+
+// TestCreateBackup_ParseError verifies error handling for invalid JSON
+func TestCreateBackup_ParseError(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	// Create invalid JSON file
+	lockPath := filepath.Join(tmpDir, "invalid.lock")
+	os.WriteFile(lockPath, []byte("not valid json"), 0644)
+
+	_, err := manager.CreateBackup(lockPath, "test")
+	if err == nil {
+		t.Error("expected error for invalid JSON")
+	}
+	if !contains(err.Error(), "failed to parse lock file") {
+		t.Errorf("expected parse error, got: %v", err)
+	}
+}
+
+// TestRestoreFromBackup_ReadError verifies error handling for missing backup
+func TestRestoreFromBackup_ReadError(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	result, err := manager.RestoreFromBackup("/tmp/lock.json", "/nonexistent/backup.json")
+	if err == nil {
+		t.Error("expected error for nonexistent backup")
+	}
+	if result.Success {
+		t.Error("expected failure result")
+	}
+	if !contains(result.ErrorMessage, "failed to read backup") {
+		t.Errorf("expected read error, got: %s", result.ErrorMessage)
+	}
+}
+
+// TestRestoreFromBackup_ParseError verifies error handling for corrupt backup
+func TestRestoreFromBackup_ParseError(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	// Create corrupt backup
+	backupPath := filepath.Join(tmpDir, "corrupt.backup")
+	os.WriteFile(backupPath, []byte("not valid json"), 0644)
+
+	result, err := manager.RestoreFromBackup(filepath.Join(tmpDir, "lock.json"), backupPath)
+	if err == nil {
+		t.Error("expected error for corrupt backup")
+	}
+	if result.Success {
+		t.Error("expected failure result")
+	}
+	if !contains(result.ErrorMessage, "failed to parse backup") {
+		t.Errorf("expected parse error, got: %s", result.ErrorMessage)
+	}
+}
+
+// TestListBackups_EmptyDirectory verifies empty backup directory
+func TestListBackups_EmptyDirectory(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	backups, err := manager.ListBackups("telemetry")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(backups) != 0 {
+		t.Errorf("expected 0 backups, got %d", len(backups))
+	}
+}
+
+// TestListBackups_NonexistentDirectory verifies nonexistent backup directory
+func TestListBackups_NonexistentDirectory(t *testing.T) {
+	manager := NewLockRecoveryManager("/nonexistent/backup/dir", 5)
+
+	backups, err := manager.ListBackups("telemetry")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(backups) != 0 {
+		t.Errorf("expected 0 backups for nonexistent dir, got %d", len(backups))
+	}
+}
+
+// TestListBackups_SkipsDirectories verifies directories are skipped
+func TestListBackups_SkipsDirectories(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	// Create a directory that matches the prefix
+	os.Mkdir(filepath.Join(tmpDir, "telemetry-subdir"), 0755)
+
+	backups, err := manager.ListBackups("telemetry")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(backups) != 0 {
+		t.Errorf("expected 0 backups (directories skipped), got %d", len(backups))
+	}
+}
+
+// TestListBackups_SkipsUnreadableFiles verifies unreadable files are skipped
+func TestListBackups_SkipsUnreadableFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	// Create unreadable backup (corrupt JSON)
+	backupPath := filepath.Join(tmpDir, "telemetry-123.backup")
+	os.WriteFile(backupPath, []byte("corrupt"), 0644)
+
+	backups, err := manager.ListBackups("telemetry")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Corrupt files should be skipped, not cause error
+	if len(backups) != 0 {
+		t.Errorf("expected 0 backups (corrupt skipped), got %d", len(backups))
+	}
+}
+
+// TestCleanOldBackups_SortingOrder verifies cleanup happens when over limit
+func TestCleanOldBackups_SortingOrder(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 2) // Keep only 2
+
+	// Create test lock
+	lock := ContractLock{
+		FeatureName:    "telemetry",
+		ContractSHA:    "abc123",
+		LockedAt:       time.Now(),
+		LockedBy:       "test",
+		ContractPath:   "",
+		ValidationHash: "",
+	}
+	lockPath := filepath.Join(tmpDir, "telemetry.lock")
+	lockData, _ := json.MarshalIndent(lock, "", "  ")
+	os.WriteFile(lockPath, lockData, 0644)
+
+	// Create backups with delays to ensure different timestamps
+	manager.CreateBackup(lockPath, "backup1")
+	time.Sleep(100 * time.Millisecond)
+	manager.CreateBackup(lockPath, "backup2")
+	time.Sleep(100 * time.Millisecond)
+	manager.CreateBackup(lockPath, "backup3")
+
+	// Check that we have exactly 2 backups after cleanup
+	backups, _ := manager.ListBackups("telemetry")
+	if len(backups) != 2 {
+		t.Errorf("expected 2 backups after cleanup, got %d", len(backups))
+	}
+}
+
+// TestCleanOldBackups_NoCleanupNeeded verifies no cleanup when under limit
+func TestCleanOldBackups_NoCleanupNeeded(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	lock := ContractLock{
+		FeatureName:    "telemetry",
+		ContractSHA:    "abc123",
+		LockedAt:       time.Now(),
+		LockedBy:       "test",
+	}
+	lockPath := filepath.Join(tmpDir, "telemetry.lock")
+	lockData, _ := json.MarshalIndent(lock, "", "  ")
+	os.WriteFile(lockPath, lockData, 0644)
+
+	backup, _ := manager.CreateBackup(lockPath, "backup1")
+
+	// Should still exist (under limit)
+	_, err := os.Stat(backup.BackupPath)
+	if os.IsNotExist(err) {
+		t.Error("backup should still exist when under limit")
+	}
+}
+
+// TestCleanOldBackups_RemovesMultiple verifies multiple old backups removed
+func TestCleanOldBackups_RemovesMultiple(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 2) // Keep only 2
+
+	lock := ContractLock{
+		FeatureName:    "telemetry",
+		ContractSHA:    "abc123",
+		LockedAt:       time.Now(),
+		LockedBy:       "test",
+	}
+	lockPath := filepath.Join(tmpDir, "telemetry.lock")
+	lockData, _ := json.MarshalIndent(lock, "", "  ")
+	os.WriteFile(lockPath, lockData, 0644)
+
+	// Create 5 backups
+	for i := 0; i < 5; i++ {
+		manager.CreateBackup(lockPath, "backup")
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	// Should have only 2 after cleanup
+	backups, _ := manager.ListBackups("telemetry")
+	if len(backups) != 2 {
+		t.Errorf("expected 2 backups after cleanup, got %d", len(backups))
+	}
+}
+
+// TestRecoverLock_WithBackups verifies recovery with available backups
+func TestRecoverLock_WithBackups(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	// Create lock and backup
+	lock := ContractLock{
+		FeatureName:    "telemetry",
+		ContractSHA:    "original",
+		LockedAt:       time.Now(),
+		LockedBy:       "test",
+		ContractPath:   "",
+		ValidationHash: "",
+	}
+	lockPath := filepath.Join(tmpDir, "telemetry.lock")
+	lockData, _ := json.MarshalIndent(lock, "", "  ")
+	os.WriteFile(lockPath, lockData, 0644)
+
+	manager.CreateBackup(lockPath, "pre-corruption")
+
+	// Corrupt the lock
+	os.WriteFile(lockPath, []byte("{corrupted"), 0644)
+
+	// Recover
+	result, err := manager.RecoverLock(lockPath)
+	if err != nil {
+		t.Fatalf("RecoverLock failed: %v", err)
+	}
+
+	if !result.Success {
+		t.Errorf("expected success, got: %s", result.ErrorMessage)
+	}
+}
+
+// TestRecoverLock_AllBackupsCorrupt verifies handling when all backups corrupt
+func TestRecoverLock_AllBackupsCorrupt(t *testing.T) {
+	tmpDir := t.TempDir()
+	manager := NewLockRecoveryManager(tmpDir, 5)
+
+	// Create valid lock
+	lock := ContractLock{
+		FeatureName:    "telemetry",
+		ContractSHA:    "abc123",
+		LockedAt:       time.Now(),
+		LockedBy:       "test",
+	}
+	lockPath := filepath.Join(tmpDir, "telemetry.lock")
+	lockData, _ := json.MarshalIndent(lock, "", "  ")
+	os.WriteFile(lockPath, lockData, 0644)
+
+	manager.CreateBackup(lockPath, "test")
+
+	// Corrupt both lock and backup
+	os.WriteFile(lockPath, []byte("{corrupted"), 0644)
+	// Find and corrupt backup
+	entries, _ := os.ReadDir(tmpDir)
+	for _, e := range entries {
+		if filepath.Ext(e.Name()) == ".backup" {
+			os.WriteFile(filepath.Join(tmpDir, e.Name()), []byte("{corrupted"), 0644)
+		}
+	}
+
+	// Recovery should fail
+	result, err := manager.RecoverLock(lockPath)
+	if err == nil {
+		t.Error("expected error when all backups corrupt")
+	}
+	if result.Success {
+		t.Error("expected failure when all backups corrupt")
+	}
+}
