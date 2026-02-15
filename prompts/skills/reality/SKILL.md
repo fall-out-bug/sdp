@@ -14,11 +14,18 @@ changes:
 
 ---
 
-## EXECUTE THIS NOW
+## Workflow
 
 When user invokes `@reality`:
 
-### Step 0: Auto-Detect Project Type
+1. Auto-detect project type
+2. Run scan based on mode (--quick, --deep, --focus)
+3. Spawn expert agents in parallel using Task tool
+4. Synthesize report with health score
+
+---
+
+## Step 0: Auto-Detect Project Type
 
 ```bash
 # Detect language/framework
@@ -30,7 +37,7 @@ else PROJECT_TYPE="unknown"
 fi
 ```
 
-### Step 1: Quick Scan (--quick mode)
+## Step 1: Quick Scan (--quick mode)
 
 **Analysis:**
 1. Project size (lines of code, file count)
@@ -41,20 +48,32 @@ fi
 
 **Output:** Health Score X/100 + Top 5 Issues
 
-### Step 2: Deep Analysis (--deep mode)
+## Step 2: Deep Analysis (--deep mode)
 
-Run 8 parallel expert analyses:
+Spawn 8 parallel expert analyses using Task tool with subagent_type:
 
-1. **Architecture Expert** - Layer mapping, dependencies, violations
-2. **Code Quality Expert** - File size, complexity, duplication
-3. **Testing Expert** - Coverage, test quality, frameworks
-4. **Security Expert** - Secrets, OWASP, dependencies
-5. **Performance Expert** - Bottlenecks, caching, scalability
-6. **Documentation Expert** - Coverage, drift, quality
-7. **Technical Debt Expert** - TODO/FIXME, code smells
-8. **Standards Expert** - Conventions, error handling, types
+```
+Task(subagent_type="general-purpose", prompt="Analyze ARCHITECTURE...")
+Task(subagent_type="general-purpose", prompt="Analyze CODE QUALITY...")
+Task(subagent_type="general-purpose", prompt="Analyze TESTING...")
+Task(subagent_type="general-purpose", prompt="Analyze SECURITY...")
+Task(subagent_type="general-purpose", prompt="Analyze PERFORMANCE...")
+Task(subagent_type="general-purpose", prompt="Analyze DOCUMENTATION...")
+Task(subagent_type="general-purpose", prompt="Analyze TECHNICAL DEBT...")
+Task(subagent_type="general-purpose", prompt="Analyze STANDARDS...")
+```
 
-### Step 3: Synthesize Report
+Expert agents:
+1. ARCHITECTURE expert - Layer mapping, dependencies, violations
+2. CODE QUALITY expert - File size, complexity, duplication
+3. TESTING expert - Coverage, test quality, frameworks
+4. SECURITY expert - Secrets, OWASP, dependencies
+5. PERFORMANCE expert - Bottlenecks, caching, scalability
+6. DOCUMENTATION expert - Coverage, drift, quality
+7. TECHNICAL DEBT expert - TODO/FIXME, code smells
+8. STANDARDS expert - Conventions, error handling, types
+
+## Step 3: Synthesize Report
 
 Create comprehensive report with:
 - Executive Summary with Health Score
@@ -79,11 +98,12 @@ Create comprehensive report with:
 
 | Mode | Duration | Purpose |
 |------|----------|---------|
-| `--quick` | 5-10 min | Health check + top issues |
-| `--deep` | 30-60 min | Comprehensive with 8 experts |
-| `--focus=topic` | Varies | Single expert deep dive |
-
-**Focus topics:** security, architecture, testing, performance
+| `@reality --quick` | 5-10 min | Health check + top issues |
+| `@reality --deep` | 30-60 min | Comprehensive with 8 experts |
+| `@reality --focus=security` | Varies | Security expert deep dive |
+| `@reality --focus=architecture` | Varies | Architecture expert deep dive |
+| `@reality --focus=testing` | Varies | Testing expert deep dive |
+| `@reality --focus=performance` | Varies | Performance expert deep dive |
 
 ---
 
@@ -111,7 +131,7 @@ Create comprehensive report with:
 
 ## Vision Integration
 
-If PRODUCT_VISION.md exists, compare reality to vision:
+If PRODUCT_VISION.md exists, compare reality to vision with Vision vs Reality Gap analysis:
 
 | Feature | PRD Status | Reality Status | Gap |
 |---------|------------|----------------|-----|
