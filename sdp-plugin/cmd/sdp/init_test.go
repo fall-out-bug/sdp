@@ -3,9 +3,11 @@ package main
 import (
 	"os"
 	"testing"
+
+	"github.com/fall-out-bug/sdp/internal/sdpinit"
 )
 
-// TestDetectProjectType tests automatic project type detection
+// TestDetectProjectType tests automatic project type detection via sdpinit
 func TestDetectProjectType(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -18,24 +20,19 @@ func TestDetectProjectType(t *testing.T) {
 			expectedType: "python",
 		},
 		{
-			name:         "java project with maven",
-			createFile:   "pom.xml",
-			expectedType: "java",
-		},
-		{
-			name:         "java project with gradle",
-			createFile:   "build.gradle",
-			expectedType: "java",
-		},
-		{
 			name:         "go project",
 			createFile:   "go.mod",
 			expectedType: "go",
 		},
 		{
-			name:         "agnostic project",
+			name:         "node project",
+			createFile:   "package.json",
+			expectedType: "node",
+		},
+		{
+			name:         "unknown project",
 			createFile:   "",
-			expectedType: "agnostic",
+			expectedType: "unknown",
 		},
 	}
 
@@ -58,9 +55,9 @@ func TestDetectProjectType(t *testing.T) {
 				t.Fatalf("Failed to chdir: %v", err)
 			}
 
-			result := detectProjectType()
+			result := sdpinit.DetectProjectType()
 			if result != tt.expectedType {
-				t.Errorf("detectProjectType() = %s, want %s", result, tt.expectedType)
+				t.Errorf("DetectProjectType() = %s, want %s", result, tt.expectedType)
 			}
 		})
 	}
@@ -146,6 +143,39 @@ func TestInitCmdWithSkipBeads(t *testing.T) {
 	}
 
 	// Check that .claude directory was created
+	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .claude directory")
+	}
+}
+
+// TestInitCmdWithAuto tests init with --auto flag
+func TestInitCmdWithAuto(t *testing.T) {
+	originalWd, _ := os.Getwd()
+	tmpDir := t.TempDir()
+
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
+	// Create prompts directory
+	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+		t.Fatalf("Failed to create prompts dir: %v", err)
+	}
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+		t.Fatalf("Failed to create test prompt: %v", err)
+	}
+
+	cmd := initCmd()
+	if err := cmd.Flags().Set("auto", "true"); err != nil {
+		t.Fatalf("Failed to set auto flag: %v", err)
+	}
+
+	err := cmd.RunE(cmd, []string{})
+	if err != nil {
+		t.Errorf("initCmd() with auto failed: %v", err)
+	}
+
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
 	}
