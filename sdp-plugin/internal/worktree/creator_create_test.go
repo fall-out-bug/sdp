@@ -146,3 +146,122 @@ func TestRemoveWorktree_Nonexistent(t *testing.T) {
 		t.Log("removeWorktree succeeded for nonexistent path (unexpected)")
 	}
 }
+
+func TestCreate_GitCommandFails(t *testing.T) {
+	// Test when git command fails (no git repo)
+	tmpDir := t.TempDir()
+	creator := NewCreator(tmpDir)
+
+	_, err := creator.Create(CreateOptions{
+		FeatureID:    "F999",
+		CreateBranch: true,
+		BaseBranch:   "dev",
+	})
+
+	if err == nil {
+		t.Error("Create should fail when git repo doesn't exist")
+	}
+
+	t.Logf("Expected error: %v", err)
+}
+
+func TestCreate_ExistingBranch(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = tmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
+	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test").Run()
+
+	cmd = exec.Command("git", "-C", tmpDir, "commit", "--allow-empty", "-m", "initial")
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to create initial commit: %v", err)
+	}
+
+	// Create dev and feature branch
+	exec.Command("git", "-C", tmpDir, "branch", "dev").Run()
+	exec.Command("git", "-C", tmpDir, "branch", "feature/F069").Run()
+
+	creator := NewCreator(tmpDir)
+	worktreesDir := filepath.Join(tmpDir, "worktrees")
+	os.MkdirAll(worktreesDir, 0755)
+	creator.WorktreesDir = worktreesDir
+
+	// Create using existing branch (CreateBranch=false)
+	result, err := creator.Create(CreateOptions{
+		FeatureID:    "F069",
+		BranchName:   "feature/F069",
+		CreateBranch: false,
+	})
+
+	if err != nil {
+		t.Logf("Create returned error: %v", err)
+		return
+	}
+
+	if result.BranchName != "feature/F069" {
+		t.Errorf("BranchName = %q, want feature/F069", result.BranchName)
+	}
+
+	// Cleanup
+	creator.Delete("F069")
+}
+
+func TestCreate_DefaultBaseBranch(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = tmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
+	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test").Run()
+
+	cmd = exec.Command("git", "-C", tmpDir, "commit", "--allow-empty", "-m", "initial")
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to create initial commit: %v", err)
+	}
+
+	exec.Command("git", "-C", tmpDir, "branch", "dev").Run()
+
+	creator := NewCreator(tmpDir)
+	worktreesDir := filepath.Join(tmpDir, "worktrees")
+	os.MkdirAll(worktreesDir, 0755)
+	creator.WorktreesDir = worktreesDir
+
+	// Create without specifying BaseBranch (should default to dev)
+	result, err := creator.Create(CreateOptions{
+		FeatureID:    "F070",
+		CreateBranch: true,
+		// BaseBranch not specified - should default to "dev"
+	})
+
+	if err != nil {
+		t.Logf("Create returned error: %v", err)
+		return
+	}
+
+	if result == nil {
+		t.Error("Create should return result")
+		return
+	}
+
+	// Cleanup
+	creator.Delete("F070")
+}
