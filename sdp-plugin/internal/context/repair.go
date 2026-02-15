@@ -37,12 +37,7 @@ func (r *Recovery) Clean() ([]string, error) {
 
 // Repair rebuilds the session from git state (AC6).
 func (r *Recovery) Repair() error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("get working directory: %w", err)
-	}
-
-	branch, err := getCurrentBranch()
+	branch, err := getCurrentBranchIn(r.ProjectRoot)
 	if err != nil {
 		return fmt.Errorf("get current branch: %w", err)
 	}
@@ -52,12 +47,12 @@ func (r *Recovery) Repair() error {
 		return fmt.Errorf("could not extract feature ID from branch %s", branch)
 	}
 
-	remote, err := getRemoteTracking()
+	remote, err := getRemoteTrackingIn(r.ProjectRoot)
 	if err != nil {
 		remote = fmt.Sprintf("origin/%s", branch)
 	}
 
-	_, err = session.Repair(cwd, featureID, branch, remote)
+	_, err = session.Repair(r.ProjectRoot, featureID, branch, remote)
 	if err != nil {
 		return fmt.Errorf("repair session: %w", err)
 	}
@@ -65,15 +60,10 @@ func (r *Recovery) Repair() error {
 	return nil
 }
 
-// getCurrentBranch returns the current git branch.
-func getCurrentBranch() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
+// getCurrentBranch returns the current git branch in the specified directory.
+func getCurrentBranchIn(dir string) (string, error) {
 	cmd := exec.Command("git", "branch", "--show-current")
-	cmd.Dir = cwd
+	cmd.Dir = dir
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
@@ -81,20 +71,33 @@ func getCurrentBranch() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// getRemoteTracking returns the remote tracking branch.
-func getRemoteTracking() (string, error) {
+// getCurrentBranch returns the current git branch (deprecated: use getCurrentBranchIn).
+func getCurrentBranch() (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
+	return getCurrentBranchIn(cwd)
+}
 
+// getRemoteTrackingIn returns the remote tracking branch in the specified directory.
+func getRemoteTrackingIn(dir string) (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "@{u}")
-	cmd.Dir = cwd
+	cmd.Dir = dir
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
 	return strings.TrimSpace(string(output)), nil
+}
+
+// getRemoteTracking returns the remote tracking branch (deprecated: use getRemoteTrackingIn).
+func getRemoteTracking() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return getRemoteTrackingIn(cwd)
 }
 
 // FormatCheckResult formats the check result for display.

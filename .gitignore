@@ -69,6 +69,25 @@ dist/
 /sdp
 sdp-plugin/bin/
 
+# Go binaries (always clean old builds)
+# Rule: Never commit compiled binaries to repo
+# Run 'go build' locally, binaries are gitignored
+/sdp
+/sdp-test
+sdp-plugin/sdp
+sdp-plugin/sdp-test
+sdp-plugin/cmd/sdp/sdp
+
 # Temporary status files
 *_STATUS.md
 *_PROGRESS.md
+
+# Beads daemon and temp files
+*.startlock
+daemon-error
+sdp-plugin/.beads/*.db
+sdp-plugin/.beads/*.db-shm
+sdp-plugin/.beads/*.db-wal
+
+# SDP session files in subdirs
+sdp-plugin/**/.sdp/

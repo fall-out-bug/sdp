@@ -14,34 +14,42 @@ changes:
 
 ---
 
-## EXECUTE THIS NOW
+## Workflow
 
 When user invokes `@vision "AI task manager"`:
 
-### Step 1: Quick Interview (3-5 questions)
+1. Interview user to gather requirements
+2. Run parallel expert analysis (7 agents)
+3. Generate vision artifacts
+4. Extract feature drafts
 
-Ask the user to understand:
+---
+
+## Step 1: Quick Interview (3-5 questions)
+
+Use AskUserQuestion tool to gather requirements with multiSelect support:
+
 - What problem are you solving?
 - Who are your target users?
 - What defines success in 1 year?
 - What's your MVP?
 - Who are your competitors?
 
-### Step 2: Deep-Thinking Analysis (7 Expert Agents)
+## Step 2: Deep-Thinking Analysis (7 Expert Agents)
 
 Run parallel expert analysis:
 
-1. **Product Expert** - Product-market fit analysis
-2. **Market Expert** - Competitive landscape analysis
-3. **Technical Expert** - Technical feasibility analysis
-4. **UX Expert** - User experience analysis
-5. **Business Expert** - Business model analysis
-6. **Growth Expert** - Growth strategy analysis
-7. **Risk Expert** - Risk and mitigation analysis
+1. Product expert - Product-market fit analysis
+2. Market expert - Competitive landscape analysis
+3. Technical expert - Technical feasibility analysis
+4. UX expert - User experience analysis
+5. Business expert - Business model analysis
+6. Growth expert - Growth strategy analysis
+7. Risk expert - Risk and mitigation analysis
 
 Synthesize outputs into coherent strategy.
 
-### Step 3: Generate Artifacts
+## Step 3: Generate Artifacts
 
 **PRODUCT_VISION.md** (project root):
 - Why: Problem statement
@@ -62,7 +70,7 @@ Synthesize outputs into coherent strategy.
 - Q3: Scale
 - Q4: Maturity
 
-### Step 4: Extract Features
+## Step 4: Extract Features
 
 For each P0/P1 feature, create draft in `docs/drafts/feature-{slug}.md`.
 
