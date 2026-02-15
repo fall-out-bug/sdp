@@ -158,6 +158,52 @@ def feature_refactored():
 5. Save checkpoints → Resume support
 ```
 
+### 6. Contract Synthesizer Agent (`contract-synthesizer.md`)
+
+**Purpose:** Create API contracts before implementation
+
+**Capabilities:**
+- Analyze requirements from feature specs
+- Propose OpenAPI 3.0 contracts
+- Collect feedback from domain agents
+- Resolve conflicts using synthesis rules
+- Output agreed contracts to `.contracts/`
+
+**When to use:**
+```bash
+@design beads-XXX  # Creates contracts as part of design phase
+```
+
+### 7. Code Analyzer Agent (`code-analyzer.md`)
+
+**Purpose:** Extract contract information from existing code
+
+**Capabilities:**
+- Scan codebase for interface definitions
+- Extract type signatures and method patterns
+- Detect REST endpoints and handlers
+- Map code structure to contract schemas
+
+**When to use:**
+- Before contract synthesis to understand existing interfaces
+- When generating contracts from existing implementations
+
+### 8. Contract Validator Agent (`contract-validator.md`)
+
+**Purpose:** Verify implementations match locked contracts
+
+**Capabilities:**
+- Validate implementations against contracts
+- Detect contract drift during development
+- Report mismatches with actionable feedback
+- Verify contract lock compliance
+
+**When to use:**
+```bash
+@review beads-XXX  # Validates contracts as part of review
+sdp contract validate --contract .contracts/F053.yaml
+```
+
 ---
 
 ## Creating Custom Roles
