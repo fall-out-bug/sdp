@@ -2,7 +2,7 @@
 name: oneshot
 description: Autonomous multi-agent execution with review-fix loop and PR creation
 cli: sdp orchestrate (file ops only - requires @build for actual work)
-version: 7.1.0
+version: 7.2.0
 ---
 
 # oneshot
@@ -11,6 +11,15 @@ version: 7.1.0
 > **LLM:** Required for actual workstream execution via `@build`
 
 Autonomous feature execution with review-fix loop and PR creation.
+
+---
+
+## 🚨 CRITICAL RULES
+
+1. **NEVER STOP** - Execute ALL workstreams in one session. No pauses between WS.
+2. **NO SUMMARIES** - Only commit messages. No "progress reports" or "session summaries".
+3. **AUTO-CONTINUE** - After WS commit, IMMEDIATELY start next WS without asking.
+4. **ONLY STOP IF:** All WS done OR unrecoverable blocker OR user explicitly stops you.
 
 ---
 
