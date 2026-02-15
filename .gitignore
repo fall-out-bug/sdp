@@ -66,6 +66,8 @@ sdp-plugin/.sdp/log/events.jsonl
 # Build output
 bin/
 dist/
+/sdp
+sdp-plugin/bin/
 
 # Temporary status files
 *_STATUS.md
