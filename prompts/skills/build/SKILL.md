@@ -3,7 +3,7 @@ name: build
 description: Execute workstream with TDD and guard enforcement
 cli: sdp apply --ws
 llm: Spawn subagents for 3-stage review
-version: 6.2.0
+version: 6.3.0
 ---
 
 # build
@@ -21,6 +21,29 @@ Execute a single workstream following TDD discipline.
 2. **NEVER STOP** - Continue to next workstream after commit. No summaries. No pauses.
 3. **USE SPAWN OR DO IT YOURSELF** - If spawn available, use it. If not, implement manually.
 4. **AUTO-CONTINUE** - After commit, immediately start next WS in dependency order.
+5. **POST-COMPACTION RECOVERY** - After context compaction, run `bd ready` to find your task. Never drift to side tasks.
+
+---
+
+## 🔄 POST-COMPACTION PROTOCOL
+
+**After any context compaction, you MUST:**
+
+1. **Check active task:**
+```bash
+bd list --status=in_progress
+bd ready
+```
+
+2. **Resume PRIMARY TASK, not side task:**
+   - If you were fixing a bug as side task → return to main feature
+   - If you were improving coverage → return to main feature
+   - Side tasks are distractions from roadmap
+
+3. **Ask yourself: "What was I doing BEFORE the side task?"**
+   - Roadmap execution? → Back to roadmap
+   - Feature implementation? → Back to feature
+   - Review? → Back to review
 
 ---
 
