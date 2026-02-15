@@ -28,14 +28,6 @@ type GuardResult struct {
 	Timestamp  string   `json:"timestamp"`
 }
 
-// CheckResult represents the result of a staged/CI guard check
-type CheckResult struct {
-	Success  bool         `json:"success"`
-	ExitCode int          `json:"exit_code"`
-	Findings []Finding    `json:"findings"`
-	Summary  CheckSummary `json:"summary"`
-}
-
 // Finding represents a single policy finding
 type Finding struct {
 	Severity Severity `json:"severity"`
@@ -48,9 +40,59 @@ type Finding struct {
 
 // CheckSummary provides a summary of findings
 type CheckSummary struct {
-	Total    int `json:"total"`
-	Errors   int `json:"errors"`
-	Warnings int `json:"warnings"`
+	Total             int `json:"total"`
+	Errors            int `json:"errors"`
+	Warnings          int `json:"warnings"`
+	AppliedExceptions int `json:"applied_exceptions,omitempty"`
+}
+
+// Exception represents a guard rule exception with TTL.
+// AC1: Exception entries support rule_id, path glob, reason, owner, expires_at
+type Exception struct {
+	RuleID    string `json:"rule_id"`
+	PathGlob  string `json:"path_glob"`
+	Reason    string `json:"reason"`
+	Owner     string `json:"owner"`
+	ExpiresAt string `json:"expires_at"`
+	CreatedAt string `json:"created_at,omitempty"`
+}
+
+// IsExpired checks if the exception has expired.
+// AC2: Expired exceptions are ignored automatically
+func (e *Exception) IsExpired() bool {
+	if e.ExpiresAt == "" {
+		return false
+	}
+
+	expiresAt, err := time.Parse(time.RFC3339, e.ExpiresAt)
+	if err != nil {
+		return true
+	}
+
+	return time.Now().After(expiresAt)
+}
+
+// MatchesFile checks if the exception path glob matches a file
+func (e *Exception) MatchesFile(filePath string) bool {
+	return matchGlob(e.PathGlob, filePath)
+}
+
+// AppliedExceptionInfo tracks which exception was applied for auditability.
+// AC6: JSON output includes exception metadata
+type AppliedExceptionInfo struct {
+	RuleID string `json:"rule_id"`
+	File   string `json:"file"`
+	Reason string `json:"reason"`
+	Owner  string `json:"owner"`
+}
+
+// CheckResult represents the result of a staged/CI guard check
+type CheckResult struct {
+	Success           bool                   `json:"success"`
+	ExitCode          int                    `json:"exit_code"`
+	Findings          []Finding              `json:"findings"`
+	Summary           CheckSummary           `json:"summary"`
+	AppliedExceptions []AppliedExceptionInfo `json:"applied_exceptions,omitempty"`
 }
 
 // CheckOptions configures the check behavior
@@ -63,16 +105,16 @@ type CheckOptions struct {
 
 // ReviewFinding represents a finding from a review agent
 type ReviewFinding struct {
-	ID         string `json:"id"`          // Beads issue ID (e.g., sdp-abc123)
-	FeatureID  string `json:"feature_id"`  // Feature ID (e.g., F051)
-	ReviewArea string `json:"review_area"` // QA, Security, DevOps, SRE, TechLead, Documentation
-	Title      string `json:"title"`       // Issue title
-	Priority   int    `json:"priority"`    // 0=P0, 1=P1, 2=P2, 3=P3
-	BeadsID    string `json:"beads_id"`    // Beads issue ID if created
-	Status     string `json:"status"`      // open, in_progress, resolved
-	CreatedAt  string `json:"created_at"`  // ISO timestamp
-	ResolvedAt string `json:"resolved_at"` // ISO timestamp when resolved
-	ResolvedBy string `json:"resolved_by"` // How it was resolved
+	ID         string `json:"id"`
+	FeatureID  string `json:"feature_id"`
+	ReviewArea string `json:"review_area"`
+	Title      string `json:"title"`
+	Priority   int    `json:"priority"`
+	BeadsID    string `json:"beads_id"`
+	Status     string `json:"status"`
+	CreatedAt  string `json:"created_at"`
+	ResolvedAt string `json:"resolved_at"`
+	ResolvedBy string `json:"resolved_by"`
 }
 
 // GuardState represents the active workstream state
@@ -89,12 +131,10 @@ func (gs *GuardState) IsExpired() bool {
 	if gs.ActiveWS == "" {
 		return true
 	}
-
 	activatedAt, err := time.Parse(time.RFC3339, gs.ActivatedAt)
 	if err != nil {
 		return true
 	}
-
 	return time.Since(activatedAt) > 24*time.Hour
 }
 
