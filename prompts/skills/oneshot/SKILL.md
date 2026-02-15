@@ -2,7 +2,7 @@
 name: oneshot
 description: Autonomous multi-agent execution with review-fix loop and PR creation
 cli: sdp orchestrate (file ops only - requires @build for actual work)
-version: 7.2.0
+version: 7.3.0
 ---
 
 # oneshot
@@ -20,6 +20,31 @@ Autonomous feature execution with review-fix loop and PR creation.
 2. **NO SUMMARIES** - Only commit messages. No "progress reports" or "session summaries".
 3. **AUTO-CONTINUE** - After WS commit, IMMEDIATELY start next WS without asking.
 4. **ONLY STOP IF:** All WS done OR unrecoverable blocker OR user explicitly stops you.
+5. **POST-COMPACTION RECOVERY** - After context compaction, check PRIMARY TASK first. Never drift to side tasks.
+
+---
+
+## 🔄 POST-COMPACTION PROTOCOL
+
+**If session was compacted, you MUST check:**
+
+1. **What was PRIMARY TASK?**
+```bash
+# Check for active work
+bd list --status=in_progress
+bd ready
+
+# Check for checkpoint
+ls .sdp/checkpoints/
+```
+
+2. **Resume PRIMARY TASK, not the side task you were doing:**
+   - Side task examples: fixing tests, improving coverage, debugging
+   - Primary task: executing roadmap, implementing feature
+
+3. **The summary mentions "side task" → IGNORE IT, return to PRIMARY:**
+   - Summary: "was improving coverage" → Check roadmap first
+   - Summary: "was fixing a bug" → Check feature status first
 
 ---
 
