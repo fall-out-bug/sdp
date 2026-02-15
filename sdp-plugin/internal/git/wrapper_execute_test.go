@@ -165,3 +165,133 @@ func TestWrapper_ValidatorIntegration(t *testing.T) {
 		t.Errorf("validator.ProjectRoot = %s, want %s", wrapper.validator.ProjectRoot, tmpDir)
 	}
 }
+
+func TestWrapper_GetWorktreePath_NoSession(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	wrapper := NewWrapper(tmpDir)
+
+	_, err := wrapper.GetWorktreePath()
+	if err == nil {
+		t.Error("GetWorktreePath should fail when no session exists")
+	}
+
+	t.Logf("Expected error: %v", err)
+}
+
+func TestWrapper_GetWorktreePath_WithSession(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	realTmpDir, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to eval symlinks: %v", err)
+	}
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = realTmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	// Create .sdp directory
+	sdpDir := filepath.Join(realTmpDir, ".sdp")
+	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize session
+	s, err := session.Init("F067", realTmpDir, "test")
+	if err != nil {
+		t.Fatalf("Failed to init session: %v", err)
+	}
+
+	if err := s.Save(realTmpDir); err != nil {
+		t.Fatalf("Failed to save session: %v", err)
+	}
+
+	wrapper := NewWrapper(realTmpDir)
+
+	path, err := wrapper.GetWorktreePath()
+	if err != nil {
+		t.Errorf("GetWorktreePath error: %v", err)
+	}
+
+	t.Logf("GetWorktreePath = %s", path)
+}
+
+func TestWrapper_HasSession_False(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	wrapper := NewWrapper(tmpDir)
+
+	if wrapper.HasSession() {
+		t.Error("HasSession should return false when no session exists")
+	}
+}
+
+func TestWrapper_HasSession_True(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = tmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	// Create .sdp directory
+	sdpDir := filepath.Join(tmpDir, ".sdp")
+	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize session
+	s, err := session.Init("F067", tmpDir, "test")
+	if err != nil {
+		t.Fatalf("Failed to init session: %v", err)
+	}
+
+	if err := s.Save(tmpDir); err != nil {
+		t.Fatalf("Failed to save session: %v", err)
+	}
+
+	wrapper := NewWrapper(tmpDir)
+
+	if !wrapper.HasSession() {
+		t.Error("HasSession should return true when session exists")
+	}
+}
+
+func TestExecute_CommandFailure(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = tmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	wrapper := NewWrapper(tmpDir)
+
+	// Try to push to nonexistent remote - should fail
+	err := wrapper.Execute("push", "nonexistent-remote", "main")
+	if err == nil {
+		t.Error("Execute should fail for invalid git command")
+	}
+
+	t.Logf("Expected error: %v", err)
+}

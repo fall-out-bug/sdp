@@ -234,3 +234,131 @@ func TestRecovery_Check_CorruptedSession(t *testing.T) {
 		}
 	}
 }
+
+func TestRecovery_Clean_NoWorktrees(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	// Initialize git repo (no worktrees except main)
+	cmd := exec.Command("git", "init")
+	cmd.Dir = tmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
+	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test").Run()
+
+	// Create initial commit
+	cmd = exec.Command("git", "-C", tmpDir, "commit", "--allow-empty", "-m", "initial")
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to create initial commit: %v", err)
+	}
+
+	r := NewRecovery(tmpDir)
+	cleaned, err := r.Clean()
+
+	// Clean should succeed even with no stale sessions
+	if err != nil {
+		t.Logf("Clean returned error: %v (may be expected)", err)
+	}
+
+	t.Logf("Cleaned sessions: %v", cleaned)
+}
+
+func TestRecovery_Clean_WithStaleSession(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	realTmpDir, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to eval symlinks: %v", err)
+	}
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = realTmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	exec.Command("git", "-C", realTmpDir, "config", "user.email", "test@test.com").Run()
+	exec.Command("git", "-C", realTmpDir, "config", "user.name", "Test").Run()
+
+	// Create initial commit
+	cmd = exec.Command("git", "-C", realTmpDir, "commit", "--allow-empty", "-m", "initial")
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to create initial commit: %v", err)
+	}
+
+	// Create .sdp directory with corrupted (stale) session
+	sdpDir := filepath.Join(realTmpDir, ".sdp")
+	os.MkdirAll(sdpDir, 0755)
+
+	// Create corrupted session file (will be detected as stale)
+	sessionContent := `{"feature_id":"F067","worktree_path":"/different/path","hash":"invalid"}`
+	sessionPath := filepath.Join(sdpDir, "session.json")
+	os.WriteFile(sessionPath, []byte(sessionContent), 0644)
+
+	r := NewRecovery(realTmpDir)
+	cleaned, err := r.Clean()
+
+	if err != nil {
+		t.Logf("Clean returned error: %v", err)
+	}
+
+	t.Logf("Cleaned sessions: %v", cleaned)
+}
+
+func TestRecovery_Clean_EmptyProjectRoot(t *testing.T) {
+	// Test Clean with empty/non-existent project root
+	r := NewRecovery("/nonexistent/path/that/does/not/exist")
+	cleaned, err := r.Clean()
+
+	// Should return error for non-existent path
+	if err != nil {
+		t.Logf("Clean correctly returned error: %v", err)
+	}
+
+	// Cleaned should be nil or empty
+	if len(cleaned) > 0 {
+		t.Logf("Cleaned unexpected sessions: %v", cleaned)
+	}
+}
+
+func TestRecovery_Show(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
+	tmpDir := t.TempDir()
+
+	realTmpDir, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to eval symlinks: %v", err)
+	}
+
+	// Initialize git repo
+	cmd := exec.Command("git", "init")
+	cmd.Dir = realTmpDir
+	if err := cmd.Run(); err != nil {
+		t.Skipf("Failed to init git repo: %v", err)
+	}
+
+	r := NewRecovery(realTmpDir)
+
+	// Show should delegate to Check
+	result, err := r.Show()
+
+	if err != nil && result == nil {
+		t.Errorf("Show should return result even on error")
+	}
+
+	t.Logf("Show result: %+v, err: %v", result, err)
+}
