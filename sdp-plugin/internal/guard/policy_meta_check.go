@@ -11,18 +11,18 @@ import (
 
 // PolicyApprovalRecord represents an approved policy change
 type PolicyApprovalRecord struct {
-	File        string   `yaml:"file"`         // File that was approved for edit
-	ApprovedAt  string   `yaml:"approved_at"`  // When it was approved
-	ApprovedBy  string   `yaml:"approved_by"`  // Who approved it
-	Reason      string   `yaml:"reason"`       // Justification
-	ExpiresAt   string   `yaml:"expires_at"`   // When approval expires
-	CommitHash  string   `yaml:"commit_hash"`  // Expected commit hash after edit
+	File        string   `yaml:"file"`          // File that was approved for edit
+	ApprovedAt  string   `yaml:"approved_at"`   // When it was approved
+	ApprovedBy  string   `yaml:"approved_by"`   // Who approved it
+	Reason      string   `yaml:"reason"`        // Justification
+	ExpiresAt   string   `yaml:"expires_at"`    // When approval expires
+	CommitHash  string   `yaml:"commit_hash"`   // Expected commit hash after edit
 	WorkItemIDs []string `yaml:"work_item_ids"` // Related work items/issues
 }
 
 // PolicyApprovalsFile is the structure of .sdp/policy-approvals.yml
 type PolicyApprovalsFile struct {
-	Version   int                   `yaml:"version"`
+	Version   int                    `yaml:"version"`
 	Approvals []PolicyApprovalRecord `yaml:"approvals"`
 }
 

@@ -187,11 +187,11 @@ func TestAC3_ExpiredExceptionNotApplied(t *testing.T) {
 // AC4: Governance meta-check blocks direct edits to guarded policy files
 func TestAC4_GovernanceMetaCheck(t *testing.T) {
 	tests := []struct {
-		name          string
-		file          string
-		hasApproval   bool
-		wantBlocked   bool
-		wantSeverity  Severity
+		name         string
+		file         string
+		hasApproval  bool
+		wantBlocked  bool
+		wantSeverity Severity
 	}{
 		{
 			name:         "Policy file without approval - blocked",
@@ -247,8 +247,8 @@ func TestAC4_GovernanceMetaCheck(t *testing.T) {
 // TestAC4_GuardedPolicyFiles tests that correct files are identified as policy files
 func TestAC4_GuardedPolicyFiles(t *testing.T) {
 	tests := []struct {
-		file        string
-		isPolicy    bool
+		file     string
+		isPolicy bool
 	}{
 		{".sdp/guard-rules.yml", true},
 		{".sdp/config.yml", true},

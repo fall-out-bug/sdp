@@ -142,4 +142,3 @@ func BuildCheckResultWithExceptions(findings []Finding, exceptions []Exception) 
 		AppliedExceptions: appliedInfo,
 	}
 }
-
