@@ -1,6 +1,6 @@
 # F067: Repository Hardening and Alignment — Workstream Summary
 
-> Feature: F067 | Priority: P0 | 14 workstreams (8 original + 6 supplementary)
+> Feature: F067 | Priority: P0 | 15 workstreams (8 original + 7 supplementary)
 > Source: Two independent audits — PR #32 + cloud agent analysis
 
 ## Goal
@@ -51,6 +51,7 @@ Align SDP repository behavior across agent configs, distribution pipelines, deve
 | 00-067-12 | Developer Onboarding and Dependabot Setup | P1 | SMALL | 04, 05 | Agent |
 | 00-067-13 | Skill and Agent Optimization (size, versioning) | P2 | MEDIUM | 02 | Agent |
 | 00-067-14 | Linter Exclusion Reduction (errcheck, gocognit) | P1 | LARGE | 09 | Agent |
+| 00-067-15 | Test Coverage Improvement (62% → 80%) | P0 | LARGE | 08 | Dogfood |
 
 ## Execution Phases
 
