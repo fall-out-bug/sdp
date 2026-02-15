@@ -14,7 +14,7 @@ type RepairAction struct {
 
 // RunWithRepair runs all checks and attempts to fix issues automatically
 func RunWithRepair() []RepairAction {
-	var actions []RepairAction
+	actions := make([]RepairAction, 0, 3)
 
 	// Fix 1: File permissions
 	actions = append(actions, repairFilePermissions())

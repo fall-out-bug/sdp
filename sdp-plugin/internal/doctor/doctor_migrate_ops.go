@@ -90,9 +90,11 @@ func detectConfigVersion(content string) int {
 	// Simple detection - look for "version: N"
 	// If no version found, assume 0 (needs migration)
 	var version int
+	//nolint:errcheck // Intentional: parsing failure means version 0
 	fmt.Sscanf(content, "version: %d", &version)
 	if version == 0 {
 		// Try finding version anywhere in file
+		//nolint:errcheck // Intentional: parsing failure means version 0
 		fmt.Sscanf(content, "%*s\nversion: %d", &version)
 	}
 	return version

@@ -31,7 +31,7 @@ func since(start time.Time) time.Duration {
 
 // RunDeepChecks runs extended diagnostic checks beyond standard
 func RunDeepChecks() []DeepCheckResult {
-	var results []DeepCheckResult
+	results := make([]DeepCheckResult, 0, 5)
 
 	// Check 1: Git hooks integrity
 	results = append(results, checkGitHooks())
