@@ -246,6 +246,13 @@ func TestBaseEvent_JSONL(t *testing.T) {
 	}
 }
 
+func TestParseJSONL_Invalid(t *testing.T) {
+	_, err := ParseJSONL("not valid json")
+	if err == nil {
+		t.Error("should fail on invalid JSON")
+	}
+}
+
 func TestBaseEvent_HashConsistency(t *testing.T) {
 	// Create two events with same content
 	event1 := BaseEvent{

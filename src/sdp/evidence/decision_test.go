@@ -140,3 +140,10 @@ func TestDecisionEvent_ToJSONL(t *testing.T) {
 		t.Error("question mismatch")
 	}
 }
+
+func TestDecisionEvent_ParseInvalidJSON(t *testing.T) {
+	_, err := ParseDecisionJSONL("invalid json")
+	if err == nil {
+		t.Error("should fail on invalid JSON")
+	}
+}
