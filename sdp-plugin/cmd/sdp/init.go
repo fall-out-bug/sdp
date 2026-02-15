@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/fall-out-bug/sdp/internal/sdpinit"
 	"github.com/spf13/cobra"
@@ -10,6 +10,7 @@ import (
 func initCmd() *cobra.Command {
 	var projectType string
 	var skipBeads bool
+	var autoMode bool
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -21,11 +22,43 @@ Creates .claude/ directory structure:
   agents/     - Multi-agent prompts
   validators/ - AI-based quality validators
 
-Automatically detects project type (python, java, go) or use --project-type flag.`,
+Preflight checks detect project type and validate environment.
+Use --auto for non-interactive initialization with safe defaults.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Detect project type if not specified
+			// Run preflight checks
+			preflight := sdpinit.RunPreflight()
+
+			// Display preflight results
+			fmt.Println("SDP Initialization")
+			fmt.Println("==================")
+			fmt.Printf("Detected project type: %s\n", preflight.ProjectType)
+
+			if preflight.HasClaude {
+				fmt.Println("⚠ .claude/ already exists - will update")
+			}
+			if preflight.HasSDP {
+				fmt.Println("⚠ .sdp/ already exists")
+			}
+			if !preflight.HasGit {
+				fmt.Println("⚠ Not a git repository")
+			}
+
+			for _, conflict := range preflight.Conflicts {
+				fmt.Printf("⚠ Conflict: %s\n", conflict)
+			}
+
+			for _, warning := range preflight.Warnings {
+				fmt.Printf("  Note: %s\n", warning)
+			}
+
+			// Determine project type
 			if projectType == "" {
-				projectType = detectProjectType()
+				projectType = preflight.ProjectType
+			}
+
+			// In auto mode, proceed without prompts
+			if autoMode {
+				fmt.Println("\nAuto mode: Using safe defaults")
 			}
 
 			cfg := sdpinit.Config{
@@ -33,29 +66,14 @@ Automatically detects project type (python, java, go) or use --project-type flag
 				SkipBeads:   skipBeads,
 			}
 
+			fmt.Printf("\nInitializing with project type: %s\n", projectType)
 			return sdpinit.Run(cfg)
 		},
 	}
 
-	cmd.Flags().StringVarP(&projectType, "project-type", "p", "", "Project type (python, java, go, agnostic)")
+	cmd.Flags().StringVarP(&projectType, "project-type", "p", "", "Project type (python, java, go, node, mixed, unknown)")
 	cmd.Flags().BoolVar(&skipBeads, "skip-beads", false, "Skip Beads integration")
+	cmd.Flags().BoolVar(&autoMode, "auto", false, "Non-interactive mode with safe defaults")
 
 	return cmd
-}
-
-func detectProjectType() string {
-	// Check for build files
-	if _, err := os.Stat("pyproject.toml"); err == nil {
-		return "python"
-	}
-	if _, err := os.Stat("pom.xml"); err == nil {
-		return "java"
-	}
-	if _, err := os.Stat("build.gradle"); err == nil {
-		return "java"
-	}
-	if _, err := os.Stat("go.mod"); err == nil {
-		return "go"
-	}
-	return "agnostic"
 }
