@@ -155,6 +155,18 @@ Before submitting a PR, ensure:
 
 To check for drift: `./hooks/check-prompt-drift.sh`
 
+## Generated Files
+
+The following directories contain generated artifacts and should not be committed:
+
+| Directory | Description | Why Ignore |
+|-----------|-------------|------------|
+| `.contracts/` | API contracts generated from code | Derived from source, regenerable |
+| `.oneshot/` | Checkpoint files | May contain sensitive state |
+| `docs/decisions/` | Local decision logs | Local audit trail only |
+
+These are configured in `.gitignore`. If you see them in your working tree, do not commit them.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
