@@ -54,6 +54,19 @@ jobs:
           subject-digest: ${{ hashFiles('sdp-plugin/dist/*') }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          artifact-name: sbom.spdx.json
+          output-file: sbom.spdx.json
+          path: ./sdp-plugin
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

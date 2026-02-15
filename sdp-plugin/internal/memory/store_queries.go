@@ -26,7 +26,7 @@ func (s *Store) SearchContext(ctx context.Context, query string) ([]*Artifact, e
 	`, query)
 	if err != nil {
 		safetylog.Debug("memory: FTS search failed, using LIKE fallback")
-		return s.searchLike(query)
+		return s.searchLikeContext(ctx, query)
 	}
 	defer rows.Close()
 	results, err := scanArtifacts(rows)
@@ -36,10 +36,10 @@ func (s *Store) SearchContext(ctx context.Context, query string) ([]*Artifact, e
 	return results, err
 }
 
-// searchLike performs a LIKE-based search as fallback
-func (s *Store) searchLike(query string) ([]*Artifact, error) {
+// searchLikeContext performs a LIKE-based search as fallback with context support
+func (s *Store) searchLikeContext(ctx context.Context, query string) ([]*Artifact, error) {
 	likeQuery := "%" + query + "%"
-	rows, err := s.db.Query(
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT `+selectArtifactFields+` FROM artifacts WHERE title LIKE ? OR content LIKE ? LIMIT 50`,
 		likeQuery, likeQuery)
 	if err != nil {
@@ -47,6 +47,11 @@ func (s *Store) searchLike(query string) ([]*Artifact, error) {
 	}
 	defer rows.Close()
 	return scanArtifacts(rows)
+}
+
+// searchLike performs a LIKE-based search as fallback
+func (s *Store) searchLike(query string) ([]*Artifact, error) {
+	return s.searchLikeContext(context.Background(), query)
 }
 
 // Delete removes an artifact by ID
