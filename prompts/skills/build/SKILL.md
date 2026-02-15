@@ -17,9 +17,10 @@ Execute a single workstream following TDD discipline.
 
 ## 🚨 CRITICAL RULES
 
-1. **NEVER STOP** - Continue to next workstream after commit. No summaries. No pauses.
-2. **USE SPAWN OR DO IT YOURSELF** - If spawn available, use it. If not, implement manually.
-3. **AUTO-CONTINUE** - After commit, immediately start next WS in dependency order.
+1. **CHECK EXISTING CODE FIRST** - Run `@reality --quick` or grep for existing implementations before starting new features.
+2. **NEVER STOP** - Continue to next workstream after commit. No summaries. No pauses.
+3. **USE SPAWN OR DO IT YOURSELF** - If spawn available, use it. If not, implement manually.
+4. **AUTO-CONTINUE** - After commit, immediately start next WS in dependency order.
 
 ---
 
