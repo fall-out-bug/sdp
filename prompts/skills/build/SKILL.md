@@ -3,15 +3,23 @@ name: build
 description: Execute workstream with TDD and guard enforcement
 cli: sdp apply --ws
 llm: Spawn subagents for 3-stage review
-version: 6.1.0
+version: 6.2.0
 ---
 
 # build
 
 > **CLI:** `sdp apply --ws <workstream-id>` (file operations only)
-> **LLM:** Spawn 3 subagents for TDD cycle + review
+> **LLM:** Spawn subagents for TDD cycle + review
 
 Execute a single workstream following TDD discipline.
+
+---
+
+## 🚨 CRITICAL RULES
+
+1. **NEVER STOP** - Continue to next workstream after commit. No summaries. No pauses.
+2. **USE SPAWN OR DO IT YOURSELF** - If spawn available, use it. If not, implement manually.
+3. **AUTO-CONTINUE** - After commit, immediately start next WS in dependency order.
 
 ---
 
@@ -25,12 +33,24 @@ sdp guard activate 00-067-01
 sdp apply --ws 00-067-01 --dry-run  # Preview first
 ```
 
-2. Then spawn 3 subagents for TDD cycle:
+2. **CHOOSE ONE:**
+
+   **Option A (Preferred):** Spawn 3 subagents for TDD cycle:
    - **Implementer** - Write tests and code
    - **Spec Reviewer** - Verify matches spec
    - **Quality Reviewer** - Run quality gates
 
-**DO NOT skip step 2.** The CLI only handles file operations. TDD cycle requires spawning subagents.
+   **Option B (Fallback):** If subagent spawning not available, implement yourself:
+   - Write test first (RED)
+   - Write minimal code (GREEN)
+   - Refactor while keeping tests green
+   - Verify coverage >= 80%, LOC <= 200
+
+3. **COMMIT AND CONTINUE:**
+```bash
+git commit -m "feat(F067): 00-067-01 - {title}"
+# IMMEDIATELY start next workstream - NO PAUSE, NO SUMMARY
+```
 
 ---
 
