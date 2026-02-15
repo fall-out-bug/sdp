@@ -11,6 +11,9 @@ func doctorCmd() *cobra.Command {
 	var driftCheck bool
 	var repair bool
 	var deep bool
+	var migrate bool
+	var dryRun bool
+	var rollback string
 
 	cmd := &cobra.Command{
 		Use:   "doctor",
@@ -24,13 +27,42 @@ Verifies:
   - .claude/ directory exists and is properly structured
   - Documentation-code drift (with --drift flag)
 
-Repair Mode:
-  Use --repair to automatically fix detected issues where possible.
-
-Deep Mode:
-  Use --deep for comprehensive environment analysis.`,
+Modes:
+  --repair    Automatically fix detected issues
+  --deep      Comprehensive environment analysis
+  --migrate   Migrate config to latest version
+  --rollback  Restore config from backup`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Run checks with drift detection if flag is set
+			// Handle rollback first
+			if rollback != "" {
+				fmt.Println("Rolling back config...")
+				if err := doctor.RollbackMigration(rollback); err != nil {
+					return fmt.Errorf("rollback failed: %w", err)
+				}
+				fmt.Printf("✓ Config restored from %s\n", rollback)
+				return nil
+			}
+
+			// Handle migration
+			if migrate {
+				fmt.Println("Migrating config...")
+				m, err := doctor.MigrateConfig(dryRun)
+				if err != nil {
+					return fmt.Errorf("migration failed: %w", err)
+				}
+
+				if dryRun {
+					fmt.Printf("✓ %s (dry run)\n", m.Message)
+				} else {
+					fmt.Printf("✓ %s\n", m.Message)
+					if m.BackupPath != "" {
+						fmt.Printf("  Backup: %s\n", m.BackupPath)
+					}
+				}
+				return nil
+			}
+
+			// Run standard checks
 			opts := doctor.RunOptions{
 				DriftCheck: driftCheck,
 			}
@@ -116,6 +148,9 @@ Deep Mode:
 	cmd.Flags().BoolVar(&driftCheck, "drift", false, "Check for documentation-code drift in recent workstreams")
 	cmd.Flags().BoolVar(&repair, "repair", false, "Automatically fix detected issues where possible")
 	cmd.Flags().BoolVar(&deep, "deep", false, "Run comprehensive environment analysis")
+	cmd.Flags().BoolVar(&migrate, "migrate", false, "Migrate config to latest version")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Preview migration without making changes")
+	cmd.Flags().StringVar(&rollback, "rollback", "", "Restore config from backup file")
 
 	return cmd
 }
