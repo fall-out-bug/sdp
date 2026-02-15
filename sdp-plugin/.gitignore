@@ -42,3 +42,5 @@ Thumbs.db
 docs/decisions/
 # Checkpoint files (may contain sensitive execution state)
 .oneshot/
+# Generated contracts (derived from code, not source of truth)
+.contracts/
