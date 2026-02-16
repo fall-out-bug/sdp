@@ -135,7 +135,6 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(memoryCmd())
 	rootCmd.AddCommand(coordinationCmd())
 	rootCmd.AddCommand(healthCmd())
-<<<<<<< HEAD
 	rootCmd.AddCommand(diagnoseCmd)
 	rootCmd.AddCommand(nextCmd())
 
