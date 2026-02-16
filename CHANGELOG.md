@@ -39,6 +39,23 @@ Workflow optimization and efficiency improvements.
 
 Unified workflow implementation with 18 workstreams covering end-to-end development process.
 
+**Components:**
+- Orchestrator with dependency graph and topological sort
+- TeamManager for 100+ role management
+- ApprovalGateManager for quality checkpoints
+- Checkpoint save/resume for long-running features
+- NotificationGateway for team updates
+- FeatureCoordinator for @feature integration
+
+**Commands:**
+- `sdp orchestrate <feature-id>` - Execute all workstreams for a feature
+- `sdp orchestrate resume <checkpoint-id>` - Resume from checkpoint
+
+**Packages:**
+- `internal/orchestrator/` - 83.4% coverage
+- `internal/checkpoint/` - 84.4% coverage
+- `internal/notification/` - 82.9% coverage
+
 ### F051: Long-term Memory System
 
 Project memory for avoiding duplicated work.
