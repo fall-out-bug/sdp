@@ -1,45 +1,32 @@
 ---
-description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, deploy < 2h.
+description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, immediate deploy.
 agent: builder
 ---
 
-# /hotfix — Emergency Production Fixes
+# /hotfix — Hotfix
 
-При вызове `/hotfix "description" --issue-id=001`:
+## Overview
 
-1. **Создай ветку** — `git checkout -b hotfix/{id}-{slug}` от main
-2. **Минимальный фикс** — Без рефакторинга, только баг
-3. **Быстрое тестирование** — Smoke + critical path
-4. **Коммит** — `fix(scope): description (issue NNN)`
-5. **MERGE, TAG, PUSH** — Выполни сам!
-6. **Backport** — Мерж в dev и feature ветки
-7. **Закрой issue** — Обнови статус в файле
+This command implements the hotfix skill from the SDP workflow.
 
-## КРИТИЧНО: Ты ДОЛЖЕН завершить
+See `/prompts/skills/hotfix/SKILL.md` for complete documentation.
+
+## Usage
 
 ```bash
-# Мерж в main и тег
-git checkout main
-git merge hotfix/{branch} --no-edit
-git tag -a v{VERSION} -m "Hotfix: {description}"
-git push origin main --tags
-
-# Backport в dev
-git checkout dev
-git merge main --no-edit
-git push origin dev
+/hotfix [arguments]
 ```
 
-**Работа НЕ завершена пока все `git push` не выполнены.**
+## Implementation
 
-## Quick Reference
+The command delegates to the `hotfix` skill, which provides:
 
-**Input:** P0 CRITICAL issue  
-**Output:** Production fix + запушено в origin
+- Systematic workflow
+- Quality gates
+- Proper error handling
+- Documentation
 
-**Key Rules:**
-- Минимальные изменения
-- Без рефакторинга
-- Без новых фич
-- Быстрое тестирование
-- Backport обязателен
+## Related
+
+- Skills: `prompts/skills/hotfix/SKILL.md`
+- Agents: `prompts/agents/builder.md`

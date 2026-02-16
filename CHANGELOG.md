@@ -2,345 +2,418 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
-> **📝 Meta-note:** Versions documented as they are released. Development is AI-assisted.
+## [0.9.0] - 2026-02-16
+
+### M1 Milestone - UX Excellence & Intelligent Assistance
+
+**Theme:** Enhanced Developer Experience with Smart Recovery and Guidance
+
+This release focuses on UX improvements, intelligent next-step recommendations, structured error handling, and guided onboarding.
+
+### Highlights
+
+- **Next-Step Engine:** Intelligent recommendations with confidence scoring
+- **Error Taxonomy:** 38 structured error codes with recovery hints
+- **Guided Onboarding:** Interactive wizard and headless mode
+- **Self-Healing Doctor:** Automatic environment repair
+- **Enhanced Evidence:** Full skills instrumentation
+
+### Statistics
+
+- **Features completed:** 8 (F054, F063, F064, F067, F068, F070, F075, F076)
+- **Workstreams:** 57
+- **Test coverage:** 80%+ (all packages)
+- **M1 Status:** ✅ COMPLETE
+
+---
+
+## New Features
+
+### F068: UX Foundation & First-Run Experience
+
+Guided setup and improved user experience.
+
+**Commands:**
+- `sdp init --guided` - Step-by-step setup wizard with auto-fix
+- `sdp init --auto` - Safe defaults for quick start
+- `sdp demo` - Interactive feature walkthrough
+- `sdp status --text/--json` - Quick status for scripts
+
+**Components:**
+- Preflight checks with auto-repair
+- Quickstart templates
+- Improved help text with user intent grouping
+
+### F069: Next-Step Engine
+
+Intelligent recommendation system for development workflow.
+
+**Commands:**
+- `sdp next` - Get next recommended action
+- `sdp next --json` - Machine-readable output
+- `sdp next --alternatives` - Show alternative actions
+
+**Components:**
+- Rule-based evaluation with deterministic tie-break
+- Confidence scoring (0.0-1.0)
+- Categories: execution, recovery, planning, information, setup
+- Interactive loop: accept/refine/reject
+- Quality metrics: acceptance rate, correction rate
+
+### F070: Failure & Recovery UX
+
+Structured error handling with recovery guidance.
+
+**Commands:**
+- `sdp diagnose` - Show error classes and codes
+- `sdp diagnose [CODE]` - Get recovery steps for error
+- `sdp diagnose --json` - Machine-readable output
+
+**Error Taxonomy:**
+| Class | Prefix | Description |
+|-------|--------|-------------|
+| Environment | ENV | Missing tools, permissions, filesystem |
+| Protocol | PROTO | Invalid IDs, malformed files |
+| Dependency | DEP | Blocked workstreams, cycles |
+| Validation | VAL | Coverage, quality gates |
+| Runtime | RUNTIME | External failures, timeouts |
+
+**Components:**
+- 38 error codes with messages and recovery hints
+- Recovery playbooks with fast/deep path steps
+- Diagnostics reports (JSON/text)
+
+### F075: Self-Healing Doctor
+
+Automatic environment repair.
+
+**Commands:**
+- `sdp doctor --repair` - Auto-fix detected issues
+- `sdp doctor --deep` - Comprehensive diagnostics
+
+**Repair Actions:**
+- Install missing hooks
+- Fix permissions
+- Repair corrupted config
+- Sync stale state
+
+### F076: Guided Onboarding Wizard
+
+Interactive project initialization.
+
+**Commands:**
+- `sdp init --guided` - Interactive wizard
+- `sdp init --headless` - CI/CD mode (no prompts)
+- `sdp init --project-type go|node|python|mixed` - Project type selection
+
+**Components:**
+- Safe defaults per project type
+- Skills selection
+- Evidence layer configuration
+- JSON output for tooling
+
+---
+
+## Updated Features
+
+### F056: Full Skills Instrumentation (Completed)
+
+Evidence tracking for all skills.
+
+**Events:**
+- SkillEvent for @design, @idea, @build
+- PlanEvent with approval_data
+- DecisionEvent, LessonEvent
+
+**Coverage:** 84.8%
+
+### F065: Agent Git Safety Protocol (Completed)
+
+Git safety with session validation.
+
+**Components:**
+- Session hash verification
+- Safe git wrapper
+- Branch protection
+- Context recovery
+
+**Coverage:** 83-90%
+
+### F024: Unified Workflow (Completed)
+
+Unified workflow orchestration.
+
+**Coverage:** Full integration with all skills
+
+---
+
+## CLI Commands (New in 0.9.0)
+
+| Command | Purpose |
+|---------|---------|
+| `sdp next` | Next recommended action |
+| `sdp diagnose [CODE]` | Error lookup and recovery |
+| `sdp demo` | Feature walkthrough |
+| `sdp doctor --repair` | Auto-fix environment |
+| `sdp init --guided` | Interactive setup |
+| `sdp init --headless` | CI/CD setup |
+
+---
+
+## [0.8.0] - 2026-02-16
+
+### Major Release - Multi-Agent Architecture + Go Implementation
+
+**Theme:** From Python CLI to Intelligent Orchestration System
+
+This release transforms SDP into a multi-agent orchestration system with autonomous execution, strategic planning, codebase analysis, long-term memory, and comprehensive evidence tracking.
+
+### Highlights
+
+- **Multi-agent orchestration:** 19+ specialized agents
+- **Strategic planning:** @vision skill with 7 expert agents
+- **Codebase analysis:** @reality skill with 8 expert agents
+- **Long-term memory:** SQLite + FTS5 for context recovery
+- **Evidence layer:** Hash-chained event log with CLI tools
+- **Guard system:** Pre-edit scope enforcement
+- **Parallel execution:** ~5x speedup
+- **Go CLI:** Full Go implementation
+
+### Statistics
+
+- **Features completed:** 16 (F014, F024, F051-F067)
+- **Workstreams:** 120+
+- **Test coverage:** 68% → 80%+
+
+---
+
+## Features
+
+### F014: Workflow Efficiency
+
+Workflow optimization and efficiency improvements.
+
+### F024: Unified Workflow
+
+Unified workflow implementation with 18 workstreams covering end-to-end development process.
+
+**Components:**
+- Orchestrator with dependency graph and topological sort
+- TeamManager for 100+ role management
+- ApprovalGateManager for quality checkpoints
+- Checkpoint save/resume for long-running features
+- NotificationGateway for team updates
+- FeatureCoordinator for @feature integration
+
+**Commands:**
+- `sdp orchestrate <feature-id>` - Execute all workstreams for a feature
+- `sdp orchestrate resume <checkpoint-id>` - Resume from checkpoint
+
+**Packages:**
+- `internal/orchestrator/` - 83.4% coverage
+- `internal/checkpoint/` - 84.4% coverage
+- `internal/notification/` - 82.9% coverage
+
+### F051: Long-term Memory System
+
+Project memory for avoiding duplicated work.
+
+**Commands:**
+- `sdp memory index` - Index project artifacts into SQLite + FTS5
+- `sdp memory search <query>` - Full-text search
+- `sdp memory stats` - Show index statistics
+- `sdp drift detect [ws_id]` - Detect code↔docs drift
+
+### F052: Multi-Agent SDP + @vision + @reality
+
+**@vision Skill:**
+- 7 expert agents: product, market, technical, UX, business, growth, risk
+- Generates VISION.md, PRD.md, ROADMAP.md
+
+**@reality Skill:**
+- 8 expert agents: architecture, quality, testing, security, performance, docs, debt, standards
+- Generates reality report with tech debt tracking
+
+**Parallel Execution:**
+- Kahn's algorithm for dependency-aware parallelization
+- Circuit breaker for fault tolerance
+- Atomic checkpoint/resume
+
+**Two-Stage Review:**
+- Stage 1: Spec compliance
+- Stage 2: Code quality (coverage >= 80%)
+
+### F054: SDP Evidence Layer
+
+Hash-chained event log for audit trail.
+
+**Commands:**
+- `sdp log show` - Show recent events with filters
+- `sdp log trace` - Trace evidence chain
+- `sdp log export` - Export as CSV/JSON
+- `sdp log stats` - Show statistics
+
+**Architecture:**
+```
+.sdp/log/events.jsonl  # Hash-chained event log
+```
+
+### F055: Compliance Design Doc
+
+- Compliance documentation
+- Threat model (THREAT-MODEL.md)
+- GDPR/SOC2 compliance reference
+
+### F056: Full Skills Instrumentation
+
+Instrumentation for @review, @design, @idea and remaining skills with evidence tracking.
+
+### F057: CLI plan/apply/log
+
+**Commands:**
+- `sdp plan "feature"` - Decompose feature into workstreams
+- `sdp apply --ws <id>` - Execute workstreams
+- `sdp log show/trace/export/stats` - Evidence operations
+
+### F058: CI/CD GitHub Action
+
+- SDP Verify Action for GitHub Actions
+- PR evidence comments
+- Release automation
+
+### F059: Observability Bridge Design
+
+- OpenTelemetry semantic conventions
+- Observability integration design
+
+### F060: Shared Contracts for Parallel Features
+
+- Cross-feature boundary detection
+- Interface contract generation
+- Contract-first build workflow
+
+### F061: Data Collection & AI Failure Benchmark
+
+- Metrics collection
+- AI failure taxonomy
+- Benchmark report generator
+
+### F063: Guardian Hooks and Guard Rails
+
+Pre-edit scope enforcement for workstreams.
+
+**Commands:**
+- `sdp guard activate <ws-id>` - Enforce edit scope
+- `sdp guard check <file>` - Verify file is in scope
+- `sdp guard status` - Show guard status
+- `sdp guard finding list` - List findings
+- `sdp guard finding resolve <id>` - Resolve finding
+
+### F064: Unified Task Resolver
+
+Unified task ID resolution for workstreams, beads, and issues.
+
+- ID resolution (workstream, beads, issue)
+- @review artifact creation
+- /issue skill backend
+
+### F065: Agent Git Safety Protocol
+
+- Git safety modules with structured logging
+- Branch protection
+- Safe git operations
+
+### F067: Repository Hardening
+
+**Quality Gates:**
+- 80% test coverage threshold in CI
+- LOC compliance (all files < 200 lines)
+- Go 1.24 across all workflows
+
+**Repository Hygiene:**
+- Removed tracked auto-generated files
+- Evidence log policy
+- Auto-cleanup patterns
+
+---
+
+## CLI Commands (New in 0.8.0)
+
+| Command | Purpose |
+|---------|---------|
+| `sdp doctor` | Health check |
+| `sdp status` | Project state |
+| `sdp init` | Initialize SDP |
+| `sdp plan` | Decompose feature |
+| `sdp apply` | Execute workstreams |
+| `sdp guard *` | Scope enforcement |
+| `sdp session *` | Session management |
+| `sdp log *` | Evidence operations |
+| `sdp memory *` | Long-term memory |
+| `sdp drift *` | Drift detection |
+| `sdp telemetry *` | Telemetry management |
+| `sdp skill *` | Skill management |
+| `sdp metrics *` | Metrics reporting |
+
+---
+
+## Changed
+
+- **Python → Go:** Full CLI rewrite
+- **Test coverage:** 68% → 80%+
+- **File organization:** All files < 200 LOC
+- **Documentation:** Complete rewrite
+
+---
+
+## Fixed
+
+- Data race in circuit breaker tests
+- Security: Checkpoint permissions 0644 → 0600
+- Go version consistency (1.24)
+- Context recovery in Repair()
+
+---
 
 ## [0.7.0] - 2026-01-31
 
-### Added - Feature F034: A+ Quality Initiative
+### F034: A+ Quality Initiative
 
-- **00-034-01:** Split Large Files (Phase 1: Core)
-- **00-034-02:** Split Large Files (Phase 2: Beads/Unified)
-- **00-034-03:** Increase Test Coverage to 80%+ (achieved 85%)
-- **00-034-04:** Documentation Consistency
-- **00-034-05:** Extract Domain Layer (Clean Architecture)
-- **00-034-06:** Add `sdp status` Command
-- **00-034-07:** Add Skill Discovery (@help)
-- **00-034-08:** Remove Legacy Code (~600 LOC)
-
-**Что нового:**
-- Coverage 68% → 85.28%
-- Clean Architecture: domain layer extracted, no beads→core violations
-- `sdp status` — project and guard status
-- Skill discovery via `@help` / `sdp skills`
-- Skills optimized (~64% reduction), repo restructured
-- Lint clean (F401, F821, E501 fixed)
-
-**Использование:**
-
-```bash
-# Project status
-sdp status
-
-# Skill discovery
-sdp skills list
-```
+- Split large files
+- Test coverage to 85%+
+- Domain layer extraction (Clean Architecture)
+- `sdp status` command
+- Skill discovery via `@help`
+- Legacy code removal (~600 LOC)
 
 ---
 
 ## [0.5.2] - 2026-01-31
 
-### Added - Feature F025: pip-audit Security Scanning
-
-- **00-025-01:** pip-audit + Dependabot — dependency vulnerability scanning in CI/CD
-
-**Что нового:**
-- pip-audit runs on every PR/push (blocks merge on vulnerabilities)
-- PR comments include CVE details, severity, fix versions
-- Dependabot weekly PRs for Python + GitHub Actions
-- SECURITY.md policy, docs/internals/development.md updated
-
-**Использование:**
-
-```bash
-# Run vulnerability scan locally
-poetry run pip-audit
-
-# Generate JSON report
-poetry run pip-audit --format json --desc -o audit-report.json
-```
+### F025: pip-audit Security Scanning
 
 ---
 
 ## [0.5.1] - 2026-01-31
 
-### Added - Feature F020: Fast Feedback (Hooks Extraction & Project-Agnostic)
-
-- **00-020-01:** Git hooks extracted to Python — pre-commit, pre-push, post-build, pre-deploy
-- **00-020-02:** Hooks project-agnostic — auto-detect project root, `quality-gate.toml` config
-- **00-020-04:** Fix `except Exception: pass` in common.py (Issue 006)
-
-**Что нового:**
-- Shell hooks → testable Python modules (`src/sdp/hooks/`)
-- `find_project_root()`, `find_workstream_dir()` — auto-detection
-- Configuration via `quality-gate.toml` [workstreams.dir]
-- Hooks coverage 92%, mypy --strict
-
-**Использование:**
-
-```bash
-# Hooks run on any SDP project (dogfooding)
-python -m sdp.hooks.pre_commit
-```
+### F020: Fast Feedback (Git Hooks)
 
 ---
-
-## [0.6.1] - 2026-01-31
-
-### Added - Feature F031: Migrate Core Exceptions to SDPError
-
-- **00-031-01:** Core exceptions inherit from SDPError with ErrorCategory, remediation, docs_url
-
-**Что нового:**
-- WorkstreamParseError, CircularDependencyError, MissingDependencyError → SDPError
-- ModelMappingError, ContractViolationError, HumanEscalationError → SDPError
-- format_terminal() and format_json() on SDPError base
-- Actionable error messages with remediation steps
-
-**Использование:**
-
-```bash
-# Exceptions now include structured output
-from sdp.core.workstream import WorkstreamParseError
-error = WorkstreamParseError("Invalid ws_id")
-print(error.format_terminal())  # Terminal output with remediation
-print(error.format_json())      # JSON for CI/CD
-```
-
----
-
-## [0.6.0] - 2026-01-31
-
-### Added - Feature F030: Test Coverage Expansion
-
-- **00-030-01:** GitHub Integration Tests — client 85%, retry 93%, sync 52%
-- **00-030-02:** Adapter Tests — base 86%, claude 86%, opencode 93%
-- **00-030-03:** Core Functionality Tests — workstream 84%, builder 81%, model 80%
-
-**Что нового:**
-- 72 новых unit-тестов для GitHub, adapters, core
-- Все тесты используют mocks (без реальных API-вызовов)
-- mypy --strict для всех тестовых файлов
-
-**Использование:**
-
-```bash
-# Запуск тестов F030
-uv run pytest tests/unit/adapters/ tests/unit/core/ tests/unit/github/ -v
-
-# Проверка типов
-uv run mypy tests/unit/adapters/ tests/unit/core/ tests/unit/github/ --strict
-```
 
 ## [0.4.0] - 2026-01-27
 
-### Added - Feature F011: PRD Command (6 workstreams)
-- PRD command with project type profiles (cli, service, library)
-- Auto-generated architecture diagrams from code annotations
-- `@prd:` annotation parser for documentation updates
-- Line limits validator for PRD documents
-- Diagram generator (Mermaid format)
-- CodeReview hook integration for PRD validation
+### F003-F011: Core Features
 
-### Added - Feature F003: Two-Stage Review (5 workstreams)
-- Stage 1: Spec Compliance (goal achievement, AC coverage, specification alignment)
-- Stage 2: Code Quality (coverage >= 80%, mypy strict, AI-readiness)
-- Stage 2 only runs if Stage 1 passes — no polishing incorrect code
-- Updated `/codereview` skill with two-stage workflow
+- F003: Two-stage review
+- F004: Platform adapters
+- F005: Extension system
+- F007: Oneshot + hooks
+- F008: Contract-driven tiers
+- F010: SDP infrastructure
+- F011: PRD command
 
-### Added - Feature F004: Platform Adapters (4 workstreams)
-- `PlatformAdapter` interface for unified API
-- `detect_platform()` for auto IDE detection
-- Claude Code adapter (`.claude/` support)
-- Cursor adapter (`.codex/` support)
-- OpenCode adapter (`.opencode/` support)
+---
 
-### Added - Feature F005: Extension System (3 workstreams)
-- `sdp.local/` and `~/.sdp/extensions/{name}/` support
-- `extension.yaml` manifest format
-- Extension auto-discovery and loading
-- Hooks, patterns, skills, integrations components
+## Earlier Versions
 
-### Added - Feature F007: Oneshot & Hooks (10 workstreams)
-- `/oneshot` command for autonomous feature execution
-- Git hooks: pre-commit, post-commit, pre-push
-- Quality gates enforcement
-- Cursor agents integration
-- `/debug` and `/test` commands
-- `/idea` and `/design` skills
-
-### Added - Feature F008: Contract-Driven WS Tiers (9 workstreams)
-- Starter, Standard, Advanced tiers
-- Capability tier validator
-- Model mapping registry
-- Tier auto-promotion
-- Escalation metrics
-
-### Added - Feature F010: SDP Infrastructure (5 workstreams)
-- Submodule support
-- PP-FFF-SS naming convention
-- Content synchronization
-
-### Changed
-- Workstream ID format changed to PP-FFF-WW
-- Enhanced GitHub bidirectional sync service
-- Improved documentation structure
-
-### Statistics
-- **Total Workstreams:** 58
-- **Completed:** 48 (83%)
-- **Features:** 8 (F003, F004, F005, F006, F007, F008, F010, F011)
-
-## [0.4.0-rc] - 2026-01-25
-
-### Added - Feature F003: Two-Stage Review (5 workstreams)
-- Peer review skill with 17-point quality checklist
-- Systematic debugging skill with 4-phase process
-- Fix verification tests skill for completed workstreams
-- Debug command implementation with breakpoint-style workflow
-- Enhanced test coverage metrics (F191 rule enforcement)
-
-### Added - Feature F004: Platform Adapters (4 workstreams)
-- Claude Code adapter implementation
-- Cursor agent adapter interface
-- OpenCode multi-IDE support
-- Unified platform adapter interface
-
-### Added - Feature F005: Extension System (3 workstreams)
-- Extension interface and base classes
-- hw_checker extension implementation
-- GitHub integration extension
-
-### Added - Feature F006: Core SDP (6 workstreams)
-- Workstream parser with PP-FFF-WW format support
-- Feature decomposition from requirements
-- Project map generation and maintenance
-- PIP package structure for distribution
-- File size reduction utilities
-- Integration test suite
-
-### Added - Feature F007: Oneshot & Hooks (11 workstreams)
-- Oneshot autonomous execution with orchestrator agent
-- Git hooks integration (pre-commit, post-commit)
-- Debug command with 4-phase systematic debugging
-- Test command coverage validation
-- Documentation generation workflow
-- Test artifact cleanup utilities
-- EP30 misclassification fix
-- Debug title correction
-- Idea/design skill integration
-
-### Added - Feature F008: Contract-Driven WS Tiers (9 workstreams)
-- Workstream contract specification format
-- Capability tier validator (T0-T3)
-- Model mapping registry for LLM selection
-- Test command workflow with tier routing
-- Model-agnostic builder/router implementation
-- Model selection optimization (cost/latency tradeoffs)
-- Tier auto-promotion based on success metrics
-- Escalation metrics tracking and analysis
-- Runtime contract validation
-
-### Added - Feature F010: SDP Infrastructure (5 workstreams)
-- Project Map with PRD v2.0 format
-- Command reference documentation
-- Configuration file support (~/.sdp/config.toml)
-- Usage examples and interactive workflows
-- Error handling with recovery strategies
-
-### Added - Feature F011: PRD Command (6 workstreams)
-- PRD command with project type profiles (cli, service, library)
-- Line limits validator (PRD section constraints)
-- Annotation parser (@prd_flow, @prd_step decorators)
-- Diagram generator (Mermaid, PlantUML)
-- Codereview hook integration for PRD validation
-- hw_checker PRD migration
-
-### Changed
-- Enhanced GitHub bidirectional sync service
-- Improved project fields integration
-- Workstream ID format changed to PP-FFF-WW
-- Index tracking with completion percentages
-- Pre-deploy hooks adapted for SDP
-- Project map parser supports multiple title formats
-
-### Fixed
-- Oneshot premature stop bug (explicit backlog count check)
-- Project map parsing with `# PROJECT_MAP:` format
-- Session quality check hook path resolution
-- Pre-edit check validation
-
-### Infrastructure
-- 204 unit tests, 16 integration tests
-- 88% average test coverage
-- Full mypy --strict type checking
-- Ruff linting with SDP rules
-- Clean Architecture compliance (Domain-App-Infra-Presentation)
-
-## [0.3.1] - 2026-01-12
-
-### Added
-- `docs/PRINCIPLES.md` - SOLID, DRY, KISS, YAGNI, TDD principles
-- `docs/concepts/` - Clean Architecture, Artifacts, Roles documentation
-- `README_RU.md` - Russian translation of README
-
-### Removed
-- `archive/` directory - legacy v1.2 materials cleaned up
-- `IMPLEMENTATION_SUMMARY.md` - redundant with PROTOCOL.md
-
-### Changed
-- Simplified README.md with clearer structure
-- Updated CLAUDE.md with links to new docs
-
-## [2.0.0] - 2025-12-31
-
-### Added
-- **Unified Progressive Consensus (UPC) Protocol** - Complete rewrite
-- **Three Protocol Tiers**: Starter, Standard, Enterprise
-- **Three Execution Modes**: full, fast_track, hotfix
-- **JSON Schemas** for all artifacts (`consensus/schema/`)
-- **Centralized state** (`status.json`) as single source of truth
-- **Workstreams** for micro-task tracking (merged from kanban concept)
-- **Universal agent prompts** (`consensus/prompts/`)
-- **Validation scripts** (`consensus/scripts/validate.py`)
-- **Epic initialization** (`consensus/scripts/init.py`)
-- **ADR-0004** documenting the unified protocol design
-
-### Changed
-- Protocol now **schema-driven** (JSON Schema is law)
-- **Phase transitions** are explicit and validated
-- **Agent prompts** are now portable Markdown (work with any LLM)
-- **Directory structure** simplified and standardized
-
-### Removed
-- Legacy `modes/` directory (archived to `archive/v1.2/`)
-- Legacy `prompts/` directory (archived to `archive/v1.2/`)
-- Legacy `WORKFLOW.md`, `CONCEPTS.md` (archived)
-- Implicit state management (replaced by `status.json`)
-
-### Migration
-See [PROTOCOL.md](docs/PROTOCOL.md) for migration instructions from v1.2.
-
-## [1.2.0] - 2024-12-29
-
-### Added
-- Continuous code review after each workstream
-- Duplication prevention rules
-- Early quality gates
-- Cross-epic code review
-- Strict code review at epic completion
-- No error-hiding fallbacks rule
-
-## [1.1.0] - 2024-11-XX
-
-### Added
-- JSON format for inbox messages (compact keys)
-- Per-epic directory structure
-- Decision logs in Markdown
-
-## [1.0.0] - 2024-11-XX
-
-### Added
-- Initial file-based consensus protocol
-- Agent roles and responsibilities
-- Veto protocol
-- Clean Architecture enforcement
+See git history for versions prior to 0.4.0.

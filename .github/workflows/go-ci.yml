@@ -1,0 +1,419 @@
+name: Go CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Build binary for integration tests
+        run: go build -o sdp ./cmd/sdp
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run govnulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Check coverage threshold
+        run: |
+          # Coverage check excludes cmd/sdp (needs integration tests) and internal/quality (external tools)
+          echo "Running coverage check for internal packages..."
+          PACKAGES=$(go list ./... | grep -v -E "cmd/sdp$|internal/quality$")
+          go test -cover $PACKAGES 2>&1 | grep "coverage:"
+          echo ""
+          # Check if any package is below 80%
+          LOW=$(go test -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])" | wc -l | tr -d ' ')
+          if [ "$LOW" -gt "0" ]; then
+            echo "❌ Coverage check FAILED - $LOW packages below 80%"
+            go test -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])"
+            exit 1
+          else
+            echo "✅ Coverage check PASSED - all packages >= 80%"
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: sdp-plugin/coverage.out
+          fail_ci_if_error: false
+
+  contract-validation:
+    name: Contract Validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build SDP CLI
+        run: go build -o sdp ./cmd/sdp
+
+      - name: Check for contracts
+        id: check_contracts
+        run: |
+          if [ -d ".contracts" ] && [ "$(ls -A .contracts/*.yaml 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "has_contracts=true" >> $GITHUB_OUTPUT
+            echo "Found $(ls -A .contracts/*.yaml 2>/dev/null | wc -l) contract(s)"
+          else
+            echo "has_contracts=false" >> $GITHUB_OUTPUT
+            echo "No contracts found, skipping validation"
+          fi
+
+      - name: Validate contracts
+        if: steps.check_contracts.outputs.has_contracts == 'true'
+        run: |
+          mkdir -p validation-reports
+
+          # Validate all contracts against each other
+          CONTRACTS=($(ls .contracts/*.yaml 2>/dev/null))
+
+          if [ ${#CONTRACTS[@]} -lt 2 ]; then
+            echo "Need at least 2 contracts for validation"
+            exit 0
+          fi
+
+          # Run contract validation
+          ./sdp contract validate "${CONTRACTS[@]}" --output validation-report.md || true
+
+          # Move report to artifacts directory
+          if [ -f "validation-report.md" ]; then
+            mv validation-report.md validation-reports/
+          fi
+
+          # Check for errors in report
+          if [ -f "validation-reports/validation-report.md" ]; then
+            ERROR_COUNT=$(grep -c "^|.*ERROR" validation-reports/validation-report.md || echo "0")
+            WARNING_COUNT=$(grep -c "^|.*WARNING" validation-reports/validation-report.md || echo "0")
+
+            echo "Contract validation complete:"
+            echo "  Errors: $ERROR_COUNT"
+            echo "  Warnings: $WARNING_COUNT"
+
+            if [ "$ERROR_COUNT" -gt 0 ]; then
+              echo "❌ Contract validation failed with $ERROR_COUNT error(s)"
+              echo ""
+              echo "Validation report:"
+              cat validation-reports/validation-report.md
+              exit 1
+            fi
+
+            if [ "$WARNING_COUNT" -gt 0 ]; then
+              echo "⚠️  Contract validation passed with $WARNING_COUNT warning(s)"
+            else
+              echo "✅ Contract validation passed"
+            fi
+          else
+            echo "⚠️  Validation report not generated"
+          fi
+
+      - name: Upload validation reports
+        if: steps.check_contracts.outputs.has_contracts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-validation-reports
+          path: sdp-plugin/validation-reports/
+          retention-days: 30
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      # golangci-lint v2.9.0+ supports Go 1.26
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.9.0
+          args: --timeout=5m
+          working-directory: sdp-plugin
+
+  guard-checks:
+    name: Guard Checks (Quality Gates)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build SDP CLI
+        run: go build -o sdp ./cmd/sdp
+
+      - name: "Run guard checks (WS-063-03: AC5, WS-067-05: AC2)"
+        run: |
+          # Uses .sdp/guard-rules.yml from repo root (AC1, AC5)
+          # WS-067-05: AC2 - Guard checks are now BLOCKING (removed || true)
+          # The guard check now loads and uses guard rules from .sdp/guard-rules.yml
+          ./sdp guard check --staged --json
+
+      - name: Validate guard rules exist
+        run: |
+          # Ensure guard rules configuration exists
+          if [ ! -f "../.sdp/guard-rules.yml" ]; then
+            echo "❌ Guard rules file not found at .sdp/guard-rules.yml"
+            echo "This file is the canonical source for quality gate rules."
+            exit 1
+          fi
+          echo "✅ Guard rules configuration found at .sdp/guard-rules.yml"
+
+      # WS-067-05: AC5 - Validate config consistency
+      - name: Validate quality config consistency
+        run: |
+          echo "Checking quality gate configuration consistency..."
+
+          # Extract coverage threshold from guard-rules.yml (canonical source)
+          GUARD_COVERAGE=$(grep -A5 "coverage-threshold" ../.sdp/guard-rules.yml | grep "minimum:" | awk '{print $2}')
+          echo "Guard rules coverage threshold: $GUARD_COVERAGE%"
+
+          # Check against .sdp/config.yml
+          CONFIG_COVERAGE=$(grep "coverage_threshold" ../.sdp/config.yml | awk '{print $2}')
+          if [ "$CONFIG_COVERAGE" != "$GUARD_COVERAGE" ]; then
+            echo "❌ Mismatch: .sdp/config.yml has $CONFIG_COVERAGE%, guard-rules.yml has $GUARD_COVERAGE%"
+            exit 1
+          fi
+
+          # Check against CI workflow threshold (hardcoded check)
+          CI_THRESHOLD=80
+          if [ "$GUARD_COVERAGE" != "$CI_THRESHOLD" ]; then
+            echo "❌ Mismatch: CI workflow has $CI_THRESHOLD%, guard-rules.yml has $GUARD_COVERAGE%"
+            exit 1
+          fi
+
+          # Check for deprecated TOML config files
+          DEPRECATED_FILES="../quality-gate.toml ../ci-gates.toml"
+          for f in $DEPRECATED_FILES; do
+            if [ -f "$f" ]; then
+              echo "⚠️  Deprecated config file exists: $f"
+              echo "   Consider removing - .sdp/guard-rules.yml is canonical"
+            fi
+          done
+
+          echo "✅ Quality config consistency validated"
+
+  cross-platform:
+    name: Cross-Platform Build
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build
+        run: |
+          $env:GOOS="${{ matrix.goos }}"
+          $env:GOARCH="${{ matrix.goarch }}"
+          if ("${{ matrix.goos }}" -eq "windows") {
+            go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o dist/sdp-${{ matrix.goos }}-${{ matrix.goarch }}.exe ./cmd/sdp
+          } else {
+            go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o dist/sdp-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/sdp
+          }
+        shell: pwsh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdp-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: sdp-plugin/dist/sdp-*
+
+      # AC8: Verify Go version consistency across project
+      - name: Verify Go version consistency
+        shell: bash
+        run: |
+          EXPECTED=$(cat ../.go-version)
+          echo "Expected Go version: $EXPECTED"
+
+          # Check root go.mod
+          ROOT_V=$(grep "^go " ../go.mod | awk '{print $2}')
+          if [ "$ROOT_V" != "$EXPECTED" ]; then
+            echo "ERROR: root go.mod has go $ROOT_V, expected $EXPECTED"
+            exit 1
+          fi
+
+          # Check plugin go.mod (we're in sdp-plugin directory)
+          PLUGIN_V=$(grep "^go " go.mod | awk '{print $2}')
+          if [ "$PLUGIN_V" != "$EXPECTED" ]; then
+            echo "ERROR: sdp-plugin/go.mod has go $PLUGIN_V, expected $EXPECTED"
+            exit 1
+          fi
+
+          echo "✅ All Go versions aligned to $EXPECTED"
+
+      # AC3: Verify no duplicate prompt trees
+      - name: Verify prompt tree consistency
+        shell: bash
+        run: |
+          echo "Checking for duplicate prompt files outside canonical path..."
+          DUPLICATES=$(find . -path ./prompts -prune -o -path ./.git -prune -o -name "*.md" -path "*prompts/agents*" -print 2>/dev/null)
+          if [ -n "$DUPLICATES" ]; then
+            echo "ERROR: Duplicate prompt files found outside canonical prompts/"
+            echo "$DUPLICATES"
+            exit 1
+          fi
+          echo "✅ No duplicate prompt trees"
+
+      # WS-067-07: AC6 - Detect newly tracked binary artifacts
+      - name: Verify no tracked binary artifacts
+        shell: bash
+        run: |
+          echo "Checking for tracked binary/build artifacts..."
+
+          # Check for tracked .out files (coverage, etc.)
+          TRACKED_OUT=$(git ls-files | grep -E '\.out$' || true)
+          if [ -n "$TRACKED_OUT" ]; then
+            echo "ERROR: Tracked .out files found (should be in .gitignore):"
+            echo "$TRACKED_OUT"
+            exit 1
+          fi
+
+          # Check for tracked binaries in bin/ or dist/
+          TRACKED_BINS=$(git ls-files | grep -E '^(bin/|dist/)' || true)
+          if [ -n "$TRACKED_BINS" ]; then
+            echo "ERROR: Tracked build output found (should be in .gitignore):"
+            echo "$TRACKED_BINS"
+            exit 1
+          fi
+
+          echo "✅ No tracked binary artifacts"
+
+      # WS-067-03: AC5 - Validate adapter configs reference existing files
+      - name: Validate adapter configurations
+        shell: bash
+        run: |
+          echo "Validating adapter configuration files..."
+
+          # Check OpenCode config references
+          if [ -f ".opencode/opencode.json" ]; then
+            echo "Checking .opencode/opencode.json references..."
+            # Extract prompt paths and verify they exist
+            PROMPTS=$(grep -o 'prompts/skills/[^"]*SKILL\.md' .opencode/opencode.json || true)
+            for path in $PROMPTS; do
+              if [ ! -f "$path" ]; then
+                echo "ERROR: OpenCode config references missing file: $path"
+                exit 1
+              fi
+              echo "  ✅ $path exists"
+            done
+          fi
+
+          # Check Cursor config for outdated references
+          if [ -f ".cursor/worktrees.json" ]; then
+            echo "Checking .cursor/worktrees.json for outdated references..."
+            if grep -q "poetry" .cursor/worktrees.json; then
+              echo "ERROR: Cursor config still references Poetry (Python)"
+              echo "This is a Go project - use 'go mod download' instead"
+              exit 1
+            fi
+            echo "  ✅ No Python references in Cursor config"
+          fi
+
+          echo "✅ All adapter configurations valid"
+
+      # WS-067-09: AC6 - Check for oversized files (warning for now)
+      - name: Check file size limits
+        shell: bash
+        run: |
+          echo "Checking for files exceeding 200 LOC..."
+
+          # Find oversized Go files (excluding tests)
+          OVERSIZED=$(find . -name "*.go" -not -name "*_test.go" -exec sh -c '
+            lines=$(wc -l < "$1")
+            if [ "$lines" -gt 200 ]; then
+              echo "$1: $lines LOC"
+            fi
+          ' _ {} \; 2>/dev/null | sort -t: -k2 -nr | head -20 || true)
+
+          if [ -n "$OVERSIZED" ]; then
+            echo ""
+            echo "⚠️  Files exceeding 200 LOC (should be split):"
+            echo "$OVERSIZED"
+            echo ""
+            echo "Total: $(echo "$OVERSIZED" | wc -l | tr -d ' ') files need refactoring"
+            # For now, this is a warning. Future: exit 1
+          else
+            echo "✅ All files under 200 LOC"
+          fi

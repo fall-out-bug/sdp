@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.1.0",
+  "description": "LLM-agnostic command to skill mapping for SDP",
+  "execution_modes": {
+    "cli_only": "CLI command handles everything",
+    "llm_only": "LLM spawning required (no CLI equivalent)",
+    "hybrid": "CLI for setup/validation, LLM spawning for AI tasks"
+  },
+  "commands": {
+    "oneshot": {
+      "file": "skills/oneshot.md",
+      "cli": "sdp orchestrate",
+      "mode": "cli_only",
+      "description": "Autonomous feature execution",
+      "phase": "execution"
+    },
+    "build": {
+      "file": "skills/build.md",
+      "cli": "sdp apply --ws",
+      "mode": "hybrid",
+      "llm_subagents": ["implementer", "spec-reviewer", "quality-reviewer"],
+      "description": "Execute workstream with TDD",
+      "phase": "execution"
+    },
+    "review": {
+      "file": "skills/review.md",
+      "cli": "sdp quality all",
+      "mode": "hybrid",
+      "llm_subagents": ["qa", "security", "devops", "sre", "tech-lead", "documentation"],
+      "description": "Multi-agent quality review",
+      "phase": "execution"
+    },
+    "deploy": {
+      "file": "skills/deploy.md",
+      "cli": "sdp deploy",
+      "mode": "cli_only",
+      "description": "Deployment orchestration",
+      "phase": "execution"
+    },
+    "bugfix": {
+      "file": "skills/bugfix.md",
+      "cli": "sdp apply --ws",
+      "mode": "hybrid",
+      "llm_subagents": ["implementer", "quality-reviewer"],
+      "description": "Quality bug fix (P1/P2)",
+      "phase": "debug"
+    },
+    "hotfix": {
+      "file": "skills/hotfix.md",
+      "cli": "sdp apply --ws",
+      "mode": "hybrid",
+      "llm_subagents": ["implementer"],
+      "description": "Emergency P0 fix",
+      "phase": "debug"
+    },
+    "issue": {
+      "file": "skills/issue.md",
+      "cli": "bd show",
+      "mode": "llm_only",
+      "llm_subagents": ["analyst"],
+      "description": "Bug analysis and routing",
+      "phase": "debug"
+    },
+    "debug": {
+      "file": "skills/debug.md",
+      "cli": null,
+      "mode": "llm_only",
+      "description": "Systematic debugging",
+      "phase": "debug"
+    },
+    "vision": {
+      "file": "skills/vision.md",
+      "cli": "sdp prd generate",
+      "mode": "hybrid",
+      "llm_subagents": ["analyst", "architect", "product-manager"],
+      "description": "Strategic product planning",
+      "phase": "strategic"
+    },
+    "reality": {
+      "file": "skills/reality.md",
+      "cli": "sdp drift detect",
+      "mode": "hybrid",
+      "llm_subagents": ["analyst", "architect"],
+      "description": "Codebase analysis",
+      "phase": "analysis"
+    },
+    "feature": {
+      "file": "skills/feature.md",
+      "cli": "sdp plan",
+      "mode": "hybrid",
+      "llm_subagents": ["analyst", "architect", "planner"],
+      "description": "Feature planning",
+      "phase": "planning"
+    },
+    "idea": {
+      "file": "skills/idea.md",
+      "cli": "sdp idea",
+      "mode": "llm_only",
+      "description": "Requirements gathering",
+      "phase": "planning"
+    },
+    "design": {
+      "file": "skills/design.md",
+      "cli": "sdp design",
+      "mode": "llm_only",
+      "description": "System design",
+      "phase": "planning"
+    },
+    "init": {
+      "file": "skills/init.md",
+      "cli": "sdp init",
+      "mode": "cli_only",
+      "description": "Initialize SDP",
+      "phase": "setup"
+    },
+    "tdd": {
+      "file": "skills/tdd.md",
+      "cli": "sdp tdd",
+      "mode": "cli_only",
+      "description": "TDD enforcement",
+      "internal": true
+    },
+    "guard": {
+      "file": "skills/guard.md",
+      "cli": "sdp guard",
+      "mode": "cli_only",
+      "description": "Scope enforcement",
+      "internal": true
+    },
+    "beads": {
+      "file": "skills/beads.md",
+      "cli": "bd",
+      "mode": "cli_only",
+      "description": "Task tracking",
+      "phase": "tracking"
+    }
+  },
+  "patterns": {
+    "tdd": "patterns/tdd.md",
+    "git-safety": "patterns/git-safety.md",
+    "quality-gates": "patterns/quality-gates.md",
+    "session-complete": "patterns/session-complete.md"
+  },
+  "agents": {
+    "orchestrator": "agents/orchestrator.md",
+    "reviewer": "agents/reviewer.md",
+    "builder": "agents/builder.md",
+    "deployer": "agents/deployer.md",
+    "tester": "agents/qa.md",
+    "architect": "agents/architect.md",
+    "analyst": "agents/analyst.md",
+    "developer": "agents/developer.md",
+    "implementer": "agents/implementer.md",
+    "spec-reviewer": "agents/spec-reviewer.md",
+    "security": "agents/security.md",
+    "devops": "agents/devops.md",
+    "sre": "agents/sre.md",
+    "tech-lead": "agents/tech-lead.md"
+  },
+  "notes": {
+    "llm_agnostic": "Skills work with any LLM (Opus, GLM, Codex) in any tool (Claude Code, Cursor, Windsurf)",
+    "cli_first": "CLI is the foundation - LLM spawning is for AI-powered tasks",
+    "hybrid_mode": "CLI handles setup/validation, LLM spawning handles AI tasks",
+    "subagent_spawning": "Use tool's native subagent capability (Task tool, agent panel, etc.)"
+  }
+}

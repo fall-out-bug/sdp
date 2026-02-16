@@ -1,450 +1,434 @@
 # Claude Code Integration Guide
 
-Quick reference for using this Spec-Driven Protocol (SDP) repository with Claude Code.
+Quick reference for using SDP CLI v0.9.0 with Claude Code.
 
-> **📝 Meta-note:** This guide was written with AI assistance (Claude Sonnet 4.5). The workflow is based on real development experience.
+## Quick Start
 
-## TL;DR
-
-Use **skills** to execute SDP commands:
-
-> **⚠️ Migration Notice:** **Upgrading from a previous version?** See [Breaking Changes Migration Guide](docs/migrations/breaking-changes.md) for:
-> - Consensus → Slash Commands migration
-> - Workstream ID format changes (WS-FFF-SS → PP-FFF-SS)
-> - 4-Phase → Slash Commands workflow
-> - QualityGateValidator removal
-> - And more...
-
-```
-@feature "Add user authentication"    # ✅ RECOMMENDED: Beads-first workflow
-@idea "Add user authentication"       # ⚠️ ALTERNATIVE: Traditional markdown workflow
-@design idea-user-auth                # Plan workstreams
-@build 00-001-01                      # Execute workstream (PP-FFF-SS format)
-@review F01                           # Quality check
-@deploy F01                           # Deploy to production
+```bash
+@vision "AI-powered task manager"    # Strategic planning
+@reality --quick                     # Codebase analysis
+@feature "Add user authentication"   # Plan feature
+@build 00-001-01                     # Execute workstream
+@review F01                          # Quality check
 ```
 
-**📋 Workflow Decision:** See [docs/workflow-decision.md](docs/workflow-decision.md) for detailed comparison of Beads-first vs Traditional markdown workflows.
+**Workstream ID Format:** `PP-FFF-SS` (e.g., `00-001-01`)
 
-**⚠️ Workstream ID Format:** Use `PP-FFF-SS` (e.g., `00-001-01`), NOT legacy `WS-FFF-SS`
+---
+
+## Milestone Context
+
+**Current milestone:** M1 "T-shirt" (UX Excellence)
+
+| Milestone | Features | Status |
+|-----------|----------|--------|
+| **M1** | F054, F063, F064, F067, F068, F070, F075, F076 | **CURRENT** |
+| M2 | F060, F071, F073, F077, F078 | Future |
+| M3 | F057, F058, F069, F072, F074, F079 | Future |
+| M4 | F055, F056, F059, F061 | Future |
+
+**Only work on current milestone features unless explicitly requested.**
+
+---
+
+## Protocol Flow
+
+The correct workflow is:
+
+```
+@oneshot F067  →  @review F067  →  @deploy F067
+    │                 │                │
+    ▼                 ▼                ▼
+ Execute WS      APPROVED?         Merge PR
+                  │
+                  ├─ YES → proceed to @deploy
+                  └─ NO → fix loop (max 3 iterations)
+```
+
+**"Done" = @review APPROVED + @deploy completed, NOT just "PR merged".**
+
+---
+
+## Decision Tree
+
+```
+New project?
+|-- Yes --> @vision (strategic) --> @reality (analysis)
++-- No --> Working on existing project?
+    |-- Yes --> What's the state?
+    |   |-- Don't know --> @reality --quick
+    |   +-- Know state --> @feature "add feature"
+    +-- No --> Workstreams exist?
+        |-- Yes --> @oneshot F050
+        +-- No --> @feature "plan feature"
+```
+
+### Four-Level Planning Model
+
+| Level | Orchestrator | Purpose | Output |
+|-------|-------------|---------|--------|
+| **Strategic** | @vision (7 agents) | Product planning | VISION, PRD, ROADMAP |
+| **Analysis** | @reality (8 agents) | Codebase analysis | Reality report |
+| **Feature** | @feature (@idea + @design) | Requirements + WS | Workstreams |
+| **Execution** | @oneshot (@build) | Parallel execution | Implemented code |
+
+### When to Use Each Level
+
+**@vision** — New project, major pivot, quarterly strategic review
+
+**@reality** — New to project, before @feature, track tech debt, quarterly review
+
+**@feature** — Feature idea but no workstreams, need interactive planning
+
+**@oneshot** — Workstreams exist, want autonomous execution with checkpoint/resume
+
+**@build** — Execute a single workstream (use instead of @oneshot for 1-2 WS)
+
+---
 
 ## Available Skills
 
-| Skill | Purpose | Example |
-|-------|---------|---------|
-| `@feature` | **Unified feature development** (progressive disclosure) | `@feature "Add payment processing"` |
-| `@idea` | **Interactive requirements** (AskUserQuestion) | `@idea "Add payment processing"` |
-| `@design` | **Interactive planning** (EnterPlanMode) | `@design idea-payments` |
-| `@build` | Execute workstream (TodoWrite tracking) | `@build 00-001-01` |
-| `/debug` | **Systematic debugging** (scientific method) | `/debug "Test fails unexpectedly"` |
-| `@review` | Quality check | `@review F01` |
-| `@deploy` | Production deployment | `@deploy F01` |
-| `@issue` | Debug and route bugs | `@issue "Login fails on Firefox"` |
-| `@hotfix` | Emergency fix (P0) | `@hotfix "Critical API outage"` |
-| `@bugfix` | Quality fix (P1/P2) | `@bugfix "Incorrect totals"` |
-| `@oneshot` | **Autonomous execution** (Task-based) | `@oneshot F01` or `@oneshot F01 --background` |
+### Core Skills
 
-**Internal skills** (not called directly by users):
-| Skill | Purpose | Called By |
-|-------|---------|----------|
-| `/tdd` | TDD cycle enforcement (Red→Green→Refactor) | `@build` (automatic) |
+| Skill | Purpose | Phase |
+|-------|---------|-------|
+| `@vision` | Strategic product planning (7 expert agents) | Strategic |
+| `@reality` | Codebase analysis (8 expert agents) | Analysis |
+| `@feature` | Planning orchestrator (interactive) | Planning |
+| `@idea` | Requirements gathering (AskUserQuestion) | Planning |
+| `@design` | Workstream design (EnterPlanMode) | Planning |
+| `@oneshot` | Execution orchestrator (autonomous) | Execution |
+| `@build` | Execute single workstream (TDD) | Execution |
+| `@review` | Multi-agent quality review | Execution |
+| `@deploy` | Merge feature branch to main | Execution |
 
-Skills are defined in `.claude/skills/{name}/SKILL.md`
+### Debug Skills
 
-**Claude Code Integration Highlights:**
-- `@idea` — Deep interviewing via AskUserQuestion (no obvious questions, explores tradeoffs)
-- `@design` — EnterPlanMode for codebase exploration + AskUserQuestion for architecture decisions
-- `@build` — TodoWrite real-time progress tracking through TDD cycle
-- `@oneshot` — Task tool spawns isolated orchestrator agent with background execution support
+| Skill | Purpose | Phase |
+|-------|---------|-------|
+| `@debug` | Systematic debugging (scientific method) | Debug |
+| `@issue` | Debug and route bugs | Debug |
+| `@hotfix` | Emergency fix (P0) | Debug |
+| `@bugfix` | Quality fix (P1/P2) | Debug |
 
-## Quick Reference
+### Utility Skills
 
-### First Time Setup
+| Skill | Purpose |
+|-------|---------|
+| `@init` | Initialize SDP in current project |
+| `@help` | Interactive skill discovery |
+| `@prototype` | Rapid prototyping shortcut |
+| `@prd` | PRD generation and maintenance |
+| `@test` | Contract test generation |
+| `@reality-check` | Quick documentation vs code validation |
+| `@verify-workstream` | Validate workstream against codebase |
+| `@protocol-consistency` | Audit consistency across docs/CLI/CI |
+| `@guard` | Pre-edit gate enforcing WS scope |
+| `@tdd` | TDD enforcement (called by @build) |
+
+### Beads Integration
+
+| Skill | Purpose |
+|-------|---------|
+| `@beads` | Beads task tracker integration |
+
+**Skills defined in:** `.claude/skills/{name}/SKILL.md`
+
+---
+
+## Typical Workflow
+
+### Full Flow (new project)
+
+```bash
+# 1. Strategic planning
+@vision "AI-powered task manager for remote teams"
+
+# 2. Codebase analysis
+@reality --quick
+
+# 3. Feature planning (per feature)
+@feature "User can reset password via email"
+
+# 4. Autonomous execution
+@oneshot F050
+```
+
+### Quick Flow (existing project)
+
+```bash
+# 1. Plan feature
+@feature "Add payment processing"
+
+# 2. Execute all workstreams
+@oneshot F050
+```
+
+### Manual Flow (learning or debugging)
+
+```bash
+@build 00-050-01   # Execute one at a time
+@build 00-050-02
+@review F050       # Review when done
+@deploy F050       # Deploy
+```
+
+---
+
+## First Time Setup
 
 1. **Read core docs:**
-   - [README.md](README.md) — Overview and quick start
-   - [PROTOCOL.md](docs/PROTOCOL.md) — Full SDP specification
-   - [RULES_COMMON.md](RULES_COMMON.md) — Common rules
+   - [README.md](README.md)
+   - [PROTOCOL.md](docs/PROTOCOL.md)
 
-2. **Understand key concepts:**
+2. **Key concepts:**
    - **Workstream (WS)**: Atomic task, one-shot execution
    - **Feature**: 5-30 workstreams
    - **Release**: 10-30 features
 
-3. **Review quality gates:**
-   - Files < 200 LOC
-   - Coverage ≥80%
-   - No `except: pass`
-   - Full type hints
+3. **Install Beads CLI** (task tracking):
+   ```bash
+   brew tap beads-dev/tap && brew install beads
+   bd --version
+   ```
 
-### Typical Workflow
+---
 
-```bash
-# 1. Gather requirements (Interactive interviewing)
-@idea "User can reset password via email"
-# Claude asks deep questions via AskUserQuestion:
-# - Technical approach (email service, token storage)
-# - UI/UX (where in app, error messages)
-# - Security (token expiry, rate limiting)
-# - Concerns (complexity, failure modes)
-# Result: comprehensive spec in docs/drafts/
-
-# 2. Design workstreams (Interactive planning)
-@design idea-password-reset
-# Claude enters Plan Mode:
-# - Explores codebase (existing auth, email infrastructure)
-# - Asks architecture questions (JWT vs sessions, etc.)
-# - Designs WS decomposition
-# - Requests approval via ExitPlanMode
-# Result: WS-XXX-01, WS-XXX-02, etc. in docs/workstreams/backlog/
-# If WS created manually: sdp beads migrate docs/workstreams/backlog/ --real
-
-# 3. Execute each workstream
-@build 00-001-01
-# Claude shows TodoWrite progress tracking:
-#   [in_progress] Pre-build validation
-#   [pending] Write failing test (Red)
-#   [pending] Implement minimum code (Green)
-#   [pending] Refactor implementation
-#   ... (updates in real-time)
-
-@build 00-001-02
-# ... or use autonomous mode:
-@oneshot F01
-
-# 4. Review quality
-@review F01
-
-# 5. Deploy to production
-@deploy F01
-```
-
-### Progress Tracking
-
-When using `@build`, Claude Code automatically tracks progress using TodoWrite:
-
-```markdown
-User: @build 00-060-01
-
-Claude:
-→ Creating todo list...
-  ✓ [in_progress] Pre-build validation
-  • [pending] Write failing test (Red)
-  • [pending] Implement minimum code (Green)
-  • [pending] Refactor implementation
-  • [pending] Verify Acceptance Criteria
-  • [pending] Run quality gates
-  • [pending] Append execution report
-  • [pending] Git commit
-
-→ Reading WS file...
-  ✓ [completed] Pre-build validation
-  ✓ [in_progress] Write failing test (Red)
-  • [pending] Implement minimum code (Green)
-  ...
-
-→ Test created, running pytest... FAILED (expected)
-  ✓ [completed] Write failing test (Red)
-  ✓ [in_progress] Implement minimum code (Green)
-  ...
-
-→ Implementation done, running pytest... PASSED
-  ✓ [completed] Implement minimum code (Green)
-  ✓ [in_progress] Refactor implementation
-  ...
-
-[All steps complete]
-  ✓ All tasks completed
-```
-
-This provides real-time visibility into WS execution progress.
-
-### Autonomous Execution with @oneshot
-
-For features with multiple workstreams, use `@oneshot` for autonomous execution:
-
-```markdown
-User: @oneshot F01
-
-Claude Code:
-→ Spawning orchestrator agent via Task tool...
-→ Agent ID: abc123xyz (save for resume)
-
-Orchestrator Agent:
-→ Reading feature specification and workstreams...
-→ Found 4 workstreams to execute
-
-→ Creating todo list...
-  ✓ [in_progress] Wait for PR approval
- • [pending] Execute 00-001-01: Domain entities
- • [pending] Execute 00-001-02: Application services
- • [pending] Execute 00-001-03: Infrastructure layer
- • [pending] Execute 00-001-04: API endpoints
-  • [pending] Run final review
-  • [pending] Generate UAT guide
-
-→ Creating PR for approval...
-→ Waiting for approval...
-
-[User approves PR in GitHub]
-
-→ PR approved!
-  ✓ [completed] Wait for PR approval
- ✓ [in_progress] Execute 00-001-01: Domain entities
-
-→ Executing 00-001-01...
- (internal @build TodoWrite tracking for this WS)
-→ 00-001-01 complete (45m, 85% coverage)
- ✓ [completed] Execute 00-001-01: Domain entities
- ✓ [in_progress] Execute 00-001-02: Application services
-
-→ Executing 00-001-02...
-→ 00-001-02 complete (1h 10m, 82% coverage)
- ✓ [completed] Execute 00-001-02: Application services
- ✓ [in_progress] Execute 00-001-03: Infrastructure layer
-
-... (continues for all WS)
-
-→ All workstreams complete
-  ✓ [in_progress] Run final review
-
-→ Running /review F01...
-→ Review verdict: APPROVED
-  ✓ [completed] Run final review
-  ✓ [in_progress] Generate UAT guide
-
-→ Generating UAT guide...
-  ✓ [completed] Generate UAT guide
-
-→ All tasks completed! ✅
-
-Main Claude:
-## ✅ Feature F01 Execution Complete
-
-**Agent ID:** abc123xyz (for resume)
-**Duration:** 3h 45m
-**Workstreams:** 4/4 completed
-**Coverage:** avg 86%
-
-### Next Steps
-1. Human UAT (5-10 min)
-2. `@deploy F01` if UAT passes
-```
-
-**Background execution** for large features:
-
-```bash
-User: @oneshot F01 --background
-
-Claude Code:
-→ Starting orchestrator agent in background...
-→ Task ID: xyz789
-→ Output file: /tmp/agent_xyz789.log
-
-You can continue working. I'll notify when complete.
-Check progress: Read("/tmp/agent_xyz789.log")
-
-[5 minutes later]
-✅ Background task xyz789 completed!
-Feature F01 is done and ready for UAT.
-```
-
-**Resume** from interruption:
-
-```bash
-# If execution interrupted
-User: @oneshot F01 --resume abc123xyz
-
-Claude Code:
-→ Resuming agent abc123xyz...
-→ Agent continues from last checkpoint (WS-001-03)
-```
-
-### File Structure Reference
+## Project Structure
 
 ```
-project/
-├── PRODUCT_VISION.md      # Project manifesto (generated by @feature)
-├── docs/
-│   ├── schema/            # Intent JSON schema
-│   ├── intent/            # Machine-readable intent files
-│   ├── drafts/            # @idea outputs here
-│   ├── workstreams/
-│   │   ├── backlog/       # @design outputs here
-│   │   ├── in_progress/   # @build moves here
-│   │   └── completed/     # @build finalizes here
-│   └── specs/             # Feature specifications
-├── src/sdp/
-│   ├── schema/            # Intent validation
-│   ├── tdd/               # TDD cycle runner
-│   ├── feature/           # Product vision management
-│   └── design/            # Dependency graph
-├── prompts/commands/      # Skill instructions
+sdp/
+├── sdp-plugin/            # Go implementation (CLI + agents)
+│   ├── cmd/sdp/           # CLI commands
+│   └── internal/          # Core logic
 ├── .claude/
 │   ├── skills/            # Skill definitions
-│   │   ├── feature/       # Unified entry point
-│   │   ├── idea/          # Requirements gathering
-│   │   ├── design/        # Workstream planning
-│   │   ├── build/         # WS execution
-│   │   ├── tdd/           # TDD discipline
-│   │   ├── debug/         # Systematic debugging
-│   │   └── oneshot/       # Autonomous execution
-│   ├── agents/            # Multi-agent mode (advanced)
-│   └── settings.json      # Claude Code settings
-└── hooks/                 # Git hooks for validation
+│   └── agents/            # Multi-agent definitions
+├── docs/
+│   ├── PROTOCOL.md        # Core specification
+│   ├── reference/         # Command and API reference
+│   ├── vision/            # Strategic vision docs
+│   ├── decisions/         # Architecture decisions
+│   ├── drafts/            # @idea output
+│   └── workstreams/       # Backlog + completed WS
+├── hooks/                 # Git hooks and validators
+├── templates/             # Workstream templates
+├── PRODUCT_VISION.md      # Product vision
+└── go.mod                 # Go module
 ```
 
-## Key Principles (Quick)
+---
 
-- **SOLID, DRY, KISS, YAGNI** — see [docs/PRINCIPLES.md](docs/PRINCIPLES.md)
-- **Clean Architecture** — Domain ← App ← Infra ← Presentation
-- **TDD** — Tests first (Red → Green → Refactor)
-- **AI-Readiness** — Small files, low complexity, typed
-
-## Validation
-
-### Pre-build Check
-```bash
-hooks/pre-build.sh WS-001-01
-```
-
-### Post-build Check
-```bash
-hooks/post-build.sh WS-001-01 project.module
-```
-
-### Manual Validation
-```bash
-python scripts/validate.py docs/workstreams/backlog/
-```
-
-## Quality Gates (Enforced)
+## Quality Gates
 
 | Gate | Requirement |
 |------|-------------|
-| **AI-Readiness** | Files < 200 LOC, CC < 10, type hints |
+| **File Size** | < 200 LOC |
+| **Test Coverage** | >= 80% |
+| **Type Hints** | Full strict typing |
 | **Clean Architecture** | No layer violations |
-| **Error Handling** | No `except: pass` |
-| **Test Coverage** | ≥80% |
-| **No TODOs** | All tasks completed or new WS |
+| **Error Handling** | Explicit, no bare exceptions |
+| **TODOs** | All resolved or tracked in WS |
 
-## Forbidden Patterns
+### Forbidden Patterns
+- Files > 200 LOC
+- Time-based estimates
+- Layer violations
+- Coverage < 80%
+- TODO without followup WS
 
-❌ `except: pass` or bare exceptions  
-❌ Time-based estimates  
-❌ Layer violations  
-❌ Files > 200 LOC  
-❌ TODO without followup WS  
-❌ Coverage < 80%
+### Required Patterns
+- Type hints everywhere
+- Tests first (TDD)
+- Explicit error handling
+- Clean architecture boundaries
+- Conventional commits
 
-## Required Patterns
+---
 
-✅ Type hints everywhere  
-✅ Tests first (TDD)  
-✅ Explicit error handling  
-✅ Clean architecture boundaries  
-✅ Conventional commits
+## Key Principles
+
+- **SOLID, DRY, KISS, YAGNI** — see [docs/reference/PRINCIPLES.md](docs/reference/PRINCIPLES.md)
+- **Clean Architecture** — Domain <- App <- Infra <- Presentation
+- **TDD** — Tests first (Red -> Green -> Refactor)
+- **AI-Readiness** — Small files, low complexity, typed
+
+---
+
+## CLI Reference
+
+The SDP CLI provides terminal commands for planning, executing, and tracking workstreams.
+
+### Core Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp doctor` | Health check (hooks, config, deps) |
+| `sdp status` | Show project state |
+| `sdp init` | Initialize SDP in a new project |
+| `sdp parse <ws-file>` | Parse workstream file |
+
+### Guard Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp guard activate <ws-id>` | Enforce edit scope for workstream |
+| `sdp guard check <file>` | Verify file is in scope |
+| `sdp guard status` | Show guard status |
+| `sdp guard deactivate` | Clear edit scope |
+| `sdp guard finding list` | List guard findings |
+| `sdp guard finding resolve <id>` | Resolve a finding |
+
+### Session Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp session show` | Show current session |
+| `sdp session clear` | Clear session |
+
+### Log Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp log show` | Show recent events with filters |
+| `sdp log trace` | Trace evidence chain |
+| `sdp log export` | Export events as CSV/JSON |
+| `sdp log stats` | Show event statistics |
+
+### Memory Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp memory index` | Index project artifacts |
+| `sdp memory search <query>` | Search indexed artifacts |
+| `sdp memory stats` | Show index statistics |
+
+### Drift Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp drift detect [ws-id]` | Detect code↔docs drift |
+
+### Metrics Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp metrics report` | Show metrics report |
+| `sdp metrics classify` | Classify metrics |
+
+### Telemetry Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp telemetry status` | Show telemetry status |
+| `sdp telemetry analyze` | Analyze telemetry data |
+
+### Skill Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp skill list` | List available skills |
+| `sdp skill show <name>` | Show skill details |
+| `sdp skill validate` | Validate skill definitions |
+
+### Plan Options
+
+- **Dry run**: `--dry-run` - Preview without writing files
+- **JSON output**: `--output=json` - Machine-readable format
+
+### Log Filters
+
+- **By type**: `--type generation` - Filter event type
+- **By workstream**: `--ws 00-054-01` - Filter by workstream ID
+- **By date**: `--since 2026-02-01T00:00:00Z` - Filter by ISO date
+
+---
+
+## Evidence Layer
+
+Build and verify flows emit events to `.sdp/log/events.jsonl` (hash-chained).
+
+Config: `.sdp/config.yml` with `version`, `evidence.enabled`, `evidence.log_path`. @build emits plan/generation/verification events when evidence is enabled.
+
+---
+
+## Long-term Memory (F051)
+
+Project memory system for avoiding duplicated work. Integrates with evidence.jsonl and Beads issues.
+
+### Architecture
+
+```
+.sdp/
+├── memory.db        # SQLite + FTS5 index
+├── log/
+│   └── events.jsonl # Evidence log (hash-chained)
+└── notifications.log # Notification channel log
+```
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp memory index` | Index all docs/ artifacts into memory.db |
+| `sdp memory search <query>` | Full-text search across indexed artifacts |
+| `sdp memory stats` | Show index statistics |
+| `sdp drift detect [ws_id]` | Detect code↔docs drift |
+
+### Use Cases
+
+1. **Context Recovery:** After session compaction, search memory to restore context
+2. **Decision Discovery:** Find related decisions before proposing approaches
+3. **Drift Detection:** Detect code-documentation discrepancies
+
+---
 
 ## Troubleshooting
 
 ### Skill not found
 Check `.claude/skills/{name}/SKILL.md` exists
 
-### Validation fails
-Run `hooks/pre-build.sh {WS-ID}` to see specific issues
-
 ### Workstream blocked
 Check dependencies in `docs/workstreams/backlog/{WS-ID}.md`
 
 ### Coverage too low
-Run `pytest --cov --cov-report=term-missing` to identify gaps
-
-### Legacy Workstream ID Format
-
-**Problem:** Workstreams using old `WS-FFF-SS` format instead of `PP-FFF-SS`
-
-**Solution:** Use the migration script
-
-```bash
-# Preview changes (safe)
-python scripts/migrate_workstream_ids.py --dry-run
-
-# Migrate SDP workstreams
-python scripts/migrate_workstream_ids.py --project-id 00
-
-# Migrate other projects
-python scripts/migrate_workstream_ids.py --project-id 02 --path ../hw_checker
-```
-
-**What it does:**
-- Updates `ws_id` in frontmatter (`WS-001-01` → `00-001-01`)
-- Adds `project_id` field
-- Renames files to match new format
-- Updates cross-WS dependencies
-- Validates all changes
-
-**See also:** `docs/migration/ws-naming-migration.md`
-
-## Advanced: Multi-Agent Mode
-
-For complex features, use multi-agent orchestration:
-
-```bash
-@orchestrator F01  # Coordinates all agents
-```
-
-Agents defined in `.claude/agents/`:
-- `planner.md` — Breaks features into workstreams
-- `builder.md` — Executes workstreams
-- `reviewer.md` — Quality checks
-- `deployer.md` — Production deployment
-- `orchestrator.md` — Coordinates workflow
-
-## Configuration
-
-See `.claude/settings.json` for:
-- Custom Git hooks
-- Validation scripts
-- Tool integrations
-
-## Resources
-
-| Resource | Purpose |
-|----------|---------|
-| [PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
-| [docs/PRINCIPLES.md](docs/PRINCIPLES.md) | Core principles |
-| [CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) | Code patterns |
-| [MODELS.md](docs/reference/MODELS.md) | Model recommendations |
-| [prompts/commands/](prompts/commands/) | Skill instructions |
+Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**Version:** SDP 0.3.0  
-**Claude Code Version:** 0.3+  
-**Mode:** Skill-based, one-shot execution
-
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**When ending a work session**, complete ALL steps. Work is NOT complete until `git push` succeeds.
 
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+1. **File issues** for remaining work
+2. **Run quality gates** (if code changed)
+3. **Update issue status** — Close finished, update in-progress
+4. **PUSH TO REMOTE:**
    ```bash
    git pull --rebase
    bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. **Clean up** — Clear stashes, prune branches
+6. **Verify** — All committed AND pushed
+7. **Hand off** — Context for next session
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+---
+
+## Resources
+
+| Resource | Purpose |
+|----------|---------|
+| [PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
+| [docs/reference/PRINCIPLES.md](docs/reference/PRINCIPLES.md) | Core principles |
+| [docs/SLOS.md](docs/SLOS.md) | SLOs/SLIs |
+| [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) | Code patterns |
+| [docs/reference/MODELS.md](docs/reference/MODELS.md) | Model recommendations |
+| [.claude/skills/](.claude/skills/) | Skill definitions |
+| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance |
+| [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model |
+
+---
+
+**CLI Version:** 0.9.0 | **Protocol Version:** 0.10.0

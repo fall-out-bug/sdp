@@ -1,0 +1,2 @@
+# SDP uses direct path references for dogfooding, not submodules.
+# See CLAUDE.md and .claude/ -> prompts/ symlinks.

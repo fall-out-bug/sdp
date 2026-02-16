@@ -143,6 +143,6 @@ Structured errors with:
 
 ---
 
-**Version:** SDP v0.5.0
+**Version:** SDP v0.9.0
 **Updated:** 2026-01-29
 **Purpose:** Quick reference for SDP users

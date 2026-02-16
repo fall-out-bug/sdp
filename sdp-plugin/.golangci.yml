@@ -1,0 +1,151 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - gocyclo
+    - gocognit
+    - prealloc
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocyclo:
+      min-complexity: 15
+    gocognit:
+      min-complexity: 20
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - gocognit
+          - errcheck
+      - linters:
+          - govet
+        text: "unusedwrite:"
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+      - linters:
+          - staticcheck
+        text: "QF1003:"
+      - path: internal/quality/
+        linters:
+          - errcheck
+          - govet
+          - gocognit
+          - gocyclo
+      - path: internal/drift/
+        linters:
+          - gocognit
+      - path: internal/guard/
+        linters:
+          - errcheck
+          - gocognit
+      - path: internal/memory/
+        linters:
+          - gocognit
+          - prealloc
+          - errcheck
+      - path: internal/worktree/
+        linters:
+          - gocognit
+      - path: internal/coordination/
+        linters:
+          - prealloc
+          - errcheck
+      - path: internal/task/
+        linters:
+          - errcheck
+      - path: internal/git/
+        linters:
+          - errcheck
+      - path: cmd/sdp/
+        linters:
+          - errcheck
+          - gocognit
+          - gocyclo
+      - path: internal/watcher/
+        linters:
+          - errcheck
+          - gocognit
+          - gocyclo
+      - path: internal/parser/
+        linters:
+          - gocognit
+      - path: internal/decision/
+        linters:
+          - errcheck
+          - unused
+      - path: internal/orchestrator/
+        linters:
+          - errcheck
+      - path: internal/ui/
+        linters:
+          - errcheck
+          - unused
+          - gocognit
+      - path: internal/telemetry/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/doctor/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/verify/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/ui/dashboard/
+        linters:
+          - gocognit
+          - gocyclo
+      - path: internal/metrics/
+        linters:
+          - gocognit
+          - gocyclo
+    paths:
+      - vendor
+      - testdata
+      - examples
+      - golangci-lint
+      - builtin
+      - ".*\\.pb\\.go"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - vendor
+      - testdata
+      - examples
+      - ".*\\.pb\\.go"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+run:
+  concurrency: 4
+  timeout: 5m

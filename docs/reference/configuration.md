@@ -7,6 +7,8 @@ Complete reference for SDP configuration files and options.
 ## Table of Contents
 
 - [Configuration Files](#configuration-files)
+- [Project Configuration (.sdp/config.yml)](#project-configuration-sdpconfigyml)
+- [Guard Rules Configuration (.sdp/guard-rules.yml)](#guard-rules-configuration-sdpguard-rulesyml)
 - [Quality Gate Configuration](#quality-gate-configuration)
 - [Claude Code Settings](#claude-code-settings)
 - [Environment Variables](#environment-variables)
@@ -20,10 +22,145 @@ Complete reference for SDP configuration files and options.
 
 | File | Location | Purpose |
 |------|----------|---------|
-| **quality-gate.toml** | `/` | Quality gate thresholds |
+| **config.yml** | `.sdp/` | Project configuration (guard, acceptance, evidence) |
+| **guard-rules.yml** | `.sdp/` | Guard rule definitions (canonical source) |
 | **settings.json** | `.claude/` | Claude Code settings |
 | **.env** | `/` | Environment variables |
 | **pre-commit** | `.git/hooks/` | Git hooks |
+
+---
+
+## Project Configuration (.sdp/config.yml)
+
+**Location:** `.sdp/config.yml`
+
+**Purpose:** Project-level SDP settings including guard policy, acceptance gates, and evidence logging.
+
+**Structure:**
+
+```yaml
+version: 1
+
+# Acceptance test gate settings
+acceptance:
+  command: "go test ./... -run TestSmoke"
+  timeout: "30s"
+  expected: "PASS"
+
+# Evidence log settings
+evidence:
+  enabled: true
+  log_path: ".sdp/log/events.jsonl"
+
+# Quality gate settings
+quality:
+  coverage_threshold: 80
+  max_file_loc: 200
+
+# Guard policy settings (WS-063-03)
+guard:
+  mode: "standard"           # standard | strict | permissive
+  rules_file: ".sdp/guard-rules.yml"
+  severity_mapping:
+    error: "block"           # Block workflow execution
+    warning: "warn"           # Display warning, continue
+    info: "log"              # Log only, no display
+```
+
+### Guard Mode Settings
+
+| Mode | Description | Exit Code Behavior |
+|------|-------------|-------------------|
+| **standard** | Default behavior, warnings allowed | Exits 1 on error only |
+| **strict** | Treat warnings as errors | Exits 1 on error or warning |
+| **permissive** | Log violations without blocking | Never exits on violations |
+
+### Severity Mapping
+
+Controls how violations are handled:
+
+| Severity | Action | Description |
+|----------|---------|-------------|
+| **error** | block | Violation blocks workflow |
+| **warning** | warn | Violation displayed but continues |
+| **info** | log | Violation logged only |
+
+---
+
+## Guard Rules Configuration (.sdp/guard-rules.yml)
+
+**Location:** `.sdp/guard-rules.yml`
+
+**Purpose:** Canonical source for guard rule definitions used by both local and CI environments.
+
+**Structure:**
+
+```yaml
+version: 1
+
+rules:
+  - id: "max-file-loc"
+    enabled: true
+    severity: "error"
+    description: "Files must not exceed 200 lines of code"
+    config:
+      max_lines: 200
+
+  - id: "coverage-threshold"
+    enabled: true
+    severity: "error"
+    description: "Test coverage must meet minimum threshold"
+    config:
+      minimum: 80
+```
+
+### Rule Schema
+
+Each rule must contain:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique rule identifier |
+| `enabled` | boolean | Yes | Whether rule is active |
+| `severity` | string | Yes | One of: `error`, `warning`, `info` |
+| `description` | string | No | Human-readable rule description |
+| `config` | object | No | Rule-specific configuration |
+
+### Validation Errors (AC2)
+
+Invalid rules produce explicit, actionable errors:
+
+```yaml
+# Missing version
+rules:
+  - id: "test"
+
+# Error: "version: must be >= 1, got 0"
+
+# Invalid severity
+rules:
+  - id: "test"
+    severity: "critical"
+
+# Error: "rule test: invalid severity 'critical', must be one of: error, warning, info"
+
+# Missing required field
+rules:
+  - enabled: true
+
+# Error: "rule at index 0: missing required field 'id'"
+```
+
+### Default Rules
+
+If `.sdp/guard-rules.yml` does not exist, SDP uses built-in defaults:
+
+- **max-file-loc**: 200 lines maximum
+- **coverage-threshold**: 80% minimum
+
+---
+
+## Quality Gate Configuration
 
 ---
 
@@ -375,5 +512,5 @@ exclude_patterns = [
 
 ---
 
-**Version:** SDP v0.5.0
+**Version:** SDP v0.9.0
 **Updated:** 2026-01-29

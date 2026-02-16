@@ -32,7 +32,7 @@ This glossary provides canonical definitions for all SDP (Spec-Driven Protocol) 
 
 **Context:** The overarching framework that defines how AI agents should plan, execute, and track development work through workstreams.
 
-**Example:** "SDP v0.5.0 integrates multi-agent coordination with Beads task tracking."
+**Example:** "SDP v0.9.0 integrates multi-agent coordination with Beads task tracking."
 
 **See Also:** Workstream, Feature, Release, Beads
 
@@ -1787,7 +1787,7 @@ class Config:
 
 **Integration:** SDP provides skills and workflows for Cursor.
 
-**See Also:** [docs/guides/CURSOR.md](docs/guides/CURSOR.md), Claude Code
+**See Also:** [CLAUDE.md](../CLAUDE.md), Claude Code
 
 ---
 
@@ -2069,7 +2069,6 @@ project/
 │   ├── tdd/               # TDD cycle runner
 │   ├── feature/           # Product vision management
 │   └── design/            # Dependency graph
-├── prompts/commands/      # Skill instructions
 ├── .claude/
 │   ├── skills/            # Skill definitions
 │   ├── agents/            # Multi-agent mode

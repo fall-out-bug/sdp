@@ -1,0 +1,210 @@
+package sdpinit
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestRun(t *testing.T) {
+	// Create temp directory with prompts/
+	tmpDir := t.TempDir()
+	promptsDir := filepath.Join(tmpDir, "prompts")
+	skillsDir := filepath.Join(promptsDir, "skills")
+	agentsDir := filepath.Join(promptsDir, "agents")
+
+	// Create test prompts structure
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	// Create test files
+	testSkill := filepath.Join(skillsDir, "test.md")
+	if err := os.WriteFile(testSkill, []byte("# Test Skill"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	testAgent := filepath.Join(agentsDir, "test.md")
+	if err := os.WriteFile(testAgent, []byte("# Test Agent"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	// Change to temp directory
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	// Run init
+	cfg := Config{ProjectType: "go"}
+	if err := Run(cfg); err != nil {
+		t.Fatalf("Run() failed: %v", err)
+	}
+
+	// Check .claude/ directory was created
+	claudeDir := ".claude"
+	if _, err := os.Stat(claudeDir); os.IsNotExist(err) {
+		t.Fatal(".claude/ directory was not created")
+	}
+
+	// Check subdirectories
+	expectedDirs := []string{"skills", "agents", "validators"}
+	for _, dir := range expectedDirs {
+		dirPath := filepath.Join(claudeDir, dir)
+		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+			t.Errorf("Subdirectory %s was not created", dir)
+		}
+	}
+
+	// Check prompts were copied
+	copiedSkill := filepath.Join(claudeDir, "skills", "test.md")
+	if _, err := os.Stat(copiedSkill); os.IsNotExist(err) {
+		t.Error("Test skill was not copied")
+	}
+
+	copiedAgent := filepath.Join(claudeDir, "agents", "test.md")
+	if _, err := os.Stat(copiedAgent); os.IsNotExist(err) {
+		t.Error("Test agent was not copied")
+	}
+
+	// Check settings.json was created
+	settingsPath := filepath.Join(claudeDir, "settings.json")
+	if _, err := os.Stat(settingsPath); os.IsNotExist(err) {
+		t.Fatal("settings.json was not created")
+	}
+
+	// Check settings.json content
+	content, err := os.ReadFile(settingsPath)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+
+	settingsStr := string(content)
+	if !strings.Contains(settingsStr, `"projectType": "go"`) {
+		t.Errorf("settings.json missing projectType: %s", settingsStr)
+	}
+
+	if !strings.Contains(settingsStr, `"skills":`) {
+		t.Errorf("settings.json missing skills: %s", settingsStr)
+	}
+
+	// Check file permissions (0600)
+	info, err := os.Stat(settingsPath)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+
+	perm := info.Mode().Perm()
+	if perm != 0600 {
+		t.Errorf("settings.json has wrong permissions: got %o, want 0600", perm)
+	}
+}
+
+func TestRun_NoPromptsDir(t *testing.T) {
+	// Create temp directory WITHOUT prompts/
+	tmpDir := t.TempDir()
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	// Run init - should fail
+	cfg := Config{ProjectType: "go"}
+	err := Run(cfg)
+	if err == nil {
+		t.Fatal("Run() should fail when prompts/ doesn't exist")
+	}
+
+	if !strings.Contains(err.Error(), "prompts directory not found") {
+		t.Errorf("Wrong error: %v", err)
+	}
+}
+
+func TestRun_CreateDirError(t *testing.T) {
+	// This tests error handling when directory creation fails
+	// We can't easily mock os.MkdirAll, so we'll test the error path
+	// by trying to create a directory in an invalid location
+	cfg := Config{ProjectType: "go"}
+
+	// Create temp directory
+	tmpDir := t.TempDir()
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	// Create a file named .claude (not a directory)
+	if err := os.WriteFile(".claude", []byte("not a directory"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	// Run init - should fail
+	err := Run(cfg)
+	if err == nil {
+		t.Fatal("Run() should fail when .claude is a file, not directory")
+	}
+}
+
+func TestCreateSettings(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := Config{
+		ProjectType: "python",
+		SkipBeads:   false,
+	}
+
+	// Create settings
+	claudeDir := tmpDir
+	if err := createSettings(claudeDir, cfg); err != nil {
+		t.Fatalf("createSettings() failed: %v", err)
+	}
+
+	// Check file exists
+	settingsPath := filepath.Join(claudeDir, "settings.json")
+	if _, err := os.Stat(settingsPath); os.IsNotExist(err) {
+		t.Fatal("settings.json was not created")
+	}
+
+	// Check content
+	content, err := os.ReadFile(settingsPath)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+
+	settingsStr := string(content)
+	if !strings.Contains(settingsStr, `"projectType": "python"`) {
+		t.Errorf("Wrong projectType in settings: %s", settingsStr)
+	}
+
+	if !strings.Contains(settingsStr, `"sdpVersion": "1.0.0"`) {
+		t.Errorf("Missing sdpVersion in settings: %s", settingsStr)
+	}
+
+	// Check skills list
+	expectedSkills := []string{"feature", "idea", "design", "build", "review", "deploy", "debug", "bugfix", "hotfix", "oneshot"}
+	for _, skill := range expectedSkills {
+		if !strings.Contains(settingsStr, `"`+skill+`"`) {
+			t.Errorf("Missing skill %s in settings: %s", skill, settingsStr)
+		}
+	}
+
+	// Check permissions
+	info, err := os.Stat(settingsPath)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+
+	perm := info.Mode().Perm()
+	if perm != 0600 {
+		t.Errorf("Wrong permissions: got %o, want 0600", perm)
+	}
+}

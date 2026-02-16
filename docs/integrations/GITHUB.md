@@ -1,6 +1,6 @@
 # GitHub Integration
 
-Автоматическая синхронизация Workstreams и Issues с GitHub Projects.
+Automatic synchronization of Workstreams and Issues with GitHub Projects.
 
 ## Setup
 
@@ -80,7 +80,7 @@ Creates GitHub issues for:
 ### /build Command
 
 Updates GitHub issue status:
-- Start: `status:backlog` → `status:in-progress`
+- Start: `status:backlog` -> `status:in-progress`
 - Complete: Close issue with comment
 - Fail: Add `status:blocked` label
 
@@ -110,21 +110,21 @@ Creates bugfix issue:
 
 ```
 [/design]
-    ↓
+    |
 Create Issue (#123)
 status: backlog
-    ↓
+    |
 [/build WS-ID]
-    ↓
+    |
 Update: status:in-progress
-    ↓
+    |
 [Build complete]
-    ↓
+    |
 Close issue
 Add comment with metrics
-    ↓
+    |
 [/codereview]
-    ↓
+    |
 Verify all issues closed
 ```
 

@@ -311,8 +311,35 @@ cp -r ~/.claude/sdp/prompts/* .claude/
 ## Timeline
 
 - **2026-02-03:** Plugin v1.0.0 released
-- **2026-02-03 to 2026-08-03:** Python SDP maintained (6 months)
-- **2026-08-03:** Python SDP deprecated (but still works)
-- **After 2026-08-03:** Plugin recommended, Python SDP community-supported
+- **2026-02-06:** Python SDP archived (code moved to `src/sdp-deprecated/`)
+  - CLI entry points removed from `pyproject.toml`
+  - 252 Python files (25K LOC) archived
+  - Go SDP becomes the primary implementation
+- **2026-08-03:** Python SDP EOL (end of 6-month grace period)
+- **After 2026-08-03:** Python SDP community-supported only
 
-**Recommendation:** Migrate to plugin during the 6-month overlap period.
+**Recommendation:** Migrate to Go SDP + Plugin immediately. Python version is deprecated.
+
+## Archival Status
+
+**Python SDP Code:**
+- ✅ Archived to `src/sdp-deprecated/` (2026-02-06)
+- ✅ CLI entry points removed
+- ✅ Poetry package no longer installs commands
+- ⚠️ Available for reference only (not maintained)
+
+**Go SDP:**
+- ✅ Primary implementation (v1.0.0-go)
+- ✅ All 4 parity commands implemented
+- ✅ Active development
+- ✅ Multi-language support (Python, Java, Go)
+
+**Migration Path:**
+```bash
+# Old (deprecated)
+pip install sdp  # Still works but deprecated
+
+# New (recommended)
+go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
+# OR download binary from releases
+```

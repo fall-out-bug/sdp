@@ -1,10 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 # Install SDP git hooks
+#
+# DEPRECATED: This script is deprecated in favor of the Go implementation.
+# Use: sdp hooks install
+# This script is kept for backward compatibility only.
 
 set -e
 
+echo "WARNING: This install method is deprecated."
+echo "Please use: sdp hooks install"
+echo ""
+
+# Try to use the Go implementation if available
+if command -v sdp >/dev/null 2>&1; then
+    echo "Using sdp CLI to install hooks..."
+    exec sdp hooks install
+fi
+
+# Fallback to manual installation if sdp is not available
+echo "SDP CLI not found. Using manual installation..."
+
 HOOKS_DIR=".git/hooks"
-SDP_HOOKS_DIR="sdp/hooks"
 
 # Check if in git repo
 if [ ! -d ".git" ]; then
@@ -12,39 +28,48 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
-# Install post-commit hook
-echo "Installing post-commit hook..."
-ln -sf "../../${SDP_HOOKS_DIR}/post-commit.sh" "${HOOKS_DIR}/post-commit"
-chmod +x "${HOOKS_DIR}/post-commit"
+# Create hooks directory if needed
+mkdir -p "${HOOKS_DIR}"
 
-# Install other existing hooks (if any)
-if [ -f "${SDP_HOOKS_DIR}/pre-commit.sh" ]; then
-    echo "Installing pre-commit hook..."
-    ln -sf "../../${SDP_HOOKS_DIR}/pre-commit.sh" "${HOOKS_DIR}/pre-commit"
-    chmod +x "${HOOKS_DIR}/pre-commit"
+# SDP marker for ownership tracking
+SDP_MARKER="# SDP-MANAGED-HOOK"
+
+# Install canonical hooks
+for hook in pre-commit pre-push post-merge post-checkout; do
+    hook_file="${HOOKS_DIR}/${hook}"
+
+    # Check if hook already exists and is SDP-managed
+    if [ -f "${hook_file}" ]; then
+        if grep -q "${SDP_MARKER}" "${hook_file}" 2>/dev/null; then
+            echo "Updating ${hook}..."
+        else
+            echo "Warning: ${hook} exists but not SDP-managed, skipping"
+            continue
+        fi
+    else
+        echo "Installing ${hook}..."
+    fi
+
+    # Write hook with SDP marker
+    cat > "${hook_file}" << EOF
+#!/bin/sh
+${SDP_MARKER}
+# SDP Git Hook
+# This hook is managed by SDP. Do not edit manually.
+
+# Check if sdp binary exists
+if ! command -v sdp >/dev/null 2>&1; then
+    echo "Warning: SDP CLI (sdp) not found in PATH"
+    echo "Install SDP to enable quality checks: https://github.com/fall-out-bug/sdp"
+    exit 0
 fi
 
-if [ -f "${SDP_HOOKS_DIR}/commit-msg.sh" ]; then
-    echo "Installing commit-msg hook..."
-    ln -sf "../../${SDP_HOOKS_DIR}/commit-msg.sh" "${HOOKS_DIR}/commit-msg"
-    chmod +x "${HOOKS_DIR}/commit-msg"
-fi
+# Add your custom checks here
+EOF
 
-if [ -f "${SDP_HOOKS_DIR}/pre-push.sh" ]; then
-    echo "Installing pre-push hook..."
-    ln -sf "../../${SDP_HOOKS_DIR}/pre-push.sh" "${HOOKS_DIR}/pre-push"
-    chmod +x "${HOOKS_DIR}/pre-push"
-fi
+    chmod +x "${hook_file}"
+done
 
-echo "✅ Git hooks installed successfully"
 echo ""
-echo "Hooks:"
-echo "  - pre-commit:  quality checks (time, tech debt, Python, Clean Arch, WS format)"
-echo "  - post-commit: GitHub issue sync (if GITHUB_TOKEN set)"
-echo "  - pre-push:    regression tests"
-echo ""
-echo "Required environment variables for GitHub integration:"
-echo "  GITHUB_TOKEN  - GitHub personal access token"
-echo "  GITHUB_REPO   - Repository in format 'owner/repo'"
-echo ""
-echo "Add to .env file or export in shell"
+echo "Git hooks installed!"
+echo "Note: Install the SDP CLI for full functionality: sdp hooks install"

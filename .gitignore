@@ -1,44 +1,34 @@
-# Python
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go coverage
+coverage.out
+coverage.html
+
+# Python (for scripts/)
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Testing
 .pytest_cache/
 .coverage
 .coverage.*
 coverage.json
 coverage.xml
 htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-*.log
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
 
 # Virtual environments
 venv/
-ENV/
+.venv/
 env/
-.venv
 
 # IDEs
 .vscode/
@@ -47,25 +37,11 @@ env/
 *.swo
 *~
 
-# MyPy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
 # Temporary files
 *.tmp
 *.bak
 *.backup
 *.orig
-
-# Development artifacts (not for production repo)
-debug_*.py
-/test_*.py
-diagnostic.py
-quick_test.py
-verify_*.py
-run_direct_test.py
-final_test.py
 
 # Environment
 .env
@@ -80,7 +56,38 @@ Thumbs.db
 artifacts/
 archive/
 .oneshot
+.sdp/audit.log
+.sdp/memory.db
+.sdp/checkpoints/
+.sdp/log/events.jsonl
+sdp-plugin/.sdp/log/events.jsonl
+**/events.jsonl
+
+# Build output
+bin/
+dist/
+/sdp
+sdp-plugin/bin/
+
+# Go binaries (always clean old builds)
+# Rule: Never commit compiled binaries to repo
+# Run 'go build' locally, binaries are gitignored
+/sdp
+/sdp-test
+sdp-plugin/sdp
+sdp-plugin/sdp-test
+sdp-plugin/cmd/sdp/sdp
 
 # Temporary status files
 *_STATUS.md
 *_PROGRESS.md
+
+# Beads daemon and temp files
+*.startlock
+daemon-error
+sdp-plugin/.beads/*.db
+sdp-plugin/.beads/*.db-shm
+sdp-plugin/.beads/*.db-wal
+
+# SDP session files in subdirs
+sdp-plugin/**/.sdp/

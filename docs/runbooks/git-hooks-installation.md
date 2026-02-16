@@ -4,8 +4,8 @@
 
 **Prerequisites:**
 - Git repository initialized
-- Bash access
 - Write permissions to `.git/hooks/`
+- SDP CLI installed (recommended) or Bash access
 
 ## Why Git Hooks?
 
@@ -13,8 +13,9 @@ SDP uses cross-platform Git hooks that work across all IDEs:
 
 ✅ **Universal** - Works in Claude Code, Cursor, OpenCode
 ✅ **Pre-commit** - Quality checks before commit
-✅ **Post-commit** - GitHub issue sync (if GITHUB_TOKEN set)
 ✅ **Pre-push** - Regression tests before pushing
+✅ **Post-merge** - Actions after merging
+✅ **Post-checkout** - Actions after switching branches
 ✅ **Consistent** - Same behavior across all IDEs
 
 ## Available Hooks
@@ -22,68 +23,85 @@ SDP uses cross-platform Git hooks that work across all IDEs:
 | Hook | When Runs | What It Checks |
 |------|-----------|----------------|
 | **pre-commit** | Before commit | Quality checks: time estimates, code quality, Python code, Clean Architecture, WS format, breaking changes, test quality |
-| **post-commit** | After commit | GitHub issue sync (comments on linked issues if GITHUB_TOKEN set) |
 | **pre-push** | Before push | Regression tests and coverage checks |
+| **post-merge** | After git merge | Post-merge actions |
+| **post-checkout** | After git checkout | Post-checkout actions |
 
 ## Installation
 
-### Automatic Installation
+### Recommended: SDP CLI (Go Implementation)
+
+The SDP CLI provides canonical hook installation with marker-based ownership tracking:
 
 ```bash
 # From repository root
-bash sdp/hooks/install-hooks.sh
+sdp hooks install
 ```
 
 **What it does:**
-1. Creates symlinks from `.git/hooks/` to `sdp/hooks/*.sh`
-2. Makes hooks executable (`chmod +x`)
-3. Verifies installation
+1. Installs 4 canonical SDP hooks: pre-commit, pre-push, post-merge, post-checkout
+2. Marks each hook with `# SDP-MANAGED-HOOK` for ownership tracking
+3. Preserves existing non-SDP hooks
+4. Makes hooks executable
+5. Hooks check for `sdp` binary and warn if missing
 
 **Expected output:**
 ```
-Installing post-commit hook...
-✓ Installed: post-commit
+✓ Installed pre-commit
+✓ Installed pre-push
+✓ Installed post-merge
+✓ Installed post-checkout
 
-Installing pre-commit hook...
-✓ Installed: pre-commit
-
-Installing pre-push hook...
-✓ Installed: pre-push
-
-✅ Git hooks installed successfully
-
-Hooks:
-  - pre-commit:  quality checks (time, code quality, Python, Clean Arch, WS format)
-  - post-commit: GitHub issue sync (if GITHUB_TOKEN set)
-  - pre-push:    regression tests
-
-Required environment variables for GitHub integration:
-  GITHUB_TOKEN  - GitHub personal access token
-  GITHUB_REPO   - Repository in format 'owner/repo'
-
-Add to .env file or export in shell
+Git hooks installed!
+Customize hooks in .git/hooks/ if needed
 ```
+
+**Re-running install (idempotent):**
+- Existing SDP hooks are updated (if marker present)
+- Non-SDP hooks are skipped
+- No duplication occurs
+
+### Alternative: Bash Script (Deprecated)
+
+The bash script is kept for backward compatibility but will redirect to the Go implementation if available:
+
+```bash
+# From repository root
+bash hooks/install-hooks.sh
+```
+
+**Note:** If `sdp` CLI is available, this script will delegate to `sdp hooks install`.
 
 ### Manual Installation
 
-If automatic installation fails:
+If automatic installation fails, you can manually create hooks with the SDP marker:
 
 ```bash
 # 1. Navigate to repository root
-cd /path/to/msu_ai_masters
+cd /path/to/repository
 
-# 2. Create symlinks manually
-ln -sf sdp/hooks/pre-commit.sh .git/hooks/pre-commit
-ln -sf sdp/hooks/post-commit.sh .git/hooks/post-commit
-ln -sf sdp/hooks/pre-push.sh .git/hooks/pre-push
+# 2. Create hooks directory if needed
+mkdir -p .git/hooks
 
-# 3. Make executable
-chmod +x .git/hooks/pre-commit
-chmod +x .git/hooks/post-commit
-chmod +x .git/hooks/pre-push
+# 3. Create hooks with SDP marker
+for hook in pre-commit pre-push post-merge post-checkout; do
+    cat > .git/hooks/$hook << 'EOF'
+#!/bin/sh
+# SDP-MANAGED-HOOK
+# SDP Git Hook
+# This hook is managed by SDP. Do not edit manually.
 
-# 4. Verify installation
-ls -la .git/hooks/{pre-commit,post-commit,pre-push}
+# Check if sdp binary exists
+if ! command -v sdp >/dev/null 2>&1; then
+    echo "Warning: SDP CLI (sdp) not found in PATH"
+    echo "Install SDP to enable quality checks: https://github.com/fall-out-bug/sdp"
+    exit 0
+fi
+
+# Add your custom checks here
+EOF
+    chmod +x .git/hooks/$hook
+done
 ```
 
 ### Installation in Worktrees
@@ -95,10 +113,31 @@ If using git worktrees:
 # Hooks are shared with main repository
 
 # Install from main repo:
-cd /path/to/msu_ai_masters
-bash sdp/hooks/install-hooks.sh
+cd /path/to/repository
+sdp hooks install
 
 # Hooks will work in all worktrees automatically
+```
+
+## Hook Ownership and Marker System
+
+SDP hooks are marked with `# SDP-MANAGED-HOOK` to track ownership:
+
+**Benefits:**
+- **Safe uninstall** - Only removes SDP-managed hooks
+- **Preserves custom hooks** - Non-SDP hooks are never touched
+- **Idempotent install** - Re-running safely updates SDP hooks
+
+**Marker location:**
+- Second line of hook script (after shebang)
+- Used by install/uninstall to identify SDP hooks
+
+**Example:**
+```sh
+#!/bin/sh
+# SDP-MANAGED-HOOK
+# SDP Git Hook
+# This hook is managed by SDP. Do not edit manually.
 ```
 
 ## Verification
@@ -107,12 +146,10 @@ bash sdp/hooks/install-hooks.sh
 
 ```bash
 # List installed hooks
-ls -la .git/hooks/{pre-commit,post-commit,pre-push}
+ls -la .git/hooks/{pre-commit,pre-push,post-merge,post-checkout}
 
-# Expected output:
-# lrwxrwxrwx 1 user user 30 Jan 23 10:00 pre-commit -> sdp/hooks/pre-commit.sh
-# lrwxrwxrwx 1 user user 32 Jan 23 10:00 post-commit -> sdp/hooks/post-commit.sh
-# lrwxrwxrwx 1 user user 28 Jan 23 10:00 pre-push -> sdp/hooks/pre-push.sh
+# Check for SDP marker
+grep "# SDP-MANAGED-HOOK" .git/hooks/pre-commit
 ```
 
 ### Check Hooks Executable
@@ -120,8 +157,9 @@ ls -la .git/hooks/{pre-commit,post-commit,pre-push}
 ```bash
 # Test each hook
 test -x .git/hooks/pre-commit && echo "pre-commit: executable ✅" || echo "pre-commit: NOT executable ❌"
-test -x .git/hooks/post-commit && echo "post-commit: executable ✅" || echo "post-commit: NOT executable ❌"
 test -x .git/hooks/pre-push && echo "pre-push: executable ✅" || echo "pre-push: NOT executable ❌"
+test -x .git/hooks/post-merge && echo "post-merge: executable ✅" || echo "post-merge: NOT executable ❌"
+test -x .git/hooks/post-checkout && echo "post-checkout: executable ✅" || echo "post-checkout: NOT executable ❌"
 ```
 
 ### Test Hooks
@@ -263,17 +301,30 @@ git push --no-verify
 
 ## Uninstallation
 
-```bash
-# Remove all hooks
-rm .git/hooks/pre-commit
-rm .git/hooks/post-commit
-rm .git/hooks/pre-push
+### Recommended: SDP CLI (Safe Uninstall)
 
-# Or use one command
-rm .git/hooks/{pre-commit,post-commit,pre-push}
+The SDP CLI safely removes only SDP-managed hooks:
+
+```bash
+# Remove SDP hooks (preserves non-SDP hooks)
+sdp hooks uninstall
+```
+
+**What it does:**
+- Only removes hooks with `# SDP-MANAGED-HOOK` marker
+- Preserves any custom hooks you've added
+- Safe to re-run (idempotent)
+
+### Manual Uninstall
+
+To manually remove all hooks:
+
+```bash
+# Remove all hooks (SDP and custom)
+rm .git/hooks/{pre-commit,pre-push,post-merge,post-checkout}
 
 # Verify removed
-ls -la .git/hooks/{pre-commit,post-commit,pre-push}
+ls -la .git/hooks/{pre-commit,pre-push,post-merge,post-checkout}
 # Expected: No such file or directory
 ```
 

@@ -1,0 +1,42 @@
+# SDP project config (dogfooding — AC1)
+version: 1
+
+acceptance:
+  command: "cd sdp-plugin && go test ./... -run TestSmoke -count=1"
+  timeout: 60s
+  expected: "ok"
+
+evidence:
+  enabled: true
+  log_path: ".sdp/log/events.jsonl"
+  # Evidence Log Policy (F067-07):
+  # - events.jsonl is auto-generated and should NOT be committed
+  # - Each session appends hash-chained events for traceability
+  # - Use 'sdp log trace' to verify chain integrity
+  # - Use 'sdp log export' for archival if needed
+  policy:
+    retention_days: 90
+    max_size_mb: 10
+    auto_compact: true
+
+quality:
+  # Balancing metrics (all must pass):
+  coverage_threshold: 80      # Minimum test coverage %
+  test_code_ratio_min: 1.5    # Minimum lines of test code per line of production code
+  test_code_ratio_max: 2.0    # Maximum ratio (avoid over-testing)
+  max_file_loc: 200
+  # Packages excluded from coverage requirements
+  # cmd/sdp: CLI commands require integration tests
+  # internal/quality: Depends on external tools (gocyclo, radon, mypy, mvn)
+  coverage_exclude:
+    - "cmd/sdp"
+    - "internal/quality"
+
+# Guard policy settings (WS-063-03: AC3)
+guard:
+  mode: "standard"  # standard | strict | permissive
+  rules_file: ".sdp/guard-rules.yml"
+  severity_mapping:
+    error: "block"   # Block workflow execution
+    warning: "warn"   # Display warning, continue
+    info: "log"       # Log only, no display

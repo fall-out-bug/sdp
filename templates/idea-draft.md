@@ -8,37 +8,37 @@
 
 ## 1. Problem Statement
 
-### Текущее состояние
-[Как сейчас работает система в этой области]
+### Current State
+[How the system currently works in this area]
 
-### Проблема
-[Что не работает / чего не хватает]
+### Problem
+[What doesn't work / what's missing]
 
-### Влияние
-[Почему это важно решить]
+### Impact
+[Why it's important to solve this]
 
 ---
 
 ## 2. Proposed Solution
 
-### Описание
-[Что предлагается сделать]
+### Description
+[What is proposed to be done]
 
-### Ключевые возможности
-1. [Возможность 1]
-2. [Возможность 2]
+### Key Capabilities
+1. [Capability 1]
+2. [Capability 2]
 3. ...
 
 ---
 
 ## 3. User Stories
 
-### Primary User: {тип пользователя}
+### Primary User: {user type}
 
-- Как {пользователь}, я хочу {действие}, чтобы {ценность}
-- Как {пользователь}, я хочу {действие}, чтобы {ценность}
+- As a {user}, I want to {action}, so that {value}
+- As a {user}, I want to {action}, so that {value}
 
-### Secondary User: {другой тип} (если есть)
+### Secondary User: {other type} (if any)
 
 - ...
 
@@ -47,59 +47,59 @@
 ## 4. Scope
 
 ### In Scope
-- [Что входит]
-- [Что входит]
+- [What's included]
+- [What's included]
 
 ### Out of Scope
-- [Что НЕ входит — явно]
-- [Что НЕ входит]
+- [What's NOT included - explicitly]
+- [What's NOT included]
 
 ### Future Considerations
-- [Что можно добавить позже]
+- [What could be added later]
 
 ---
 
 ## 5. Success Criteria
 
 ### Acceptance Criteria
-- [ ] [Проверяемое условие 1]
-- [ ] [Проверяемое условие 2]
-- [ ] [Проверяемое условие 3]
+- [ ] [Verifiable condition 1]
+- [ ] [Verifiable condition 2]
+- [ ] [Verifiable condition 3]
 
-### Metrics (если применимо)
-- [Метрика 1]: baseline → target
-- [Метрика 2]: baseline → target
+### Metrics (if applicable)
+- [Metric 1]: baseline -> target
+- [Metric 2]: baseline -> target
 
 ---
 
 ## 6. Dependencies & Risks
 
 ### Dependencies
-| Зависимость | Тип | Статус |
-|-------------|-----|--------|
-| [Компонент/Фича] | Hard/Soft | Ready/Pending |
+| Dependency | Type | Status |
+|------------|------|--------|
+| [Component/Feature] | Hard/Soft | Ready/Pending |
 
 ### Risks
-| Риск | Вероятность | Влияние | Mitigation |
-|------|-------------|---------|------------|
-| [Риск 1] | High/Medium/Low | High/Medium/Low | [Как снизить] |
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| [Risk 1] | High/Medium/Low | High/Medium/Low | [How to reduce] |
 
 ---
 
 ## 7. Open Questions
 
-- [ ] [Вопрос, требующий уточнения]
-- [ ] [Ещё вопрос]
+- [ ] [Question requiring clarification]
+- [ ] [Another question]
 
 ---
 
 ## 8. Notes
 
-[Дополнительные заметки, ссылки, контекст]
+[Additional notes, links, context]
 
 ---
 
 ## Next Steps
 
-1. **Review draft** — проверить и дополнить
-2. **Run `/design idea-{slug}`** — создать workstreams
+1. **Review draft** - review and expand
+2. **Run `/design idea-{slug}`** - create workstreams

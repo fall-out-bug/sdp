@@ -13,7 +13,13 @@ type CheckResult struct {
 	Message string
 }
 
-func Run() []CheckResult {
+// RunOptions controls which checks are run
+type RunOptions struct {
+	DriftCheck bool // Run drift detection on recent workstreams
+}
+
+// RunWithOptions runs doctor checks with the given options
+func RunWithOptions(opts RunOptions) []CheckResult {
 	results := []CheckResult{}
 
 	// Check 1: Git
@@ -28,7 +34,23 @@ func Run() []CheckResult {
 	// Check 4: .claude/ directory
 	results = append(results, checkClaudeDir())
 
+	// Check 5: File permissions on sensitive data
+	results = append(results, checkFilePermissions())
+
+	// Check 6: .sdp/config.yml validation (AC6: if present)
+	results = append(results, checkProjectConfig())
+
+	// Check 7: Drift detection (if requested)
+	if opts.DriftCheck {
+		results = append(results, checkDrift())
+	}
+
 	return results
+}
+
+// Run runs all standard doctor checks
+func Run() []CheckResult {
+	return RunWithOptions(RunOptions{})
 }
 
 func checkGit() CheckResult {
@@ -42,7 +64,14 @@ func checkGit() CheckResult {
 
 	// Get version
 	cmd := exec.Command("git", "--version")
-	output, _ := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return CheckResult{
+			Name:    "Git",
+			Status:  "error",
+			Message: "Failed to get version",
+		}
+	}
 	version := strings.TrimSpace(string(output))
 
 	return CheckResult{
@@ -63,7 +92,14 @@ func checkClaudeCode() CheckResult {
 
 	// Get version
 	cmd := exec.Command("claude", "--version")
-	output, _ := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return CheckResult{
+			Name:    "Claude Code",
+			Status:  "ok", // Don't fail if version check fails
+			Message: "Installed (version unknown)",
+		}
+	}
 	version := strings.TrimSpace(string(output))
 
 	return CheckResult{
@@ -84,7 +120,14 @@ func checkGo() CheckResult {
 
 	// Get version
 	cmd := exec.Command("go", "version")
-	output, _ := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		return CheckResult{
+			Name:    "Go",
+			Status:  "error",
+			Message: "Failed to get version",
+		}
+	}
 	version := strings.TrimSpace(string(output))
 
 	return CheckResult{

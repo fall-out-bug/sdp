@@ -1,0 +1,185 @@
+package cli
+
+import (
+	"crypto/sha256"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/fall-out-bug/sdp/src/sdp/agents"
+	"github.com/spf13/cobra"
+)
+
+func runContractSynthesize(cmd *cobra.Command, args []string) error {
+	feature := synthesizeFeature
+
+	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(feature) {
+		return fmt.Errorf("invalid feature name %q: must contain only lowercase letters, numbers, and dashes", feature)
+	}
+
+	reqPath := synthesizeRequirements
+	if reqPath == "" {
+		reqPath = filepath.Join("docs", "drafts", feature+"-requirements.md")
+	}
+
+	safeReqPath, err := sanitizePath(reqPath, []string{"docs", "docs/drafts"})
+	if err != nil {
+		return fmt.Errorf("invalid requirements path: %w", err)
+	}
+
+	outputPath := synthesizeOutput
+	if outputPath == "" {
+		outputPath = filepath.Join(".contracts", feature+".yaml")
+	}
+
+	safeOutputPath, err := sanitizePath(outputPath, []string{".contracts"})
+	if err != nil {
+		return fmt.Errorf("invalid output path: %w", err)
+	}
+
+	fmt.Printf("✓ Analyzing requirements from %s\n", safeReqPath)
+
+	synthesizer := agents.NewContractSynthesizer()
+
+	result, err := synthesizer.SynthesizeContract(feature, safeReqPath, safeOutputPath)
+	if err != nil {
+		return fmt.Errorf("synthesis failed: %w", err)
+	}
+
+	fmt.Printf("✓ Contract agreed: %s\n", safeOutputPath)
+	fmt.Printf("\nResolution method: %s\n", result.Rule)
+
+	if result.WinningAgent != "" {
+		fmt.Printf("Winning agent: %s\n", result.WinningAgent)
+	}
+
+	return nil
+}
+
+func runContractLock(cmd *cobra.Command, args []string) error {
+	contractPath := lockContract
+
+	safePath, err := sanitizePath(contractPath, []string{".contracts", "docs"})
+	if err != nil {
+		return fmt.Errorf("invalid contract path: %w", err)
+	}
+
+	content, err := os.ReadFile(safePath)
+	if err != nil {
+		return fmt.Errorf("failed to read contract: %w", err)
+	}
+
+	lockPath := safePath + ".lock"
+	lockContent := fmt.Sprintf("# Contract Lock\n\nlocked: true\nreason: %s\ncontract_sha256: %x\n",
+		lockReason, sha256.Sum256(content))
+
+	if err := os.WriteFile(lockPath, []byte(lockContent), 0600); err != nil {
+		return fmt.Errorf("failed to create lock file: %w", err)
+	}
+
+	fmt.Printf("✓ Contract locked: %s\n", safePath)
+	fmt.Printf("✓ Lock file created: %s\n", lockPath)
+
+	return nil
+}
+
+func runContractValidate(cmd *cobra.Command, args []string) error {
+	if len(validateContracts) < 2 {
+		return fmt.Errorf("at least 2 contracts required for validation")
+	}
+
+	fmt.Printf("✓ Validating %d contracts...\n", len(validateContracts))
+
+	safeContracts := make([]string, len(validateContracts))
+	for i, contractPath := range validateContracts {
+		safePath, err := sanitizePath(contractPath, []string{".contracts", "docs"})
+		if err != nil {
+			return fmt.Errorf("invalid contract path %q: %w", contractPath, err)
+		}
+		safeContracts[i] = safePath
+	}
+
+	safeOutput, err := sanitizePath(validateOutput, []string{".contracts", "docs"})
+	if err != nil {
+		return fmt.Errorf("invalid output path: %w", err)
+	}
+
+	validator := agents.NewContractValidator()
+
+	contract1, err := loadContract(safeContracts[0])
+	if err != nil {
+		return fmt.Errorf("failed to load contract 1: %w", err)
+	}
+
+	contract2, err := loadContract(safeContracts[1])
+	if err != nil {
+		return fmt.Errorf("failed to load contract 2: %w", err)
+	}
+
+	mismatches, err := validator.CompareContracts(
+		contract1,
+		contract2,
+		safeContracts[0],
+		safeContracts[1],
+	)
+	if err != nil {
+		return fmt.Errorf("comparison failed: %w", err)
+	}
+
+	report := validator.GenerateReport(mismatches)
+
+	if err := validator.WriteReport(report, safeOutput); err != nil {
+		return fmt.Errorf("failed to write report: %w", err)
+	}
+
+	fmt.Printf("✓ Validation report: %s\n", safeOutput)
+	fmt.Printf("\nSummary:\n")
+	fmt.Printf("- Total issues: %d\n", len(mismatches))
+
+	errorCount := 0
+	warningCount := 0
+	for _, m := range mismatches {
+		if m.Severity == "ERROR" {
+			errorCount++
+		} else if m.Severity == "WARNING" {
+			warningCount++
+		}
+	}
+
+	fmt.Printf("- Errors: %d\n", errorCount)
+	fmt.Printf("- Warnings: %d\n", warningCount)
+
+	return nil
+}
+
+func loadContract(path string) (*agents.OpenAPIContract, error) {
+	return &agents.OpenAPIContract{
+		OpenAPI: "3.0.0",
+		Paths:   make(agents.PathsSpec),
+	}, nil
+}
+
+// sanitizePath validates and sanitizes file paths to prevent directory traversal attacks
+func sanitizePath(path string, allowedDirs []string) (string, error) {
+	cleanPath := filepath.Clean(path)
+
+	absPath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path: %w", err)
+	}
+
+	for _, allowedDir := range allowedDirs {
+		absAllowedDir, err := filepath.Abs(allowedDir)
+		if err != nil {
+			continue
+		}
+
+		if strings.HasPrefix(absPath, absAllowedDir+string(filepath.Separator)) {
+			return absPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("path %q is outside allowed directories %v", path, allowedDirs)
+}

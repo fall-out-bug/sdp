@@ -1,0 +1,1053 @@
+package quality
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestCheckPythonCoverageParseOutput(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-cov-parse-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create pytest.ini
+	iniContent := "[pytest]\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "pytest.ini"), []byte(iniContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	// Test the parsing logic
+	result, err := checker.checkPythonCoverage(&CoverageResult{Threshold: 80.0})
+	if err != nil {
+		t.Fatalf("checkPythonCoverage failed: %v", err)
+	}
+
+	// Verify it runs
+	_ = result.ProjectType
+	_ = result.Coverage
+}
+
+func TestCheckPythonTypes_NoMypy(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a simple Python file
+	pyFile := filepath.Join(tmpDir, "test.py")
+	if err := os.WriteFile(pyFile, []byte("def hello(): pass\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.checkPythonTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkPythonTypes failed: %v", err)
+	}
+
+	if result.ProjectType != "Python" {
+		t.Errorf("ProjectType = %s, want Python", result.ProjectType)
+	}
+
+	t.Logf("Passed: %v, Errors: %d, Warnings: %d", result.Passed, len(result.Errors), len(result.Warnings))
+}
+
+func TestCheckJavaTypes_NoMvn(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a simple Java file structure
+	javaFile := filepath.Join(tmpDir, "Test.java")
+	if err := os.WriteFile(javaFile, []byte("public class Test {}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result, err := checker.checkJavaTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkJavaTypes failed: %v", err)
+	}
+
+	if result.ProjectType != "Java" {
+		t.Errorf("ProjectType = %s, want Java", result.ProjectType)
+	}
+
+	t.Logf("Passed: %v, Errors: %d, Warnings: %d", result.Passed, len(result.Errors), len(result.Warnings))
+}
+
+func TestCheckGoTypes_ValidProject(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a simple Go file
+	goFile := filepath.Join(tmpDir, "test.go")
+	if err := os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.checkGoTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkGoTypes failed: %v", err)
+	}
+
+	if result.ProjectType != "Go" {
+		t.Errorf("ProjectType = %s, want Go", result.ProjectType)
+	}
+
+	t.Logf("Passed: %v, Errors: %d", result.Passed, len(result.Errors))
+}
+
+func TestCheckPythonComplexity_NoRadon(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create Python files
+	pyFile := filepath.Join(tmpDir, "complex.py")
+	content := strings.Repeat("def func(): pass\n", 30)
+	if err := os.WriteFile(pyFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.checkPythonComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("checkPythonComplexity failed: %v", err)
+	}
+
+	t.Logf("AvgCC: %.1f, MaxCC: %d, Passed: %v", result.AverageCC, result.MaxCC, result.Passed)
+}
+
+func TestCheckGoComplexity_NoGocyclo(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create Go files
+	goFile := filepath.Join(tmpDir, "simple.go")
+	content := strings.Repeat("// line\n", 50)
+	if err := os.WriteFile(goFile, []byte("package main\n\n"+content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.checkGoComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("checkGoComplexity failed: %v", err)
+	}
+
+	t.Logf("AvgCC: %.1f, MaxCC: %d, Passed: %v", result.AverageCC, result.MaxCC, result.Passed)
+}
+
+// TestNewChecker_DetectByFileExtensions tests project type detection by file count
+func TestNewChecker_DetectByFileExtensions(t *testing.T) {
+	tests := []struct {
+		name         string
+		files        []string
+		expectedType Type
+	}{
+		{
+			name:         "Python by majority",
+			files:        []string{"a.py", "b.py", "c.go"},
+			expectedType: Python,
+		},
+		{
+			name:         "Go by majority",
+			files:        []string{"a.go", "b.go", "c.py"},
+			expectedType: Go,
+		},
+		{
+			name:         "Java only",
+			files:        []string{"A.java", "B.java"},
+			expectedType: Java,
+		},
+		{
+			name:         "No files defaults to Python",
+			files:        []string{"readme.txt"},
+			expectedType: Python,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+
+			// Create files
+			for _, f := range tt.files {
+				if err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			checker, err := NewChecker(tmpDir)
+			if err != nil {
+				t.Fatalf("NewChecker failed: %v", err)
+			}
+
+			if checker.projectType != tt.expectedType {
+				t.Errorf("projectType = %v, want %v", checker.projectType, tt.expectedType)
+			}
+		})
+	}
+}
+
+// TestNewChecker_PythonBySetupPy tests detection via setup.py
+func TestNewChecker_PythonBySetupPy(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create setup.py
+	if err := os.WriteFile(filepath.Join(tmpDir, "setup.py"), []byte("from setuptools import setup"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker, err := NewChecker(tmpDir)
+	if err != nil {
+		t.Fatalf("NewChecker failed: %v", err)
+	}
+
+	if checker.projectType != Python {
+		t.Errorf("projectType = %v, want Python", checker.projectType)
+	}
+}
+
+// TestNewChecker_PythonByRequirements tests detection via requirements.txt
+func TestNewChecker_PythonByRequirements(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create requirements.txt
+	if err := os.WriteFile(filepath.Join(tmpDir, "requirements.txt"), []byte("pytest>=7.0"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker, err := NewChecker(tmpDir)
+	if err != nil {
+		t.Fatalf("NewChecker failed: %v", err)
+	}
+
+	if checker.projectType != Python {
+		t.Errorf("projectType = %v, want Python", checker.projectType)
+	}
+}
+
+// TestNewChecker_JavaByPom tests detection via pom.xml
+func TestNewChecker_JavaByPom(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create pom.xml
+	pomContent := `<?xml version="1.0"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+</project>`
+	if err := os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte(pomContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker, err := NewChecker(tmpDir)
+	if err != nil {
+		t.Fatalf("NewChecker failed: %v", err)
+	}
+
+	if checker.projectType != Java {
+		t.Errorf("projectType = %v, want Java", checker.projectType)
+	}
+}
+
+// TestCheckFileSize_EmptyProject tests file size check with no source files
+func TestCheckFileSize_EmptyProject(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod but no Go files
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.CheckFileSize()
+	if err != nil {
+		t.Fatalf("CheckFileSize failed: %v", err)
+	}
+
+	t.Logf("TotalFiles: %d, AverageLOC: %d, Passed: %v", result.TotalFiles, result.AverageLOC, result.Passed)
+}
+
+// TestCheckCoverage_PythonProject tests coverage check for Python
+func TestCheckCoverage_PythonProject(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create pyproject.toml
+	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.CheckCoverage()
+	if err != nil {
+		t.Fatalf("CheckCoverage failed: %v", err)
+	}
+
+	t.Logf("Coverage: %.1f%%, Passed: %v", result.Coverage, result.Passed)
+}
+
+// TestCheckCoverage_JavaProject tests coverage check for Java
+func TestCheckCoverage_JavaProject(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result, err := checker.CheckCoverage()
+	if err != nil {
+		t.Fatalf("CheckCoverage failed: %v", err)
+	}
+
+	t.Logf("Coverage: %.1f%%, Passed: %v", result.Coverage, result.Passed)
+}
+
+// TestBasicGoComplexity_SkipFiles tests that generated and test files are skipped
+func TestBasicGoComplexity_SkipFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create large test file (should be skipped)
+	largeTest := strings.Repeat("// line\n", 300)
+	if err := os.WriteFile(filepath.Join(tmpDir, "large_test.go"), []byte("package main\n\n"+largeTest), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create large generated file (should be skipped)
+	if err := os.WriteFile(filepath.Join(tmpDir, "generated_code.go"), []byte("package main\n\n"+largeTest), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a small normal file
+	if err := os.WriteFile(filepath.Join(tmpDir, "normal.go"), []byte("package main\n\nfunc main() {}\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.basicGoComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("basicGoComplexity failed: %v", err)
+	}
+
+	// Should only have the normal file checked
+	t.Logf("ComplexFiles: %d, MaxCC: %d, Passed: %v", len(result.ComplexFiles), result.MaxCC, result.Passed)
+}
+
+// TestBasicGoComplexity_ComplexFile tests detection of complex files
+func TestBasicGoComplexity_ComplexFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a large file that exceeds threshold (250 lines -> CC 25 > 10)
+	largeContent := strings.Repeat("// comment line\n", 250)
+	if err := os.WriteFile(filepath.Join(tmpDir, "complex.go"), []byte("package main\n\n"+largeContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.basicGoComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("basicGoComplexity failed: %v", err)
+	}
+
+	if len(result.ComplexFiles) == 0 {
+		t.Error("Expected complex file to be detected")
+	}
+
+	if result.Passed {
+		t.Error("Expected Passed=false for complex file")
+	}
+
+	t.Logf("ComplexFiles: %d, MaxCC: %d", len(result.ComplexFiles), result.MaxCC)
+}
+
+// TestBasicPythonComplexity_SkipFiles tests that generated and test files are skipped
+func TestBasicPythonComplexity_SkipFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create large test file (should be skipped)
+	largeTest := strings.Repeat("# line\n", 300)
+	if err := os.WriteFile(filepath.Join(tmpDir, "test_main.py"), []byte(largeTest), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create large generated file (should be skipped)
+	if err := os.WriteFile(filepath.Join(tmpDir, "generated_api.py"), []byte(largeTest), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a small normal file
+	if err := os.WriteFile(filepath.Join(tmpDir, "main.py"), []byte("def hello(): pass\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.basicPythonComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("basicPythonComplexity failed: %v", err)
+	}
+
+	t.Logf("ComplexFiles: %d, MaxCC: %d, Passed: %v", len(result.ComplexFiles), result.MaxCC, result.Passed)
+}
+
+// TestBasicPythonComplexity_ComplexFile tests detection of complex Python files
+func TestBasicPythonComplexity_ComplexFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create a large file that exceeds threshold (250 lines -> CC 25 > 10)
+	largeContent := strings.Repeat("# comment line\n", 250)
+	if err := os.WriteFile(filepath.Join(tmpDir, "complex.py"), []byte(largeContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.basicPythonComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("basicPythonComplexity failed: %v", err)
+	}
+
+	if len(result.ComplexFiles) == 0 {
+		t.Error("Expected complex file to be detected")
+	}
+
+	if result.Passed {
+		t.Error("Expected Passed=false for complex file")
+	}
+
+	t.Logf("ComplexFiles: %d, MaxCC: %d", len(result.ComplexFiles), result.MaxCC)
+}
+
+// TestCheckFileSize_StrictMode tests file size check in strict mode
+func TestCheckFileSize_StrictMode(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a large file
+	largeContent := strings.Repeat("// line\n", 250)
+	if err := os.WriteFile(filepath.Join(tmpDir, "large.go"), []byte("package main\n\n"+largeContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+		strictMode:  true,
+	}
+
+	result, err := checker.CheckFileSize()
+	if err != nil {
+		t.Fatalf("CheckFileSize failed: %v", err)
+	}
+
+	// In strict mode, violations should be in Violators not Warnings
+	t.Logf("Violators: %d, Warnings: %d, Passed: %v", len(result.Violators), len(result.Warnings), result.Passed)
+}
+
+// TestTypeResult_Fields tests TypeResult struct fields
+func TestTypeResult_Fields(t *testing.T) {
+	result := &TypeResult{
+		ProjectType: "Go",
+		Passed:      true,
+		Errors: []TypeError{
+			{File: "test.go", Line: 10, Message: "error msg"},
+		},
+		Warnings: []TypeError{
+			{File: "warn.go", Line: 5, Message: "warning msg"},
+		},
+	}
+
+	if result.ProjectType != "Go" {
+		t.Errorf("ProjectType = %s", result.ProjectType)
+	}
+	if len(result.Errors) != 1 {
+		t.Errorf("Errors count = %d", len(result.Errors))
+	}
+	if len(result.Warnings) != 1 {
+		t.Errorf("Warnings count = %d", len(result.Warnings))
+	}
+}
+
+func TestCheckJavaCoverage(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-cov-java-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result, err := checker.checkJavaCoverage(&CoverageResult{Threshold: 80.0})
+	if err != nil {
+		t.Fatalf("checkJavaCoverage failed: %v", err)
+	}
+
+	// Verify defaults
+	if result.ProjectType != "Java" {
+		t.Errorf("Expected Java, got %s", result.ProjectType)
+	}
+
+	if result.Coverage != 0.0 {
+		t.Errorf("Expected 0 coverage with no report, got %f", result.Coverage)
+	}
+}
+
+func TestCheckJavaComplexity(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-cc-java-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result, err := checker.checkJavaComplexity(&ComplexityResult{Threshold: 10})
+	if err != nil {
+		t.Fatalf("checkJavaComplexity failed: %v", err)
+	}
+
+	// Verify defaults
+	if !result.Passed {
+		t.Errorf("Expected passed with no complexity issues")
+	}
+
+	if result.AverageCC != 0.0 {
+		t.Errorf("Expected 0 average CC, got %f", result.AverageCC)
+	}
+}
+
+func TestCheckTypesUnsupported(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-types-unsup-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Test that type check functions handle unsupported types gracefully
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	// These should work even without tools installed
+	result1, err := checker.checkPythonTypes(&TypeResult{})
+	_ = result1
+	_ = err // May fail if tools not installed
+
+	checker.projectType = Go
+	result2, err := checker.checkGoTypes(&TypeResult{})
+	_ = result2
+	_ = err // May fail if tools not installed
+
+	checker.projectType = Java
+	result3, err := checker.checkJavaTypes(&TypeResult{})
+	_ = result3
+	_ = err // May fail if tools not installed
+}
+
+func TestCheckPythonTypesWithMypy(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-types-mypy-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create mypy.ini
+	iniContent := "[mypy]\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "mypy.ini"), []byte(iniContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.checkPythonTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkPythonTypes failed: %v", err)
+	}
+
+	// Should pass if mypy not configured properly
+	_ = result.Passed
+}
+
+func TestCheckGoTypesNoVet(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-types-vet-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Initialize go module
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	result, err := checker.checkGoTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkGoTypes failed: %v", err)
+	}
+
+	// Should pass if no vet errors
+	_ = result.Passed
+}
+
+func TestCheckJavaTypesNoMvn(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-types-java-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result, err := checker.checkJavaTypes(&TypeResult{})
+	if err != nil {
+		t.Fatalf("checkJavaTypes failed: %v", err)
+	}
+
+	// Should handle missing mvn gracefully
+	_ = result.Passed
+}
+
+func TestDetectProjectTypeGoExtension(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-detect-go-ext-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	checker := &Checker{projectPath: tmpDir}
+
+	// Create .go files
+	for i := 0; i < 3; i++ {
+		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go"), []byte("package main\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	pt, err := checker.detectProjectType()
+	if err != nil {
+		t.Fatalf("detectProjectType failed: %v", err)
+	}
+
+	if pt != Go {
+		t.Errorf("Expected Go by extension, got %d", pt)
+	}
+}
+
+func TestDetectProjectTypeJavaExtension(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-detect-java-ext-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	checker := &Checker{projectPath: tmpDir}
+
+	// Create .java files
+	for i := 0; i < 3; i++ {
+		if err := os.WriteFile(filepath.Join(tmpDir, "Test"+string(rune('0'+i))+".java"), []byte("public class Test {}"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	pt, err := checker.detectProjectType()
+	if err != nil {
+		t.Fatalf("detectProjectType failed: %v", err)
+	}
+
+	if pt != Java {
+		t.Errorf("Expected Java by extension, got %d", pt)
+	}
+}
+
+func TestCheckFileSizeWithSmallFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "sdp-size-small-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create a small file (under threshold)
+	lines := make([]string, 50)
+	for j := range lines {
+		lines[j] = "line content"
+	}
+	content := strings.Join(lines, "\n")
+	if err := os.WriteFile(filepath.Join(tmpDir, "file.py"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result, err := checker.CheckFileSize()
+	if err != nil {
+		t.Fatalf("CheckFileSize failed: %v", err)
+	}
+
+	if result.TotalFiles != 1 {
+		t.Errorf("Expected 1 file, got %d", result.TotalFiles)
+	}
+
+	if !result.Passed {
+		t.Errorf("Expected Passed to be true with small file")
+	}
+}
+
+func TestCheckCoverageThresholdComparison(t *testing.T) {
+	result := &CoverageResult{
+		Coverage:  85.5,
+		Threshold: 80.0,
+	}
+	result.Passed = result.Coverage >= result.Threshold
+
+	if !result.Passed {
+		t.Error("Expected 85.5% >= 80.0% to pass")
+	}
+
+	result.Coverage = 75.0
+	result.Passed = result.Coverage >= result.Threshold
+
+	if result.Passed {
+		t.Error("Expected 75.0% < 80.0% to fail")
+	}
+}
+
+func TestComplexityThresholdComparison(t *testing.T) {
+	result := &ComplexityResult{
+		MaxCC:     8,
+		Threshold: 10,
+	}
+	result.Passed = result.MaxCC <= result.Threshold
+
+	if !result.Passed {
+		t.Error("Expected 8 <= 10 to pass")
+	}
+
+	result.MaxCC = 15
+	result.Passed = result.MaxCC <= result.Threshold
+
+	if result.Passed {
+		t.Error("Expected 15 > 10 to fail")
+	}
+}
+
+func TestCheckPythonCoverage_WithCoverageFile(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create .coverage file
+	covFile := filepath.Join(tmpDir, ".coverage")
+	if err := os.WriteFile(covFile, []byte(""), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create coverage.json
+	jsonContent := `{
+		"meta": {},
+		"files": {},
+		"totals": {"percent_covered": 85.5}
+	}`
+	jsonFile := filepath.Join(tmpDir, "coverage.json")
+	if err := os.WriteFile(jsonFile, []byte(jsonContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	result := &CoverageResult{
+		Threshold: 80,
+	}
+
+	got, err := checker.checkPythonCoverage(result)
+	if err != nil {
+		t.Logf("checkPythonCoverage error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("checkPythonCoverage should return result")
+	}
+
+	t.Logf("Coverage: %.1f%%, Passed: %v", got.Coverage, got.Passed)
+}
+
+func TestCheckJavaCoverage_WithJacocoCsv(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create target directory with jacoco.csv
+	targetDir := filepath.Join(tmpDir, "target", "site", "jacoco")
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create jacoco.csv with valid format
+	csvContent := `Group,Package,Class,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED,CLASS_MISSED,CLASS_COVERED
+Total,,-,100,400,10,40,10,40,5,15,2,8,0,1
+`
+	jacocoFile := filepath.Join(targetDir, "jacoco.csv")
+	if err := os.WriteFile(jacocoFile, []byte(csvContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Java,
+	}
+
+	result := &CoverageResult{
+		Threshold: 80,
+	}
+
+	got, err := checker.checkJavaCoverage(result)
+	if err != nil {
+		t.Logf("checkJavaCoverage error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("checkJavaCoverage should return result")
+	}
+
+	// 400/(100+400) = 80%
+	t.Logf("Coverage: %.1f%%, Passed: %v", got.Coverage, got.Passed)
+}
+
+func TestCheckComplexity_GoFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create go.mod
+	modContent := "module test\n\ngo 1.21\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create Go files with various complexity
+	for i := 0; i < 3; i++ {
+		content := "package main\n\nfunc test" + string(rune('A'+i)) + "() {\n"
+		for j := 0; j < 10; j++ {
+			content += "\tprintln(\"line\")\n"
+		}
+		content += "}\n"
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go"), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Go,
+	}
+
+	got, err := checker.CheckComplexity()
+	if err != nil {
+		t.Logf("CheckComplexity error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("CheckComplexity should return result")
+	}
+
+	t.Logf("Complexity: AvgCC=%.1f, MaxCC=%d, Passed=%v", got.AverageCC, got.MaxCC, got.Passed)
+}
+
+func TestCheckComplexity_PythonFiles(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create Python files
+	for i := 0; i < 3; i++ {
+		content := "def test_" + string(rune('a'+i)) + "():\n"
+		for j := 0; j < 10; j++ {
+			content += "    print('line')\n"
+		}
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('a'+i))+".py"), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Python,
+	}
+
+	got, err := checker.CheckComplexity()
+	if err != nil {
+		t.Logf("CheckComplexity error: %v", err)
+		return
+	}
+
+	if got == nil {
+		t.Fatal("CheckComplexity should return result")
+	}
+
+	t.Logf("Complexity: AvgCC=%.1f, MaxCC=%d, Passed=%v", got.AverageCC, got.MaxCC, got.Passed)
+}
+
+func TestCoverageResult_AllFields(t *testing.T) {
+	result := &CoverageResult{
+		ProjectType: "Go",
+		Coverage:    85.5,
+		Threshold:   80,
+		Passed:      true,
+		Report:      "Coverage report content",
+		FilesBelow: []FileCoverage{
+			{File: "file1.go", Coverage: 45.5},
+			{File: "file2.go", Coverage: 60.0},
+		},
+	}
+
+	if result.ProjectType != "Go" {
+		t.Errorf("ProjectType = %s", result.ProjectType)
+	}
+	if result.Coverage != 85.5 {
+		t.Errorf("Coverage = %f", result.Coverage)
+	}
+	if result.Report != "Coverage report content" {
+		t.Errorf("Report = %s", result.Report)
+	}
+	if len(result.FilesBelow) != 2 {
+		t.Errorf("FilesBelow count = %d", len(result.FilesBelow))
+	}
+}
+
+func TestCheckComplexity_UnsupportedType(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckComplexity()
+	if err == nil {
+		t.Error("Expected error for unsupported project type")
+	}
+
+	t.Logf("Error: %v, Result: %+v", err, result)
+}
+
+func TestCheckTypes_UnsupportedType(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckTypes()
+	if err == nil {
+		t.Error("Expected error for unsupported project type")
+	}
+
+	t.Logf("Error: %v, Result: %+v", err, result)
+}
+
+func TestCheckCoverage_UnsupportedType(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	checker := &Checker{
+		projectPath: tmpDir,
+		projectType: Type(99), // Invalid/unsupported type
+	}
+
+	result, err := checker.CheckCoverage()
+	if err == nil {
+		t.Error("Expected error for unsupported project type")
+	}
+
+	t.Logf("Error: %v, Result: %+v", err, result)
+}

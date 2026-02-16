@@ -2,6 +2,14 @@
 
 **Binary pass/fail criteria** for workstream completion and quality assurance.
 
+> **Note (WS-067-05: AC7):** This document contains Python-specific examples (pytest, mypy, ruff) for illustration purposes. SDP is primarily a Go project. For Go, use equivalent tools:
+> - `pytest` → `go test`
+> - `mypy --strict` → `go vet` + static analysis
+> - `ruff` → `golangci-lint`
+> - Coverage → `go test -cover`
+>
+> The quality gate **principles** are language-agnostic; only the tool commands differ.
+
 ---
 
 ## Overview
@@ -531,9 +539,120 @@ ruff check src/ --output-format=github
 
 ---
 
-## Continuous Integration
+## Local vs CI Behavior (AC4)
 
-Add to `.github/workflows/quality.yml`:
+### Local Development
+
+**Guard Mode:** `standard` (default)
+
+**Behavior:**
+- Violations displayed to user
+- `error` severity: Blocks command
+- `warning` severity: Displayed, continues
+- `info` severity: Logged only
+
+**Exit Codes:**
+- `0`: All checks passed
+- `1`: Error-level violations found
+- `2`: Configuration or validation error
+
+**Example:**
+```bash
+$ sdp guard check src/module.go
+✅ max-file-loc: PASS (145 lines)
+⚠️  max-function-length: WARN (process_func: 52 lines)
+❌ coverage-threshold: ERROR (65% < 80%)
+# Exit code: 1
+```
+
+### CI Environment
+
+**Guard Mode:** `strict` (recommended for CI)
+
+**Behavior:**
+- All violations treated as errors
+- Warnings cause build failure
+- JSON output for parsing
+
+**Exit Codes:**
+- `0`: All checks passed
+- `1`: Any violation found (error or warning)
+- `2`: Configuration or validation error
+- `3`: Diff-range detection failed
+
+**Example:**
+```bash
+# In CI workflow
+- name: Run guard checks
+  run: sdp guard check --mode=strict --output=json > results.json
+
+- name: Fail on violations
+  run: |
+    ERROR_COUNT=$(jq '[.[] | select(.severity == "error")] | length' results.json)
+    if [ "$ERROR_COUNT" -gt 0 ]; then
+      echo "❌ Found $ERROR_COUNT error(s)"
+      exit 1
+    fi
+```
+
+### CI Integration Pattern
+
+**GitHub Actions workflow using same rules source as local (AC5):**
+
+```yaml
+name: Quality Gates
+
+on: [push, pull_request]
+
+jobs:
+  guard-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+
+      - name: Build SDP CLI
+        run: |
+          cd sdp-plugin
+          go build -o sdp ./cmd/sdp
+
+      - name: Run guard checks
+        run: |
+          # Uses .sdp/guard-rules.yml from repo
+          # CI mode: strict, JSON output
+          ./sdp guard check --mode=strict --output=json > guard-results.json
+
+      - name: Display results
+        if: always()
+        run: |
+          # Human-readable summary
+          jq -r '.[] | "\(.severity): \(.rule_id) - \(.message)"' guard-results.json
+
+      - name: Fail on errors
+        run: |
+          ERROR_COUNT=$(jq '[.[] | select(.severity == "error")] | length' guard-results.json)
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "❌ Guard checks failed with $ERROR_COUNT error(s)"
+            exit 1
+          fi
+```
+
+### Exit Code Reference
+
+| Code | Meaning | Local Behavior | CI Behavior |
+|------|---------|----------------|-------------|
+| 0 | Success | Proceed | Proceed |
+| 1 | Violations | Error-level violations only | Any violation |
+| 2 | Config Error | Invalid configuration | Invalid configuration |
+| 3 | System Error | Runtime error | Runtime error |
+
+---
+
+## Continuous Integration
 
 ```yaml
 name: Quality Gates
@@ -563,9 +682,57 @@ jobs:
 
 ## Version
 
-**SDP Version:** 0.5.0
+**SDP Version:** 0.9.0
 **Updated:** 2026-01-29
 **Status:** Active (enforced in CI/CD)
+
+---
+
+## Blocking Contract (WS-067-05: AC6)
+
+Each quality gate has a defined blocking behavior. This contract ensures consistent enforcement across local and CI environments.
+
+| Gate | Command | Threshold | Blocks CI | Local Behavior |
+|------|---------|-----------|-----------|----------------|
+| **Coverage** | `go test -cover` | 80% | YES (exit 1) | warn |
+| **Guard Check** | `sdp guard check` | per-rule severity | YES for errors | YES for errors |
+| **Go Vet** | `go vet ./...` | 0 errors | YES (exit 1) | YES (exit 1) |
+| **Vuln Check** | `govulncheck` | 0 vulnerabilities | YES (exit 1) | YES (exit 1) |
+| **Lint** | `golangci-lint` | 0 errors | YES (exit 1) | warn |
+| **File Size** | `sdp guard check` (max-file-loc) | 200 LOC | YES (error) | YES (error) |
+| **Complexity** | `sdp guard check` (max-cyclomatic) | 10 | YES (error) | YES (error) |
+
+### Canonical Configuration Source
+
+| Config File | Purpose | Status |
+|-------------|---------|--------|
+| `.sdp/guard-rules.yml` | Quality gate rules (coverage, complexity, LOC) | **CANONICAL** |
+| `.sdp/config.yml` | Project settings, acceptance command | Supplementary |
+
+**Removed (WS-067-05):**
+- `quality-gate.toml` - Deprecated, removed
+- `ci-gates.toml` - Deprecated, removed
+
+### CI Enforcement
+
+```yaml
+# From .github/workflows/go-ci.yml
+
+# Coverage gate (BLOCKING)
+- name: Check coverage threshold
+  run: |
+    go tool cover -func=coverage.out | grep total | awk '{if ($3+0 < 80.0) {print "Coverage " $3 " is below 80% threshold"; exit 1}}'
+
+# Guard check (BLOCKING)
+- name: Run guard checks
+  run: ./sdp guard check --staged --json
+  # Note: No || true - violations block the build
+
+# Config consistency (BLOCKING)
+- name: Validate quality config consistency
+  run: |
+    # Ensures thresholds match across all config sources
+```
 
 ---
 

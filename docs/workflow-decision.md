@@ -163,7 +163,7 @@ See `.claude/skills/feature/SKILL.md` for full implementation.
 
 ### Traditional Markdown Workflow Details
 
-See `prompts/commands/` for markdown-based prompts.
+See `.claude/skills/` for markdown-based prompts.
 
 **Key Steps:**
 1. Requirements: `@idea` → docs/drafts/
@@ -212,7 +212,7 @@ A: SDP uses Beads-first for all features (2025+).
 - [CLAUDE.md](../CLAUDE.md) - Quick reference
 - [PROTOCOL.md](../PROTOCOL.md) - Full specification
 - [`.claude/skills/feature/SKILL.md`](../.claude/skills/feature/SKILL.md) - Beads-first implementation
-- [`prompts/commands/`](../prompts/commands/) - Markdown-based prompts
+- [`.claude/skills/`](../.claude/skills/) - Skill definitions
 
 ---
 

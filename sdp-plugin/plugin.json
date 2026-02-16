@@ -1,6 +1,6 @@
 {
   "name": "sdp",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "displayName": "Spec-Driven Protocol (SDP)",
   "description": "Workstream-driven development with TDD, clean architecture, and quality gates for AI agents. Language-agnostic support for Python, Java, Go projects.",
   "author": "MSU AI Masters",

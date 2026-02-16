@@ -1,0 +1,276 @@
+name: Test SDP Verify Action
+
+on:
+  pull_request:
+    paths:
+      - '.github/actions/verify/**'
+  push:
+    branches:
+      - feature/F058
+    paths:
+      - '.github/actions/verify/**'
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run unit tests (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x .github/actions/verify/test-comment.sh
+          bash .github/actions/verify/test-comment.sh
+
+      - name: Run unit tests (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          bash .github/actions/verify/test-comment.sh
+
+  integration-test:
+    name: Integration Test - Verify Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone main repository (for SDP CLI source)
+        uses: actions/checkout@v4
+        with:
+          repository: fall-out-bug/sdp
+          ref: dev
+          path: main-repo
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build SDP CLI locally (for testing)
+        run: |
+          # Build from cloned main repository (sdp-plugin is a subdirectory)
+          cd "$GITHUB_WORKSPACE/main-repo/sdp-plugin" && go build -o /tmp/sdp ./cmd/sdp
+          sudo mv /tmp/sdp /usr/local/bin/sdp
+          sdp version || echo "Version command not available"
+
+      - name: Test action with default inputs
+        id: test-default
+        uses: ./.github/actions/verify
+        with:
+          gates: 'types,tests'
+          evidence-required: 'false'
+          comment: 'false'
+
+      - name: Verify outputs (default)
+        run: |
+          echo "Result: ${{ steps.test-default.outputs.result }}"
+          echo "Gates passed: ${{ steps.test-default.outputs.gates_passed }}"
+          echo "Gates failed: ${{ steps.test-default.outputs.gates_failed }}"
+
+          # Verify outputs are set
+          [ -n "${{ steps.test-default.outputs.result }}" ] || exit 1
+          [ -n "${{ steps.test-default.outputs.gates_passed }}" ] || exit 1
+          [ -n "${{ steps.test-default.outputs.gates_failed }}" ] || exit 1
+
+      - name: Test action with custom inputs
+        id: test-custom
+        uses: ./.github/actions/verify
+        with:
+          gates: 'types'
+          evidence-required: 'false'
+          comment: 'false'
+          version: 'latest'
+          working-directory: './sdp-plugin'
+
+      - name: Verify outputs (custom)
+        run: |
+          echo "Result: ${{ steps.test-custom.outputs.result }}"
+          [ -n "${{ steps.test-custom.outputs.result }}" ] || exit 1
+
+      - name: Test error handling - invalid gate
+        id: test-invalid
+        continue-on-error: true
+        uses: ./.github/actions/verify
+        with:
+          gates: 'invalid-gate-name'
+          comment: 'false'
+
+      - name: Verify action fails on invalid gate
+        run: |
+          # Action should fail when invalid gate is used
+          # Check that the step failed as expected
+          if [ "${{ steps.test-invalid.outcome }}" != "failure" ]; then
+            echo "❌ FAIL: Invalid gate test should have failed but succeeded"
+            echo "Outcome: ${{ steps.test-invalid.outcome }}"
+            exit 1
+          fi
+
+          # Verify outputs are set correctly even on failure
+          echo "Result: ${{ steps.test-invalid.outputs.result }}"
+          echo "Gates passed: ${{ steps.test-invalid.outputs.gates_passed }}"
+          echo "Gates failed: ${{ steps.test-invalid.outputs.gates_failed }}"
+
+          # Verify result is 'fail'
+          if [ "${{ steps.test-invalid.outputs.result }}" != "fail" ]; then
+            echo "❌ FAIL: outputs.result should be 'fail' but got '${{ steps.test-invalid.outputs.result }}'"
+            exit 1
+          fi
+
+          # Verify gates_failed is 1
+          if [ "${{ steps.test-invalid.outputs.gates_failed }}" != "1" ]; then
+            echo "❌ FAIL: gates_failed should be 1 but got '${{ steps.test-invalid.outputs.gates_failed }}'"
+            exit 1
+          fi
+
+          # Verify gates_passed is 0
+          if [ "${{ steps.test-invalid.outputs.gates_passed }}" != "0" ]; then
+            echo "❌ FAIL: gates_passed should be 0 but got '${{ steps.test-invalid.outputs.gates_passed }}'"
+            exit 1
+          fi
+
+          echo "✅ PASS: Invalid gate correctly failed with proper outputs"
+
+  test-no-sudo:
+    name: Security Test - No Sudo Required
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify no sudo in action.yml
+        run: |
+          if grep -q "sudo" .github/actions/verify/action.yml; then
+            echo "❌ FAIL: Found 'sudo' in action.yml"
+            exit 1
+          fi
+          echo "✅ PASS: No 'sudo' found in action.yml"
+
+      - name: Verify RUNNER_TEMP usage
+        run: |
+          if ! grep -q "RUNNER_TEMP" .github/actions/verify/action.yml; then
+            echo "❌ FAIL: RUNNER_TEMP not used in action.yml"
+            exit 1
+          fi
+          echo "✅ PASS: RUNNER_TEMP is used"
+
+      - name: Verify GITHUB_PATH usage
+        run: |
+          if ! grep -q "GITHUB_PATH" .github/actions/verify/action.yml; then
+            echo "❌ FAIL: GITHUB_PATH not used in action.yml"
+            exit 1
+          fi
+          echo "✅ PASS: GITHUB_PATH is used"
+
+  test-input-validation:
+    name: Test Input Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone main repository (for SDP CLI source)
+        uses: actions/checkout@v4
+        with:
+          repository: fall-out-bug/sdp
+          ref: dev
+          path: main-repo
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build SDP CLI locally (for testing)
+        run: |
+          cd "$GITHUB_WORKSPACE/main-repo/sdp-plugin" && go build -o /tmp/sdp ./cmd/sdp
+          sudo mv /tmp/sdp /usr/local/bin/sdp
+          sdp version || echo "Version command not available"
+
+      - name: Test empty gates input
+        id: test-empty
+        continue-on-error: true
+        uses: ./.github/actions/verify
+        with:
+          gates: ''
+          comment: 'false'
+
+      - name: Test with working-directory
+        id: test-workdir
+        uses: ./.github/actions/verify
+        with:
+          gates: 'types'
+          working-directory: './src/sdp'
+          comment: 'false'
+
+      - name: Verify working-directory was respected
+        run: |
+          echo "Working directory test completed"
+          echo "Result: ${{ steps.test-workdir.outputs.result }}"
+
+  test-outputs-format:
+    name: Test Output Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone main repository (for SDP CLI source)
+        uses: actions/checkout@v4
+        with:
+          repository: fall-out-bug/sdp
+          ref: dev
+          path: main-repo
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build SDP CLI locally (for testing)
+        run: |
+          cd "$GITHUB_WORKSPACE/main-repo/sdp-plugin" && go build -o /tmp/sdp ./cmd/sdp
+          sudo mv /tmp/sdp /usr/local/bin/sdp
+          sdp version || echo "Version command not available"
+
+      - name: Run action
+        id: verify
+        uses: ./.github/actions/verify
+        with:
+          gates: 'types,tests'
+          evidence-required: 'false'
+          comment: 'false'
+          working-directory: './sdp-plugin'
+
+      - name: Verify result is valid
+        run: |
+          result="${{ steps.verify.outputs.result }}"
+          if [ "$result" != "pass" ] && [ "$result" != "fail" ]; then
+            echo "❌ FAIL: Invalid result value: $result"
+            exit 1
+          fi
+          echo "✅ PASS: Result is valid"
+
+      - name: Verify gates_passed is number
+        run: |
+          passed="${{ steps.verify.outputs.gates_passed }}"
+          if ! [[ "$passed" =~ ^[0-9]+$ ]]; then
+            echo "❌ FAIL: gates_passed is not a number: $passed"
+            exit 1
+          fi
+          echo "✅ PASS: gates_passed is a number: $passed"
+
+      - name: Verify gates_failed is number
+        run: |
+          failed="${{ steps.verify.outputs.gates_failed }}"
+          if ! [[ "$failed" =~ ^[0-9]+$ ]]; then
+            echo "❌ FAIL: gates_failed is not a number: $failed"
+            exit 1
+          fi
+          echo "✅ PASS: gates_failed is a number: $failed"

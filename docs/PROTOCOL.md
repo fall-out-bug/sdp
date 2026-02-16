@@ -2,33 +2,92 @@
 
 **Workstream-driven development** for AI agents with multi-agent coordination.
 
-**Русская версия:** [PROTOCOL_RU.md](PROTOCOL_RU.md)
+---
+
+## Multi-Level Architecture
+
+SDP is designed as a multi-level product. Each level builds on the previous, but works independently.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  L4: Collaboration (Notifications, Cross-Review)               │
+├─────────────────────────────────────────────────────────────────┤
+│  L3: Orchestration (Distributed Agents, k8s) — Future          │
+├─────────────────────────────────────────────────────────────────┤
+│  L2: Go Tools (Evidence Log, Guard, Checkpoints)               │
+├─────────────────────────────────────────────────────────────────┤
+│  L1: Adapters (Claude Code, Cursor, Windsurf invocation)       │
+├─────────────────────────────────────────────────────────────────┤
+│  L0: Protocol (THIS DOCUMENT)                                  │
+│  ├── Workstream format + Quality gates + TDD                   │
+│  ├── Skills (@build, @review, @oneshot, etc.)                  │
+│  ├── Agent roles (implementer, reviewer, etc.)                 │
+│  └── Beads integration (bd create/close/sync)                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Principle:** L0 works with ANY AI (Opus, GLM, Codex) in ANY tool (Claude Code, Cursor, Windsurf).
+
+### Level Descriptions
+
+| Level | What It Provides | Required? |
+|-------|------------------|-----------|
+| **L0** | Protocol, skills, agents, beads | Yes (foundation) |
+| **L1** | Tool-specific invocation adapters | Optional |
+| **L2** | Go CLI: evidence, guard, checkpoints | Optional |
+| **L3** | Distributed orchestration | Future |
+| **L4** | AI-Human collaboration features | Future |
+
+### Skills in L0
+
+Skills are LLM-agnostic descriptions of workflows:
+
+```
+@build 00-001-01    # Execute workstream with TDD
+@review F001        # Multi-agent quality review
+@oneshot F001       # Autonomous feature execution
+@deploy F001        # Create PR and merge
+```
+
+Each skill describes WHAT to do. L1 adapters provide HOW to invoke (Task tool, agent panel, etc.).
+
+### Beads in L0
+
+Task tracking works without Go tools:
+
+```bash
+bd create --title="Fix bug" --priority=1
+bd close sdp-xxx
+bd sync
+```
+
+Skills reference beads IDs directly: `@build sdp-xxx`
 
 ---
 
 ## Quick Start
 
 ```bash
-# Install
-pip install -e .
+# Install (WS-067-11: corrected path to sdp-plugin)
+go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
 
 # Create feature (interactive)
 @feature "Add user authentication"
 
 # Plan workstreams
-@design beads-auth
+@design idea-auth
 
 # Execute workstream
-@build WS-AUTH-01
+@build 00-001-01
 
 # Or execute all autonomously
-@oneshot beads-auth
+@oneshot F001
 
 # Review quality
-@review beads-auth
+@review F001
 
 # Deploy to production
-@deploy beads-auth
+@deploy F001
 ```
 
 ---
@@ -233,18 +292,53 @@ Claude asks deep questions:
 ```
 
 Claude explores codebase and creates workstreams:
-- WS-XXX.01: Domain model (450 LOC)
-- WS-XXX.02: Database schema (300 LOC)
-- WS-XXX.03: Repository layer (500 LOC)
-- WS-XXX.04: Service layer (600 LOC)
-- WS-XXX.05: API endpoints (400 LOC)
+- 00-XXX-01: Domain model (450 LOC)
+- 00-XXX-02: Database schema (300 LOC)
+- 00-XXX-03: Repository layer (500 LOC)
+- 00-XXX-04: Service layer (600 LOC)
+- 00-XXX-05: API endpoints (400 LOC)
 
 → Creates: `docs/workstreams/beads-sdp-XXX.md`
 
-### 3. Execution (@build skill)
+### 3. Contract Tests (@test skill)
 
 ```bash
-@build WS-XXX.01
+@test 00-XXX-01
+```
+
+Generate contract tests that define **immutable interfaces**:
+
+- **Function signatures** - Stable API contracts
+- **Input/output contracts** - Data format specifications
+- **Error conditions** - Expected failure modes
+- **Invariants** - Business rules that must hold
+
+**Workflow:**
+1. Analyze interface requirements from spec
+2. Design test contracts (signatures, I/O, errors, invariants)
+3. Create contract test file: `tests/contract/test_{component}.py`
+4. Get stakeholder approval
+5. **Lock contracts** - once approved, they CANNOT be modified during /build
+
+**⚠️ Contract Immutability:**
+- ✅ `/build` CAN implement code to pass contracts
+- ❌ `/build` CANNOT modify contract test files
+- ❌ `/build` CANNOT change function signatures
+- ❌ `/build` CANNOT relax error conditions
+
+**If interface change is needed:**
+1. Stop `/build`
+2. Create new workstream: "Update contract for {Component}"
+3. Run `/test` with revised contracts
+4. Get explicit approval
+5. Resume `/build`
+
+Creates: `tests/contract/test_{component}.py`
+
+### 4. Implementation (@build skill)
+
+```bash
+@build 00-XXX-01
 ```
 
 Claude follows TDD:
@@ -256,7 +350,11 @@ Claude follows TDD:
 → Runs tests, mypy, ruff
 → Commits when complete
 
-### 4. Autonomous Execution (@oneshot skill)
+**⚠️ Contract Test Enforcement:**
+- Guard prevents editing contract test files during `/build`
+- Interface changes require new `/test` cycle
+
+### 5. Autonomous Execution (@oneshot skill)
 
 ```bash
 @oneshot sdp-XXX
@@ -268,7 +366,7 @@ Orchestrator agent:
 - Sends Telegram notifications
 - Resumes from interruption
 
-### 5. Quality Review (@review skill)
+### 6. Quality Review (@review skill)
 
 ```bash
 @review sdp-XXX
@@ -282,7 +380,7 @@ Validates:
 
 → Returns: APPROVED / CHANGES_REQUESTED
 
-### 6. Deployment (@deploy skill)
+### 7. Deployment (@deploy skill)
 
 ```bash
 @deploy sdp-XXX
@@ -340,25 +438,10 @@ Generates:
 - `00-001-01` - First workstream of SDP feature 001
 - `02-150-01` - First workstream of hw_checker feature 150
 
-**⚠️ DEPRECATED:**
-- ~~`WS-FFF-SS`~~ → Use `PP-FFF-SS` format
-- ~~`Epic`~~ → **Feature**
-- ~~`Sprint`~~ → Not used
-
-**Migration:**
-
-For projects with legacy `WS-FFF-SS` format, use the migration script:
-
-```bash
-# Dry run to see what will change
-python scripts/migrate_workstream_ids.py --dry-run
-
-# Migrate SDP workstreams (project 00)
-python scripts/migrate_workstream_ids.py --project-id 00
-
-# Migrate other projects
-python scripts/migrate_workstream_ids.py --project-id 02 --path ../hw_checker
-```
+**Legacy terms (no longer used):**
+- ~~`WS-FFF-SS`~~ — replaced by `PP-FFF-SS`
+- ~~`Epic`~~ — replaced by **Feature**
+- ~~`Sprint`~~ — not used
 
 **Migration Features:**
 - ✅ `--dry-run` mode for safe preview
@@ -442,7 +525,7 @@ except SpecificError as e:
 # Development
 @feature "title"           # Gather requirements
 @design beads-XXX          # Plan workstreams
-@build WS-XXX-01          # Execute workstream
+@build 00-XXX-01          # Execute workstream
 @oneshot beads-XXX        # Autonomous execution
 @review beads-XXX         # Quality review
 @deploy beads-XXX         # Production deployment
@@ -480,10 +563,57 @@ pytest --cov=src/ --cov-report=term-missing
 
 ---
 
+## Feature Branch Rule
+
+**CRITICAL:** Features MUST be implemented in feature branches.
+
+### Allowed Branches
+
+| Branch Type | Purpose | Example |
+|-------------|---------|---------|
+| `feature/F###` | Feature implementation | `feature/F065` |
+| `bugfix/issue-id` | Bug fixes | `bugfix/sdp-1234` |
+| `hotfix/issue-id` | Emergency fixes | `hotfix/sdp-1234` |
+
+### Protected Branches
+
+| Branch | Allowed Operations |
+|--------|-------------------|
+| `main` | Merge only (via PR) |
+| `dev` | Merge only (via PR) |
+
+### Enforcement
+
+- Guard rejects commits to protected branches when `feature_id` is active
+- `@build` verifies feature branch before starting work
+- Pre-commit hooks block direct commits to `dev`/`main` for feature work
+
+### Commands
+
+```bash
+# Check if current branch is valid for feature
+sdp guard branch check --feature=F065
+
+# Validate branch naming convention
+sdp guard branch validate feature/F065
+```
+
+### Error Recovery
+
+If you're on `dev` or `main` when you should be on a feature branch:
+
+```bash
+# Create feature branch
+git checkout -b feature/F065
+
+# Or switch to existing branch
+git checkout feature/F065
+```
+
+---
+
 ## Documentation
 
-- `PROTOCOL.md` - Full specification (Russian)
-- `docs/TUTORIAL.md` - 15-minute quick start
 - `.claude/agents/README.md` - Agent roles guide
 - `README.md` - Project overview
 
@@ -491,13 +621,12 @@ pytest --cov=src/ --cov-report=term-missing
 
 ## Version
 
-**SDP v0.6.0** - Unified Workflow (AI-Comm + Beads)
+**SDP v0.9.0** — Multi-Agent Architecture
 
-Updated: 2026-01-29
+Updated: 2026-02-09
 
 ---
 
 **See Also:**
-- Russian version: `PROTOCOL_RU.md` (полная спецификация)
-- Tutorial: `docs/TUTORIAL.md` (15-минутное введение)
-- Agent Roles: `.claude/agents/README.md` (role setup guide)
+- Agent Roles: `.claude/agents/README.md`
+- Reference: `docs/reference/`

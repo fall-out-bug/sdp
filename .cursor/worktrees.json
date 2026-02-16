@@ -1,11 +1,11 @@
 {
   "setup_commands_unix": [
-    "poetry install --no-interaction --quiet 2>/dev/null || echo 'Poetry not configured'",
-    "echo '✅ Worktree ready'"
+    "cd sdp-plugin && go mod download 2>/dev/null || echo 'Go modules not configured'",
+    "echo '✅ Worktree ready (Go project)'"
   ],
   "setup_commands_windows": [
-    "poetry install --no-interaction --quiet 2>nul || echo Poetry not configured",
-    "echo Worktree ready"
+    "cd sdp-plugin && go mod download 2>nul || echo Go modules not configured",
+    "echo Worktree ready (Go project)"
   ],
-  "description": "Template for project worktree setup. Copy and customize for your project."
+  "description": "Template for SDP project worktree setup. Go-first project."
 }

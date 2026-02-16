@@ -1,0 +1,20 @@
+{
+  "name": "sdp",
+  "version": "0.1.0",
+  "description": "System Design Protocol - systematic workflow for software development",
+  "type": "module",
+  "scripts": {
+    "sync:skills": "node scripts/sync-skills-to-commands.js",
+    "bd:sync": "bd sync",
+    "bd:onboard": "bd onboard",
+    "bd:ready": "bd ready"
+  },
+  "keywords": [
+    "sdp",
+    "workflow",
+    "development",
+    "systematic"
+  ],
+  "author": "",
+  "license": "MIT"
+}

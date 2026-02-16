@@ -1,16 +1,17 @@
 # Contributing to Spec-Driven Protocol
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing!
 
-> **📝 Meta-note:** Contributions reviewed using AI-assisted code review when appropriate.
+**New contributors:** See [DEVELOPMENT.md](DEVELOPMENT.md) for setup instructions.
 
 ## Ways to Contribute
 
-- **Report bugs** - Open an issue describing the problem
-- **Suggest features** - Open an issue with your idea
-- **Improve documentation** - Fix typos, add examples, clarify explanations
-- **Add command templates** - Enhance existing slash commands
-- **Share integrations** - Document how you use SDP with other tools
+- **Report bugs** — Open an issue describing the problem
+- **Suggest features** — Open an issue with your idea
+- **Improve documentation** — Fix typos, add examples, clarify explanations
+- **Add skills** — Create new agent skills in `prompts/skills/`
+- **Add agents** — Create new agent definitions in `prompts/agents/`
+- **Share integrations** — Document how you use SDP with other tools
 
 ## Getting Started
 
@@ -20,7 +21,7 @@ Thank you for your interest in contributing! This document provides guidelines f
    git clone https://github.com/YOUR_USERNAME/sdp.git
    cd sdp
    ```
-3. Create a branch for your changes:
+3. Create a branch:
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -28,94 +29,84 @@ Thank you for your interest in contributing! This document provides guidelines f
 ## Project Structure
 
 ```
-consensus/
+sdp/
+├── sdp-plugin/           # Go implementation (CLI + agents)
+│   ├── cmd/              # CLI commands
+│   └── internal/         # Core logic
+├── src/sdp/              # Go source (graph, monitoring, synthesis)
+├── tests/                # Go test suite
 ├── prompts/
-│   └── commands/       # Slash command prompts (/idea, /design, /build, etc.)
+│   ├── skills/           # Canonical AI skill definitions (source of truth)
+│   └── agents/           # Canonical multi-agent definitions (source of truth)
+├── .claude/
+│   ├── skills -> ../prompts/skills   # Compatibility symlink
+│   └── agents -> ../prompts/agents   # Compatibility symlink
+├── .cursor/              # Cursor IDE integration
+├── .opencode/            # OpenCode integration
 ├── docs/
-│   ├── guides/         # Integration guides (Claude Code, Cursor)
-│   ├── concepts/       # Core concepts (Clean Architecture, Artifacts, Roles)
-│   ├── adr/            # Architecture decision records
-│   └── specs/          # Feature specifications
-├── .cursor/            # Cursor IDE slash commands
-├── .cursorrules        # Cursor IDE rules
-├── .claude/            # Claude Code configuration (skills, agents)
-├── hooks/              # Git hooks and validators
-├── templates/          # Document templates
-├── PROTOCOL.md         # SDP specification
-├── RULES_COMMON.md     # Shared rules
-└── MODELS.md           # Model recommendations
+│   ├── PROTOCOL.md       # Core specification
+│   ├── reference/        # API and command reference
+│   ├── vision/           # Strategic vision documents
+│   ├── drafts/           # Feature specifications
+│   ├── decisions/        # Architecture Decision Records
+│   └── workstreams/      # Backlog and completed WS
+├── hooks/                # Git hooks and validators
+├── templates/            # Workstream templates
+├── PRODUCT_VISION.md     # Product vision v3.0
+├── CLAUDE.md             # Claude Code integration guide
+├── AGENTS.md             # Agent instructions
+└── go.mod                # Go module definition
 ```
 
-## Contribution Guidelines
+## Go Module Structure (WS-067-10)
 
-### For Documentation
+SDP uses two separate Go modules:
 
-- Write in clear, concise English
-- Include examples where helpful
-- Keep formatting consistent with existing docs
-- Test any code examples you include
+| Module | Location | Module Path | Purpose |
+|--------|----------|-------------|---------|
+| **Root** | `go.mod` | `github.com/fall-out-bug/sdp` | Core libraries (src/sdp/) |
+| **Plugin** | `sdp-plugin/go.mod` | `github.com/fall-out-bug/sdp` | CLI implementation |
 
-### For Command Prompts
+### Building
 
-When adding or modifying command prompts in `prompts/commands/`:
+```bash
+# Build CLI (primary development)
+cd sdp-plugin && go build -o sdp ./cmd/sdp
 
-1. **Follow the existing structure** - Use the format with sections like ALGORITHM, PRE-FLIGHT CHECKS, etc.
-2. **Keep language-agnostic** - Don't hardcode specific technologies (use placeholders like `{language}`, `{framework}`)
-3. **Include all required sections**:
-   - GLOBAL RULES - Core principles
-   - ALGORITHM - Step-by-step workflow
-   - OUTPUT FORMAT - What to display to user
-   - THINGS YOU MUST NEVER DO - Hard constraints
-4. **Test with actual AI tools** - Verify the prompt works with Claude Code or Cursor
+# Build root module (if needed)
+go build ./...
+```
 
-### For New Commands
+### Testing
 
-To add a new slash command:
+```bash
+# Test CLI module
+cd sdp-plugin && go test ./...
 
-1. Create `prompts/commands/{command}.md` (full prompt)
-   - Include RECOMMENDED @FILE REFERENCES section
-   - Document TodoWrite usage if applicable
-   - Add Composer examples if multi-file editing needed
-2. Create `.cursor/commands/{command}.md` (quick reference for Cursor IDE)
-3. Add skill to `.claude/skills/{command}/SKILL.md` (Claude Code integration)
-   - Document Task tool usage if autonomous execution
-   - Document AskUserQuestion if interactive
-   - Document EnterPlanMode if planning phase
-4. Update `README.md` and `README_RU.md` with command description
-5. Update `MODELS.md` with model recommendation
-6. Update `docs/guides/CURSOR.md` and `docs/guides/CLAUDE_CODE.md` if needed
+# Test root module
+go test ./...
+```
 
-### Code Style
+### Why No go.work?
 
-- **English only** - All content must be in English (except README_RU.md)
-- **Consistent formatting** - Follow existing Markdown style
-- **No trailing whitespace**
-- **End files with newline**
+Both modules share the same module path (`github.com/fall-out-bug/sdp`), which prevents using Go workspaces. See [ADR-001](docs/decisions/ADR-001-dual-module-structure.md) for the consolidation decision.
 
-## Using SDP for Your Contributions
+## Using SDP for Contributions
 
-You're welcome to use SDP workflow for larger contributions:
+For larger changes, use the SDP workflow:
 
-### For Larger Changes (new features, major refactors)
-
-1. **Requirements** - Run `/idea "{description}"` to create draft
-2. **Design** - Run `/design idea-{slug}` to create workstreams
-3. **Implement** - Run `/build WS-XXX-XX` for each workstream
-4. **Review** - Run `/review F{XX}` to verify quality
-5. **Deploy** - Run `/deploy F{XX}` when ready
-
-**Recommended tools:**
-- [Claude Code](docs/guides/CLAUDE_CODE.md) - CLI with multiple providers
-- [Cursor IDE](docs/guides/CURSOR.md) - Visual IDE with slash commands
-
-See [MODELS.md](MODELS.md) for model selection.
+1. **Requirements** — Run `@idea "description"` to create draft
+2. **Design** — Run `@design idea-{slug}` to create workstreams
+3. **Implement** — Run `@build 00-FFF-SS` for each workstream
+4. **Review** — Run `@review F{FF}` to verify quality
+5. **Deploy** — Run `@deploy F{FF}` when ready
 
 ## Pull Request Process
 
-1. **Update documentation** - If your change affects usage, update relevant docs
-2. **Write clear commit messages** - Describe what and why
-3. **One feature per PR** - Keep changes focused
-4. **Reference issues** - Link to related issues in PR description
+1. **Update documentation** if your change affects usage
+2. **Write clear commit messages** (conventional commits)
+3. **One feature per PR**
+4. **Reference issues** in PR description
 
 ### PR Title Format
 
@@ -123,72 +114,58 @@ See [MODELS.md](MODELS.md) for model selection.
 type: brief description
 
 Examples:
-- docs: add Python project example
-- feat: add /refactor command
-- fix: correct path in /build prompt
+- docs: add integration example
+- feat: add @refactor skill
+- fix: correct dependency resolution
 ```
 
-### PR Description Template
+## Code Style
 
-```markdown
-## Summary
-Brief description of changes
+- **Go** — Follow standard Go conventions, `gofmt`
+- **Markdown** — Consistent formatting, no trailing whitespace
+- **Skills** — Follow `prompts/skills/` SKILL.md format
 
-## Changes
-- Change 1
-- Change 2
+## PR Checklist (F067)
 
-## Testing
-How you tested the changes
+Before submitting a PR, ensure:
 
-## Related Issues
-Fixes #123
-```
+- [ ] Go version is 1.24 (`go version`)
+- [ ] Tests pass (`cd sdp-plugin && go test ./...`)
+- [ ] Coverage ≥80% (`go test -cover ./... | grep total`)
+- [ ] Guard checks pass (`./sdp guard check --staged`)
+- [ ] Prompt edits are in `prompts/` only (not `.claude/` or `sdp-plugin/prompts/`)
+- [ ] No `.out`, `bin/`, or `dist/` files staged
+- [ ] Run drift check: `./hooks/check-prompt-drift.sh`
+- [ ] Update relevant documentation if behavior changed
 
-## Review Process
+## Canonical Prompt Paths
 
-1. Maintainers will review your PR
-2. Address any requested changes
-3. Once approved, your PR will be merged
+**CRITICAL:** All prompt/agent definitions have a single canonical location.
 
-## Adding Examples
+| Content | Canonical Path | Symlink |
+|---------|---------------|---------|
+| Skills | `prompts/skills/` | `.claude/skills` |
+| Agents | `prompts/agents/` | `.claude/agents` |
 
-We welcome examples showing SDP in action:
+**Rules:**
+1. **Never create duplicate prompt files** in other locations
+2. **Always edit canonical files** in `prompts/`
+3. **Tool adapters** should reference canonical paths or symlinks
+4. **CI validates** no duplicate prompt trees exist
 
-1. Add to `examples/`
-2. Include complete feature with workstreams
-3. Add README explaining the example
-4. Keep examples generic (no proprietary code)
+To check for drift: `./hooks/check-prompt-drift.sh`
 
-## Reporting Bugs
+## Generated Files
 
-When reporting bugs, include:
+The following directories contain generated artifacts and should not be committed:
 
-- What you expected to happen
-- What actually happened
-- Steps to reproduce
-- Which AI tool you're using (Claude Code, Cursor, etc.)
-- Relevant command or configuration
+| Directory | Description | Why Ignore |
+|-----------|-------------|------------|
+| `.contracts/` | API contracts generated from code | Derived from source, regenerable |
+| `.oneshot/` | Checkpoint files | May contain sensitive state |
+| `docs/decisions/` | Local decision logs | Local audit trail only |
 
-## Suggesting Features
-
-When suggesting features:
-
-- Describe the use case
-- Explain why existing features don't solve it
-- Propose a solution (optional)
-
-## Questions?
-
-- Check existing issues and documentation first
-- Open a discussion for general questions
-- Open an issue for specific problems
-
-## Code of Conduct
-
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help others learn
+These are configured in `.gitignore`. If you see them in your working tree, do not commit them.
 
 ## License
 
@@ -196,4 +173,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-Thank you for contributing!
+**Version:** 0.10.0
