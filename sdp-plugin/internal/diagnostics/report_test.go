@@ -154,9 +154,9 @@ func TestGenerator_BuildNextSteps(t *testing.T) {
 	gen := NewGenerator("", "1.0.0")
 
 	tests := []struct {
-		class         errors.ErrorClass
-		wantMinSteps  int
-		wantContains  string
+		class        errors.ErrorClass
+		wantMinSteps int
+		wantContains string
 	}{
 		{errors.ClassEnvironment, 3, "sdp doctor"},
 		{errors.ClassProtocol, 3, "sdp parse"},
@@ -167,8 +167,7 @@ func TestGenerator_BuildNextSteps(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.class), func(t *testing.T) {
-			err := errors.New(errors.ErrGitNotFound, nil)
-			// Override class by using specific error code
+			// Use specific error code for each class
 			var code errors.ErrorCode
 			switch tt.class {
 			case errors.ClassEnvironment:
@@ -182,7 +181,7 @@ func TestGenerator_BuildNextSteps(t *testing.T) {
 			case errors.ClassRuntime:
 				code = errors.ErrCommandFailed
 			}
-			err = errors.New(code, nil)
+			err := errors.New(code, nil)
 
 			steps := gen.buildNextSteps(err)
 

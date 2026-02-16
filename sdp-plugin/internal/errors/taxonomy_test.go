@@ -131,10 +131,10 @@ func TestErrorCode_IsValid(t *testing.T) {
 
 	// Test invalid codes
 	invalidCodes := []ErrorCode{
-		"ENV100",    // undefined
-		"PROTO100",  // undefined
-		"INVALID",   // wrong format
-		"",          // empty
+		"ENV100",   // undefined
+		"PROTO100", // undefined
+		"INVALID",  // wrong format
+		"",         // empty
 	}
 
 	for _, code := range invalidCodes {

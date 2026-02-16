@@ -30,14 +30,14 @@ type Playbook struct {
 
 // PlaybookRegistry holds all available playbooks.
 type PlaybookRegistry struct {
-	playbooks map[errors.ErrorCode]*Playbook
+	playbooks     map[errors.ErrorCode]*Playbook
 	classDefaults map[errors.ErrorClass]*Playbook
 }
 
 // NewPlaybookRegistry creates a new playbook registry with built-in playbooks.
 func NewPlaybookRegistry() *PlaybookRegistry {
 	r := &PlaybookRegistry{
-		playbooks: make(map[errors.ErrorCode]*Playbook),
+		playbooks:     make(map[errors.ErrorCode]*Playbook),
 		classDefaults: make(map[errors.ErrorClass]*Playbook),
 	}
 	r.initBuiltins()
@@ -421,6 +421,21 @@ func (r *PlaybookRegistry) initBuiltins() {
 	})
 }
 
+// formatSteps formats a list of steps as human-readable text.
+func formatSteps(steps []Step) string {
+	var sb strings.Builder
+	for _, step := range steps {
+		sb.WriteString(fmt.Sprintf("  %d. %s\n", step.Order, step.Description))
+		if step.Command != "" {
+			sb.WriteString(fmt.Sprintf("     $ %s\n", step.Command))
+		}
+		if step.Expected != "" {
+			sb.WriteString(fmt.Sprintf("     Expected: %s\n", step.Expected))
+		}
+	}
+	return sb.String()
+}
+
 // FormatPlaybook renders a playbook as human-readable text.
 func FormatPlaybook(pb *Playbook) string {
 	var sb strings.Builder
@@ -430,29 +445,13 @@ func FormatPlaybook(pb *Playbook) string {
 
 	if len(pb.FastPath) > 0 {
 		sb.WriteString("Quick Fix:\n")
-		for _, step := range pb.FastPath {
-			sb.WriteString(fmt.Sprintf("  %d. %s\n", step.Order, step.Description))
-			if step.Command != "" {
-				sb.WriteString(fmt.Sprintf("     $ %s\n", step.Command))
-			}
-			if step.Expected != "" {
-				sb.WriteString(fmt.Sprintf("     Expected: %s\n", step.Expected))
-			}
-		}
+		sb.WriteString(formatSteps(pb.FastPath))
 		sb.WriteString("\n")
 	}
 
 	if len(pb.DeepPath) > 0 {
 		sb.WriteString("Full Recovery:\n")
-		for _, step := range pb.DeepPath {
-			sb.WriteString(fmt.Sprintf("  %d. %s\n", step.Order, step.Description))
-			if step.Command != "" {
-				sb.WriteString(fmt.Sprintf("     $ %s\n", step.Command))
-			}
-			if step.Expected != "" {
-				sb.WriteString(fmt.Sprintf("     Expected: %s\n", step.Expected))
-			}
-		}
+		sb.WriteString(formatSteps(pb.DeepPath))
 		sb.WriteString("\n")
 	}
 

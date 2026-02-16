@@ -18,14 +18,14 @@ import (
 
 // Report represents a complete diagnostics report.
 type Report struct {
-	Timestamp     string            `json:"timestamp"`
-	Error         *ErrorInfo        `json:"error"`
-	Environment   *EnvironmentInfo  `json:"environment"`
-	Evidence      *EvidenceInfo     `json:"evidence,omitempty"`
+	Timestamp     string             `json:"timestamp"`
+	Error         *ErrorInfo         `json:"error"`
+	Environment   *EnvironmentInfo   `json:"environment"`
+	Evidence      *EvidenceInfo      `json:"evidence,omitempty"`
 	Recovery      *recovery.Playbook `json:"recovery"`
-	NextSteps     []NextStep        `json:"next_steps"`
-	Context       map[string]string `json:"context,omitempty"`
-	SensitiveData []string          `json:"-"` // Fields to redact
+	NextSteps     []NextStep         `json:"next_steps"`
+	Context       map[string]string  `json:"context,omitempty"`
+	SensitiveData []string           `json:"-"` // Fields to redact
 }
 
 // ErrorInfo contains details about the error that occurred.

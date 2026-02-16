@@ -111,7 +111,7 @@ func TestPlaybookRegistry_Register(t *testing.T) {
 
 	retrieved := r.Get(newCode)
 	if retrieved == nil {
-		t.Error("Registered playbook not found")
+		t.Fatal("Registered playbook not found")
 	}
 	if retrieved.Title != "Test Playbook" {
 		t.Errorf("Retrieved title = %q, want %q", retrieved.Title, "Test Playbook")

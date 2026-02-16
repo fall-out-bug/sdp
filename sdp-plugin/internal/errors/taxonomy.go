@@ -67,15 +67,15 @@ type ErrorCode string
 
 const (
 	// Environment errors (ENV001-ENV099)
-	ErrGitNotFound         ErrorCode = "ENV001"
-	ErrGoNotFound          ErrorCode = "ENV002"
-	ErrClaudeNotFound      ErrorCode = "ENV003"
-	ErrBeadsNotFound       ErrorCode = "ENV004"
-	ErrPermissionDenied    ErrorCode = "ENV005"
-	ErrWorktreeNotFound    ErrorCode = "ENV006"
-	ErrConfigNotFound      ErrorCode = "ENV007"
-	ErrDirectoryNotFound   ErrorCode = "ENV008"
-	ErrFileNotWritable     ErrorCode = "ENV009"
+	ErrGitNotFound       ErrorCode = "ENV001"
+	ErrGoNotFound        ErrorCode = "ENV002"
+	ErrClaudeNotFound    ErrorCode = "ENV003"
+	ErrBeadsNotFound     ErrorCode = "ENV004"
+	ErrPermissionDenied  ErrorCode = "ENV005"
+	ErrWorktreeNotFound  ErrorCode = "ENV006"
+	ErrConfigNotFound    ErrorCode = "ENV007"
+	ErrDirectoryNotFound ErrorCode = "ENV008"
+	ErrFileNotWritable   ErrorCode = "ENV009"
 
 	// Protocol errors (PROTO001-PROTO099)
 	ErrInvalidWorkstreamID ErrorCode = "PROTO001"
@@ -97,22 +97,22 @@ const (
 	ErrCollisionDetected   ErrorCode = "DEP006"
 
 	// Validation errors (VAL001-VAL099)
-	ErrCoverageLow         ErrorCode = "VAL001"
-	ErrFileTooLarge        ErrorCode = "VAL002"
-	ErrTestFailed          ErrorCode = "VAL003"
-	ErrLintFailed          ErrorCode = "VAL004"
-	ErrTypeMismatch        ErrorCode = "VAL005"
-	ErrQualityGateFailed   ErrorCode = "VAL006"
-	ErrDriftDetected       ErrorCode = "VAL007"
-	ErrScopeViolation      ErrorCode = "VAL008"
+	ErrCoverageLow       ErrorCode = "VAL001"
+	ErrFileTooLarge      ErrorCode = "VAL002"
+	ErrTestFailed        ErrorCode = "VAL003"
+	ErrLintFailed        ErrorCode = "VAL004"
+	ErrTypeMismatch      ErrorCode = "VAL005"
+	ErrQualityGateFailed ErrorCode = "VAL006"
+	ErrDriftDetected     ErrorCode = "VAL007"
+	ErrScopeViolation    ErrorCode = "VAL008"
 
 	// Runtime errors (RUNTIME001-RUNTIME099)
-	ErrCommandFailed       ErrorCode = "RUNTIME001"
-	ErrNetworkError        ErrorCode = "RUNTIME002"
-	ErrTimeoutExceeded     ErrorCode = "RUNTIME003"
-	ErrResourceExhausted   ErrorCode = "RUNTIME004"
-	ErrUnexpectedState     ErrorCode = "RUNTIME005"
-	ErrInternalError       ErrorCode = "RUNTIME006"
+	ErrCommandFailed     ErrorCode = "RUNTIME001"
+	ErrNetworkError      ErrorCode = "RUNTIME002"
+	ErrTimeoutExceeded   ErrorCode = "RUNTIME003"
+	ErrResourceExhausted ErrorCode = "RUNTIME004"
+	ErrUnexpectedState   ErrorCode = "RUNTIME005"
+	ErrInternalError     ErrorCode = "RUNTIME006"
 )
 
 // Class returns the error class for this error code.
@@ -154,168 +154,104 @@ func (c ErrorCode) IsValid() bool {
 	}
 }
 
+// errorMessages maps error codes to user-facing messages.
+var errorMessages = map[ErrorCode]string{
+	ErrGitNotFound:       "Git is not installed or not found in PATH",
+	ErrGoNotFound:        "Go is not installed or not found in PATH",
+	ErrClaudeNotFound:    "Claude Code CLI is not installed",
+	ErrBeadsNotFound:     "Beads CLI is not installed (required for task tracking)",
+	ErrPermissionDenied:  "Permission denied",
+	ErrWorktreeNotFound:  "Git worktree not found",
+	ErrConfigNotFound:    "SDP configuration file not found",
+	ErrDirectoryNotFound: "Required directory not found",
+	ErrFileNotWritable:   "File is not writable",
+	ErrInvalidWorkstreamID: "Invalid workstream ID format (expected PP-FFF-SS)",
+	ErrInvalidFeatureID:    "Invalid feature ID format (expected FNNN)",
+	ErrMalformedYAML:       "YAML parsing error",
+	ErrMissingRequired:     "Required field is missing",
+	ErrInvalidStatus:       "Invalid status value",
+	ErrHashChainBroken:     "Evidence hash chain is broken",
+	ErrSessionCorrupted:    "Session file is corrupted or tampered",
+	ErrInvalidEventType:    "Invalid event type",
+	ErrSchemaViolation:     "Schema validation failed",
+	ErrBlockedWorkstream:   "Workstream is blocked by unresolved dependencies",
+	ErrCircularDependency:  "Circular dependency detected",
+	ErrMissingPrerequisite: "Required prerequisite is not satisfied",
+	ErrFeatureNotFound:     "Feature not found",
+	ErrWorkstreamNotFound:  "Workstream not found",
+	ErrCollisionDetected:   "File scope collision detected between workstreams",
+	ErrCoverageLow:         "Test coverage is below required threshold",
+	ErrFileTooLarge:        "File exceeds maximum allowed size",
+	ErrTestFailed:          "Tests failed",
+	ErrLintFailed:          "Linting failed",
+	ErrTypeMismatch:        "Type mismatch",
+	ErrQualityGateFailed:   "Quality gate failed",
+	ErrDriftDetected:       "Drift detected between code and documentation",
+	ErrScopeViolation:      "Edit scope violation",
+	ErrCommandFailed:       "External command failed",
+	ErrNetworkError:        "Network error",
+	ErrTimeoutExceeded:     "Operation timed out",
+	ErrResourceExhausted:   "Resource exhausted",
+	ErrUnexpectedState:     "Unexpected state encountered",
+	ErrInternalError:       "Internal error",
+}
+
 // Message returns the default user-facing message for this error code.
 func (c ErrorCode) Message() string {
-	switch c {
-	case ErrGitNotFound:
-		return "Git is not installed or not found in PATH"
-	case ErrGoNotFound:
-		return "Go is not installed or not found in PATH"
-	case ErrClaudeNotFound:
-		return "Claude Code CLI is not installed"
-	case ErrBeadsNotFound:
-		return "Beads CLI is not installed (required for task tracking)"
-	case ErrPermissionDenied:
-		return "Permission denied"
-	case ErrWorktreeNotFound:
-		return "Git worktree not found"
-	case ErrConfigNotFound:
-		return "SDP configuration file not found"
-	case ErrDirectoryNotFound:
-		return "Required directory not found"
-	case ErrFileNotWritable:
-		return "File is not writable"
-	case ErrInvalidWorkstreamID:
-		return "Invalid workstream ID format (expected PP-FFF-SS)"
-	case ErrInvalidFeatureID:
-		return "Invalid feature ID format (expected FNNN)"
-	case ErrMalformedYAML:
-		return "YAML parsing error"
-	case ErrMissingRequired:
-		return "Required field is missing"
-	case ErrInvalidStatus:
-		return "Invalid status value"
-	case ErrHashChainBroken:
-		return "Evidence hash chain is broken"
-	case ErrSessionCorrupted:
-		return "Session file is corrupted or tampered"
-	case ErrInvalidEventType:
-		return "Invalid event type"
-	case ErrSchemaViolation:
-		return "Schema validation failed"
-	case ErrBlockedWorkstream:
-		return "Workstream is blocked by unresolved dependencies"
-	case ErrCircularDependency:
-		return "Circular dependency detected"
-	case ErrMissingPrerequisite:
-		return "Required prerequisite is not satisfied"
-	case ErrFeatureNotFound:
-		return "Feature not found"
-	case ErrWorkstreamNotFound:
-		return "Workstream not found"
-	case ErrCollisionDetected:
-		return "File scope collision detected between workstreams"
-	case ErrCoverageLow:
-		return "Test coverage is below required threshold"
-	case ErrFileTooLarge:
-		return "File exceeds maximum allowed size"
-	case ErrTestFailed:
-		return "Tests failed"
-	case ErrLintFailed:
-		return "Linting failed"
-	case ErrTypeMismatch:
-		return "Type mismatch"
-	case ErrQualityGateFailed:
-		return "Quality gate failed"
-	case ErrDriftDetected:
-		return "Drift detected between code and documentation"
-	case ErrScopeViolation:
-		return "Edit scope violation"
-	case ErrCommandFailed:
-		return "External command failed"
-	case ErrNetworkError:
-		return "Network error"
-	case ErrTimeoutExceeded:
-		return "Operation timed out"
-	case ErrResourceExhausted:
-		return "Resource exhausted"
-	case ErrUnexpectedState:
-		return "Unexpected state encountered"
-	case ErrInternalError:
-		return "Internal error"
-	default:
-		return "Unknown error"
+	if msg, ok := errorMessages[c]; ok {
+		return msg
 	}
+	return "Unknown error"
+}
+
+// recoveryHints maps error codes to recovery hints.
+var recoveryHints = map[ErrorCode]string{
+	ErrGitNotFound:       "Install Git from https://git-scm.com",
+	ErrGoNotFound:        "Install Go from https://go.dev/dl/",
+	ErrClaudeNotFound:    "Install Claude Code CLI from Anthropic",
+	ErrBeadsNotFound:     "Install Beads: brew tap beads-dev/tap && brew install beads",
+	ErrPermissionDenied:  "Check file permissions or run with appropriate privileges",
+	ErrWorktreeNotFound:  "Verify you are in a valid git worktree",
+	ErrConfigNotFound:    "Run 'sdp init' to create configuration",
+	ErrDirectoryNotFound: "Ensure required directories exist",
+	ErrFileNotWritable:   "Check file permissions",
+	ErrInvalidWorkstreamID: "Verify the ID format matches PP-FFF-SS or FNNN",
+	ErrInvalidFeatureID:    "Verify the ID format matches PP-FFF-SS or FNNN",
+	ErrMalformedYAML:       "Check YAML syntax and structure",
+	ErrMissingRequired:     "Provide all required fields",
+	ErrInvalidStatus:       "Use valid status: pending, in_progress, completed, failed",
+	ErrHashChainBroken:     "Run 'sdp log trace --verify' to diagnose",
+	ErrSessionCorrupted:    "Run 'sdp session repair' or delete .sdp/session.json",
+	ErrInvalidEventType:    "Use valid event types: plan, generation, verification",
+	ErrSchemaViolation:     "Verify file matches expected schema",
+	ErrBlockedWorkstream:   "Complete blocking workstreams first or use --force",
+	ErrCircularDependency:  "Review workstream dependencies for cycles",
+	ErrMissingPrerequisite: "Ensure all prerequisites are satisfied",
+	ErrFeatureNotFound:     "Verify the ID exists in docs/workstreams/",
+	ErrWorkstreamNotFound:  "Verify the ID exists in docs/workstreams/",
+	ErrCollisionDetected:   "Review workstream scope files for overlaps",
+	ErrCoverageLow:         "Add tests to increase coverage to >= 80%",
+	ErrFileTooLarge:        "Split file into smaller modules (< 200 LOC)",
+	ErrTestFailed:          "Run tests with verbose output to diagnose failures",
+	ErrLintFailed:          "Fix linting errors reported by linter",
+	ErrTypeMismatch:        "Verify types match expected signatures",
+	ErrQualityGateFailed:   "Review quality gate output for specific failures",
+	ErrDriftDetected:       "Run 'sdp drift detect' for details and sync",
+	ErrScopeViolation:      "Stay within workstream scope or use 'sdp guard deactivate'",
+	ErrCommandFailed:       "Check command output for details",
+	ErrNetworkError:        "Check network connectivity and retry",
+	ErrTimeoutExceeded:     "Increase timeout or optimize operation",
+	ErrResourceExhausted:   "Free up resources and retry",
+	ErrUnexpectedState:     "Run 'sdp doctor' to diagnose environment",
+	ErrInternalError:       "Report this issue with full error context",
 }
 
 // RecoveryHint returns a brief hint for recovering from this error.
 func (c ErrorCode) RecoveryHint() string {
-	switch c {
-	case ErrGitNotFound:
-		return "Install Git from https://git-scm.com"
-	case ErrGoNotFound:
-		return "Install Go from https://go.dev/dl/"
-	case ErrClaudeNotFound:
-		return "Install Claude Code CLI from Anthropic"
-	case ErrBeadsNotFound:
-		return "Install Beads: brew tap beads-dev/tap && brew install beads"
-	case ErrPermissionDenied:
-		return "Check file permissions or run with appropriate privileges"
-	case ErrWorktreeNotFound:
-		return "Verify you are in a valid git worktree"
-	case ErrConfigNotFound:
-		return "Run 'sdp init' to create configuration"
-	case ErrDirectoryNotFound:
-		return "Ensure required directories exist"
-	case ErrFileNotWritable:
-		return "Check file permissions"
-	case ErrInvalidWorkstreamID, ErrInvalidFeatureID:
-		return "Verify the ID format matches PP-FFF-SS or FNNN"
-	case ErrMalformedYAML:
-		return "Check YAML syntax and structure"
-	case ErrMissingRequired:
-		return "Provide all required fields"
-	case ErrInvalidStatus:
-		return "Use valid status: pending, in_progress, completed, failed"
-	case ErrHashChainBroken:
-		return "Run 'sdp log trace --verify' to diagnose"
-	case ErrSessionCorrupted:
-		return "Run 'sdp session repair' or delete .sdp/session.json"
-	case ErrInvalidEventType:
-		return "Use valid event types: plan, generation, verification"
-	case ErrSchemaViolation:
-		return "Verify file matches expected schema"
-	case ErrBlockedWorkstream:
-		return "Complete blocking workstreams first or use --force"
-	case ErrCircularDependency:
-		return "Review workstream dependencies for cycles"
-	case ErrMissingPrerequisite:
-		return "Ensure all prerequisites are satisfied"
-	case ErrFeatureNotFound, ErrWorkstreamNotFound:
-		return "Verify the ID exists in docs/workstreams/"
-	case ErrCollisionDetected:
-		return "Review workstream scope files for overlaps"
-	case ErrCoverageLow:
-		return "Add tests to increase coverage to >= 80%"
-	case ErrFileTooLarge:
-		return "Split file into smaller modules (< 200 LOC)"
-	case ErrTestFailed:
-		return "Run tests with verbose output to diagnose failures"
-	case ErrLintFailed:
-		return "Fix linting errors reported by linter"
-	case ErrTypeMismatch:
-		return "Verify types match expected signatures"
-	case ErrQualityGateFailed:
-		return "Review quality gate output for specific failures"
-	case ErrDriftDetected:
-		return "Run 'sdp drift detect' for details and sync"
-	case ErrScopeViolation:
-		return "Stay within workstream scope or use 'sdp guard deactivate'"
-	case ErrCommandFailed:
-		return "Check command output for details"
-	case ErrNetworkError:
-		return "Check network connectivity and retry"
-	case ErrTimeoutExceeded:
-		return "Increase timeout or optimize operation"
-	case ErrResourceExhausted:
-		return "Free up resources and retry"
-	case ErrUnexpectedState:
-		return "Run 'sdp doctor' to diagnose environment"
-	case ErrInternalError:
-		return "Report this issue with full error context"
-	default:
-		return "No recovery hint available"
+	if hint, ok := recoveryHints[c]; ok {
+		return hint
 	}
+	return "No recovery hint available"
 }
 
 // SDPError is the primary error type for SDP operations.
