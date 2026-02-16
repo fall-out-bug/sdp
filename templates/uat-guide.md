@@ -8,19 +8,19 @@
 
 ## Overview
 
-{Что делает фича в 2-3 предложениях для человека}
+{What the feature does in 2-3 sentences for a human}
 
 ---
 
 ## Prerequisites
 
-Перед тестированием убедись:
+Before testing, make sure:
 
-- [ ] Docker запущен (`docker ps`)
-- [ ] `poetry install` выполнен в `tools/hw_checker/`
-- [ ] `.env` или `hw_checker.yaml` настроен
-- [ ] База данных доступна (если нужно)
-- [ ] Redis запущен (если нужно)
+- [ ] Docker is running (`docker ps`)
+- [ ] `poetry install` executed in `tools/hw_checker/`
+- [ ] `.env` or `hw_checker.yaml` is configured
+- [ ] Database is accessible (if needed)
+- [ ] Redis is running (if needed)
 
 ```bash
 # Quick prerequisite check
@@ -30,25 +30,25 @@ poetry run python -c "from hw_checker import __version__; print(f'Version: {__ve
 
 ---
 
-## Quick Verification (5 минут)
+## Quick Verification (5 minutes)
 
 ### 1. Smoke Test
 
 ```bash
 cd tools/hw_checker
 
-# Основная проверка
+# Main check
 poetry run hwc {main_command}
 
-# Ожидаемый результат:
-# {описание что должно быть}
+# Expected result:
+# {description of what should happen}
 ```
 
 ### 2. Visual Inspection
 
-- [ ] Открой {что открыть: logs/UI/API}
-- [ ] Проверь что {что должно отображаться}
-- [ ] Убедись что {нет ошибок/warnings}
+- [ ] Open {what to open: logs/UI/API}
+- [ ] Verify that {what should be displayed}
+- [ ] Make sure there are {no errors/warnings}
 
 ---
 
@@ -56,7 +56,7 @@ poetry run hwc {main_command}
 
 ### Scenario 1: Happy Path
 
-**Описание:** {основной use case}
+**Description:** {main use case}
 
 **Steps:**
 1. {step 1}
@@ -75,16 +75,16 @@ poetry run hwc {main_command}
 
 ### Scenario 2: Error Handling
 
-**Описание:** {как система обрабатывает ошибки}
+**Description:** {how the system handles errors}
 
 **Steps:**
 1. {trigger error condition}
 2. {observe response}
 
 **Expected:**
-- Graceful error message (не stack trace)
-- Логирование ошибки
-- Система продолжает работать
+- Graceful error message (not a stack trace)
+- Error logging
+- System continues to work
 
 **Actual:** ____________________
 
@@ -94,7 +94,7 @@ poetry run hwc {main_command}
 
 ### Scenario 3: Edge Cases
 
-**Описание:** {граничные случаи}
+**Description:** {boundary cases}
 
 **Steps:**
 1. {edge case input}
@@ -111,57 +111,57 @@ poetry run hwc {main_command}
 
 ## Red Flags Checklist
 
-**❌ Если видишь любой из этих признаков — агент накосячил:**
+**If you see any of these signs - the agent made a mistake:**
 
 | # | Red Flag | What to Check | Severity |
 |---|----------|---------------|----------|
-| 1 | Stack trace в output | Logs, stderr | 🔴 HIGH |
-| 2 | Пустой response | API response body | 🔴 HIGH |
-| 3 | Timeout (>30s) | Network, DB connection | 🟡 MEDIUM |
-| 4 | Warning в логах | Log files | 🟡 MEDIUM |
-| 5 | Неожиданный формат данных | Response structure | 🟡 MEDIUM |
-| 6 | Deprecated warnings | Console output | 🟢 LOW |
+| 1 | Stack trace in output | Logs, stderr | RED HIGH |
+| 2 | Empty response | API response body | RED HIGH |
+| 3 | Timeout (>30s) | Network, DB connection | YELLOW MEDIUM |
+| 4 | Warnings in logs | Log files | YELLOW MEDIUM |
+| 5 | Unexpected data format | Response structure | YELLOW MEDIUM |
+| 6 | Deprecated warnings | Console output | GREEN LOW |
 
-**Что делать если нашёл Red Flag:**
-1. Скопируй error message / screenshot
-2. Проверь соответствующий WS Execution Report
-3. Создай issue или вернись к `/codereview`
+**What to do if you find a Red Flag:**
+1. Copy the error message / screenshot
+2. Check the corresponding WS Execution Report
+3. Create an issue or go back to `/codereview`
 
 ---
 
 ## Code Sanity Checks
 
-Быстрая проверка что код в порядке:
+Quick check that the code is in order:
 
 ```bash
 cd tools/hw_checker
 
-# 1. Нет TODO/FIXME
+# 1. No TODO/FIXME
 grep -rn "TODO\|FIXME" src/hw_checker/{feature_module}/
-# Ожидание: пусто
+# Expectation: empty
 
-# 2. Размер файлов разумный
+# 2. Reasonable file sizes
 wc -l src/hw_checker/{feature_module}/*.py
-# Ожидание: все < 200 строк
+# Expectation: all < 200 lines
 
-# 3. Clean Architecture соблюдена
+# 3. Clean Architecture followed
 grep -r "from hw_checker.infrastructure" src/hw_checker/domain/
-# Ожидание: пусто
+# Expectation: empty
 
-# 4. Тесты проходят
+# 4. Tests pass
 poetry run pytest tests/unit/test_{feature}*.py -v
-# Ожидание: все passed
+# Expectation: all passed
 
-# 5. Coverage достаточный
+# 5. Sufficient coverage
 poetry run pytest tests/unit/test_{feature}*.py --cov=hw_checker/{feature_module} --cov-report=term-missing
-# Ожидание: >= 80%
+# Expectation: >= 80%
 ```
 
 ---
 
-## Performance Baseline (если применимо)
+## Performance Baseline (if applicable)
 
-| Операция | Expected | Acceptable | Measured |
+| Operation | Expected | Acceptable | Measured |
 |----------|----------|------------|----------|
 | {operation 1} | < 100ms | < 500ms | ___ms |
 | {operation 2} | < 1s | < 5s | ___s |
@@ -173,28 +173,28 @@ poetry run pytest tests/unit/test_{feature}*.py --cov=hw_checker/{feature_module
 
 ### Pre-Sign-off Checklist
 
-- [ ] Все scenarios пройдены
-- [ ] Red flags отсутствуют
-- [ ] Code sanity checks пройдены
-- [ ] Performance в пределах baseline
+- [ ] All scenarios passed
+- [ ] No red flags
+- [ ] Code sanity checks passed
+- [ ] Performance within baseline
 
 ### Approval
 
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
-| Developer (агент) | {agent} | {date} | ✅ |
-| Reviewer | {reviewer} | {date} | ⬜ |
-| **Human Tester** | ____________ | ____________ | ⬜ |
+| Developer (agent) | {agent} | {date} | CHECK |
+| Reviewer | {reviewer} | {date} | BOX |
+| **Human Tester** | ____________ | ____________ | BOX |
 
 ### Final Verdict
 
-⬜ **APPROVED** — готово к deploy
-⬜ **NEEDS WORK** — требуются исправления (см. комментарии ниже)
+BOX **APPROVED** - ready for deploy
+BOX **NEEDS WORK** - fixes required (see comments below)
 
 ### Comments
 
 ```
-{комментарии от человека-тестировщика}
+{comments from human tester}
 ```
 
 ---
@@ -203,4 +203,4 @@ poetry run pytest tests/unit/test_{feature}*.py --cov=hw_checker/{feature_module
 
 - Feature Spec: `docs/specs/feature_{XX}/feature.md`
 - Workstreams: `docs/workstreams/backlog/WS-{XX}-*.md`
-- Review Results: см. каждый WS файл
+- Review Results: see each WS file

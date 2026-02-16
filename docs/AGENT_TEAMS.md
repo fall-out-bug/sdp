@@ -14,15 +14,15 @@ Add to `settings.json`:
 ```
 
 **Display modes:**
-- `auto` - split panes в tmux, иначе in-process
-- `in-process` - все в одном терминале (Shift+Up/Down для навигации)
-- `tmux` - split panes (требует tmux или iTerm2)
+- `auto` - split panes in tmux, otherwise in-process
+- `in-process` - all in one terminal (Shift+Up/Down for navigation)
+- `tmux` - split panes (requires tmux or iTerm2)
 
 ## SDP Agent Teams Configuration
 
 ### Discovery Team (@feature)
 
-Когда пользователь вызывает `@feature "Add authentication"`:
+When a user invokes `@feature "Add authentication"`:
 
 ```markdown
 Create an agent team for feature discovery. Spawn 4 teammates:
@@ -71,7 +71,7 @@ Create an agent team for quality review. Spawn 5 teammates:
 
 Each reviews from their specialty.
 They coordinate findings: any FAIL = overall CHANGES_REQUESTED.
-Only if all 5 PASS → APPROVED.
+Only if all 5 PASS -> APPROVED.
 ```
 
 ### Implementation Team (@oneshot)
@@ -97,28 +97,28 @@ Lead orchestrates, handles errors, synthesizes final report.
 ### OLD (Subagents via Task tool):
 ```
 @feature "Add auth"
-  ↓
+  |
 Main session spawns subagents via Task tool
-  ↓
+  |
 Subagents run, return results to main
-  ↓
+  |
 Main synthesizes
 ```
 
 ### NEW (AGENT_TEAMS):
 ```
 @feature "Add auth"
-  ↓
+  |
 Main session creates AGENT_TEAM
-  ↓
+  |
 Spawns 4 teammate SESSIONS (separate Claude Code instances)
-  ↓
+  |
 Each teammate loads .claude/agents/{name}.md
-  ↓
+  |
 Teammates work independently, message each other
-  ↓
+  |
 Shared task list coordinates work
-  ↓
+  |
 Lead synthesizes results
 ```
 

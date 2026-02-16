@@ -1,6 +1,6 @@
 # SDP: Agents Are Roles, Not People. Accountability Is Real.
 
-> *"Агенты — это роли, не люди. Ответственность — настоящая."* [¹](#footnotes)
+> *"Agents are roles, not people. Accountability is real."* [¹](#footnotes)
 
 ---
 

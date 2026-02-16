@@ -2,7 +2,7 @@
 
 > **Status:** Research complete
 > **Date:** 2026-02-13
-> **Goal:** Понять, почему @oneshot F067 не выполнился автоматически
+> **Goal:** Understand why @oneshot F067 did not execute automatically
 
 ---
 
@@ -10,29 +10,29 @@
 
 ### Goals
 
-1. **Identify root cause** — почему я не запустил Task agent после загрузки skill
-2. **Fix skill structure** — сделать инструкции однозначными
-3. **Document pattern** — чтобы другие skills не имели той же проблемы
+1. **Identify root cause** — why I did not invoke Task agent after loading skill
+2. **Fix skill structure** — make instructions unambiguous
+3. **Document pattern** — so other skills do not have the same problem
 
 ### Key Decisions
 
 | Aspect | Decision |
 |--------|----------|
-| Skill Invocation | Skill tool только показывает контент, AI должен сам выполнить инструкции |
-| SKILL.md Structure | Python код в skill — это ПРИМЕР/ДОКУМЕНТАЦИЯ, не автоматическое выполнение |
-| Orchestrator Reference | `**READ FIRST:**` buried в code block, не prominent |
+| Skill Invocation | Skill tool only shows content, AI must execute instructions itself |
+| SKILL.md Structure | Python code in skill is EXAMPLE/DOCUMENTATION, not automatic execution |
+| Orchestrator Reference | `**READ FIRST:**` buried in code block, not prominent |
 | Skill vs Agent | Skill = orchestration docs, Agent = subagent prompt |
-| Ambiguity | Три цели смешаны: education, action, reference |
+| Ambiguity | Three goals mixed: education, action, reference |
 
 ---
 
 ## 1. Skill Invocation Flow
 
-> **Expert:** Theo Browne (API Design)
+> **Expert:** Theo Browme (API Design)
 
 ### Problem
 
-Когда Skill tool возвращает контент SKILL.md, он НЕ автоматически выполняет Task(). AI видит Python code block и интерпретирует его как документацию/пример.
+When Skill tool returns SKILL.md content, it does NOT automatically execute Task(). The AI sees a Python code block and interprets it as documentation/example.
 
 ### Root Cause
 
@@ -45,11 +45,11 @@ Task(
 )
 ```
 
-Этот блок выглядит как "вот как работает orchestrator" (описание), а не "ЗАПУСТИ ЭТО" (инструкция).
+This block looks like "here's how the orchestrator works" (description), not "RUN THIS" (instruction).
 
 ### Solution
 
-Добавить явную инструкцию в конец SKILL.md:
+Add an explicit instruction at the end of SKILL.md:
 
 ```markdown
 ---
@@ -76,22 +76,22 @@ DO NOT stop after displaying this skill. The Task() call above is not an example
 
 ### Problem
 
-Python code blocks в SKILL.md смешивают две цели:
-- **Документация**: "вот как система работает"
-- **Инструкция**: "сделай это"
+Python code blocks in SKILL.md mix two goals:
+- **Documentation**: "here's how the system works"
+- **Instruction**: "do this"
 
 ### Current Pattern
 
 ```
-tools: Task, Read, Bash    ← declaration (permissions)
+tools: Task, Read, Bash    <- declaration (permissions)
 ## Orchestrator Agent Prompt
-```python                   ← is this example or instruction?
+```python                   <- is this example or instruction?
 Task(...)
 ```
 
 ### Solution
 
-Добавить explicit labels:
+Add explicit labels:
 
 ```markdown
 ## Orchestrator Agent Prompt (REFERENCE ONLY)
@@ -108,16 +108,16 @@ Task(...)
 
 ### Problem
 
-Инструкция `**READ FIRST:** Read(".claude/agents/orchestrator.md")` buried внутри Python code block (line 62). Люди её не видят.
+The instruction `**READ FIRST:** Read(".claude/agents/orchestrator.md")` is buried inside a Python code block (line 62). People do not see it.
 
 ### Additional Problem
 
-Symlink `.claude/agents -> prompts/agents` может не существовать.
+The symlink `.claude/agents -> prompts/agents` may not exist.
 
 ### Solution
 
 1. **Fix symlink**: `ln -s prompts/agents .claude/agents`
-2. **Prominent reference**: Вынести orchestrator reference в начало SKILL.md:
+2. **Prominent reference**: Move orchestrator reference to the beginning of SKILL.md:
 
 ```markdown
 # @oneshot - Autonomous Feature Execution
@@ -138,21 +138,25 @@ Symlink `.claude/agents -> prompts/agents` может не существова�
 
 ```
 User: @oneshot F050
-       ↓
+       |
+       v
 Me reads: .claude/skills/oneshot/SKILL.md (orchestration docs)
-       ↓
+       |
+       v
 Me decides: Need to spawn orchestrator subagent
-       ↓
+       |
+       v
 Me calls: Task(subagent_type="general-purpose",
                prompt="Read prompts/agents/orchestrator.md...")
-       ↓
+       |
+       v
 Subagent: Executes workstreams autonomously
 ```
 
 ### Key Insight
 
-`tools: Task, Read, Bash` — это **permissions**, не **requirements**.
-Skill MAY use these tools, не MUST.
+`tools: Task, Read, Bash` — these are **permissions**, not **requirements**.
+Skill MAY use these tools, not MUST.
 
 ### The Contract
 
@@ -170,7 +174,7 @@ Skill MAY use these tools, не MUST.
 
 ### Problem
 
-SKILL.md смешивает три цели:
+SKILL.md mixes three goals:
 1. **User education** (how oneshot works)
 2. **User action** (what AI should execute)
 3. **Implementation reference** (for maintainers)
@@ -206,7 +210,7 @@ SKILL.md смешивает три цели:
 
 ## Implementation Plan
 
-### Phase 1: Fix oneshot SKILL.md (Immediate) ✅ DONE
+### Phase 1: Fix oneshot SKILL.md (Immediate) - DONE
 
 - [x] Created new LLM-agnostic format with "EXECUTE THIS NOW" section
 - [x] Removed Python `Task()` code blocks
@@ -218,7 +222,7 @@ SKILL.md смешивает три цели:
   - `quality-gates.md` - Quality gates
   - `session-complete.md` - Session completion checklist
 
-### Phase 2: Fix Other Orchestrator Skills ✅ DONE
+### Phase 2: Fix Other Orchestrator Skills - DONE
 
 - [x] `@build/SKILL.md` — converted to LLM-agnostic format
 - [x] `@review/SKILL.md` — converted to LLM-agnostic format
@@ -249,15 +253,20 @@ SKILL.md смешивает три цели:
 
 ```
 @oneshot F067 invoked
-       ↓
+       |
+       v
 Skill tool shows SKILL.md content
-       ↓
+       |
+       v
 I see: Python code block with Task()
-       ↓
+       |
+       v
 I interpret: "This is how oneshot works" (documentation)
-       ↓
+       |
+       v
 I stop: "Content displayed, waiting for next instruction"
-       ↓
+       |
+       v
 PROBLEM: No explicit "NOW EXECUTE THIS" signal
 ```
 
@@ -267,7 +276,7 @@ PROBLEM: No explicit "NOW EXECUTE THIS" signal
 
 ## Next Steps
 
-1. **Fix oneshot SKILL.md** with explicit execution instructions ✅ DONE
+1. **Fix oneshot SKILL.md** with explicit execution instructions - DONE
 2. **Test** by running `@oneshot F067` again
 3. **Apply pattern** to other orchestrator skills
 4. **Document** the three-section pattern in skill template
@@ -282,14 +291,14 @@ Created LLM-agnostic architecture that works with any LLM (Opus, GLM, Codex) in 
 
 ```
 .claude/
-├── commands.json          # Mapping: @command → skill file
-├── skills/
-│   └── oneshot.md         # Unified skill+agent
-└── patterns/              # Reusable knowledge blocks
-    ├── tdd.md
-    ├── git-safety.md
-    ├── quality-gates.md
-    └── session-complete.md
+|-- commands.json          # Mapping: @command -> skill file
+|-- skills/
+|   +-- oneshot.md         # Unified skill+agent
++-- patterns/              # Reusable knowledge blocks
+    |-- tdd.md
+    |-- git-safety.md
+    |-- quality-gates.md
+    +-- session-complete.md
 ```
 
 ### Key Changes
@@ -297,16 +306,16 @@ Created LLM-agnostic architecture that works with any LLM (Opus, GLM, Codex) in 
 1. **No Python `Task()` blocks** - Removed tool-specific syntax
 2. **CLI-first approach** - Skills reference actual Go CLI commands
 3. **"EXECUTE THIS NOW" section** - Explicit instruction at top of each skill
-4. **Progressive disclosure** - Quick Start → What Happens → Details
+4. **Progressive disclosure** - Quick Start -> What Happens -> Details
 5. **Reusable patterns** - Common patterns extracted to `.claude/patterns/`
 
 ### Converted Skills
 
 | Skill | Status | CLI Command |
 |-------|--------|-------------|
-| oneshot | ✅ v6.0.0 | `sdp orchestrate` |
-| build | ✅ v6.0.0 | `sdp apply --ws` |
-| review | ✅ v11.0.0 | `sdp quality review` |
+| oneshot | Done v6.0.0 | `sdp orchestrate` |
+| build | Done v6.0.0 | `sdp apply --ws` |
+| review | Done v11.0.0 | `sdp quality review` |
 
 ### Remaining Work
 

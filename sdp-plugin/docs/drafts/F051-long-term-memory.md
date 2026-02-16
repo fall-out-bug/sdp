@@ -26,35 +26,35 @@ This feature implements comprehensive long-term memory:
 
 ---
 
-## User Stories (Russian)
+## User Stories (English)
 
-### US-001: Поиск принятых решений (Decision Search)
-**As:** Разработчик работающий над функцией
-**I want:** Искать предыдущие решения по ключевым словам
-**So that:** Не повторять прошлые ошибки
+### US-001: Decision Search
+**As:** Developer working on a feature
+**I want:** Search previous decisions by keywords
+**So that:** Don't repeat past mistakes
 
 **Scenario:**
-- **Given** Разработчик сталкивается с проблемой аутентификации
-- **When** Он вводит `sdp memory search "authentication"`
-- **Then** Система показывает:
-  - ✅ Decision F01-2024-01-15: "Use JWT" (Worked: success)
-  - ❌ Decision F02-2024-03-20: "Use sessions" (Failed: session management complexity)
-  - 📊 Pattern: "JWT decisions work 80% of the time"
+- **Given** Developer faces an authentication problem
+- **When** They enter `sdp memory search "authentication"`
+- **Then** System shows:
+  - Decision F01-2024-01-15: "Use JWT" (Worked: success)
+  - Decision F02-2024-03-20: "Use sessions" (Failed: session management complexity)
+  - Pattern: "JWT decisions work 80% of the time"
 
-**Value:** "Мы уже пробовали подход X в {workstream}, отказались из-за {reason}"
+**Value:** "We already tried approach X in {workstream}, abandoned due to {reason}"
 
 ---
 
-### US-002: Автоматическое логирование решений (Decision Logging)
-**As:** SDP пользователь
-**I want:** Чтобы решения автоматически сохранялись
-**So that:** Не забывать documenting why
+### US-002: Decision Logging
+**As:** SDP user
+**I want:** Decisions to be automatically saved
+**So that:** Don't forget documenting why
 
 **Triggers:**
-- `@feature "Add payments"` → Log vision decisions
-- `@design idea-payments` → Log technical decisions
-- `@build 00-001-01` → Log implementation decisions
-- `@review F01` → Log review findings
+- `@feature "Add payments"` -> Log vision decisions
+- `@design idea-payments` -> Log technical decisions
+- `@build 00-001-01` -> Log implementation decisions
+- `@review F01` -> Log review findings
 
 **Auto-captured:**
 - Timestamp
@@ -63,14 +63,14 @@ This feature implements comprehensive long-term memory:
 - Related files
 - Tags (from content)
 
-**Value:** Полная история решений без усилий
+**Value:** Complete decision history without effort
 
 ---
 
-### US-003: Аналитика сессий (Session Analytics)
-**As:** Разработчик
-**I want:** Видеть статистику своей работы
-**So that:** Оптимизировать продуктивность
+### US-003: Session Analytics
+**As:** Developer
+**I want:** See statistics of my work
+**So that:** Optimize productivity
 
 **Metrics:**
 - Commands per session
@@ -89,65 +89,65 @@ sdp memory stats --last 30d
 # Top agent: @build (32%)
 ```
 
-**Value:** Данные для улучшения процесса
+**Value:** Data for process improvement
 
 ---
 
-### US-004: "Мы уже пробовали" (Decision Warnings)
-**As:** Разработчик
-**I want:** Чтобы SDP предупреждал о прошлых неудачах
-**So that:** Не наступать на те же грабли
+### US-004: "We Already Tried" (Decision Warnings)
+**As:** Developer
+**I want:** SDP to warn about past failures
+**So that:** Don't make the same mistakes again
 
 **Scenario:**
-- **Given** Разработчик предлагает "Use MongoDB"
-- **When** SDP находит Decision F03-2024-05-10: "MongoDB failed - scaling issues"
-- **Then** SDP показывает warning:
+- **Given** Developer proposes "Use MongoDB"
+- **When** SDP finds Decision F03-2024-05-10: "MongoDB failed - scaling issues"
+- **Then** SDP shows warning:
   ```
-  ⚠️ Similar decision found:
+  Similar decision found:
   F03-2024-05-10: "Use MongoDB"
   Outcome: Failed - scaling issues at 10M users
   Rationale: Chose for flexibility, regret due to transactions
   Continue anyway? (y/n)
   ```
 
-**Value:** Предотвращение повторных ошибок
+**Value:** Preventing repeated mistakes
 
 ---
 
-### US-005: Извлеченные уроки (Lessons Learned)
-**As:** Команда разработки
-**I want:** Автоматически извлекать уроки из завершенных workstreams
-**So that:** Не терять знания
+### US-005: Lessons Learned
+**As:** Development team
+**I want:** Automatically extract lessons from completed workstreams
+**So that:** Don't lose knowledge
 
 **Auto-extraction:**
-- Failed workstreams → "What went wrong?"
-- Successful workstreams → "What worked?"
-- Reversed decisions → "Why did we change our mind?"
+- Failed workstreams -> "What went wrong?"
+- Successful workstreams -> "What worked?"
+- Reversed decisions -> "Why did we change our mind?"
 
 **CLI:**
 ```bash
 sdp memory lessons --feature F01
 # Output:
 # Lessons from F01 (Payment Processing):
-# ✅ Worked: Use Stripe SDK (saved 2 weeks)
-# ❌ Failed: Custom checkout (abandoned after 3 days)
-# ⚠️ Risk: Webhook reliability (add retries)
+# Worked: Use Stripe SDK (saved 2 weeks)
+# Failed: Custom checkout (abandoned after 3 days)
+# Risk: Webhook reliability (add retries)
 ```
 
-**Value:** Систематическое обучение
+**Value:** Systematic learning
 
 ---
 
-### US-006: История проекта (Project Timeline)
-**As:** Новый разработчик в команде
-**I want:** Видеть хронологию развития проекта
-**So that:** Быстро onboardиться
+### US-006: Project Timeline
+**As:** New developer on the team
+**I want:** See project development chronology
+**So that:** Onboard quickly
 
 **Timeline view:**
 ```
 Jan 15: F01 decided "Use JWT" (technical)
 Jan 20: WS-001-01 completed (user auth)
-Feb 01: F01 decision reversed "JWT → sessions" (regret: complexity)
+Feb 01: F01 decision reversed "JWT -> sessions" (regret: complexity)
 Feb 10: WS-001-02 completed (session management)
 ```
 
@@ -156,14 +156,14 @@ Feb 10: WS-001-02 completed (session management)
 - View decisions + sessions + commits
 - Export to markdown (for docs)
 
-**Value:** Быстрый onboarding (1 день вместо 1 недели)
+**Value:** Quick onboarding (1 day instead of 1 week)
 
 ---
 
-### US-007: Паттерны и метрики (Patterns & Metrics)
+### US-007: Patterns and Metrics
 **As:** Tech Lead
-**I want:** Видеть паттерны принятия решений
-**So that:** Принимать лучшие решения
+**I want:** See decision-making patterns
+**So that:** Make better decisions
 
 **Pattern examples:**
 - "Security decisions take 3x longer to reach"
@@ -175,14 +175,14 @@ Feb 10: WS-001-02 completed (session management)
 - Outcome tracking (worked vs failed)
 - Tag frequency (what we discuss most)
 
-**Value:** Data-driven улучшения
+**Value:** Data-driven improvements
 
 ---
 
-### US-008: Экспорт и отчеты (Export & Reporting)
+### US-008: Export and Reports
 **As:** Project Manager
-**I want:** Экспортировать данные о проекте
-**So that:** Показывать стейкхолдерам
+**I want:** Export project data
+**So that:** Show to stakeholders
 
 **Export formats:**
 - Markdown (for documentation)
@@ -194,7 +194,7 @@ Feb 10: WS-001-02 completed (session management)
 - Quarterly lessons learned
 - Project health report
 
-**Value:** Прозрачность для бизнеса
+**Value:** Business transparency
 
 ---
 
@@ -312,7 +312,7 @@ sdp memory patterns
 # Output:
 # Pattern: Security decisions take 3x longer (avg 45min)
 # Pattern: Tech stack changes cause 60% of delays
-# Pattern: Features with 20+ decisions → 50% bug rate
+# Pattern: Features with 20+ decisions -> 50% bug rate
 ```
 
 **Acceptance:**
@@ -351,11 +351,11 @@ sdp memory patterns
 **Decision:** Git-backed JSONL files (like Beads)
 
 **Rationale:**
-- ✅ Version-controlled (review decisions in PRs)
-- ✅ No database server (simple deployment)
-- ✅ Privacy-first (local-only, no cloud)
-- ✅ Code-reviewed (decisions alongside code)
-- ✅ Scalable to 10K decisions (~2MB)
+- Version-controlled (review decisions in PRs)
+- No database server (simple deployment)
+- Privacy-first (local-only, no cloud)
+- Code-reviewed (decisions alongside code)
+- Scalable to 10K decisions (~2MB)
 
 **Beyond 10K:** Add SQLite FTS5 index
 
@@ -380,10 +380,10 @@ sdp memory patterns
 
 ### Session Tracking
 **Integration points:**
-- `@feature`, `@design` → Create session
-- `@build`, `@review` → Update session
-- `bd sync` → End session
-- Crash/interruption → Resume on restart
+- `@feature`, `@design` -> Create session
+- `@build`, `@review` -> Update session
+- `bd sync` -> End session
+- Crash/interruption -> Resume on restart
 
 **Data capture:**
 - Commands executed
@@ -503,24 +503,24 @@ sdp memory patterns
 ## Success Metrics
 
 ### Adoption Metrics
-- **Decision logging rate:** ≥80% of workstreams have logged decisions
-- **Memory search usage:** ≥5 searches/day per active project
-- **Session history views:** ≥10 views/week
+- **Decision logging rate:** >=80% of workstreams have logged decisions
+- **Memory search usage:** >=5 searches/day per active project
+- **Session history views:** >=10 views/week
 
 ### Quality Metrics
-- **Mistake recurrence:** ↓40% from baseline (measured via surveys)
-- **Decision reuse:** ≥50% of new decisions reference past decisions
-- **Pattern detection accuracy:** ≥80% precision (user feedback)
+- **Mistake recurrence:** Down 40% from baseline (measured via surveys)
+- **Decision reuse:** >=50% of new decisions reference past decisions
+- **Pattern detection accuracy:** >=80% precision (user feedback)
 
 ### Time Savings
-- **Time saved per workstream:** ≥5min (no searching Slack/email)
-- **Decision-making time:** ↓50% (past decisions available)
-- **Onboarding time:** ↓30% (timeline view)
+- **Time saved per workstream:** >=5min (no searching Slack/email)
+- **Decision-making time:** Down 50% (past decisions available)
+- **Onboarding time:** Down 30% (timeline view)
 
 ### ROI
-- **Time saved:** ≥10 hours/developer/month
-- **Bug reduction:** ↓30% (pattern detection)
-- **Development velocity:** ↑20% (fewer mistakes)
+- **Time saved:** >=10 hours/developer/month
+- **Bug reduction:** Down 30% (pattern detection)
+- **Development velocity:** Up 20% (fewer mistakes)
 
 ---
 
@@ -585,11 +585,11 @@ sdp memory patterns
 ## Dependencies
 
 **Existing:**
-- ✅ Decision struct (`internal/decision/decision.go`)
-- ✅ Decision logger (`internal/decision/logger.go`)
-- ✅ CLI commands (`cmd/sdp/decisions.go`)
-- ✅ Telemetry system (`internal/telemetry/`)
-- ✅ Beads pattern (git-backed storage)
+- Decision struct (`internal/decision/decision.go`)
+- Decision logger (`internal/decision/logger.go`)
+- CLI commands (`cmd/sdp/decisions.go`)
+- Telemetry system (`internal/telemetry/`)
+- Beads pattern (git-backed storage)
 
 **New Required:**
 - Memory storage (`internal/memory/`)
@@ -663,7 +663,7 @@ sdp memory patterns
 
 ---
 
-**Document Status:** ✅ Requirements complete
-**Next:** Technical design → Implementation
+**Document Status:** Requirements complete
+**Next:** Technical design -> Implementation
 **Estimated Timeline:** 9 weeks (all 4 phases)
 **Recommended Start:** Phase 1 (MVP)

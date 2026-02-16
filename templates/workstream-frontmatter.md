@@ -12,9 +12,9 @@ depends_on:
 
 ## WS-PP-FFF-SS: Title
 
-### 🎯 Цель (Goal)
+### Goal
 
-**Что должно РАБОТАТЬ после завершения WS:**
+**What should WORK after completing this WS:**
 - [First specific outcome]
 - [Second specific outcome]
 
@@ -23,23 +23,23 @@ depends_on:
 - [ ] AC2: [Second criterion - specific, measurable]
 - [ ] AC3: [Third criterion - specific, measurable]
 
-**⚠️ WS НЕ завершён, пока Goal не достигнута (все AC ✅).**
+**WARNING: WS is NOT complete until the Goal is achieved (all ACs checked).**
 
 ---
 
-### Контекст
+### Context
 
 [Background information about the workstream]
 
-### Зависимость
+### Dependencies
 
-[List dependencies or write "Независимый" for no dependencies]
+[List dependencies or write "None" for no dependencies]
 
-### Входные файлы
+### Input Files
 
 [List input files or sections to read]
 
-### Шаги
+### Steps
 
 1. **[Step 1 title]**
 
@@ -49,29 +49,29 @@ depends_on:
 
    [Detailed instructions for step 2]
 
-### Ожидаемый результат
+### Expected Result
 
 [Description of expected outcome]
 
 ### Scope Estimate
 
-- Файлов: ~[number]
-- Строк: ~[number] ([SMALL|MEDIUM|LARGE])
-- Токенов: ~[number]
+- Files: ~[number]
+- Lines: ~[number] ([SMALL|MEDIUM|LARGE])
+- Tokens: ~[number]
 
-### Критерий завершения
+### Completion Criteria
 
 ```bash
 # Verification commands
 test -f path/to/file
 grep "expected content" path/to/file
-echo "✅ Verification passed"
+echo "Verification passed"
 ```
 
-### Ограничения
+### Constraints
 
-- НЕ [constraint 1]
-- НЕ [constraint 2]
+- DO NOT [constraint 1]
+- DO NOT [constraint 2]
 
 ---
 
@@ -81,11 +81,11 @@ echo "✅ Verification passed"
 **Date:** YYYY-MM-DD
 
 ### Goal Status
-- [x] AC1: [description] — ✅
-- [x] AC2: [description] — ✅
-- [x] AC3: [description] — ✅
+- [x] AC1: [description] - DONE
+- [x] AC2: [description] - DONE
+- [x] AC3: [description] - DONE
 
-**Goal Achieved:** ✅ YES
+**Goal Achieved:** DONE YES
 
 ### Files Changed
 | File | Action | LOC |

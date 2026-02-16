@@ -1,65 +1,65 @@
-# Анализ: Enforcement существующего протокола
+# Analysis: Enforcement of Existing Protocol
 
 > **Status:** Revised after user feedback
 > **Date:** 2026-02-16
-> **Goal:** Минимальные изменения для enforcement существующего протокола
+> **Goal:** Minimal changes for enforcement of existing protocol
 
 ---
 
-## Ключевой инсайт
+## Key Insight
 
-**Протокол УЖЕ СУЩЕСТВУЕТ.** Проблема не в отсутствии функционала, а в **enforcement** (приведении в исполнение).
+**The protocol ALREADY EXISTS.** The problem is not lack of functionality, but **enforcement**.
 
-### Существующий протокол
+### Existing Protocol
 
 ```
-@oneshot F067  →  @review F067  →  @deploy F067
-    │                 │                │
-    ▼                 ▼                ▼
+@oneshot F067  ->  @review F067  ->  @deploy F067
+    |                 |                |
+    v                 v                v
  Execute WS      APPROVED?         Merge PR
-                  │
-                  ├─ YES → proceed
-                  └─ NO → fix loop
+                  |
+                  +- YES -> proceed
+                  +-- NO -> fix loop
 ```
 
-### Что было нарушено
+### What Was Violated
 
-| Шаг | Протокол | Что случилось |
-|-----|----------|---------------|
-| 1 | @oneshot грузит WS из backlog/ | OK |
-| 2 | @review проверяет feature | **ПРОПУЩЕН** |
-| 3 | @deploy только после APPROVED | **ПРОПУЩЕН** - сливал PR напрямую |
-| 4 | WS status update | Делал вручную, не по протоколу |
+| Step | Protocol | What Happened |
+|------|----------|---------------|
+| 1 | @oneshot loads WS from backlog/ | OK |
+| 2 | @review checks feature | **SKIPPED** |
+| 3 | @deploy only after APPROVED | **SKIPPED** - merged PR directly |
+| 4 | WS status update | Done manually, not per protocol |
 
 ---
 
 ## Root Cause
 
-### Почему протокол не работал
+### Why the Protocol Did Not Work
 
-1. **Context Loss** - После compaction забывал про roadmap
-2. **Нет enforcement gate** - Ничто не блокировало merge без @review
-3. **Skill invocation optional** - Мог пропустить @review и ничего не сломалось
-4. **Done = PR merged** - Привычка считать "done" по PR, не по verdict
+1. **Context Loss** - After compaction, forgot about roadmap
+2. **No enforcement gate** - Nothing blocked merge without @review
+3. **Skill invocation optional** - Could skip @review and nothing broke
+4. **Done = PR merged** - Habit of considering "done" by PR, not by verdict
 
-### Почему предложенные решения были неверны
+### Why Proposed Solutions Were Wrong
 
-| Предложение | Почему неверно |
-|-------------|----------------|
-| Новый @milestone skill | Протокол уже есть |
-| .sdp/milestones.json | Избыточно |
-| sdp status reconcile | WS manage должен быть в протоколе |
-| sdp guard feature-complete | @review уже это делает |
+| Proposal | Why Wrong |
+|----------|-----------|
+| New @milestone skill | Protocol already exists |
+| .sdp/milestones.json | Overkill |
+| sdp status reconcile | WS manage should be in protocol |
+| sdp guard feature-complete | @review already does this |
 
 ---
 
-## Минимальные исправления
+## Minimal Fixes
 
 ### 1. Context Preservation (CLAUDE.md)
 
-**Проблема:** После compaction теряется milestone context.
+**Problem:** After compaction, milestone context is lost.
 
-**Решение:** Добавить секцию в CLAUDE.md (уже загружается каждый session):
+**Solution:** Add section to CLAUDE.md (already loads every session):
 
 ```markdown
 ## Milestone Context
@@ -71,16 +71,16 @@ M2 Features: F060, F071, F073, F077, F078
 M3 Features: F057, F058, F069, F072, F074, F079
 M4 Features: F055, F056, F059, F061
 
-⚠️ Only work on current milestone features unless explicitly requested.
+**Warning:** Only work on current milestone features unless explicitly requested.
 ```
 
-**Implementation:** 5 минут, просто добавить секцию.
+**Implementation:** 5 minutes, just add section.
 
 ### 2. Session-Start Pattern
 
-**Проблема:** Новая сессия не проверяет roadmap.
+**Problem:** New session does not check roadmap.
 
-**Решение:** Создать `.claude/patterns/session-start.md`:
+**Solution:** Create `.claude/patterns/session-start.md`:
 
 ```markdown
 # Session Start Protocol
@@ -91,13 +91,13 @@ Before any work:
 3. Verify: Does the work belong to current milestone?
 ```
 
-**Implementation:** 5 минут, создать файл.
+**Implementation:** 5 minutes, create file.
 
 ### 3. Review Gate (enforcement)
 
-**Проблема:** Ничто не блокирует PR merge без @review APPROVED.
+**Problem:** Nothing blocks PR merge without @review APPROVED.
 
-**Решение A (CI):** Добавить GitHub Action:
+**Solution A (CI):** Add GitHub Action:
 
 ```yaml
 # .github/workflows/review-gate.yml
@@ -122,7 +122,7 @@ jobs:
           fi
 ```
 
-**Решение B (Skill update):** Обновить @deploy skill:
+**Solution B (Skill update):** Update @deploy skill:
 
 ```markdown
 ## Pre-merge Check
@@ -134,13 +134,13 @@ Before merging:
 4. Only proceed if APPROVED
 ```
 
-**Implementation:** 15-30 минут.
+**Implementation:** 15-30 minutes.
 
 ### 4. @review Output (Evidence)
 
-**Проблема:** @review вердикт не персистится.
+**Problem:** @review verdict is not persisted.
 
-**Решение:** @review должен создавать `.sdp/review_verdict.json`:
+**Solution:** @review should create `.sdp/review_verdict.json`:
 
 ```json
 {
@@ -152,40 +152,40 @@ Before merging:
 }
 ```
 
-**Implementation:** Обновить @review skill, добавить сохранение файла.
+**Implementation:** Update @review skill, add file saving.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Quick Wins (30 минут)
+### Phase 1: Quick Wins (30 minutes)
 
 - [x] ~~Analysis document~~
-- [x] Добавить Milestone Context в CLAUDE.md
-- [x] Создать session-start.md pattern
+- [x] Add Milestone Context to CLAUDE.md
+- [x] Create session-start.md pattern
 
-### Phase 2: Enforcement (1 час)
+### Phase 2: Enforcement (1 hour)
 
-- [x] Обновить @review skill: сохранять verdict в .sdp/review_verdict.json
-- [x] Обновить @deploy skill: проверять verdict перед merge
-- [ ] Добавить review-gate.yml GitHub Action
+- [x] Update @review skill: save verdict to .sdp/review_verdict.json
+- [x] Update @deploy skill: check verdict before merge
+- [ ] Add review-gate.yml GitHub Action
 
 ### Phase 3: Verification
 
-- [ ] Протестировать полный flow: @oneshot → @review → @deploy
-- [ ] Убедиться что @deploy блокируется без APPROVED
+- [ ] Test full flow: @oneshot -> @review -> @deploy
+- [ ] Verify @deploy is blocked without APPROVED
 
 ---
 
-## Что НЕ делаем
+## What We Are NOT Doing
 
-| Отказались | Почему |
-|------------|--------|
-| @milestone skill | Избыточно, CLAUDE.md достаточно |
-| .sdp/milestones.json | Дублирует ROADMAP |
-| sdp status reconcile | WS manage в протоколе |
-| sdp guard feature-complete | @review уже это делает |
-| milestone field в Beads | Не нужно для enforcement |
+| Rejected | Why |
+|----------|-----|
+| @milestone skill | Overkill, CLAUDE.md is sufficient |
+| .sdp/milestones.json | Duplicates ROADMAP |
+| sdp status reconcile | WS manage in protocol |
+| sdp guard feature-complete | @review already does this |
+| milestone field in Beads | Not needed for enforcement |
 
 ---
 
@@ -193,23 +193,23 @@ Before merging:
 
 | Metric | Before | After |
 |--------|--------|-------|
-| PR без @review | Возможен | Заблокирован |
-| Milestone check | Ручной | В CLAUDE.md |
-| Session context | Теряется | Восстанавливается |
-| Review evidence | Нет | .sdp/review_verdict.json |
+| PR without @review | Possible | Blocked |
+| Milestone check | Manual | In CLAUDE.md |
+| Session context | Lost | Restored |
+| Review evidence | None | .sdp/review_verdict.json |
 
 ---
 
-## Итог
+## Summary
 
-**Проблема:** Протокол существовал, но не был enforced.
+**Problem:** Protocol existed, but was not enforced.
 
-**Решение:** Минимальные изменения:
-1. Context в CLAUDE.md
+**Solution:** Minimal changes:
+1. Context in CLAUDE.md
 2. Session-start pattern
 3. Review verdict gate
 
-**Без:** Новых skills, новых команд, нового кода.
+**Without:** New skills, new commands, new code.
 
 ---
 
