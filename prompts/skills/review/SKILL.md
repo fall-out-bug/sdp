@@ -162,7 +162,7 @@ Output verdict: PASS or FAIL
 
 ## After All Subagents Complete
 
-**Synthesize verdict:**
+**Step 1: Synthesize verdict:**
 
 ```
 ## Feature Review: F067
@@ -179,6 +179,31 @@ Output verdict: PASS or FAIL
 **APPROVED** if all 6 PASS
 **CHANGES_REQUESTED** if any FAIL
 ```
+
+**Step 2: Save verdict to file (CRITICAL):**
+
+After synthesizing, write the verdict to `.sdp/review_verdict.json`:
+
+```bash
+cat > .sdp/review_verdict.json << 'EOF'
+{
+  "feature": "F067",
+  "verdict": "APPROVED" or "CHANGES_REQUESTED",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "reviewers": {
+    "qa": "PASS/FAIL",
+    "security": "PASS/FAIL",
+    "devops": "PASS/FAIL",
+    "sre": "PASS/FAIL",
+    "techlead": "PASS/FAIL",
+    "docs": "PASS/FAIL"
+  },
+  "summary": "Brief summary of review findings"
+}
+EOF
+```
+
+This file is required for @deploy to proceed. If missing or verdict is not APPROVED, @deploy must block.
 
 ---
 

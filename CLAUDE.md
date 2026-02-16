@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP CLI v0.8.0 with Claude Code.
+Quick reference for using SDP CLI v0.9.0 with Claude Code.
 
 ## Quick Start
 
@@ -13,6 +13,39 @@ Quick reference for using SDP CLI v0.8.0 with Claude Code.
 ```
 
 **Workstream ID Format:** `PP-FFF-SS` (e.g., `00-001-01`)
+
+---
+
+## Milestone Context
+
+**Current milestone:** M1 "T-shirt" (UX Excellence)
+
+| Milestone | Features | Status |
+|-----------|----------|--------|
+| **M1** | F054, F063, F064, F067, F068, F070, F075, F076 | **CURRENT** |
+| M2 | F060, F071, F073, F077, F078 | Future |
+| M3 | F057, F058, F069, F072, F074, F079 | Future |
+| M4 | F055, F056, F059, F061 | Future |
+
+**Only work on current milestone features unless explicitly requested.**
+
+---
+
+## Protocol Flow
+
+The correct workflow is:
+
+```
+@oneshot F067  →  @review F067  →  @deploy F067
+    │                 │                │
+    ▼                 ▼                ▼
+ Execute WS      APPROVED?         Merge PR
+                  │
+                  ├─ YES → proceed to @deploy
+                  └─ NO → fix loop (max 3 iterations)
+```
+
+**"Done" = @review APPROVED + @deploy completed, NOT just "PR merged".**
 
 ---
 
@@ -398,4 +431,4 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**CLI Version:** 0.8.0 | **Protocol Version:** 0.10.0
+**CLI Version:** 0.9.0 | **Protocol Version:** 0.10.0

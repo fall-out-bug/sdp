@@ -30,6 +30,18 @@ feature/F020-xxx -> dev (via PR)
 
 1. **Pre-flight Checks**
    ```bash
+   # CRITICAL: Check review verdict
+   if [ -f .sdp/review_verdict.json ]; then
+     verdict=$(jq -r '.verdict' .sdp/review_verdict.json)
+     if [ "$verdict" != "APPROVED" ]; then
+       echo "ERROR: Review not approved. Run @review first."
+       exit 1
+     fi
+   else
+     echo "ERROR: No review verdict found. Run @review first."
+     exit 1
+   fi
+
    # Verify on feature branch
    git branch --show-current  # Should be feature/F020-xxx
 
@@ -41,7 +53,7 @@ feature/F020-xxx -> dev (via PR)
    go test ./... -q
    ```
 
-   **Gate:** If blocking findings or tests fail -> STOP.
+   **Gate:** If no APPROVED review, blocking findings, or tests fail -> STOP.
 
 2. **Push and Create PR**
    ```bash
