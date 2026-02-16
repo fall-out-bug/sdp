@@ -11,7 +11,7 @@ func TestMetricsRecord(t *testing.T) {
 
 	// Record an accepted recommendation
 	collector.Record(MetricEvent{
-		Type:        MetricAccepted,
+		Type: MetricAccepted,
 		Recommendation: Recommendation{
 			Command:    "sdp apply --ws 00-069-01",
 			Category:   CategoryExecution,
@@ -93,19 +93,19 @@ func TestMetricsByCategory(t *testing.T) {
 
 	// Record events by category
 	collector.Record(MetricEvent{
-		Type: MetricAccepted,
+		Type:           MetricAccepted,
 		Recommendation: Recommendation{Category: CategoryExecution},
-		Timestamp: time.Now(),
+		Timestamp:      time.Now(),
 	})
 	collector.Record(MetricEvent{
-		Type: MetricAccepted,
+		Type:           MetricAccepted,
 		Recommendation: Recommendation{Category: CategoryExecution},
-		Timestamp: time.Now(),
+		Timestamp:      time.Now(),
 	})
 	collector.Record(MetricEvent{
-		Type: MetricRejected,
+		Type:           MetricRejected,
 		Recommendation: Recommendation{Category: CategoryRecovery},
-		Timestamp: time.Now(),
+		Timestamp:      time.Now(),
 	})
 
 	stats := collector.Stats()

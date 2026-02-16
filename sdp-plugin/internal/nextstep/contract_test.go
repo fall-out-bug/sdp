@@ -8,10 +8,10 @@ import (
 // TestNextStepRecommendationSchema tests AC2: Define output schema
 func TestNextStepRecommendationSchema(t *testing.T) {
 	rec := Recommendation{
-		Command:     "sdp apply --ws 00-069-01",
-		Reason:      "Ready to execute next workstream",
-		Confidence:  0.85,
-		Category:    CategoryExecution,
+		Command:    "sdp apply --ws 00-069-01",
+		Reason:     "Ready to execute next workstream",
+		Confidence: 0.85,
+		Category:   CategoryExecution,
 		Alternatives: []Alternative{
 			{Command: "sdp status", Reason: "View current project state"},
 		},
