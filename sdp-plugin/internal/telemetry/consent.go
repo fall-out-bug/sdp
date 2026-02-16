@@ -81,27 +81,27 @@ func AskForConsent() (bool, error) {
 	fmt.Println("📊 Telemetry Consent")
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println()
-	fmt.Println("SDP может собирать анонимную статистику использования")
-	fmt.Println("для улучшения качества и надежности.")
+	fmt.Println("SDP can collect anonymous usage statistics")
+	fmt.Println("to improve quality and reliability.")
 	fmt.Println()
-	fmt.Println("🔒 Что собирается:")
-	fmt.Println("  • Команды (@build, @review, @oneshot)")
-	fmt.Println("  • Время выполнения команд")
-	fmt.Println("  • Успех/ошибки выполнения")
+	fmt.Println("🔒 What is collected:")
+	fmt.Println("  • Commands (@build, @review, @oneshot)")
+	fmt.Println("  • Command execution duration")
+	fmt.Println("  • Success/failure of execution")
 	fmt.Println()
-	fmt.Println("❌ Что НЕ собирается:")
-	fmt.Println("  • PII (имена, email, логины)")
-	fmt.Println("  • Содержимое кода")
-	fmt.Println("  • Пути к файлам")
-	fmt.Println("  • Данные остаются локальными (не отправляются)")
+	fmt.Println("❌ What is NOT collected:")
+	fmt.Println("  • PII (names, email, usernames)")
+	fmt.Println("  • Code content")
+	fmt.Println("  • File paths")
+	fmt.Println("  • Data stays local (not transmitted)")
 	fmt.Println()
-	fmt.Println("📜 Политика конфиденциальности: docs/PRIVACY.md")
+	fmt.Println("📜 Privacy policy: docs/PRIVACY.md")
 	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Print("Помочь улучшить SDP? (y/n): ")
+		fmt.Print("Help improve SDP? (y/n): ")
 
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -113,20 +113,20 @@ func AskForConsent() (bool, error) {
 		input = strings.TrimSpace(strings.ToLower(input))
 
 		switch input {
-		case "y", "yes", "да", "д":
-			fmt.Println("\n✓ Спасибо! Ваш вклад помогает улучшить SDP.")
-			fmt.Println("  Вы можете отключить в любой момент:")
+		case "y", "yes":
+			fmt.Println("\n✓ Thank you! Your contribution helps improve SDP.")
+			fmt.Println("  You can disable anytime with:")
 			fmt.Println("  sdp telemetry disable")
 			return true, nil
 
-		case "n", "no", "нет", "н":
-			fmt.Println("\n✓ Телеметрия отключена.")
-			fmt.Println("  Вы можете включить позже:")
+		case "n", "no":
+			fmt.Println("\n✓ Telemetry disabled.")
+			fmt.Println("  You can enable later with:")
 			fmt.Println("  sdp telemetry enable")
 			return false, nil
 
 		default:
-			fmt.Println("Пожалуйста, введите 'y' или 'n'")
+			fmt.Println("Please enter 'y' or 'n'")
 		}
 	}
 }

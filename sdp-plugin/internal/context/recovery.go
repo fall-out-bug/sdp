@@ -78,7 +78,7 @@ func (r *Recovery) Check() (*ContextCheckResult, error) {
 	result.ExpectedBranch = s.ExpectedBranch
 	result.RemoteTracking = s.ExpectedRemote
 
-	currentBranch, err := getCurrentBranch()
+	currentBranch, err := getCurrentBranchIn(cwd)
 	if err != nil {
 		result.Valid = false
 		result.Errors = append(result.Errors, fmt.Sprintf("Failed to get branch: %v", err))

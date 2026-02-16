@@ -118,23 +118,23 @@ On your first SDP command, you'll see:
 📊 Telemetry Consent
 ============================================================
 
-SDP может собирать анонимную статистику использования
-для улучшения качества и надежности.
+SDP can collect anonymous usage statistics
+to improve quality and reliability.
 
-🔒 Что собирается:
-  • Команды (@build, @review, @oneshot)
-  • Время выполнения команд
-  • Успех/ошибки выполнения
+🔒 What is collected:
+  • Commands (@build, @review, @oneshot)
+  • Command execution duration
+  • Success/failure of execution
 
-❌ Что НЕ собирается:
-  • PII (имена, email, логины)
-  • Содержимое кода
-  • Пути к файлам
-  • Данные остаются локальными (не отправляются)
+❌ What is NOT collected:
+  • PII (names, email, usernames)
+  • Code content
+  • File paths
+  • Data stays local (not transmitted)
 
-📜 Политика конфиденциальности: docs/PRIVACY.md
+📜 Privacy policy: docs/PRIVACY.md
 
-Помочь улучшить SDP? (y/n):
+Help improve SDP? (y/n):
 ```
 
 Enter `y` to enable or `n` to disable.
@@ -328,4 +328,4 @@ tail -f ~/.sdp/telemetry.jsonl
 
 ---
 
-**This policy applies to SDP version 0.3.0 and later.**
+**This policy applies to SDP version 0.8.0 and later.**

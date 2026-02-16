@@ -71,15 +71,6 @@ func getCurrentBranchIn(dir string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// getCurrentBranch returns the current git branch (deprecated: use getCurrentBranchIn).
-func getCurrentBranch() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return getCurrentBranchIn(cwd)
-}
-
 // getRemoteTrackingIn returns the remote tracking branch in the specified directory.
 func getRemoteTrackingIn(dir string) (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "@{u}")
@@ -89,15 +80,6 @@ func getRemoteTrackingIn(dir string) (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(output)), nil
-}
-
-// getRemoteTracking returns the remote tracking branch (deprecated: use getRemoteTrackingIn).
-func getRemoteTracking() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return getRemoteTrackingIn(cwd)
 }
 
 // FormatCheckResult formats the check result for display.

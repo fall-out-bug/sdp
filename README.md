@@ -4,7 +4,7 @@
 
 [![Go](https://img.shields.io/badge/go-1.24+-blue.svg)](https://go.dev/dl/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.10.0-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.8.0-brightgreen.svg)](CHANGELOG.md)
 
 ## What is SDP
 
@@ -49,7 +49,7 @@ Public commitment: `L0-L2` in this repository remain MIT and independently adopt
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash
 
 # Or install specific version
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash -s -- v0.10.0
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash -s -- v0.8.0
 
 # Add to PATH (if needed)
 export PATH="${HOME}/.local/bin:${PATH}"
@@ -273,7 +273,7 @@ Or configure in `.sdp/config.json`:
 
 ```json
 {
-  "version": "0.10.0",
+  "version": "0.8.0",
   "model_api": "anthropic:claude-sonnet-4-20250514",
   "evidence": {
     "enabled": true,
@@ -371,7 +371,7 @@ your-project/
 │   │   ├── reference/        # Command and API reference
 │   │   ├── vision/           # Strategic vision docs
 │   │   ├── drafts/           # Feature specs (@idea output)
-│   │   ├── adr/              # Architecture decisions
+│   │   ├── decisions/        # Architecture decisions
 │   │   └── workstreams/      # Backlog and completed
 │   ├── CLAUDE.md             # Claude Code guide
 │   ├── PRODUCT_VISION.md     # Product vision v3.1
@@ -393,7 +393,6 @@ your-project/
 | [docs/reference/installation.md](docs/reference/installation.md) | Profile-based installation (`protocol`, `safety`, `core`) |
 | [docs/reference/agent-catalog.md](docs/reference/agent-catalog.md) | All 19+ agent definitions |
 | [docs/vision/](docs/vision/) | Strategic vision and roadmap |
-| [docs/vision/LAYERED-ADOPTION.md](docs/vision/LAYERED-ADOPTION.md) | Progressive public OSS adoption model (`L0-L2`) |
 | [docs/runbooks/](docs/runbooks/) | Operational runbooks |
 | [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Compliance and governance reference (evidence, GDPR, SOC2) |
 | [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model and accepted risks |

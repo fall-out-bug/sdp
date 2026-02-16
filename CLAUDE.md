@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP v0.10.0 with Claude Code.
+Quick reference for using SDP CLI v0.8.0 with Claude Code.
 
 ## Quick Start
 
@@ -55,6 +55,8 @@ New project?
 
 ## Available Skills
 
+### Core Skills
+
 | Skill | Purpose | Phase |
 |-------|---------|-------|
 | `@vision` | Strategic product planning (7 expert agents) | Strategic |
@@ -66,14 +68,38 @@ New project?
 | `@build` | Execute single workstream (TDD) | Execution |
 | `@review` | Multi-agent quality review | Execution |
 | `@deploy` | Merge feature branch to main | Execution |
+
+### Debug Skills
+
+| Skill | Purpose | Phase |
+|-------|---------|-------|
 | `@debug` | Systematic debugging (scientific method) | Debug |
 | `@issue` | Debug and route bugs | Debug |
 | `@hotfix` | Emergency fix (P0) | Debug |
 | `@bugfix` | Quality fix (P1/P2) | Debug |
 
-**Internal:** `/tdd` (TDD enforcement, called by `@build`)
+### Utility Skills
 
-Skills defined in `.claude/skills/{name}/SKILL.md`
+| Skill | Purpose |
+|-------|---------|
+| `@init` | Initialize SDP in current project |
+| `@help` | Interactive skill discovery |
+| `@prototype` | Rapid prototyping shortcut |
+| `@prd` | PRD generation and maintenance |
+| `@test` | Contract test generation |
+| `@reality-check` | Quick documentation vs code validation |
+| `@verify-workstream` | Validate workstream against codebase |
+| `@protocol-consistency` | Audit consistency across docs/CLI/CI |
+| `@guard` | Pre-edit gate enforcing WS scope |
+| `@tdd` | TDD enforcement (called by @build) |
+
+### Beads Integration
+
+| Skill | Purpose |
+|-------|---------|
+| `@beads` | Beads task tracker integration |
+
+**Skills defined in:** `.claude/skills/{name}/SKILL.md`
 
 ---
 
@@ -140,16 +166,8 @@ Skills defined in `.claude/skills/{name}/SKILL.md`
 ```
 sdp/
 ├── sdp-plugin/            # Go implementation (CLI + agents)
-│   ├── cmd/               # CLI commands
+│   ├── cmd/sdp/           # CLI commands
 │   └── internal/          # Core logic
-├── src/sdp/               # Go source modules
-│   ├── agents/            # Code analysis, contracts
-│   ├── graph/             # Dependency graph, dispatcher
-│   ├── monitoring/        # Metrics, SLO tracking
-│   ├── synthesis/         # Agent synthesis engine
-│   ├── reality/           # Codebase scanners
-│   └── vision/            # Vision extractor
-├── tests/                 # Go test suite
 ├── .claude/
 │   ├── skills/            # Skill definitions
 │   └── agents/            # Multi-agent definitions
@@ -157,11 +175,12 @@ sdp/
 │   ├── PROTOCOL.md        # Core specification
 │   ├── reference/         # Command and API reference
 │   ├── vision/            # Strategic vision docs
+│   ├── decisions/         # Architecture decisions
 │   ├── drafts/            # @idea output
 │   └── workstreams/       # Backlog + completed WS
 ├── hooks/                 # Git hooks and validators
 ├── templates/             # Workstream templates
-├── PRODUCT_VISION.md      # Product vision v3.0
+├── PRODUCT_VISION.md      # Product vision
 └── go.mod                 # Go module
 ```
 
@@ -203,124 +222,112 @@ sdp/
 
 ---
 
-## Validation
-
-```bash
-hooks/pre-build.sh 00-001-01     # Pre-build check
-hooks/post-build.sh 00-001-01    # Post-build check
-```
-
----
-
 ## CLI Reference
 
 The SDP CLI provides terminal commands for planning, executing, and tracking workstreams.
 
 ### Core Commands
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `sdp plan` | Decompose feature into workstreams | `sdp plan "Add OAuth2"` |
-| `sdp apply` | Execute workstreams from terminal | `sdp apply --ws 00-054-01` |
-| `sdp log show` | Show recent events with filters | `sdp log show --ws 00-054-01` |
-| `sdp log trace` | Trace evidence chain | `sdp log trace --ws 00-054-01 --verify` |
-| `sdp log export` | Export events as CSV/JSON | `sdp log export --format=json` |
-| `sdp log stats` | Show event statistics | `sdp log stats` |
+| Command | Purpose |
+|---------|---------|
+| `sdp doctor` | Health check (hooks, config, deps) |
+| `sdp status` | Show project state |
+| `sdp init` | Initialize SDP in a new project |
+| `sdp parse <ws-file>` | Parse workstream file |
 
-### Memory Commands (F051)
+### Guard Commands
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `sdp memory index` | Index project artifacts | `sdp memory index` |
-| `sdp memory search` | Search indexed artifacts | `sdp memory search "authentication"` |
-| `sdp memory stats` | Show index statistics | `sdp memory stats` |
-| `sdp memory compact` | Compact old entries | `sdp memory compact` |
+| Command | Purpose |
+|---------|---------|
+| `sdp guard activate <ws-id>` | Enforce edit scope for workstream |
+| `sdp guard check <file>` | Verify file is in scope |
+| `sdp guard status` | Show guard status |
+| `sdp guard deactivate` | Clear edit scope |
+| `sdp guard finding list` | List guard findings |
+| `sdp guard finding resolve <id>` | Resolve a finding |
 
-### Drift Commands (F051)
+### Session Commands
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `sdp drift detect` | Detect code↔docs drift | `sdp drift detect 00-054-01` |
-| `sdp drift report` | Generate drift report | `sdp drift report --output=drift.md` |
+| Command | Purpose |
+|---------|---------|
+| `sdp session show` | Show current session |
+| `sdp session clear` | Clear session |
 
-### Plan Modes
+### Log Commands
 
-- **Drive mode** (default): Shows plan, waits for confirmation
-- **Interactive**: `--interactive` - Ask questions to refine requirements
-- **Ship mode**: `--auto-apply` - Plan then execute immediately
+| Command | Purpose |
+|---------|---------|
+| `sdp log show` | Show recent events with filters |
+| `sdp log trace` | Trace evidence chain |
+| `sdp log export` | Export events as CSV/JSON |
+| `sdp log stats` | Show event statistics |
+
+### Memory Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp memory index` | Index project artifacts |
+| `sdp memory search <query>` | Search indexed artifacts |
+| `sdp memory stats` | Show index statistics |
+
+### Drift Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp drift detect [ws-id]` | Detect code↔docs drift |
+
+### Metrics Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp metrics report` | Show metrics report |
+| `sdp metrics classify` | Classify metrics |
+
+### Telemetry Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp telemetry status` | Show telemetry status |
+| `sdp telemetry analyze` | Analyze telemetry data |
+
+### Skill Commands
+
+| Command | Purpose |
+|---------|---------|
+| `sdp skill list` | List available skills |
+| `sdp skill show <name>` | Show skill details |
+| `sdp skill validate` | Validate skill definitions |
+
+### Plan Options
+
 - **Dry run**: `--dry-run` - Preview without writing files
 - **JSON output**: `--output=json` - Machine-readable format
-
-### Apply Options
-
-- **All workstreams**: `sdp apply` - Execute all ready (no blockers)
-- **Specific workstream**: `sdp apply --ws 00-054-01` - Execute one
-- **Retry**: `sdp apply --retry 3` - Retry failed up to N times
-- **Dry run**: `sdp apply --dry-run` - Show execution plan
-- **JSON**: `sdp apply --output=json` - Machine-readable progress
 
 ### Log Filters
 
 - **By type**: `--type generation` - Filter event type
-- **By model**: `--model claude-sonnet-4` - Filter model ID
-- **By date**: `--since 2026-02-01T00:00:00Z` - Filter by ISO date
 - **By workstream**: `--ws 00-054-01` - Filter by workstream ID
-- **Pagination**: `--page 2` - Paginate (20 per page)
-
-### Evidence Trace
-
-- **All events**: `sdp log trace`
-- **By commit**: `sdp log trace abc123def`
-- **By workstream**: `sdp log trace --ws 00-054-01`
-- **Verify chain**: `sdp log trace --verify` - Check hash chain integrity
-- **JSON output**: `sdp log trace --json` - Machine-readable format
-
-### Environment
-
-Set `MODEL_API` to enable automated planning:
-
-```bash
-export MODEL_API="anthropic:claude-sonnet-4-20250514"
-```
-
-Or configure in `.sdp/config.json`:
-
-```json
-{
-  "version": "0.10.0",
-  "model_api": "anthropic:claude-sonnet-4-20250514",
-  "evidence": {
-    "enabled": true,
-    "log_path": ".sdp/log/events.jsonl"
-  }
-}
-```
+- **By date**: `--since 2026-02-01T00:00:00Z` - Filter by ISO date
 
 ---
 
 ## Evidence Layer
 
-Build and verify flows emit events to `.sdp/log/events.jsonl` (hash-chained). Use:
+Build and verify flows emit events to `.sdp/log/events.jsonl` (hash-chained).
 
-| Command | Purpose |
-|---------|---------|
-| `sdp acceptance run` | Run acceptance gate from `.sdp/config.yml` (e.g. `go test -run TestSmoke`) |
-| `sdp log trace [commit]` | Show evidence timeline; `--ws`, `--json`, `--verify` for chain check |
-| `sdp collision check` | Detect scope overlaps between active workstreams |
-
-Config: `.sdp/config.yml` with `version`, `acceptance.command`, `evidence.enabled`, `evidence.log_path`. @build emits plan/generation/verification events when evidence is enabled.
+Config: `.sdp/config.yml` with `version`, `evidence.enabled`, `evidence.log_path`. @build emits plan/generation/verification events when evidence is enabled.
 
 ---
 
 ## Long-term Memory (F051)
 
-Project memory system for avoiding duplicated work. Integrates with evidence.jsonl, Beads issues, and .sdp/session.json.
+Project memory system for avoiding duplicated work. Integrates with evidence.jsonl and Beads issues.
 
 ### Architecture
 
 ```
 .sdp/
-├── memory.db        # SQLite + FTS5 index (NEW)
+├── memory.db        # SQLite + FTS5 index
 ├── log/
 │   └── events.jsonl # Evidence log (hash-chained)
 └── notifications.log # Notification channel log
@@ -333,41 +340,13 @@ Project memory system for avoiding duplicated work. Integrates with evidence.jso
 | `sdp memory index` | Index all docs/ artifacts into memory.db |
 | `sdp memory search <query>` | Full-text search across indexed artifacts |
 | `sdp memory stats` | Show index statistics |
-| `sdp drift detect [ws_id]` | Detect code↔docs and decision↔code drift |
+| `sdp drift detect [ws_id]` | Detect code↔docs drift |
 
 ### Use Cases
 
 1. **Context Recovery:** After session compaction, search memory to restore context
-2. **Decision Discovery:** Find related ADRs before proposing approaches
-3. **Drift Detection:** Detect code-documentation discrepancies before merge
-
----
-
-## Parallel Execution
-
-The @oneshot orchestrator uses a parallel dispatcher (`src/sdp/graph/`) with:
-
-1. **Build Graph** — Parse WS files, extract dependencies, build DAG
-2. **Topological Sort** — Kahn's algorithm for valid execution order
-3. **Parallel Dispatch** — Execute independent WS concurrently (3-5 agents)
-4. **Circuit Breaker** — Fault tolerance with retry logic
-5. **Checkpoint** — Atomic save/restore for resume after interruption
-
-Speedup: ~5x for 5-10 workstreams.
-
----
-
-## Multi-Agent Synthesis
-
-When agents disagree, the Synthesizer resolves conflicts:
-
-1. **Unanimous** — All agents agree
-2. **Domain Expertise** — Highest confidence wins
-3. **Quality Gate** — Best quality score
-4. **Merge** — Combine best parts
-5. **Escalate** — Ask human
-
-See [docs/reference/agent-catalog.md](docs/reference/agent-catalog.md) for agent documentation.
+2. **Decision Discovery:** Find related decisions before proposing approaches
+3. **Drift Detection:** Detect code-documentation discrepancies
 
 ---
 
@@ -404,24 +383,6 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-## Reality-First Development
-
-Always verify actual code before following documentation.
-
-**Before modifying any file:**
-```bash
-@reality-check <filename>
-```
-
-**Before executing workstreams:**
-```bash
-@verify-workstream 00-001-01
-```
-
-Validates: scope files exist, functions/classes match docs, architectural layers correct.
-
----
-
 ## Resources
 
 | Resource | Purpose |
@@ -432,9 +393,9 @@ Validates: scope files exist, functions/classes match docs, architectural layers
 | [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) | Code patterns |
 | [docs/reference/MODELS.md](docs/reference/MODELS.md) | Model recommendations |
 | [.claude/skills/](.claude/skills/) | Skill definitions |
-| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance (evidence, GDPR, SOC2, etc.) |
-| [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model and accepted risks |
+| [docs/compliance/COMPLIANCE.md](docs/compliance/COMPLIANCE.md) | Enterprise compliance |
+| [docs/compliance/THREAT-MODEL.md](docs/compliance/THREAT-MODEL.md) | Threat model |
 
 ---
 
-**Version:** 0.10.0
+**CLI Version:** 0.8.0 | **Protocol Version:** 0.10.0
