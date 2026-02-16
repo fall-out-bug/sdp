@@ -38,6 +38,11 @@ func TestRecovery_Repair_NoGit(t *testing.T) {
 	// Create temp dir without git
 	tmpDir := t.TempDir()
 
+	// Change to the temp directory so getCurrentBranch() runs in non-git context
+	oldWd, _ := os.Getwd()
+	defer os.Chdir(oldWd)
+	os.Chdir(tmpDir)
+
 	r := NewRecovery(tmpDir)
 	err := r.Repair()
 
