@@ -7,9 +7,26 @@ import (
 	"path/filepath"
 )
 
+// Config holds initialization configuration options.
 type Config struct {
 	ProjectType string
 	SkipBeads   bool
+	// Skills to enable (empty = use defaults)
+	Skills []string
+	// NoEvidence disables evidence logging
+	NoEvidence bool
+	// ProjectName for display purposes
+	ProjectName string
+	// Interactive mode flag
+	Interactive bool
+	// Headless mode for CI/CD
+	Headless bool
+	// Output format (text, json)
+	Output string
+	// Force overwrites existing files
+	Force bool
+	// DryRun previews changes without writing
+	DryRun bool
 }
 
 func Run(cfg Config) error {
@@ -41,11 +58,14 @@ func Run(cfg Config) error {
 		return fmt.Errorf("create settings: %w", err)
 	}
 
-	fmt.Println("✓ SDP initialized in .claude/")
-	fmt.Printf("  Project type: %s\n", cfg.ProjectType)
-	fmt.Println("\nNext steps:")
-	fmt.Println("  1. Review .claude/settings.json")
-	fmt.Println("  2. Start using Claude Code with SDP prompts")
+	// In headless mode, don't print text output
+	if !cfg.Headless {
+		fmt.Println("✓ SDP initialized in .claude/")
+		fmt.Printf("  Project type: %s\n", cfg.ProjectType)
+		fmt.Println("\nNext steps:")
+		fmt.Println("  1. Review .claude/settings.json")
+		fmt.Println("  2. Start using Claude Code with SDP prompts")
+	}
 
 	return nil
 }
@@ -103,26 +123,45 @@ func copyPrompts(destDir string) error {
 }
 
 func createSettings(claudeDir string, cfg Config) error {
+	// Get defaults for the project type
+	defaults := MergeDefaults(cfg.ProjectType, &cfg)
+
+	// Build skills list
+	skills := defaults.Skills
+	if len(cfg.Skills) > 0 {
+		skills = cfg.Skills
+	}
+
+	// Build settings JSON
 	settings := fmt.Sprintf(`{
-  "skills": [
-    "feature",
-    "idea",
-    "design",
-    "build",
-    "review",
-    "deploy",
-    "debug",
-    "bugfix",
-    "hotfix",
-    "oneshot"
-  ],
+  "skills": %s,
   "projectType": "%s",
+  "evidence": {
+    "enabled": %t
+  },
   "sdpVersion": "1.0.0"
-}`, cfg.ProjectType)
+}`, formatStringsAsJSON(skills), cfg.ProjectType, defaults.EvidenceEnabled)
 
 	return os.WriteFile(
 		filepath.Join(claudeDir, "settings.json"),
 		[]byte(settings),
 		0600,
 	)
+}
+
+// formatStringsAsJSON formats a string slice as a JSON array.
+func formatStringsAsJSON(items []string) string {
+	if len(items) == 0 {
+		return "[]"
+	}
+	result := "[\n"
+	for i, item := range items {
+		result += fmt.Sprintf("    \"%s\"", item)
+		if i < len(items)-1 {
+			result += ","
+		}
+		result += "\n"
+	}
+	result += "  ]"
+	return result
 }
