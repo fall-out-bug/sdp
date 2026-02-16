@@ -21,6 +21,9 @@ type DashboardState struct {
 	// Test coverage and results
 	TestResults TestSummary
 
+	// Next step recommendation
+	NextStep NextStepInfo
+
 	// Last update timestamp
 	LastUpdate time.Time
 
@@ -29,6 +32,14 @@ type DashboardState struct {
 
 	// Error state
 	Error error
+}
+
+// NextStepInfo represents a next-step recommendation for display
+type NextStepInfo struct {
+	Command    string
+	Reason     string
+	Confidence float64
+	Category   string
 }
 
 // WorkstreamSummary represents a workstream for display

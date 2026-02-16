@@ -136,6 +136,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(coordinationCmd())
 	rootCmd.AddCommand(healthCmd())
 	rootCmd.AddCommand(diagnoseCmd)
+	rootCmd.AddCommand(nextCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure

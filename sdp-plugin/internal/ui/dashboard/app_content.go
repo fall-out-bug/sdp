@@ -179,3 +179,45 @@ func (a *App) renderTests() string {
 func (a *App) renderActivity() string {
 	return "Activity\n\nNo recent activity"
 }
+
+// renderNextStep renders the next step recommendation block
+func (a *App) renderNextStep() string {
+	ns := a.state.NextStep
+	if ns.Command == "" {
+		return ""
+	}
+
+	var content string
+	content += matrixBrightStyle.Render("Next Step") + "\n"
+
+	// Confidence indicator
+	confidenceStr := fmt.Sprintf("%.0f%%", ns.Confidence*100)
+	if ns.Confidence >= 0.8 {
+		confidenceStr = statusCompletedMatrixStyle.Render(confidenceStr)
+	} else if ns.Confidence >= 0.5 {
+		confidenceStr = statusInProgressMatrixStyle.Render(confidenceStr)
+	} else {
+		confidenceStr = matrixDimStyle.Render(confidenceStr)
+	}
+
+	// Category styling
+	categoryStr := ns.Category
+	switch categoryStr {
+	case "execution":
+		categoryStr = statusOpenMatrixStyle.Render(categoryStr)
+	case "recovery":
+		categoryStr = statusBlockedMatrixStyle.Render(categoryStr)
+	case "planning":
+		categoryStr = statusInProgressMatrixStyle.Render(categoryStr)
+	case "setup":
+		categoryStr = statusInProgressMatrixStyle.Render(categoryStr)
+	default:
+		categoryStr = matrixDimStyle.Render(categoryStr)
+	}
+
+	content += matrixBaseStyle.Render("  ") + statusCompletedMatrixStyle.Render(ns.Command) + "\n"
+	content += matrixBaseStyle.Render("  "+ns.Reason) + "\n"
+	content += matrixBaseStyle.Render("  ") + confidenceStr + " " + categoryStr + "\n"
+
+	return content
+}
