@@ -20,9 +20,10 @@ This release focuses on UX improvements, intelligent next-step recommendations, 
 
 ### Statistics
 
-- **Features completed:** 8 (F024, F056, F065, F068-F070, F075-F076)
-- **Workstreams:** 35+
+- **Features completed:** 8 (F054, F063, F064, F067, F068, F070, F075, F076)
+- **Workstreams:** 57
 - **Test coverage:** 80%+ (all packages)
+- **M1 Status:** ✅ COMPLETE
 
 ---
 
