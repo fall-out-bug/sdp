@@ -200,3 +200,71 @@ func TestGateStatus_Fields(t *testing.T) {
 		t.Error("Passed should be true")
 	}
 }
+
+// TestFetchNextStep tests the fetchNextStep function.
+func TestFetchNextStep(t *testing.T) {
+	app := New()
+	nextStep := app.fetchNextStep()
+
+	// Should return a valid recommendation
+	if nextStep.Command == "" {
+		t.Error("Command should not be empty")
+	}
+	if nextStep.Reason == "" {
+		t.Error("Reason should not be empty")
+	}
+	if nextStep.Confidence < 0 || nextStep.Confidence > 1 {
+		t.Errorf("Confidence should be between 0 and 1, got %f", nextStep.Confidence)
+	}
+	if nextStep.Category == "" {
+		t.Error("Category should not be empty")
+	}
+}
+
+// TestRefreshCmd tests the refreshCmd function.
+func TestRefreshCmd(t *testing.T) {
+	app := New()
+	cmd := app.refreshCmd()
+
+	if cmd == nil {
+		t.Error("refreshCmd should return a non-nil command")
+	}
+}
+
+// TestTickCmd tests the tickCmd function.
+func TestTickCmd(t *testing.T) {
+	app := New()
+	cmd := app.tickCmd()
+
+	if cmd == nil {
+		t.Error("tickCmd should return a non-nil command")
+	}
+}
+
+// TestOpenSelectedItem tests the openSelectedItem function.
+func TestOpenSelectedItem(t *testing.T) {
+	app := New()
+	app.state.Workstreams = map[string][]WorkstreamSummary{
+		"open": {
+			{ID: "00-001-01", Title: "Test", Status: "open"},
+		},
+	}
+	app.state.CursorPos = 0
+	app.state.ActiveTab = 0 // TabWorkstreams
+
+	// Should not panic
+	app.openSelectedItem()
+}
+
+// TestOpenSelectedItem_EmptyList tests openSelectedItem with empty list.
+func TestOpenSelectedItem_EmptyList(t *testing.T) {
+	app := New()
+	app.state.Workstreams = map[string][]WorkstreamSummary{
+		"open": {},
+	}
+	app.state.CursorPos = 0
+	app.state.ActiveTab = 0 // TabWorkstreams
+
+	// Should not panic with empty list
+	app.openSelectedItem()
+}
