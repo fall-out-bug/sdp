@@ -1,32 +1,39 @@
----
-description: Autonomous multi-agent execution with checkpoints, resume, and PR-less modes
-agent: orchestrator
----
+# /oneshot — Autonomous Feature Execution
 
-# /oneshot — Oneshot
+**Note:** This is Cursor-specific command. For Claude Code, use Task tool-based orchestration (see `.claude/skills/oneshot/SKILL.md`).
 
-## Overview
+When calling `/oneshot F{XX}` in Cursor:
 
-This command implements the oneshot skill from the SDP workflow.
+1. Load full prompt: `@.claude/skills/oneshot.md`
+2. Follow TodoWrite tracking (create todo list at start)
+3. Create PR and wait for approval
+4. Execute all feature WS autonomously (inline, no Task tool)
+5. Save checkpoints with progress
+6. Handle errors (auto-fix or escalate)
+7. Run `/review` at the end
+8. Update TodoWrite: mark all completed
+9. Output summary
 
-See `/prompts/skills/oneshot/SKILL.md` for complete documentation.
+## Quick Reference
 
-## Usage
+**Input:** Feature ID (F60)
+**Output:** All WS executed + Review + UAT guide
 
-```bash
-/oneshot [arguments]
-```
+**Features:**
+- TodoWrite progress tracking (real-time UI updates)
+- PR approval gate
+- Checkpoint/resume support
+- Progress tracking JSON
+- Auto-fix MEDIUM/HIGH errors
+- Telegram notifications
 
-## Implementation
+**Difference from Claude Code:**
+- Cursor: Inline execution (no Task tool)
+- Claude Code: Task tool orchestrator with isolated agent
 
-The command delegates to the `oneshot` skill, which provides:
+**Next:** Human UAT → `/deploy F{XX}`
 
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
+## Checkpoint Files
 
-## Related
-
-- Skills: `prompts/skills/oneshot/SKILL.md`
-- Agents: `prompts/agents/orchestrator.md`
+- `.oneshot/F{XX}-checkpoint.json` - Resume state (includes agent_id for Claude Code)
+- `.oneshot/F{XX}-progress.json` - Real-time metrics

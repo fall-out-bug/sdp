@@ -1,32 +1,28 @@
----
-description: Analyze bugs, classify severity (P0-P3), route to appropriate fix command (/hotfix, /bugfix, or backlog).
-agent: planner
----
+# /issue — Analyze & Route Issues
 
-# /issue — Issue
+When calling `/issue "description"`:
 
-## Overview
+1. Load full prompt: `@.claude/skills/issue.md`
+2. Systematic debugging (5 phases):
+   - Symptom analysis
+   - Hypothesis formation
+   - Systematic elimination
+   - Root cause isolation
+   - Impact chain analysis
+3. Classify severity (P0/P1/P2/P3)
+4. Route to appropriate fix
+5. Create issue file
+6. Create GitHub issue (if gh available)
 
-This command implements the issue skill from the SDP workflow.
+## Quick Reference
 
-See `/prompts/skills/issue/SKILL.md` for complete documentation.
+**Input:** Bug description
+**Output:** Issue file + Routing recommendation
 
-## Usage
+**Routing:**
+- P0 CRITICAL → `/hotfix`
+- P1 HIGH → `/bugfix`
+- P2 MEDIUM → New WS
+- P3 LOW → Defer
 
-```bash
-/issue [arguments]
-```
-
-## Implementation
-
-The command delegates to the `issue` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
-
-## Related
-
-- Skills: `prompts/skills/issue/SKILL.md`
-- Agents: `prompts/agents/planner.md`
+**Next:** `/hotfix` or `/bugfix` depending on severity

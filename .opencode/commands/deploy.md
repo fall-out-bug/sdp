@@ -1,32 +1,26 @@
----
-description: Deployment orchestration. Generates artifacts and EXECUTES GitFlow merge.
-agent: deployer
----
+# /deploy — Deploy Feature
 
-# /deploy — Deploy
+When calling `/deploy {feature} [version_bump]`:
 
-## Overview
+1. Load skill: `.claude/skills/deploy/SKILL.md`
+2. Pre-flight: pytest, verify APPROVED
+3. Version: bump semver (patch/minor/major)
+4. Generate: CHANGELOG, release notes, pyproject.toml
+5. **EXECUTE** (do NOT propose):
+   - `git commit` artifacts
+   - `git merge dev → main`
+   - `git tag v{X.Y.Z}`
+   - `git push origin main v{X.Y.Z}`
+6. Report summary
 
-This command implements the deploy skill from the SDP workflow.
+## Quick Reference
 
-See `/prompts/skills/deploy/SKILL.md` for complete documentation.
+**Input:** APPROVED feature + version bump (default: patch)
+**Output:** Production deployment + v{X.Y.Z} tag
+**Rule:** Do NOT stop after artifacts — EXECUTE all git operations
 
-## Usage
+## Version Bump
 
-```bash
-/deploy [arguments]
-```
-
-## Implementation
-
-The command delegates to the `deploy` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
-
-## Related
-
-- Skills: `prompts/skills/deploy/SKILL.md`
-- Agents: `prompts/agents/deployer.md`
+- `@deploy F020` — patch (0.5.0 → 0.5.1)
+- `@deploy F020 minor` — minor (0.5.0 → 0.6.0)
+- `@deploy F020 major` — major (0.5.0 → 1.0.0)
