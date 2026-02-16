@@ -2,6 +2,163 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.0] - 2026-02-16
+
+### M1 Milestone - UX Excellence & Intelligent Assistance
+
+**Theme:** Enhanced Developer Experience with Smart Recovery and Guidance
+
+This release focuses on UX improvements, intelligent next-step recommendations, structured error handling, and guided onboarding.
+
+### Highlights
+
+- **Next-Step Engine:** Intelligent recommendations with confidence scoring
+- **Error Taxonomy:** 38 structured error codes with recovery hints
+- **Guided Onboarding:** Interactive wizard and headless mode
+- **Self-Healing Doctor:** Automatic environment repair
+- **Enhanced Evidence:** Full skills instrumentation
+
+### Statistics
+
+- **Features completed:** 8 (F024, F056, F065, F068-F070, F075-F076)
+- **Workstreams:** 35+
+- **Test coverage:** 80%+ (all packages)
+
+---
+
+## New Features
+
+### F068: UX Foundation & First-Run Experience
+
+Guided setup and improved user experience.
+
+**Commands:**
+- `sdp init --guided` - Step-by-step setup wizard with auto-fix
+- `sdp init --auto` - Safe defaults for quick start
+- `sdp demo` - Interactive feature walkthrough
+- `sdp status --text/--json` - Quick status for scripts
+
+**Components:**
+- Preflight checks with auto-repair
+- Quickstart templates
+- Improved help text with user intent grouping
+
+### F069: Next-Step Engine
+
+Intelligent recommendation system for development workflow.
+
+**Commands:**
+- `sdp next` - Get next recommended action
+- `sdp next --json` - Machine-readable output
+- `sdp next --alternatives` - Show alternative actions
+
+**Components:**
+- Rule-based evaluation with deterministic tie-break
+- Confidence scoring (0.0-1.0)
+- Categories: execution, recovery, planning, information, setup
+- Interactive loop: accept/refine/reject
+- Quality metrics: acceptance rate, correction rate
+
+### F070: Failure & Recovery UX
+
+Structured error handling with recovery guidance.
+
+**Commands:**
+- `sdp diagnose` - Show error classes and codes
+- `sdp diagnose [CODE]` - Get recovery steps for error
+- `sdp diagnose --json` - Machine-readable output
+
+**Error Taxonomy:**
+| Class | Prefix | Description |
+|-------|--------|-------------|
+| Environment | ENV | Missing tools, permissions, filesystem |
+| Protocol | PROTO | Invalid IDs, malformed files |
+| Dependency | DEP | Blocked workstreams, cycles |
+| Validation | VAL | Coverage, quality gates |
+| Runtime | RUNTIME | External failures, timeouts |
+
+**Components:**
+- 38 error codes with messages and recovery hints
+- Recovery playbooks with fast/deep path steps
+- Diagnostics reports (JSON/text)
+
+### F075: Self-Healing Doctor
+
+Automatic environment repair.
+
+**Commands:**
+- `sdp doctor --repair` - Auto-fix detected issues
+- `sdp doctor --deep` - Comprehensive diagnostics
+
+**Repair Actions:**
+- Install missing hooks
+- Fix permissions
+- Repair corrupted config
+- Sync stale state
+
+### F076: Guided Onboarding Wizard
+
+Interactive project initialization.
+
+**Commands:**
+- `sdp init --guided` - Interactive wizard
+- `sdp init --headless` - CI/CD mode (no prompts)
+- `sdp init --project-type go|node|python|mixed` - Project type selection
+
+**Components:**
+- Safe defaults per project type
+- Skills selection
+- Evidence layer configuration
+- JSON output for tooling
+
+---
+
+## Updated Features
+
+### F056: Full Skills Instrumentation (Completed)
+
+Evidence tracking for all skills.
+
+**Events:**
+- SkillEvent for @design, @idea, @build
+- PlanEvent with approval_data
+- DecisionEvent, LessonEvent
+
+**Coverage:** 84.8%
+
+### F065: Agent Git Safety Protocol (Completed)
+
+Git safety with session validation.
+
+**Components:**
+- Session hash verification
+- Safe git wrapper
+- Branch protection
+- Context recovery
+
+**Coverage:** 83-90%
+
+### F024: Unified Workflow (Completed)
+
+Unified workflow orchestration.
+
+**Coverage:** Full integration with all skills
+
+---
+
+## CLI Commands (New in 0.9.0)
+
+| Command | Purpose |
+|---------|---------|
+| `sdp next` | Next recommended action |
+| `sdp diagnose [CODE]` | Error lookup and recovery |
+| `sdp demo` | Feature walkthrough |
+| `sdp doctor --repair` | Auto-fix environment |
+| `sdp init --guided` | Interactive setup |
+| `sdp init --headless` | CI/CD setup |
+
+---
+
 ## [0.8.0] - 2026-02-16
 
 ### Major Release - Multi-Agent Architecture + Go Implementation
