@@ -341,10 +341,10 @@ func TestWizard_promptSkills(t *testing.T) {
 
 func TestWizard_promptProjectType(t *testing.T) {
 	tests := []struct {
-		name            string
-		input           string
-		detectedType    string
-		expectedType    string
+		name         string
+		input        string
+		detectedType string
+		expectedType string
 	}{
 		{
 			name:         "empty input uses detected",

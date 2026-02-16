@@ -8,8 +8,8 @@ import (
 
 // Exit codes for headless mode.
 const (
-	ExitSuccess = 0
-	ExitError   = 1
+	ExitSuccess          = 0
+	ExitError            = 1
 	ExitValidationFailed = 2
 )
 

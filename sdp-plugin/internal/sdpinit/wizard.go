@@ -30,8 +30,8 @@ type WizardPrompt struct {
 
 // Wizard controls the interactive onboarding flow.
 type Wizard struct {
-	reader  *bufio.Reader
-	writer  io.Writer
+	reader    *bufio.Reader
+	writer    io.Writer
 	preflight *PreflightResult
 }
 
