@@ -73,9 +73,15 @@ func checkGitHooks() DeepCheckResult {
 
 	for _, hook := range requiredHooks {
 		hookPath := filepath.Join(hooksDir, hook)
-		if info, err := os.Stat(hookPath); os.IsNotExist(err) {
-			missing = append(missing, hook)
-		} else if info.Mode().Perm()&0100 == 0 {
+		info, err := os.Stat(hookPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				missing = append(missing, hook)
+			}
+			// Other errors (permission denied, etc.) - skip
+			continue
+		}
+		if info.Mode().Perm()&0100 == 0 {
 			invalid = append(invalid, hook+" (not executable)")
 		}
 	}
