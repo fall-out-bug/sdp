@@ -1,53 +1,53 @@
 # SDP: Spec-Driven Protocol
 
-**Структурированный протокол для AI-разработки.**
+**A structured protocol for AI-assisted development.**
 
-SDP превращает AI-ассистента в предсказуемый процесс: Discovery → Delivery → Evidence.
+SDP turns your AI assistant into a predictable process: Discovery → Delivery → Evidence.
 
-## Что это
+## What it is
 
-SDP — набор prompts (skills), которые загружаются в Claude Code, Cursor или другой AI-инструмент. Skills определяют:
+SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI tools. Skills define:
 
-- **Discovery**: Как собирать требования и планировать features
-- **Delivery**: Как писать код с TDD и quality gates
-- **Evidence**: Как фиксировать решения в audit log
+- **Discovery**: How to gather requirements and plan features
+- **Delivery**: How to write code with TDD and quality gates
+- **Evidence**: How to record decisions in an audit log
 
-**Всё работает через skills.** CLI и Beads — опциональные дополнения.
+**Everything works through skills.** CLI and Beads are optional add-ons.
 
-## Быстрый старт
+## Quick Start
 
 ```bash
-# Добавить SDP как submodule
+# Add SDP as a submodule
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
 
-# Добавить в .gitignore
+# Add to .gitignore
 echo "sdp/.git" >> .gitignore
 ```
 
-В Claude Code: skills автоматически загрузятся из `sdp/.claude/skills/`.
+In Claude Code: skills load automatically from `sdp/.claude/skills/`.
 
-## Основной workflow
+## Core Workflow
 
-### Discovery (планирование)
-
-```
-@vision "AI task manager"     → VISION.md, PRD.md, ROADMAP.md
-@reality --quick              → Анализ кодовой базы
-@feature "Add authentication" → Workstreams для feature
-```
-
-### Delivery (реализация)
+### Discovery (planning)
 
 ```
-@oneshot F001                 → Автономное выполнение всех workstreams
-@review F001                  → Multi-agent quality review
-@deploy F001                  → Merge в main
+@vision "AI task manager"      → VISION.md, PRD.md, ROADMAP.md
+@reality --quick               → Codebase analysis
+@feature "Add authentication"  → Workstreams for feature
 ```
 
-### Ручной режим
+### Delivery (implementation)
 
 ```
-@build 00-001-01              → Один workstream с TDD
+@oneshot F001                  → Autonomous execution of all workstreams
+@review F001                   → Multi-agent quality review
+@deploy F001                   → Merge to main
+```
+
+### Manual mode
+
+```
+@build 00-001-01               → Single workstream with TDD
 @build 00-001-02
 @review F001
 @deploy F001
@@ -56,24 +56,24 @@ echo "sdp/.git" >> .gitignore
 ### Debug
 
 ```
-@debug "Test fails"           → Systematic debugging
-@hotfix "API down"            → Emergency fix (P0)
-@bugfix "Wrong totals"        → Quality fix (P1/P2)
+@debug "Test fails"            → Systematic debugging
+@hotfix "API down"             → Emergency fix (P0)
+@bugfix "Wrong totals"         → Quality fix (P1/P2)
 ```
 
 ## Skills
 
-| Skill | Назначение | Фаза |
-|-------|------------|------|
-| `@vision` | Стратегическое планирование (7 агентов) | Discovery |
-| `@reality` | Анализ кодовой базы (8 агентов) | Discovery |
-| `@feature` | Планирование feature (@idea + @design) | Discovery |
-| `@idea` | Сбор требований | Discovery |
-| `@design` | Декомпозиция на workstreams | Discovery |
-| `@oneshot` | Автономное выполнение | Delivery |
-| `@build` | TDD для одного workstream | Delivery |
-| `@review` | Quality review (6 агентов) | Delivery |
-| `@deploy` | Deploy в main | Delivery |
+| Skill | Purpose | Phase |
+|-------|---------|-------|
+| `@vision` | Strategic planning (7 agents) | Discovery |
+| `@reality` | Codebase analysis (8 agents) | Discovery |
+| `@feature` | Feature planning (@idea + @design) | Discovery |
+| `@idea` | Requirements gathering | Discovery |
+| `@design` | Workstream decomposition | Discovery |
+| `@oneshot` | Autonomous execution | Delivery |
+| `@build` | TDD for single workstream | Delivery |
+| `@review` | Quality review (6 agents) | Delivery |
+| `@deploy` | Deploy to main | Delivery |
 | `@debug` | Systematic debugging | Debug |
 | `@hotfix` | Emergency fix | Debug |
 | `@bugfix` | Quality fix | Debug |
@@ -90,7 +90,7 @@ Execute WS       APPROVED?         Merge PR
                     └─ NO → fix loop
 ```
 
-**Done = @review APPROVED + @deploy completed**, не просто "PR merged".
+**Done = @review APPROVED + @deploy completed**, not just "PR merged".
 
 ## Quality Gates
 
@@ -103,15 +103,15 @@ Execute WS       APPROVED?         Merge PR
 
 ## Workstream ID
 
-Формат: `PP-FFF-SS`
+Format: `PP-FFF-SS`
 
 - `PP` — Project (00 = SDP itself)
 - `FFF` — Feature number
 - `SS` — Step number
 
-Пример: `00-024-03` = SDP, feature 24, step 3
+Example: `00-024-03` = SDP, feature 24, step 3
 
-## Структура проекта
+## Project Structure
 
 ```
 your-project/
@@ -119,60 +119,60 @@ your-project/
 │   ├── prompts/skills/       # Skills (source of truth)
 │   ├── prompts/agents/       # Agent definitions
 │   ├── .claude/              # Claude Code integration
-│   ├── docs/                 # Документация
+│   ├── docs/                 # Documentation
 │   └── CLAUDE.md             # Quick reference
-└── docs/workstreams/         # Ваши workstreams
+└── docs/workstreams/         # Your workstreams
 ```
 
 ---
 
-# Опциональные компоненты
+# Optional Components
 
-## Go CLI (экспериментально)
+## Go CLI (experimental)
 
-CLI предоставляет helper-команды. **Не обязателен для работы протокола.**
+CLI provides helper commands. **Not required for protocol to work.**
 
 ```bash
-# Установка
+# Install
 cd sdp/sdp-plugin && go build -o sdp ./cmd/sdp
 
-# Команды
+# Commands
 sdp doctor              # Health check
 sdp status              # Project state
 sdp guard activate WS   # Edit scope enforcement
 sdp log show            # Evidence log
 ```
 
-## Beads (экспериментально)
+## Beads (experimental)
 
-Task tracking для multi-session работы. **Не обязателен.**
+Task tracking for multi-session work. **Not required.**
 
 ```bash
 brew tap beads-dev/tap && brew install beads
-bd ready                # Найти доступные задачи
-bd create --title="..." # Создать задачу
-bd close <id>           # Закрыть задачу
+bd ready                # Find available tasks
+bd create --title="..." # Create task
+bd close <id>           # Close task
 ```
 
-## Evidence Layer (экспериментально)
+## Evidence Layer (experimental)
 
-Audit log в `.sdp/log/events.jsonl` с hash-chain.
+Audit log in `.sdp/log/events.jsonl` with hash-chain.
 
 ```bash
-sdp log show            # Показать события
-sdp log trace           # Trace по commit/workstream
+sdp log show            # Show events
+sdp log trace           # Trace by commit/workstream
 ```
 
 ---
 
-## Документация
+## Documentation
 
-| Файл | Содержимое |
-|------|------------|
-| [CLAUDE.md](CLAUDE.md) | Quick reference для Claude Code |
-| [docs/PROTOCOL.md](docs/PROTOCOL.md) | Полная спецификация |
-| [docs/vision/ROADMAP.md](docs/vision/ROADMAP.md) | Roadmap и milestones |
-| [CHANGELOG.md](CHANGELOG.md) | История версий |
+| File | Content |
+|------|---------|
+| [CLAUDE.md](CLAUDE.md) | Quick reference for Claude Code |
+| [docs/PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
+| [docs/vision/ROADMAP.md](docs/vision/ROADMAP.md) | Roadmap and milestones |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## License
 
