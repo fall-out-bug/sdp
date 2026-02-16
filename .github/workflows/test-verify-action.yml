@@ -244,6 +244,7 @@ jobs:
         uses: ./.github/actions/verify
         with:
           gates: 'types,tests'
+          evidence-required: 'false'
           comment: 'false'
           working-directory: './sdp-plugin'
 
