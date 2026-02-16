@@ -1,32 +1,16 @@
----
-description: System design with progressive disclosure
-agent: planner
----
+# /design — Analyze + Plan
 
-# /design — Design
+When calling `/design {slug}`:
 
-## Overview
+1. Load full prompt: `@.claude/skills/design.md`
+2. Read PROJECT_MAP.md and INDEX.md
+3. Read draft: `docs/drafts/idea-{slug}.md`
+4. Create all WS files in `workstreams/backlog/`
+5. Update INDEX.md
+6. Output summary
 
-This command implements the design skill from the SDP workflow.
+## Quick Reference
 
-See `/prompts/skills/design/SKILL.md` for complete documentation.
-
-## Usage
-
-```bash
-/design [arguments]
-```
-
-## Implementation
-
-The command delegates to the `design` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
-
-## Related
-
-- Skills: `prompts/skills/design/SKILL.md`
-- Agents: `prompts/agents/planner.md`
+**Input:** `docs/drafts/idea-{slug}.md`
+**Output:** `docs/workstreams/backlog/WS-XXX-*.md`
+**Next:** `/build WS-XXX-01`

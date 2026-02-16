@@ -1,27 +1,30 @@
 # OpenCode Integration
 
-**Canonical skill source:** `../prompts/skills/`
+This directory contains SDP integration for OpenCode.
 
-All SDP command prompts are unified in `prompts/skills/` with symlink adapters in tool folders.
+## Setup
+
+SDP skills and agents are available via symlinks:
+- `skills/` → All SDP skills (@vision, @build, @review, etc.)
+- `agents/` → Agent definitions (orchestrator, reviewer, etc.)
 
 ## Usage
 
-Use `/` prefix to invoke commands:
+Skills work the same as in Claude Code:
 
-```bash
-/feature "description"  # Unified entry point
-/idea "description"     # Requirements gathering
-/design {id}            # Plan workstreams
-/build {ws-id}          # Execute workstream
-/review {feature}       # Quality review
-/deploy {feature}       # Production deployment
-/debug "issue"          # Systematic debugging
-/hotfix "critical"      # Emergency fix
-/bugfix "issue"         # Quality fix
+```
+@vision "your product"     # Strategic planning
+@feature "add feature"     # Plan feature
+@build 00-001-01           # Execute workstream
+@review F01                # Quality check
 ```
 
-## See Also
+## Commands
 
-- [CLAUDE.md](../CLAUDE.md) - Full protocol
-- [prompts/skills/](../prompts/skills/) - Canonical skill definitions
-- [.claude/skills/](../.claude/skills/) - Claude compatibility symlink
+If your tool supports slash commands, create command files pointing to skills:
+
+```
+/oneshot → skills/oneshot/SKILL.md
+/build   → skills/build/SKILL.md
+/review  → skills/review/SKILL.md
+```

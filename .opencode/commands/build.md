@@ -1,32 +1,16 @@
----
-description: Execute workstream with TDD and guard enforcement
-agent: builder
----
+# /build — Execute Workstream
 
-# /build — Build
+When calling `/build {WS-ID}`:
 
-## Overview
+1. Load skill: `@.claude/skills/build/SKILL.md`
+2. Run pre-build hook: `hooks/pre-build.sh {WS-ID}`
+3. Read WS plan
+4. Execute steps using TDD
+5. Run post-build hook: `hooks/post-build.sh {WS-ID}`
+6. Append Execution Report to WS file
 
-This command implements the build skill from the SDP workflow.
+## Quick Reference
 
-See `/prompts/skills/build/SKILL.md` for complete documentation.
-
-## Usage
-
-```bash
-/build [arguments]
-```
-
-## Implementation
-
-The command delegates to the `build` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
-
-## Related
-
-- Skills: `prompts/skills/build/SKILL.md`
-- Agents: `prompts/agents/builder.md`
+**Input:** `workstreams/backlog/WS-XXX-*.md`
+**Output:** Code + tests + Execution Report
+**Next:** `/build WS-XXX-02` or `/review F{XX}`

@@ -1,32 +1,14 @@
----
-description: Interactive requirements gathering with progressive disclosure
-agent: builder
----
+# /idea — Requirements Gathering
 
-# /idea — Idea
+When calling `/idea {description}`:
 
-## Overview
+1. Load full prompt: `@.claude/skills/idea.md`
+2. Execute Mandatory Initial Dialogue
+3. Create draft in `docs/drafts/idea-{slug}.md`
+4. Output summary for user
 
-This command implements the idea skill from the SDP workflow.
+## Quick Reference
 
-See `/prompts/skills/idea/SKILL.md` for complete documentation.
-
-## Usage
-
-```bash
-/idea [arguments]
-```
-
-## Implementation
-
-The command delegates to the `idea` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
-
-## Related
-
-- Skills: `prompts/skills/idea/SKILL.md`
-- Agents: `prompts/agents/builder.md`
+**Input:** Feature description from user
+**Output:** `docs/drafts/idea-{slug}.md`
+**Next:** `/design idea-{slug}`
