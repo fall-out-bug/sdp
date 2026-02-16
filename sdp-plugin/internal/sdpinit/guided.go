@@ -51,43 +51,66 @@ func RunGuided(cfg GuidedConfig) (*GuidedResult, error) {
 	fmt.Println()
 
 	for i, step := range steps {
-		fmt.Printf("Step %d/%d: %s\n", i+1, len(steps), step.Name)
-		fmt.Printf("  %s\n", step.Description)
-
-		var stepResult GuidedStepResult
-		if step.ID == "project-type" && cfg.ProjectType != "" {
-			stepResult = CheckProjectTypeWithOverride(cfg.ProjectType)
-		} else {
-			stepResult = step.Check()
-		}
-		result.Steps = append(result.Steps, stepResult)
-
-		if stepResult.Passed {
-			fmt.Printf("  [PASS] %s\n", stepResult.Message)
-		} else {
-			fmt.Printf("  [FAIL] %s\n", stepResult.Message)
+		passed := processStep(i, len(steps), step, cfg, result)
+		if !passed {
 			result.AllPassed = false
-
-			if step.FixCommand != "" {
-				fmt.Printf("  Fix: %s\n", step.FixCommand)
-			}
-
-			if cfg.AutoFix && step.Fix != nil {
-				fmt.Println("  Attempting automatic fix...")
-				if err := step.Fix(); err != nil {
-					fmt.Printf("  Fix failed: %v\n", err)
-				} else {
-					stepResult = step.Check()
-					if stepResult.Passed {
-						fmt.Printf("  [FIXED] %s\n", stepResult.Message)
-						result.AllPassed = true
-					}
-				}
-			}
 		}
 		fmt.Println()
 	}
 
+	setNextSteps(result)
+	return result, nil
+}
+
+// processStep handles a single guided setup step
+func processStep(index, total int, step GuidedStep, cfg GuidedConfig, result *GuidedResult) bool {
+	fmt.Printf("Step %d/%d: %s\n", index+1, total, step.Name)
+	fmt.Printf("  %s\n", step.Description)
+
+	var stepResult GuidedStepResult
+	if step.ID == "project-type" && cfg.ProjectType != "" {
+		stepResult = CheckProjectTypeWithOverride(cfg.ProjectType)
+	} else {
+		stepResult = step.Check()
+	}
+	result.Steps = append(result.Steps, stepResult)
+
+	if stepResult.Passed {
+		fmt.Printf("  [PASS] %s\n", stepResult.Message)
+		return true
+	}
+
+	return handleFailedStep(step, cfg, stepResult)
+}
+
+// handleFailedStep processes a failed step with optional auto-fix
+func handleFailedStep(step GuidedStep, cfg GuidedConfig, stepResult GuidedStepResult) bool {
+	fmt.Printf("  [FAIL] %s\n", stepResult.Message)
+
+	if step.FixCommand != "" {
+		fmt.Printf("  Fix: %s\n", step.FixCommand)
+	}
+
+	if !cfg.AutoFix || step.Fix == nil {
+		return false
+	}
+
+	fmt.Println("  Attempting automatic fix...")
+	if err := step.Fix(); err != nil {
+		fmt.Printf("  Fix failed: %v\n", err)
+		return false
+	}
+
+	stepResult = step.Check()
+	if stepResult.Passed {
+		fmt.Printf("  [FIXED] %s\n", stepResult.Message)
+		return true
+	}
+	return false
+}
+
+// setNextSteps sets the appropriate next steps based on result
+func setNextSteps(result *GuidedResult) {
 	if result.AllPassed {
 		result.NextSteps = []string{
 			"Run 'sdp doctor' to verify your setup",
@@ -100,8 +123,6 @@ func RunGuided(cfg GuidedConfig) (*GuidedResult, error) {
 			"Or run 'sdp doctor --repair' for automatic fixes",
 		}
 	}
-
-	return result, nil
 }
 
 // PrintGuidedResult prints the final result of guided setup
