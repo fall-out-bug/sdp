@@ -3,7 +3,10 @@ name: build
 description: Execute workstream with TDD and guard enforcement
 cli: sdp apply --ws
 llm: Spawn subagents for 3-stage review
-version: 6.3.0
+version: 6.4.0
+changes:
+  - Added Git Safety section with context verification
+  - Added feature branch check before starting work
 ---
 
 # build
@@ -47,12 +50,43 @@ bd ready
 
 ---
 
+## Git Safety
+
+**CRITICAL:** Before ANY git operation, verify context.
+
+**MANDATORY before starting work:**
+
+```bash
+# Step 1: Verify context
+pwd
+git branch --show-current
+sdp guard context check
+
+# Step 2: Verify feature branch
+sdp guard branch check --feature=$FEATURE_ID
+
+# Step 3: If check fails, recover
+sdp guard context go $FEATURE_ID
+
+# Step 4: Only then proceed with implementation
+```
+
+**NOTE:** Features MUST be implemented in feature branches (e.g., `feature/F065`).
+Never commit to `dev` or `main` for feature work.
+
+---
+
 ## EXECUTE THIS NOW
 
 When user invokes `@build 00-067-01`:
 
 1. Run CLI to setup and validate:
 ```bash
+# Git safety verification (F065)
+sdp guard context check
+sdp guard branch check --feature=F067
+
+# Guard activation
 sdp guard activate 00-067-01
 sdp apply --ws 00-067-01 --dry-run  # Preview first
 ```
