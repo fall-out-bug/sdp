@@ -38,6 +38,9 @@ Thumbs.db
 
 # SDP binary
 /sdp
+
+# Test output
+test_output.txt
 # Decision logs (local audit trail)
 docs/decisions/
 # Checkpoint files (may contain sensitive execution state)
