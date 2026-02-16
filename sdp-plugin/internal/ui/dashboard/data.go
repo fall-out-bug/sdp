@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/beads"
+	"github.com/fall-out-bug/sdp/internal/nextstep"
 	"github.com/fall-out-bug/sdp/internal/parser"
 )
 
@@ -170,5 +171,50 @@ func (a *App) fetchTestResults() TestSummary {
 			{Name: "Type Hints", Passed: false},
 			{Name: "Linting", Passed: false},
 		},
+	}
+}
+
+// fetchNextStep fetches the next step recommendation
+func (a *App) fetchNextStep() NextStepInfo {
+	// Get project root
+	projectRoot, err := os.Getwd()
+	if err != nil {
+		return NextStepInfo{
+			Command:    "sdp doctor",
+			Reason:     "Check environment setup",
+			Confidence: 0.5,
+			Category:   "setup",
+		}
+	}
+
+	// Collect state
+	collector := nextstep.NewStateCollector(projectRoot)
+	state, err := collector.Collect()
+	if err != nil {
+		return NextStepInfo{
+			Command:    "sdp doctor",
+			Reason:     "Unable to collect project state",
+			Confidence: 0.5,
+			Category:   "setup",
+		}
+	}
+
+	// Get recommendation
+	resolver := nextstep.NewResolver()
+	rec, err := resolver.Recommend(state)
+	if err != nil {
+		return NextStepInfo{
+			Command:    "sdp status",
+			Reason:     "Check current project state",
+			Confidence: 0.5,
+			Category:   "information",
+		}
+	}
+
+	return NextStepInfo{
+		Command:    rec.Command,
+		Reason:     rec.Reason,
+		Confidence: rec.Confidence,
+		Category:   string(rec.Category),
 	}
 }

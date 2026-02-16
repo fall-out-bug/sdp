@@ -50,6 +50,7 @@ func (a *App) refreshCmd() tea.Cmd {
 		a.state.Workstreams = a.fetchWorkstreams()
 		a.state.Ideas = a.fetchIdeas()
 		a.state.TestResults = a.fetchTestResults()
+		a.state.NextStep = a.fetchNextStep()
 
 		return RefreshMsg{}
 	}
@@ -93,6 +94,8 @@ func (a *App) View() string {
 	content += "\n\n"
 	content += a.renderContent()
 	content += "\n\n"
+	content += a.renderNextStep()
+	content += "\n"
 	content += a.renderFooter()
 
 	// Wrap everything in black background

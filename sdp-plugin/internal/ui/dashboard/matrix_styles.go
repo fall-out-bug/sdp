@@ -90,4 +90,9 @@ var (
 	matrixFooterStyle = lipgloss.NewStyle().
 				Foreground(matrixForeground).
 				Background(matrixBackground)
+
+	// Dim style for secondary information
+	matrixDimStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("242")).
+			Background(matrixBackground)
 )
