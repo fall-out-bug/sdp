@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP CLI v0.9.1 with Claude Code.
+Quick reference for using SDP CLI v0.9.2 with Claude Code.
 
 ## Quick Start
 
