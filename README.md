@@ -19,22 +19,24 @@ SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI
 **One-liner installer (recommended):**
 
 ```bash
+# Install for all IDEs
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
+
+# Or specify your IDE
+SDP_IDE=claude curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
+SDP_IDE=cursor curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
 ```
 
-Works with Claude Code, Cursor, OpenCode, Windsurf.
+**Supported IDEs:** `claude`, `cursor`, `opencode`, `all` (default)
 
 **Manual install:**
 
 ```bash
-# Add SDP as a submodule
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
-
-# Add to .gitignore
 echo "sdp/.git" >> .gitignore
 ```
 
-In Claude Code: skills load automatically from `sdp/.claude/skills/`.
+Skills load automatically from `sdp/.claude/skills/` (Claude Code) or `sdp/.cursor/skills/` (Cursor).
 
 ## Core Workflow
 
