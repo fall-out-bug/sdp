@@ -1,7 +1,11 @@
 ---
 name: debugger
 description: Debug agent for systematic root cause analysis using scientific method
-tools: Read, Bash, Grep, Glob
+tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
 model: inherit
 ---
 

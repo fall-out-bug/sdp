@@ -1,7 +1,11 @@
 ---
 name: reviewer
 description: Code review specialist. Reviews workstreams against 17-point checklist. Verdicts are APPROVED or CHANGES_REQUESTED only - no middle ground.
-tools: Read, Bash, Glob, Grep
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
 model: inherit
 ---
 

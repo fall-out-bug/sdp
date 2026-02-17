@@ -1,7 +1,13 @@
 ---
 name: deployer
 description: Deployment automation agent. Generates DevOps configs, CI/CD updates, handles git merge/tag workflow. Only runs after APPROVED review and human UAT sign-off.
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
 model: inherit
 ---
 

@@ -1,7 +1,11 @@
 ---
 name: tdd
 description: "Enforce Test-Driven Development discipline: Red -> Green -> Refactor (INTERNAL - used by @build)"
-tools: Read, Write, Edit, Bash
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
 ---
 
 # /tdd - Test-Driven Development (INTERNAL)

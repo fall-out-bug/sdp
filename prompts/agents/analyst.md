@@ -1,7 +1,13 @@
 ---
 name: analyst
 description: Business/Technical analyst. Clarifies requirements, identifies edge cases, defines acceptance criteria.
-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+tools:
+  - Read
+  - Write
+  - Bash
+  - Glob
+  - Grep
+  - AskUserQuestion
 model: inherit
 ---
 

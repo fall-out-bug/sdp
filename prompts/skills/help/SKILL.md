@@ -1,7 +1,8 @@
 ---
 name: help
 description: Interactive skill discovery and guidance
-tools: Read
+tools:
+  - Read
 ---
 
 # @help - Skill Discovery
