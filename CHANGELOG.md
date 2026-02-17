@@ -2,6 +2,16 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.3] - 2026-02-17
+
+### Patch Release
+
+**Fixes:**
+- Fixed TempDir cleanup in prototype tests (CI stability)
+- Fixed Go Release workflow (actions/attest-slsa → actions/attest-build-provenance)
+
+---
+
 ## [0.9.2] - 2026-02-17
 
 ### Patch Release
