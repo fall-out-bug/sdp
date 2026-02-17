@@ -53,6 +53,17 @@ checksum:
   name_template: 'checksums.txt'
   algorithm: sha256
 
+signs:
+  - artifacts: checksum
+    signature: "${artifact}.sig"
+    cmd: gpg
+    args:
+      - --output
+      - "${signature}"
+      - --detach-sign
+      - --armor
+      - "${artifact}"
+
 changelog:
   sort: asc
   filters:
