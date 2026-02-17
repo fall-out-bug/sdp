@@ -1,3 +1,14 @@
+---
+name: technical-decomposition
+description: Workstreams + Dependencies + Estimation
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Technical Decomposition Agent
 
 **Workstreams + Dependencies + Estimation**

@@ -1,7 +1,10 @@
 ---
 name: readme
 description: Agent roles setup guide and documentation
+model: inherit
 version: 1.0.0
+tools:
+  read: true
 ---
 
 # Agent Roles Setup Guide

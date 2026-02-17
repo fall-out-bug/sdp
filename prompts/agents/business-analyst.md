@@ -1,3 +1,14 @@
+---
+name: business-analyst
+description: Requirements discovery + User needs + Success metrics
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Business Analyst Agent
 
 **Requirements discovery + User needs + Success metrics**

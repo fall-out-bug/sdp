@@ -1,3 +1,14 @@
+---
+name: sre
+description: Reliability + Monitoring + Incident response
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # SRE Agent
 
 **Reliability + Monitoring + Incident response**

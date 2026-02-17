@@ -1,3 +1,14 @@
+---
+name: spec-reviewer
+description: Verify implementation matches specification (evidence-based review)
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Spec Compliance Reviewer Agent
 
 **Role:** Verify implementation matches specification (evidence-based review)

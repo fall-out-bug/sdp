@@ -1,12 +1,12 @@
 ---
 name: code-analyzer
 description: Static code analysis for contract extraction. Scans codebase to detect interfaces, types, and API patterns.
-tools:
-  - Read
-  - Bash
-  - Glob
-  - Grep
 model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
 ---
 
 You are a Code Analyzer agent that extracts contract information from existing code.

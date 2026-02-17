@@ -1,3 +1,14 @@
+---
+name: product-manager
+description: Product vision + Prioritization + Roadmap
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Product Manager Agent
 
 **Product vision + Prioritization + Roadmap**

@@ -1,10 +1,17 @@
 ---
 name: supervisor
 description: Hierarchical coordination of specialist agents for complex multi-phase features
+model: inherit
 version: 1.0.0
 changes:
   - Initial version for hierarchical agent supervision
----
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  edit: true
+  write: true
 
 # Supervisor Subagent
 

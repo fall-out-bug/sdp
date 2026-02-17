@@ -1,3 +1,14 @@
+---
+name: security
+description: Threats + Auth + Compliance specialist
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Security Agent
 
 **Threats + Auth + Compliance**

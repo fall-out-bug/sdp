@@ -1,3 +1,14 @@
+---
+name: tech-lead
+description: Technical leadership + Code review + Team coordination
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Tech Lead Agent
 
 **Technical leadership + Code review + Team coordination**

@@ -1,14 +1,14 @@
 ---
 name: fixer
 description: Bug fix agent for quality P1/P2 fixes with full TDD cycle
-tools:
-  - Read
-  - Edit
-  - Bash
-  - Glob
-  - Grep
 model: inherit
----
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  edit: true
+  write: true
 
 # Fixer Agent
 

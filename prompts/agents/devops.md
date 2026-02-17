@@ -1,3 +1,16 @@
+---
+name: devops
+description: CI/CD + Infrastructure + Deployment specialist
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  edit: true
+  write: true
+---
+
 # DevOps Agent
 
 **CI/CD + Infrastructure + Deployment**

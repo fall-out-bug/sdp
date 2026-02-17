@@ -1,3 +1,16 @@
+---
+name: implementer
+description: Execute workstreams following TDD discipline with self-reporting
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  edit: true
+  write: true
+---
+
 # Implementer Agent
 
 **Role:** Execute workstreams following TDD discipline with self-reporting

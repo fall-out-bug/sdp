@@ -1,3 +1,15 @@
+---
+name: system-architect
+description: Architecture design + Tech stack + Quality attributes
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  write: true
+---
+
 # System Architect Agent
 
 **Architecture design + Tech stack + Quality attributes**

@@ -1,3 +1,14 @@
+---
+name: qa
+description: Test strategy + Quality metrics + Quality gates
+model: inherit
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # QA Agent
 
 **Test strategy + Quality metrics + Quality gates**
