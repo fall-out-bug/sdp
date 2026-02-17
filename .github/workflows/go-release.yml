@@ -52,7 +52,7 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: sdp
-          subject-digest: ${{ hashFiles('sdp-plugin/dist/*') }}
+          subject-digest: sha256:${{ hashFiles('sdp-plugin/dist/*') }}
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
