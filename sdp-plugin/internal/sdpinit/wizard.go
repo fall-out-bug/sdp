@@ -44,9 +44,16 @@ func NewWizard(reader io.Reader, writer io.Writer, preflight *PreflightResult) *
 		r = bufio.NewReader(os.Stdin)
 	}
 
+	var w io.Writer
+	if writer != nil {
+		w = writer
+	} else {
+		w = os.Stdout
+	}
+
 	return &Wizard{
 		reader:    r,
-		writer:    writer,
+		writer:    w,
 		preflight: preflight,
 	}
 }
