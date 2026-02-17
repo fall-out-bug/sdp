@@ -431,4 +431,4 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**CLI Version:** 0.9.3 | **Protocol Version:** 0.10.0
+**CLI Version:** 0.9.1 | **Protocol Version:** 0.10.0
