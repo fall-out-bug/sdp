@@ -9,7 +9,11 @@ import (
 // TestPrototypeCmd_GenerationEvent tests that prototype emits generation event (F056-03 AC4)
 func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 	originalWd, _ := os.Getwd()
-	tmpDir := t.TempDir()
+	// Use manual temp dir to avoid cleanup issues with .sdp subdirectory
+	tmpDir, err := os.MkdirTemp("", "sdp-prototype-test-")
+	if err != nil {
+		t.Fatalf("mkdir temp: %v", err)
+	}
 
 	// Create .sdp/config.yml to enable evidence
 	cfgDir := filepath.Join(tmpDir, ".sdp")
@@ -25,8 +29,7 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 
 	t.Cleanup(func() {
 		os.Chdir(originalWd)
-		// Remove .sdp to allow TempDir cleanup
-		os.RemoveAll(cfgDir)
+		os.RemoveAll(tmpDir)
 	})
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("chdir: %v", err)
@@ -72,12 +75,15 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 // TestPrototypeCmd_SkipInterview tests prototype with skip-interview flag
 func TestPrototypeCmd_SkipInterview(t *testing.T) {
 	originalWd, _ := os.Getwd()
-	tmpDir := t.TempDir()
+	// Use manual temp dir to avoid cleanup issues with .sdp subdirectory
+	tmpDir, err := os.MkdirTemp("", "sdp-prototype-test-")
+	if err != nil {
+		t.Fatalf("mkdir temp: %v", err)
+	}
 
 	t.Cleanup(func() {
 		os.Chdir(originalWd)
-		// Remove .sdp to allow TempDir cleanup
-		os.RemoveAll(filepath.Join(tmpDir, ".sdp"))
+		os.RemoveAll(tmpDir)
 	})
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("chdir: %v", err)
