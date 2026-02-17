@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP CLI v0.9.0 with Claude Code.
+Quick reference for using SDP CLI v0.9.1 with Claude Code.
 
 ## Quick Start
 
@@ -431,4 +431,4 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**CLI Version:** 0.9.0 | **Protocol Version:** 0.10.0
+**CLI Version:** 0.9.1 | **Protocol Version:** 0.10.0

@@ -2,6 +2,24 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.1] - 2026-02-16
+
+### Patch Release
+
+**Improvements:**
+- **One-liner installer:** `curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash`
+- **OpenCode integration:** `.opencode/` directory with skills, agents, commands
+- **Cross-platform sync:** Commands available for Claude Code, Cursor, OpenCode, Windsurf
+
+**Fixes:**
+- Fixed Go version mismatch in `sdp-verify-dogfood.yml` (1.24 → 1.26)
+
+**Dependencies:**
+- Bump `github.com/spf13/cobra` from 1.8.0 to 1.10.2
+- Bump `actions/upload-artifact` from 4 to 6
+
+---
+
 ## [0.9.0] - 2026-02-16
 
 ### M1 Milestone - UX Excellence & Intelligent Assistance
