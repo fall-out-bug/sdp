@@ -23,7 +23,11 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 		t.Fatalf("write config: %v", err)
 	}
 
-	t.Cleanup(func() { os.Chdir(originalWd) })
+	t.Cleanup(func() {
+		os.Chdir(originalWd)
+		// Remove .sdp to allow TempDir cleanup
+		os.RemoveAll(cfgDir)
+	})
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("chdir: %v", err)
 	}
@@ -70,7 +74,11 @@ func TestPrototypeCmd_SkipInterview(t *testing.T) {
 	originalWd, _ := os.Getwd()
 	tmpDir := t.TempDir()
 
-	t.Cleanup(func() { os.Chdir(originalWd) })
+	t.Cleanup(func() {
+		os.Chdir(originalWd)
+		// Remove .sdp to allow TempDir cleanup
+		os.RemoveAll(filepath.Join(tmpDir, ".sdp"))
+	})
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("chdir: %v", err)
 	}
