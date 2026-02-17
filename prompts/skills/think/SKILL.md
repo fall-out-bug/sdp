@@ -1,7 +1,11 @@
 ---
 name: think
 description: Deep structured thinking with parallel agents (INTERNAL)
-tools: Read, Write, Bash, Task
+tools:
+  - Read
+  - Write
+  - Bash
+  - Task
 ---
 
 # /think - Deep Structured Thinking

@@ -1,7 +1,11 @@
 ---
 name: planner
 description: Planning agent for codebase analysis and workstream decomposition. Use when decomposing large features into WS or creating detailed implementation plans. Read-only for codebase exploration.
-tools: Read, Glob, Grep, Bash
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
 model: inherit
 ---
 

@@ -1,7 +1,12 @@
 ---
 name: architect
 description: Software architect. Designs system structure, patterns, and integration points.
-tools: Read, Write, Bash, Glob, Grep
+tools:
+  - Read
+  - Write
+  - Bash
+  - Glob
+  - Grep
 model: inherit
 ---
 

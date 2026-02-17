@@ -1,7 +1,10 @@
 ---
 name: visionary
 description: Strategic planning agent for vision, PRD, and roadmap creation
-tools: Read, Glob, WebFetch
+tools:
+  - Read
+  - Glob
+  - WebFetch
 model: inherit
 ---
 

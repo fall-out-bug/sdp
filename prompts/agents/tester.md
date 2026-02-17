@@ -1,7 +1,13 @@
 ---
 name: tester
 description: QA specialist. Designs test strategies, writes test cases, ensures coverage.
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
 model: inherit
 ---
 

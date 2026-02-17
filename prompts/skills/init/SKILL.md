@@ -1,7 +1,11 @@
 ---
 name: init
 description: Initialize SDP in current project (interactive wizard)
-tools: Read, Write, Bash, AskUserQuestion
+tools:
+  - Read
+  - Write
+  - Bash
+  - AskUserQuestion
 ---
 
 # /init - SDP Project Setup Wizard

@@ -1,7 +1,11 @@
 ---
 name: workflow-auditor
 description: Audits process drift across workstreams, docs, hooks, and CI workflows.
-tools: Read, Bash, Grep, Glob
+tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
 model: inherit
 ---
 

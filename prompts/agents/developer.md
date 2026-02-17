@@ -1,7 +1,13 @@
 ---
 name: developer
 description: Senior software developer. Implements code following clean architecture and SOLID principles.
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
 model: inherit
 ---
 

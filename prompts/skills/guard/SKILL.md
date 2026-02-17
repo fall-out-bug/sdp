@@ -1,7 +1,9 @@
 ---
 name: guard
 description: Pre-edit gate enforcing WS scope (INTERNAL)
-tools: Read, Shell
+tools:
+  - Read
+  - Shell
 version: 2.0.0
 ---
 

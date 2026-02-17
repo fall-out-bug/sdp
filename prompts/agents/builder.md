@@ -1,7 +1,13 @@
 ---
 name: builder
 description: TDD execution agent. Implements workstreams following Red-Green-Refactor cycle. Use for implementing a single WS with full test coverage.
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
 model: inherit
 ---
 

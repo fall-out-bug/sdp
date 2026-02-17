@@ -1,7 +1,13 @@
 ---
 name: prototype
 description: Rapid prototyping shortcut for experienced vibecoders
-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+tools:
+  - Read
+  - Write
+  - Bash
+  - Glob
+  - Grep
+  - AskUserQuestion
 version: 1.1.0
 ---
 

@@ -1,7 +1,11 @@
 ---
 name: ci-reviewer
 description: GitHub Actions specialist for run triage, root-cause analysis, and fix recommendations.
-tools: Read, Bash, Grep, Glob
+tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
 model: inherit
 ---
 
