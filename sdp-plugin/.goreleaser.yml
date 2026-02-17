@@ -1,6 +1,8 @@
 # GoReleaser configuration for SDP
 # See https://goreleaser.com/customization/ for documentation
 
+version: 2
+
 project_name: sdp
 
 before:
