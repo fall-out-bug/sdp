@@ -417,3 +417,42 @@ jobs:
           else
             echo "✅ All files under 200 LOC"
           fi
+
+  release-dry-run:
+    name: Release Dry-Run
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Run GoReleaser dry-run
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --clean --skip=sign,sbom,validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check generated binaries
+        run: |
+          echo "Checking generated binaries..."
+          if [ -d "dist" ]; then
+            echo "✅ dist/ directory created"
+            ls -la dist/ || true
+          else
+            echo "❌ dist/ directory not created"
+            exit 1
+          fi
