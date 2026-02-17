@@ -60,7 +60,7 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: sdp-plugin/coverage.out
           fail_ci_if_error: false
