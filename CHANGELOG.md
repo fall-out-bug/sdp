@@ -2,6 +2,19 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.2] - 2026-02-17
+
+### Patch Release
+
+**New:**
+- IDE selection in installer: `SDP_IDE=claude|cursor|opencode`
+- OpenCode/Windsurf integration via `.opencode/` directory
+
+**Fixes:**
+- Fixed nil pointer panic in `NewWizard` (flaky TestInitCommand)
+
+---
+
 ## [0.9.1] - 2026-02-16
 
 ### Patch Release
