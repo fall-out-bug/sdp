@@ -26,7 +26,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.26'
           cache: true
           cache-dependency-path: sdp-plugin/go.sum
 
@@ -48,11 +48,10 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
       - name: Generate SLSA provenance
-        uses: actions/attest-slsa@v1
+        uses: actions/attest-build-provenance@v1
         with:
           subject-name: sdp
           subject-digest: ${{ hashFiles('sdp-plugin/dist/*') }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
