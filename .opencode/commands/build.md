@@ -1,3 +1,8 @@
+---
+description: Execute a workstream using TDD and guard-enforced workflow.
+agent: builder
+---
+
 # /build — Execute Workstream
 
 When calling `/build {WS-ID}`:

@@ -1,3 +1,8 @@
+---
+description: Analyze bugs, classify severity, and route to the correct fix path.
+agent: debugger
+---
+
 # /issue — Analyze & Route Issues
 
 When calling `/issue "description"`:

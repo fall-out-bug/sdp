@@ -208,7 +208,7 @@ Before submitting PR:
 
 | Category | Files |
 |----------|-------|
-| **Added** | `.go-version`, `DEVELOPMENT.md`, `scripts/install.sh`, `prompts/agents/VERSIONS.md`, `docs/decisions/ADR-001-dual-module-structure.md`, `hooks/check-prompt-drift.sh` |
+| **Added** | `.go-version`, `DEVELOPMENT.md`, `scripts/install.sh`, `prompts/AGENT_VERSIONS.md`, `docs/decisions/ADR-001-dual-module-structure.md`, `hooks/check-prompt-drift.sh` |
 | **Removed** | `poetry.lock`, `quality-gate.toml`, `ci-gates.toml`, `coverage_quality.out`, `sdp-plugin/prompts/`, `.sdp/.sdp` |
 | **Modified** | `.github/workflows/go-ci.yml`, `.gitignore`, `.gitmodules`, `CONTRIBUTING.md`, `README.md`, `docs/PROTOCOL.md`, `docs/reference/quality-gates.md`, `docs/reference/EVIDENCE-COVERAGE.md`, `.opencode/opencode.json`, `.cursor/worktrees.json` |
 

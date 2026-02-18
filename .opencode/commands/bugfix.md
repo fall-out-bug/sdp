@@ -1,3 +1,8 @@
+---
+description: Quality bug-fix workflow for P1/P2 issues with full TDD cycle.
+agent: builder
+---
+
 # /bugfix — Quality Bug Fixes
 
 When calling `/bugfix issue NNN`:

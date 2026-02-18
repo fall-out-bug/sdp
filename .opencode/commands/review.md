@@ -1,3 +1,8 @@
+---
+description: Multi-agent quality review with cross-workstream consistency checks.
+agent: reviewer
+---
+
 # /review — Review Feature
 
 When calling `/review {feature}`:
