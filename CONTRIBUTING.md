@@ -71,7 +71,7 @@ SDP uses two separate Go modules:
 
 ```bash
 # Build CLI (primary development)
-cd sdp-plugin && go build -o sdp ./cmd/sdp
+cd sdp-plugin && CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 
 # Build root module (if needed)
 go build ./...

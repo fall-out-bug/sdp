@@ -618,7 +618,7 @@ jobs:
       - name: Build SDP CLI
         run: |
           cd sdp-plugin
-          go build -o sdp ./cmd/sdp
+          CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 
       - name: Run guard checks
         run: |

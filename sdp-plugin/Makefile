@@ -1,12 +1,13 @@
 VERSION := $(shell git describe --tags --always 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
+GO_BUILD := CGO_ENABLED=0 go build
 
 .PHONY: build build-all clean test install deps fmt lint version
 
 # Build for current platform
 build:
 	@echo "Building sdp v$(VERSION)..."
-	go build $(LDFLAGS) -o bin/sdp ./cmd/sdp
+	$(GO_BUILD) $(LDFLAGS) -o bin/sdp ./cmd/sdp
 	@echo "✓ Built bin/sdp"
 	@ls -lh bin/sdp
 
@@ -14,10 +15,10 @@ build:
 build-all:
 	@echo "Building sdp v$(VERSION) for all platforms..."
 	@mkdir -p bin
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o bin/sdp-darwin-arm64 ./cmd/sdp
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/sdp-darwin-amd64 ./cmd/sdp
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/sdp-linux-amd64 ./cmd/sdp
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o bin/sdp-windows-amd64.exe ./cmd/sdp
+	GOOS=darwin GOARCH=arm64 $(GO_BUILD) $(LDFLAGS) -o bin/sdp-darwin-arm64 ./cmd/sdp
+	GOOS=darwin GOARCH=amd64 $(GO_BUILD) $(LDFLAGS) -o bin/sdp-darwin-amd64 ./cmd/sdp
+	GOOS=linux GOARCH=amd64 $(GO_BUILD) $(LDFLAGS) -o bin/sdp-linux-amd64 ./cmd/sdp
+	GOOS=windows GOARCH=amd64 $(GO_BUILD) $(LDFLAGS) -o bin/sdp-windows-amd64.exe ./cmd/sdp
 	@echo "✓ Built 4 binaries"
 	@ls -lh bin/
 

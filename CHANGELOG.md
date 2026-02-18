@@ -2,6 +2,17 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.4] - 2026-02-18
+
+### Patch Release
+
+**Fixes:**
+- Fixed installer portability so `curl ... | sh` works and installs the CLI binary by default.
+- Fixed source build path by forcing `CGO_ENABLED=0` in `sdp-plugin/Makefile` to avoid Xcode dependency on macOS.
+- Restored `sdp init --guided` compatibility as an alias to interactive mode.
+
+---
+
 ## [0.9.3] - 2026-02-17
 
 ### Patch Release

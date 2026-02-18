@@ -10,7 +10,7 @@ Project skills source of truth lives in `prompts/skills/` (this repo). Tool fold
 
 1. Install SDP CLI (from repo root):
    ```bash
-   cd sdp-plugin && go build -o sdp ./cmd/sdp && mv sdp ../
+   cd sdp-plugin && CGO_ENABLED=0 go build -o sdp ./cmd/sdp && mv sdp ../
    ```
 2. Ensure `sdp` is on PATH.
 3. Use `@build 00-XXX-YY` or `sdp plan`, `sdp apply`, `sdp log trace` per [CLAUDE.md](../CLAUDE.md).

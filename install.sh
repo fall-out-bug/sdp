@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 # SDP One-liner Installer
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
-#   SDP_IDE=cursor curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
+#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
 #
 # Installs SDP prompts and commands into your project.
 # Works with: Claude Code, Cursor, OpenCode, Windsurf
@@ -12,6 +12,8 @@ set -e
 SDP_DIR="${SDP_DIR:-sdp}"
 SDP_IDE="${SDP_IDE:-all}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
+SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-1}"
+DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
 
 echo "🚀 SDP Installer"
 echo "================"
@@ -19,13 +21,27 @@ echo "================"
 # Check if already installed
 if [ -d "$SDP_DIR" ]; then
     echo "⚠️  $SDP_DIR already exists. Updating..."
-    cd "$SDP_DIR" && git pull origin main
+    git -C "$SDP_DIR" pull origin main
 else
     echo "📦 Cloning SDP..."
     git clone --depth 1 "$REMOTE" "$SDP_DIR"
 fi
 
 cd "$SDP_DIR"
+
+# Install CLI binary by default (for `sdp init`, `sdp doctor`, etc.)
+if [ "$SDP_INSTALL_CLI" = "1" ]; then
+    if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
+        echo "🔧 Installing SDP CLI binary..."
+        if ! sh scripts/install.sh latest; then
+            echo "⚠️  CLI binary installation failed. Prompts are installed, but 'sdp init' may not be available yet."
+            echo "   Retry manually: sh scripts/install.sh"
+        fi
+    else
+        echo "⚠️  Skipping automatic CLI install for custom SDP_REMOTE."
+        echo "   Clone source may be untrusted; install CLI manually if needed."
+    fi
+fi
 
 # Setup for selected IDE
 echo "🔗 Setting up for: $SDP_IDE"
@@ -94,6 +110,25 @@ fi
 
 echo ""
 echo "✅ SDP installed successfully!"
+echo ""
+if [ -x "${HOME}/.local/bin/sdp" ]; then
+    echo "CLI: ${HOME}/.local/bin/sdp"
+    if "${HOME}/.local/bin/sdp" init --help 2>/dev/null | grep -q -- "--guided"; then
+        echo "Try: ${HOME}/.local/bin/sdp init --guided"
+    else
+        echo "Try: ${HOME}/.local/bin/sdp init --auto"
+    fi
+elif command -v sdp >/dev/null 2>&1; then
+    cli_path=$(command -v sdp)
+    echo "CLI: ${cli_path}"
+    if "$cli_path" init --help 2>/dev/null | grep -q -- "--guided"; then
+        echo "Try: sdp init --guided"
+    else
+        echo "Try: sdp init --auto"
+    fi
+else
+    echo "CLI not found in PATH. Restart shell or add ~/.local/bin to PATH."
+fi
 echo ""
 echo "Usage:"
 echo "  @vision \"your product\"    # Strategic planning"

@@ -412,6 +412,40 @@ func TestInitCmdWithSkills(t *testing.T) {
 	}
 }
 
+// TestInitCmdWithGuidedAlias tests backward-compatible --guided alias.
+func TestInitCmdWithGuidedAlias(t *testing.T) {
+	originalWd, _ := os.Getwd()
+	tmpDir := t.TempDir()
+
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
+	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+		t.Fatalf("Failed to create prompts dir: %v", err)
+	}
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+		t.Fatalf("Failed to create test prompt: %v", err)
+	}
+
+	cmd := initCmd()
+	if err := cmd.Flags().Set("guided", "true"); err != nil {
+		t.Fatalf("Failed to set guided flag: %v", err)
+	}
+	if err := cmd.Flags().Set("auto", "true"); err != nil {
+		t.Fatalf("Failed to set auto flag: %v", err)
+	}
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("initCmd() with guided alias failed: %v", err)
+	}
+
+	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
+		t.Error("initCmd() with guided alias did not create .claude directory")
+	}
+}
+
 // TestInitCmdFlags tests that all flags are properly registered
 func TestInitCmdFlags(t *testing.T) {
 	cmd := initCmd()
@@ -419,7 +453,7 @@ func TestInitCmdFlags(t *testing.T) {
 	// Check all flags exist
 	expectedFlags := []string{
 		"project-type", "name", "skip-beads", "skills",
-		"auto", "headless", "interactive", "output",
+		"auto", "headless", "guided", "interactive", "output",
 		"force", "dry-run", "no-evidence",
 	}
 
