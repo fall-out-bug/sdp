@@ -14,7 +14,7 @@ SDP_DIR="${SDP_DIR:-sdp}"
 SDP_IDE="${SDP_IDE:-all}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
 SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-1}"
-SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-1}"
+SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
 SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-0}"
 DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
 
@@ -50,9 +50,27 @@ cd "$SDP_DIR"
 if [ "$SDP_INSTALL_CLI" = "1" ]; then
     cli_installed=0
 
-    if [ "$SDP_INSTALL_CLI_FROM_SOURCE" = "1" ]; then
+    if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
+        echo "🔧 Installing SDP CLI binary from latest release..."
+        if sh scripts/install.sh latest; then
+            cli_installed=1
+        else
+            echo "⚠️  Release binary installation failed."
+            if [ "$SDP_INSTALL_CLI_FROM_SOURCE" = "1" ] && command -v go >/dev/null 2>&1; then
+                echo "🔧 Trying source build fallback..."
+                mkdir -p "${HOME}/.local/bin"
+                if (
+                    cd sdp-plugin && \
+                    CGO_ENABLED=0 GOFLAGS=-buildvcs=false go build -o "${HOME}/.local/bin/sdp" ./cmd/sdp
+                ); then
+                    echo "✅ Installed CLI from source to ${HOME}/.local/bin/sdp"
+                    cli_installed=1
+                fi
+            fi
+        fi
+    else
         if command -v go >/dev/null 2>&1; then
-            echo "🔧 Building SDP CLI from checked-out source..."
+            echo "🔧 Building SDP CLI from checked-out source (custom remote)..."
             mkdir -p "${HOME}/.local/bin"
             if (
                 cd sdp-plugin && \
@@ -60,23 +78,17 @@ if [ "$SDP_INSTALL_CLI" = "1" ]; then
             ); then
                 echo "✅ Installed CLI from source to ${HOME}/.local/bin/sdp"
                 cli_installed=1
-            else
-                echo "⚠️  Source build failed, trying release binary fallback..."
             fi
-        else
-            echo "⚠️  Go toolchain not found; trying release binary fallback..."
         fi
     fi
 
-    if [ "$cli_installed" != "1" ] && [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
-        echo "🔧 Installing SDP CLI binary from latest release..."
-        if ! sh scripts/install.sh latest; then
-            echo "⚠️  CLI binary installation failed. Prompts are installed, but 'sdp init' may not be available yet."
+    if [ "$cli_installed" != "1" ]; then
+        echo "⚠️  CLI installation failed. Prompts are installed, but 'sdp init' may not be available yet."
+        if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
             echo "   Retry manually: sh scripts/install.sh"
+        else
+            echo "   Retry manually after installing Go toolchain."
         fi
-    elif [ "$cli_installed" != "1" ]; then
-        echo "⚠️  Skipping automatic CLI install for custom SDP_REMOTE."
-        echo "   Clone source may be untrusted; install CLI manually if needed."
     fi
 fi
 
