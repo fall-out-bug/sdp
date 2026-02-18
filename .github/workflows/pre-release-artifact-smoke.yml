@@ -74,6 +74,7 @@ jobs:
           docker run --rm \
             --add-host host.docker.internal:host-gateway \
             -e SDP_RELEASE_BASE_URL="http://host.docker.internal:18080/${SMOKE_VERSION}" \
+            -e SMOKE_VERSION="${SMOKE_VERSION}" \
             -v "${GITHUB_WORKSPACE}:/repo" \
             ubuntu:24.04 \
             sh -c '
