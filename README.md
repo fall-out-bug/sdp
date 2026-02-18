@@ -25,6 +25,9 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | s
 # Or specify your IDE
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
+
+# Preserve existing IDE links/config files
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
 ```
 
 **Supported IDEs:** `claude`, `cursor`, `opencode`, `all` (default)

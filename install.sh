@@ -3,6 +3,7 @@
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
+#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --no-overwrite-config
 #
 # Installs SDP prompts and commands into your project.
 # Works with: Claude Code, Cursor, OpenCode, Windsurf
@@ -13,10 +14,26 @@ SDP_DIR="${SDP_DIR:-sdp}"
 SDP_IDE="${SDP_IDE:-all}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
 SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-1}"
+SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
+SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-0}"
 DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
+
+for arg in "$@"; do
+    case "$arg" in
+        --no-overwrite-config)
+            SDP_PRESERVE_CONFIG="1"
+            ;;
+        --overwrite-config)
+            SDP_PRESERVE_CONFIG="0"
+            ;;
+    esac
+done
 
 echo "🚀 SDP Installer"
 echo "================"
+if [ "$SDP_PRESERVE_CONFIG" = "1" ]; then
+    echo "Mode: preserve existing IDE config files"
+fi
 
 # Check if already installed
 if [ -d "$SDP_DIR" ]; then
@@ -31,15 +48,47 @@ cd "$SDP_DIR"
 
 # Install CLI binary by default (for `sdp init`, `sdp doctor`, etc.)
 if [ "$SDP_INSTALL_CLI" = "1" ]; then
+    cli_installed=0
+
     if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
-        echo "🔧 Installing SDP CLI binary..."
-        if ! sh scripts/install.sh latest; then
-            echo "⚠️  CLI binary installation failed. Prompts are installed, but 'sdp init' may not be available yet."
-            echo "   Retry manually: sh scripts/install.sh"
+        echo "🔧 Installing SDP CLI binary from latest release..."
+        if sh scripts/install.sh latest; then
+            cli_installed=1
+        else
+            echo "⚠️  Release binary installation failed."
+            if [ "$SDP_INSTALL_CLI_FROM_SOURCE" = "1" ] && command -v go >/dev/null 2>&1; then
+                echo "🔧 Trying source build fallback..."
+                mkdir -p "${HOME}/.local/bin"
+                if (
+                    cd sdp-plugin && \
+                    CGO_ENABLED=0 GOFLAGS=-buildvcs=false go build -o "${HOME}/.local/bin/sdp" ./cmd/sdp
+                ); then
+                    echo "✅ Installed CLI from source to ${HOME}/.local/bin/sdp"
+                    cli_installed=1
+                fi
+            fi
         fi
     else
-        echo "⚠️  Skipping automatic CLI install for custom SDP_REMOTE."
-        echo "   Clone source may be untrusted; install CLI manually if needed."
+        if command -v go >/dev/null 2>&1; then
+            echo "🔧 Building SDP CLI from checked-out source (custom remote)..."
+            mkdir -p "${HOME}/.local/bin"
+            if (
+                cd sdp-plugin && \
+                CGO_ENABLED=0 GOFLAGS=-buildvcs=false go build -o "${HOME}/.local/bin/sdp" ./cmd/sdp
+            ); then
+                echo "✅ Installed CLI from source to ${HOME}/.local/bin/sdp"
+                cli_installed=1
+            fi
+        fi
+    fi
+
+    if [ "$cli_installed" != "1" ]; then
+        echo "⚠️  CLI installation failed. Prompts are installed, but 'sdp init' may not be available yet."
+        if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
+            echo "   Retry manually: sh scripts/install.sh"
+        else
+            echo "   Retry manually after installing Go toolchain."
+        fi
     fi
 fi
 
@@ -48,8 +97,16 @@ echo "🔗 Setting up for: $SDP_IDE"
 
 setup_claude() {
     mkdir -p ../.claude
-    ln -sf "../$SDP_DIR/prompts/skills" "../.claude/skills" 2>/dev/null || true
-    ln -sf "../$SDP_DIR/prompts/agents" "../.claude/agents" 2>/dev/null || true
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -e "../.claude/skills" ]; then
+        :
+    else
+        ln -sf "../$SDP_DIR/prompts/skills" "../.claude/skills" 2>/dev/null || true
+    fi
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -e "../.claude/agents" ]; then
+        :
+    else
+        ln -sf "../$SDP_DIR/prompts/agents" "../.claude/agents" 2>/dev/null || true
+    fi
     cp -n .claude/commands.json ../.claude/ 2>/dev/null || true
     cp -rn .claude/hooks ../.claude/ 2>/dev/null || true
     cp -rn .claude/patterns ../.claude/ 2>/dev/null || true
@@ -58,8 +115,16 @@ setup_claude() {
 
 setup_cursor() {
     mkdir -p ../.cursor
-    ln -sf "../$SDP_DIR/prompts/skills" "../.cursor/skills" 2>/dev/null || true
-    ln -sf "../$SDP_DIR/prompts/agents" "../.cursor/agents" 2>/dev/null || true
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -e "../.cursor/skills" ]; then
+        :
+    else
+        ln -sf "../$SDP_DIR/prompts/skills" "../.cursor/skills" 2>/dev/null || true
+    fi
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -e "../.cursor/agents" ]; then
+        :
+    else
+        ln -sf "../$SDP_DIR/prompts/agents" "../.cursor/agents" 2>/dev/null || true
+    fi
     mkdir -p ../.cursor/commands
     for cmd in .cursor/commands/*.md; do
         [ -f "$cmd" ] && cp -n "$cmd" ../.cursor/commands/ 2>/dev/null || true
@@ -68,8 +133,16 @@ setup_cursor() {
 
 setup_opencode() {
     mkdir -p ../.opencode
-    ln -sf "../$SDP_DIR/prompts/skills" "../.opencode/skills" 2>/dev/null || true
-    ln -sf "../$SDP_DIR/prompts/agents" "../.opencode/agents" 2>/dev/null || true
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -e "../.opencode/skills" ]; then
+        :
+    else
+        ln -sf "../$SDP_DIR/prompts/skills" "../.opencode/skills" 2>/dev/null || true
+    fi
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -e "../.opencode/agents" ]; then
+        :
+    else
+        ln -sf "../$SDP_DIR/prompts/agents" "../.opencode/agents" 2>/dev/null || true
+    fi
     mkdir -p ../.opencode/commands
     for cmd in .opencode/commands/*.md; do
         [ -f "$cmd" ] && cp -n "$cmd" ../.opencode/commands/ 2>/dev/null || true
