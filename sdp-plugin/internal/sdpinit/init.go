@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Config holds initialization configuration options.
@@ -76,6 +77,11 @@ func copyPrompts(destDir string) error {
 		return err
 	}
 
+	promptsAbs, err := filepath.Abs(promptsDir)
+	if err != nil {
+		return err
+	}
+
 	// Walk the prompts directory and copy to .claude/
 	return filepath.Walk(promptsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -90,8 +96,31 @@ func copyPrompts(destDir string) error {
 
 		destPath := filepath.Join(destDir, relPath)
 
+		if relPath == "." {
+			return nil
+		}
+
 		if info.IsDir() {
+			if isSymlink(pathJoinClean(destDir, relPath)) {
+				return filepath.SkipDir
+			}
 			return os.MkdirAll(destPath, 0755)
+		}
+
+		same, sameErr := sameResolvedPath(path, destPath)
+		if sameErr == nil && same {
+			return nil
+		}
+
+		destAbs, absErr := filepath.Abs(destPath)
+		if absErr == nil {
+			if strings.HasPrefix(destAbs, promptsAbs+string(os.PathSeparator)) {
+				return nil
+			}
+		}
+
+		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+			return err
 		}
 
 		// Copy file
@@ -118,6 +147,38 @@ func copyPrompts(destDir string) error {
 		_, err = io.Copy(dstFile, srcFile)
 		return err
 	})
+}
+
+func isSymlink(path string) bool {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return false
+	}
+	return info.Mode()&os.ModeSymlink != 0
+}
+
+func sameResolvedPath(a, b string) (bool, error) {
+	ra, err := filepath.EvalSymlinks(a)
+	if err != nil {
+		return false, err
+	}
+	rb, err := filepath.EvalSymlinks(b)
+	if err != nil {
+		return false, err
+	}
+	raAbs, err := filepath.Abs(ra)
+	if err != nil {
+		return false, err
+	}
+	rbAbs, err := filepath.Abs(rb)
+	if err != nil {
+		return false, err
+	}
+	return raAbs == rbAbs, nil
+}
+
+func pathJoinClean(parts ...string) string {
+	return filepath.Clean(filepath.Join(parts...))
 }
 
 func resolvePromptsDir() (string, error) {
