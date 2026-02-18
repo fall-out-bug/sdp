@@ -127,6 +127,37 @@ func TestRun_NoPromptsDir(t *testing.T) {
 	}
 }
 
+func TestRun_PromptsInSdpSubdirectory(t *testing.T) {
+	tmpDir := t.TempDir()
+	promptsDir := filepath.Join(tmpDir, "sdp", "prompts")
+	skillsDir := filepath.Join(promptsDir, "skills")
+
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	testSkill := filepath.Join(skillsDir, "test.md")
+	if err := os.WriteFile(testSkill, []byte("# Test Skill"), 0644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	cfg := Config{ProjectType: "go"}
+	if err := Run(cfg); err != nil {
+		t.Fatalf("Run() failed with sdp/prompts fallback: %v", err)
+	}
+
+	copiedSkill := filepath.Join(".claude", "skills", "test.md")
+	if _, err := os.Stat(copiedSkill); os.IsNotExist(err) {
+		t.Error("Test skill was not copied from sdp/prompts fallback")
+	}
+}
+
 func TestRun_CreateDirError(t *testing.T) {
 	// This tests error handling when directory creation fails
 	// We can't easily mock os.MkdirAll, so we'll test the error path
