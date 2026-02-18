@@ -100,7 +100,7 @@ jobs:
             sh -c '
               set -eu
               apt-get update >/dev/null
-              apt-get install -y make >/dev/null
+              apt-get install -y make git >/dev/null
               make build
               /repo/sdp-plugin/bin/sdp init --guided --auto --dry-run >/tmp/init.log 2>&1
               tail -n 20 /tmp/init.log
