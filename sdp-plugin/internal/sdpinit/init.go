@@ -71,11 +71,9 @@ func Run(cfg Config) error {
 }
 
 func copyPrompts(destDir string) error {
-	promptsDir := "prompts"
-
-	// Check if prompts directory exists
-	if _, err := os.Stat(promptsDir); os.IsNotExist(err) {
-		return fmt.Errorf("prompts directory not found: %s", promptsDir)
+	promptsDir, err := resolvePromptsDir()
+	if err != nil {
+		return err
 	}
 
 	// Walk the prompts directory and copy to .claude/
@@ -120,6 +118,24 @@ func copyPrompts(destDir string) error {
 		_, err = io.Copy(dstFile, srcFile)
 		return err
 	})
+}
+
+func resolvePromptsDir() (string, error) {
+	candidates := []string{
+		"prompts",
+		"../prompts",
+		"sdp/prompts",
+		"../sdp/prompts",
+	}
+
+	for _, dir := range candidates {
+		info, err := os.Stat(dir)
+		if err == nil && info.IsDir() {
+			return dir, nil
+		}
+	}
+
+	return "", fmt.Errorf("prompts directory not found: prompts")
 }
 
 func createSettings(claudeDir string, cfg Config) error {
