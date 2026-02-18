@@ -37,7 +37,7 @@ cd sdp
 
 # Build the CLI
 cd sdp-plugin
-go build -o sdp ./cmd/sdp
+CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 
 # Run tests
 go test ./...

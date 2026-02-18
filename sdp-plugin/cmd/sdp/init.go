@@ -13,6 +13,7 @@ func initCmd() *cobra.Command {
 	var skipBeads bool
 	var autoMode bool
 	var headless bool
+	var guided bool
 	var output string
 	var force bool
 	var dryRun bool
@@ -38,6 +39,11 @@ Modes:
 
 Preflight checks detect project type and validate environment.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Backward-compatible aliases
+			if guided {
+				interactive = true
+			}
+
 			// Run preflight checks
 			preflight := sdpinit.RunPreflight()
 
@@ -88,6 +94,7 @@ Preflight checks detect project type and validate environment.`,
 	// Mode flags
 	cmd.Flags().BoolVar(&autoMode, "auto", false, "Non-interactive mode with safe defaults")
 	cmd.Flags().BoolVar(&headless, "headless", false, "CI/CD mode with JSON output")
+	cmd.Flags().BoolVar(&guided, "guided", false, "Deprecated alias for --interactive")
 	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Force interactive mode")
 	cmd.Flags().StringVarP(&output, "output", "o", "text", "Output format (text, json)")
 
