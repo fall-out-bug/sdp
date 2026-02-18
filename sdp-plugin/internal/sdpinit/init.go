@@ -82,71 +82,90 @@ func copyPrompts(destDir string) error {
 		return err
 	}
 
-	// Walk the prompts directory and copy to .claude/
-	return filepath.Walk(promptsDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Calculate destination path
-		relPath, err := filepath.Rel(promptsDir, path)
-		if err != nil {
-			return err
-		}
-
-		destPath := filepath.Join(destDir, relPath)
-
-		if relPath == "." {
-			return nil
-		}
-
-		if info.IsDir() {
-			if isSymlink(pathJoinClean(destDir, relPath)) {
-				return filepath.SkipDir
-			}
-			return os.MkdirAll(destPath, 0755)
-		}
-
-		same, sameErr := sameResolvedPath(path, destPath)
-		if sameErr == nil && same {
-			return nil
-		}
-
-		destAbs, absErr := filepath.Abs(destPath)
-		if absErr == nil {
-			if strings.HasPrefix(destAbs, promptsAbs+string(os.PathSeparator)) {
-				return nil
-			}
-		}
-
-		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-			return err
-		}
-
-		// Copy file
-		srcFile, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			if cerr := srcFile.Close(); cerr != nil {
-				fmt.Fprintf(os.Stderr, "warning: failed to close source file %s: %v\n", path, cerr)
-			}
-		}()
-
-		dstFile, err := os.Create(destPath)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			if cerr := dstFile.Close(); cerr != nil {
-				fmt.Fprintf(os.Stderr, "warning: failed to close destination file %s: %v\n", destPath, cerr)
-			}
-		}()
-
-		_, err = io.Copy(dstFile, srcFile)
-		return err
+	return filepath.Walk(promptsDir, func(path string, info os.FileInfo, walkErr error) error {
+		return handlePromptPath(promptsDir, promptsAbs, destDir, path, info, walkErr)
 	})
+}
+
+func handlePromptPath(promptsDir, promptsAbs, destDir, path string, info os.FileInfo, walkErr error) error {
+	if walkErr != nil {
+		return walkErr
+	}
+
+	relPath, err := filepath.Rel(promptsDir, path)
+	if err != nil {
+		return err
+	}
+
+	if relPath == "." {
+		return nil
+	}
+
+	destPath := filepath.Join(destDir, relPath)
+
+	if info.IsDir() {
+		return ensurePromptDir(destDir, relPath, destPath)
+	}
+
+	copyNeeded, err := shouldCopyPromptFile(path, destPath, promptsAbs)
+	if err != nil {
+		return err
+	}
+	if !copyNeeded {
+		return nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return err
+	}
+
+	return copyPromptFile(path, destPath)
+}
+
+func ensurePromptDir(destDir, relPath, destPath string) error {
+	if isSymlink(pathJoinClean(destDir, relPath)) {
+		return filepath.SkipDir
+	}
+	return os.MkdirAll(destPath, 0755)
+}
+
+func shouldCopyPromptFile(srcPath, destPath, promptsAbs string) (bool, error) {
+	same, sameErr := sameResolvedPath(srcPath, destPath)
+	if sameErr == nil && same {
+		return false, nil
+	}
+
+	destAbs, absErr := filepath.Abs(destPath)
+	if absErr == nil && strings.HasPrefix(destAbs, promptsAbs+string(os.PathSeparator)) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func copyPromptFile(srcPath, destPath string) error {
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if cerr := srcFile.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close source file %s: %v\n", srcPath, cerr)
+		}
+	}()
+
+	dstFile, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if cerr := dstFile.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close destination file %s: %v\n", destPath, cerr)
+		}
+	}()
+
+	_, err = io.Copy(dstFile, srcFile)
+	return err
 }
 
 func isSymlink(path string) bool {
