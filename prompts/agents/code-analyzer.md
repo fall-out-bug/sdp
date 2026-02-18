@@ -1,7 +1,6 @@
 ---
 name: code-analyzer
-description: Static code analysis for contract extraction. Scans codebase to detect interfaces, types, and API patterns.
-model: inherit
+description: Static analyzer for extracting interfaces, types, and API patterns from existing code.
 tools:
   read: true
   bash: true

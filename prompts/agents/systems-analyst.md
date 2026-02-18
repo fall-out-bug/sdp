@@ -1,7 +1,6 @@
 ---
 name: systems-analyst
-description: Functional requirements + System specs + Interfaces
-model: inherit
+description: Systems analyst for functional specs, interface contracts, and requirement consistency.
 tools:
   read: true
   bash: true

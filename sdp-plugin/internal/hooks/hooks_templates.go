@@ -137,3 +137,99 @@ fi
 exit 0
 `
 }
+
+func getCommitMsgTemplate() string {
+	return `#!/bin/sh
+` + sdpManagedMarker + `
+# SDP Git Hook - Commit message provenance trailers
+
+set -e
+
+COMMIT_MSG_FILE="$1"
+[ -n "$COMMIT_MSG_FILE" ] || exit 0
+[ -f "$COMMIT_MSG_FILE" ] || exit 0
+
+append_if_missing() {
+    key="$1"
+    value="$2"
+    if grep -qi "^${key}:" "$COMMIT_MSG_FILE"; then
+        return
+    fi
+    if [ "${_SDP_TRAILER_STARTED:-0}" = "0" ]; then
+        printf "\n" >> "$COMMIT_MSG_FILE"
+        _SDP_TRAILER_STARTED=1
+    fi
+    printf "%s: %s\n" "$key" "$value" >> "$COMMIT_MSG_FILE"
+}
+
+agent="human"
+if [ "${OPENCODE:-}" = "1" ]; then
+    agent="opencode"
+fi
+
+model="unknown"
+for key in SDP_MODEL_ID OPENCODE_MODEL ANTHROPIC_MODEL OPENAI_MODEL MODEL; do
+    value=$(printenv "$key")
+    if [ -n "$value" ]; then
+        model="$value"
+        break
+    fi
+done
+
+task="unknown"
+if [ -n "${SDP_TASK_ID:-}" ]; then
+    task="$SDP_TASK_ID"
+fi
+
+append_if_missing "SDP-Agent" "$agent"
+append_if_missing "SDP-Model" "$model"
+append_if_missing "SDP-Task" "$task"
+
+exit 0
+`
+}
+
+func getPostCommitTemplate() string {
+	return `#!/bin/sh
+` + sdpManagedMarker + `
+# SDP Git Hook - Post-commit provenance evidence
+
+set -e
+
+if ! command -v sdp >/dev/null 2>&1; then
+    exit 0
+fi
+
+COMMIT_HASH=$(git rev-parse HEAD)
+COMMIT_SHORT=$(git rev-parse --short HEAD)
+COMMIT_SUBJECT=$(git log -1 --pretty=%s)
+
+agent="human"
+if [ "${OPENCODE:-}" = "1" ]; then
+    agent="opencode"
+fi
+
+model="unknown"
+for key in SDP_MODEL_ID OPENCODE_MODEL ANTHROPIC_MODEL OPENAI_MODEL MODEL; do
+    value=$(printenv "$key")
+    if [ -n "$value" ]; then
+        model="$value"
+        break
+    fi
+done
+
+sdp skill record \
+    --skill commit \
+    --type generation \
+    --ws-id 00-000-00 \
+    --data "commit_sha=$COMMIT_HASH" \
+    --data "commit_short=$COMMIT_SHORT" \
+    --data "commit_subject=$COMMIT_SUBJECT" \
+    --data "agent=$agent" \
+    --data "model=$model" \
+    --data "source=embedded-post-commit" \
+    >/dev/null 2>&1 || true
+
+exit 0
+`
+}

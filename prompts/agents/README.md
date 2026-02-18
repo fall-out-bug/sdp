@@ -1,7 +1,6 @@
 ---
 name: readme
-description: Agent roles setup guide and documentation
-model: inherit
+description: Documentation guide for agent roles, metadata, and setup conventions.
 version: 1.0.0
 tools:
   read: true
@@ -10,6 +9,16 @@ tools:
 # Agent Roles Setup Guide
 
 **SDP Agent System** - multi-agent coordination for feature development.
+
+## OpenCode Compatibility
+
+For OpenCode UI role cards to render correctly, each agent file in `prompts/agents/*.md` must use valid YAML frontmatter:
+
+- Start with `---`
+- Include `name` and `description`
+- Close frontmatter with a second `---` before body content
+
+OpenCode integration uses `.opencode/agents` as a symlink to `prompts/agents`, so this directory is the canonical source for role metadata.
 
 ---
 

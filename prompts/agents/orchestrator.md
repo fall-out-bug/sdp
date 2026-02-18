@@ -1,7 +1,6 @@
 ---
 name: orchestrator
-description: Autonomous feature execution with checkpoints and error handling
-model: inherit
+description: Execution orchestrator for autonomous feature delivery with checkpoints and recovery.
 version: 2.2.0
 changes:
   - Added git safety context awareness (F065)

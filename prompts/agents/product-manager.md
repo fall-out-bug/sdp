@@ -1,7 +1,6 @@
 ---
 name: product-manager
-description: Product vision + Prioritization + Roadmap
-model: inherit
+description: Product manager for vision alignment, prioritization, and roadmap decisions.
 tools:
   read: true
   bash: true

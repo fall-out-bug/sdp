@@ -91,9 +91,23 @@ if [ -d "sdp-plugin" ]; then
     (cd sdp-plugin && go vet ./...) 2>/dev/null || true
 fi
 
-# Run staged guard checks
+# Run guard checks for staged files
 if command -v sdp &> /dev/null; then
-    sdp guard check --staged
+    STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+    if [ -n "$STAGED_FILES" ]; then
+        while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            if ! sdp guard check "$file" >/dev/null 2>&1; then
+                echo ""
+                echo "ERROR: Guard check failed for staged file: $file"
+                sdp guard check "$file" || true
+                echo ""
+                exit 1
+            fi
+        done <<EOF
+$STAGED_FILES
+EOF
+    fi
 fi
 
 exit 0

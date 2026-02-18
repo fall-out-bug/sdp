@@ -1,7 +1,6 @@
 ---
 name: security
-description: Threats + Auth + Compliance specialist
-model: inherit
+description: Security specialist for threat modeling, auth risks, and compliance controls.
 tools:
   read: true
   bash: true

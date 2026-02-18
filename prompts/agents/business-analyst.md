@@ -1,7 +1,6 @@
 ---
 name: business-analyst
-description: Requirements discovery + User needs + Success metrics
-model: inherit
+description: Business analyst for stakeholder needs, user stories, and measurable success metrics.
 tools:
   read: true
   bash: true

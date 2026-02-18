@@ -1,6 +1,6 @@
 #!/bin/bash
 # Post-commit hook: auto-comment on GitHub issues
-# Extract WS-XXX-YY from commit message and post comment
+# and emit commit provenance into SDP evidence log.
 
 set -e
 
@@ -16,23 +16,92 @@ if [ ! -d "$REPO_ROOT/$WS_DIR" ]; then
     WS_DIR="tools/hw_checker/docs/workstreams"
 fi
 
-# Skip if GitHub not configured
-if [ -z "$GITHUB_TOKEN" ] || [ -z "$GITHUB_REPO" ]; then
-    # Silent skip - not an error
-    exit 0
-fi
-
 # Get commit info
 COMMIT_HASH=$(git rev-parse HEAD)
 COMMIT_MSG=$(git log -1 --pretty=%B)
+COMMIT_SUBJECT=$(git log -1 --pretty=%s)
 COMMIT_SHORT=$(git rev-parse --short HEAD)
 REPO_URL=$(git config --get remote.origin.url | sed 's/\.git$//')
 
-# Extract WS-XXX-YY from commit message
-WS_ID=$(echo "$COMMIT_MSG" | grep -oP 'WS-\d{3}-\d{2}' | head -1)
+extract_trailer() {
+    key="$1"
+    printf "%s\n" "$COMMIT_MSG" | sed -n "s/^${key}:[[:space:]]*//p" | tail -1
+}
+
+detect_model() {
+    for key in SDP_MODEL_ID OPENCODE_MODEL ANTHROPIC_MODEL OPENAI_MODEL MODEL; do
+        value=$(printenv "$key")
+        if [ -n "$value" ]; then
+            printf "%s" "$value"
+            return
+        fi
+    done
+    printf "unknown"
+}
+
+normalize_ws_id() {
+    raw="$1"
+    if echo "$raw" | grep -qE '^WS-[0-9]{3}-[0-9]{2}$'; then
+        printf "00-%s" "${raw#WS-}"
+        return
+    fi
+    if echo "$raw" | grep -qE '^[0-9]{2}-[0-9]{3}-[0-9]{2}$'; then
+        printf "%s" "$raw"
+        return
+    fi
+    printf "00-000-00"
+}
+
+# Extract task/workstream from trailers or commit message
+TASK_ID=$(extract_trailer "SDP-Task")
+if [ -z "$TASK_ID" ]; then
+    TASK_ID=$(echo "$COMMIT_MSG" | grep -Eo 'WS-[0-9]{3}-[0-9]{2}|[0-9]{2}-[0-9]{3}-[0-9]{2}|F[0-9]{3,}' | head -1)
+fi
+if [ -z "$TASK_ID" ]; then
+    TASK_ID="unknown"
+fi
+
+WS_ID=$(echo "$TASK_ID" | grep -Eo 'WS-[0-9]{3}-[0-9]{2}|[0-9]{2}-[0-9]{3}-[0-9]{2}' | head -1)
+WS_ID_NORM=$(normalize_ws_id "$WS_ID")
+
+AGENT_ID=$(extract_trailer "SDP-Agent")
+if [ -z "$AGENT_ID" ]; then
+    if [ "${OPENCODE:-}" = "1" ]; then
+        AGENT_ID="opencode"
+    else
+        AGENT_ID="human"
+    fi
+fi
+
+MODEL_ID=$(extract_trailer "SDP-Model")
+if [ -z "$MODEL_ID" ]; then
+    MODEL_ID=$(detect_model)
+fi
+
+# Emit commit provenance event (best effort, non-blocking)
+if command -v sdp >/dev/null 2>&1; then
+    sdp skill record \
+        --skill commit \
+        --type generation \
+        --ws-id "$WS_ID_NORM" \
+        --data "commit_sha=$COMMIT_HASH" \
+        --data "commit_short=$COMMIT_SHORT" \
+        --data "commit_subject=$COMMIT_SUBJECT" \
+        --data "agent=$AGENT_ID" \
+        --data "model=$MODEL_ID" \
+        --data "task_id=$TASK_ID" \
+        --data "source=post-commit-hook" \
+        >/dev/null 2>&1 || true
+fi
 
 if [ -z "$WS_ID" ]; then
     # No WS ID in commit - skip
+    # Still allow GitHub comment flow to skip silently.
+    WS_ID=""
+fi
+
+# Skip GitHub comment if not configured
+if [ -z "$GITHUB_TOKEN" ] || [ -z "$GITHUB_REPO" ] || [ -z "$WS_ID" ]; then
     exit 0
 fi
 
@@ -45,7 +114,7 @@ if [ ! -f "$WS_FILE" ]; then
 fi
 
 # Extract github_issue from frontmatter
-ISSUE_NUMBER=$(grep -oP 'github_issue:\s*\K\d+' "$WS_FILE" || echo "")
+ISSUE_NUMBER=$(sed -n 's/^github_issue:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$WS_FILE" | head -1)
 
 if [ -z "$ISSUE_NUMBER" ] || [ "$ISSUE_NUMBER" = "null" ]; then
     # No GitHub issue linked - skip

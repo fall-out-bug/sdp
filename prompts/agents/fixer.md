@@ -1,7 +1,6 @@
 ---
 name: fixer
-description: Bug fix agent for quality P1/P2 fixes with full TDD cycle
-model: inherit
+description: Bug-fix specialist for P1/P2 issues using full TDD and regression coverage.
 tools:
   read: true
   bash: true
@@ -9,6 +8,7 @@ tools:
   grep: true
   edit: true
   write: true
+---
 
 # Fixer Agent
 

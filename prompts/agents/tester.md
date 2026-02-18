@@ -1,7 +1,6 @@
 ---
 name: tester
-description: QA specialist. Designs test strategies, writes test cases, ensures coverage.
-model: inherit
+description: Testing specialist for test design, coverage planning, and quality validation.
 tools:
   read: true
   bash: true

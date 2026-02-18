@@ -1,7 +1,6 @@
 ---
 name: sre
-description: Reliability + Monitoring + Incident response
-model: inherit
+description: SRE specialist for reliability, observability, and incident response readiness.
 tools:
   read: true
   bash: true

@@ -1,7 +1,6 @@
 ---
 name: spec-reviewer
-description: Verify implementation matches specification (evidence-based review)
-model: inherit
+description: Spec reviewer for evidence-based implementation compliance against requirements.
 tools:
   read: true
   bash: true

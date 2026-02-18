@@ -1,7 +1,6 @@
 ---
 name: analyst
-description: Business/Technical analyst. Clarifies requirements, identifies edge cases, defines acceptance criteria.
-model: inherit
+description: Business and technical analyst for requirement clarity, edge cases, and acceptance criteria.
 tools:
   read: true
   bash: true

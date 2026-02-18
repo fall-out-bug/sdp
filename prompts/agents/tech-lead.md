@@ -1,7 +1,6 @@
 ---
 name: tech-lead
-description: Technical leadership + Code review + Team coordination
-model: inherit
+description: Tech lead for technical direction, code quality governance, and team coordination.
 tools:
   read: true
   bash: true

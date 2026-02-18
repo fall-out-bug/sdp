@@ -41,10 +41,10 @@ ls tools/hw_checker/docs/workstreams/backlog/WS-060-*.md
 
 **In OpenCode:**
 ```
-/oneshot-simple F60
+/oneshot F60
 ```
 
-**Note:** OpenCode uses `/oneshot-simple` because `/oneshot` command with `model: inherit` causes "Model not found: inherit" error.
+**Note:** If your local setup still has legacy command aliases, keep `/oneshot-simple` as a temporary fallback.
 
 ### Phase 3: What /oneshot Does
 

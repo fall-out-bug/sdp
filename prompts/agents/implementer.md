@@ -1,7 +1,6 @@
 ---
 name: implementer
-description: Execute workstreams following TDD discipline with self-reporting
-model: inherit
+description: Implementation agent for executing workstreams with TDD and self-reporting.
 tools:
   read: true
   bash: true

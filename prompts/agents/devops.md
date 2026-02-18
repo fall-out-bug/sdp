@@ -1,7 +1,6 @@
 ---
 name: devops
-description: CI/CD + Infrastructure + Deployment specialist
-model: inherit
+description: DevOps specialist for CI/CD pipelines, infrastructure automation, and release operations.
 tools:
   read: true
   bash: true

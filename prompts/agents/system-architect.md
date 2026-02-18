@@ -1,7 +1,6 @@
 ---
 name: system-architect
-description: Architecture design + Tech stack + Quality attributes
-model: inherit
+description: System architect for architecture options, stack selection, and quality attributes.
 tools:
   read: true
   bash: true

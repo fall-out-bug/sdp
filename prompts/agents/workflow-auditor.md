@@ -1,7 +1,6 @@
 ---
 name: workflow-auditor
-description: Audits process drift across workstreams, docs, hooks, and CI workflows.
-model: inherit
+description: Workflow auditor for process drift across workstreams, docs, hooks, and CI.
 tools:
   read: true
   bash: true

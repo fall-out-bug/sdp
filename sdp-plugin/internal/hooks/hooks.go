@@ -11,13 +11,39 @@ const sdpManagedMarker = "# SDP-MANAGED-HOOK"
 
 // Hooks to install (AC1-AC3): pre-commit, pre-push, post-checkout
 // Also include post-merge for backward compatibility
-var managedHooks = []string{"pre-commit", "pre-push", "post-checkout", "post-merge"}
+var baseHooks = []string{"pre-commit", "pre-push", "post-checkout", "post-merge"}
+var provenanceHooks = []string{"commit-msg", "post-commit"}
+
+// InstallOptions controls optional hook groups.
+type InstallOptions struct {
+	WithProvenance bool
+}
+
+func hooksForOptions(opts InstallOptions) []string {
+	hooks := append([]string{}, baseHooks...)
+	if opts.WithProvenance {
+		hooks = append(hooks, provenanceHooks...)
+	}
+	return hooks
+}
+
+func allManagedHooks() []string {
+	all := append([]string{}, baseHooks...)
+	all = append(all, provenanceHooks...)
+	return all
+}
 
 // Install installs SDP-managed git hooks from the hooks/ directory.
 // AC4: Implements `sdp hooks install` command
 // AC5: Hooks work in both main repo and worktrees
 func Install() error {
+	return InstallWithOptions(InstallOptions{})
+}
+
+// InstallWithOptions installs SDP-managed git hooks from the hooks/ directory.
+func InstallWithOptions(opts InstallOptions) error {
 	gitDir := ".git/hooks"
+	hookNames := hooksForOptions(opts)
 
 	// Check if .git exists
 	if _, err := os.Stat(".git"); os.IsNotExist(err) {
@@ -34,15 +60,15 @@ func Install() error {
 	hooksSourceDir := "hooks"
 	if _, err := os.Stat(hooksSourceDir); os.IsNotExist(err) {
 		// Fall back to embedded hooks
-		return installEmbeddedHooks(gitDir)
+		return installEmbeddedHooks(gitDir, hookNames)
 	}
 
-	return installFromDirectory(gitDir, hooksSourceDir)
+	return installFromDirectory(gitDir, hooksSourceDir, hookNames)
 }
 
 // installFromDirectory installs hooks from a source directory.
-func installFromDirectory(gitDir, sourceDir string) error {
-	for _, name := range managedHooks {
+func installFromDirectory(gitDir, sourceDir string, hookNames []string) error {
+	for _, name := range hookNames {
 		sourcePath := filepath.Join(sourceDir, name+".sh")
 		targetPath := filepath.Join(gitDir, name)
 
@@ -95,15 +121,21 @@ func installFromDirectory(gitDir, sourceDir string) error {
 
 // installEmbeddedHooks installs hooks from embedded templates.
 // This is used when the hooks/ directory is not available.
-func installEmbeddedHooks(gitDir string) error {
+func installEmbeddedHooks(gitDir string, hookNames []string) error {
 	embeddedHooks := map[string]string{
 		"pre-commit":    getPreCommitTemplate(),
 		"pre-push":      getPrePushTemplate(),
 		"post-checkout": getPostCheckoutTemplate(),
 		"post-merge":    getPostMergeTemplate(),
+		"commit-msg":    getCommitMsgTemplate(),
+		"post-commit":   getPostCommitTemplate(),
 	}
 
-	for name, content := range embeddedHooks {
+	for _, name := range hookNames {
+		content, ok := embeddedHooks[name]
+		if !ok {
+			continue
+		}
 		targetPath := filepath.Join(gitDir, name)
 
 		// Check if hook already exists
@@ -138,7 +170,7 @@ func installEmbeddedHooks(gitDir string) error {
 func Uninstall() error {
 	gitDir := ".git/hooks"
 
-	for _, name := range managedHooks {
+	for _, name := range allManagedHooks() {
 		path := filepath.Join(gitDir, name)
 
 		// Check if hook exists

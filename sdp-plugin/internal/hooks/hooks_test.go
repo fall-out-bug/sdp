@@ -48,6 +48,39 @@ func TestInstall(t *testing.T) {
 	}
 }
 
+func TestInstallWithOptions_WithProvenance(t *testing.T) {
+	tmpDir := t.TempDir()
+	gitDir := filepath.Join(tmpDir, ".git", "hooks")
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := InstallWithOptions(InstallOptions{WithProvenance: true}); err != nil {
+		t.Fatalf("InstallWithOptions() failed: %v", err)
+	}
+
+	for _, hookName := range []string{"commit-msg", "post-commit"} {
+		hookPath := filepath.Join(gitDir, hookName)
+		if _, err := os.Stat(hookPath); os.IsNotExist(err) {
+			t.Errorf("Hook %s was not created", hookName)
+			continue
+		}
+		content, err := os.ReadFile(hookPath)
+		if err != nil {
+			t.Fatalf("ReadFile(%s): %v", hookPath, err)
+		}
+		if !strings.Contains(string(content), sdpManagedMarker) {
+			t.Errorf("Hook %s missing marker", hookName)
+		}
+	}
+}
+
 func TestInstall_NoGitDir(t *testing.T) {
 	// Create temp directory WITHOUT .git
 	tmpDir := t.TempDir()
@@ -507,7 +540,7 @@ func TestInstallFromDirectory(t *testing.T) {
 	}
 
 	// Run installFromDirectory
-	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+	if err := installFromDirectory(gitDir, hooksSourceDir, baseHooks); err != nil {
 		t.Fatalf("installFromDirectory failed: %v", err)
 	}
 
@@ -554,7 +587,7 @@ func TestInstallFromDirectorySkipNonSDP(t *testing.T) {
 	}
 
 	// Run installFromDirectory
-	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+	if err := installFromDirectory(gitDir, hooksSourceDir, baseHooks); err != nil {
 		t.Fatalf("installFromDirectory failed: %v", err)
 	}
 
@@ -597,7 +630,7 @@ func TestInstallFromDirectoryUpdateSDPHook(t *testing.T) {
 	}
 
 	// Run installFromDirectory
-	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+	if err := installFromDirectory(gitDir, hooksSourceDir, baseHooks); err != nil {
 		t.Fatalf("installFromDirectory failed: %v", err)
 	}
 
@@ -633,7 +666,7 @@ func TestInstallFromDirectoryMissingHook(t *testing.T) {
 	}
 
 	// Should not fail even if some hooks are missing
-	if err := installFromDirectory(gitDir, hooksSourceDir); err != nil {
+	if err := installFromDirectory(gitDir, hooksSourceDir, baseHooks); err != nil {
 		t.Fatalf("installFromDirectory should not fail for missing hooks: %v", err)
 	}
 

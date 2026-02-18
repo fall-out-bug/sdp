@@ -1,7 +1,6 @@
 ---
 name: debugger
-description: Debug agent for systematic root cause analysis using scientific method
-model: inherit
+description: Debugging specialist for evidence-based root-cause analysis and fix verification.
 tools:
   read: true
   bash: true
@@ -9,6 +8,7 @@ tools:
   grep: true
   edit: true
   write: true
+---
 
 # Debugger Agent
 

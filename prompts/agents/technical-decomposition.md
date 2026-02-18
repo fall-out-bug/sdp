@@ -1,7 +1,6 @@
 ---
 name: technical-decomposition
-description: Workstreams + Dependencies + Estimation
-model: inherit
+description: Decomposition specialist for workstreams, dependencies, and implementation sequencing.
 tools:
   read: true
   bash: true

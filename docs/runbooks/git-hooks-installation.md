@@ -23,6 +23,8 @@ SDP uses cross-platform Git hooks that work across all IDEs:
 | Hook | When Runs | What It Checks |
 |------|-----------|----------------|
 | **pre-commit** | Before commit | Quality checks: time estimates, code quality, Python code, Clean Architecture, WS format, breaking changes, test quality |
+| **commit-msg** | During commit message validation | Conventional format + provenance trailers (`SDP-Agent`, `SDP-Model`, `SDP-Task`) |
+| **post-commit** | After commit | Emits commit provenance event to evidence log; optionally comments on linked GitHub issues |
 | **pre-push** | Before push | Regression tests and coverage checks |
 | **post-merge** | After git merge | Post-merge actions |
 | **post-checkout** | After git checkout | Post-checkout actions |
@@ -36,14 +38,18 @@ The SDP CLI provides canonical hook installation with marker-based ownership tra
 ```bash
 # From repository root
 sdp hooks install
+
+# Include commit provenance hooks
+sdp hooks install --with-provenance
 ```
 
 **What it does:**
-1. Installs 4 canonical SDP hooks: pre-commit, pre-push, post-merge, post-checkout
-2. Marks each hook with `# SDP-MANAGED-HOOK` for ownership tracking
-3. Preserves existing non-SDP hooks
-4. Makes hooks executable
-5. Hooks check for `sdp` binary and warn if missing
+1. Installs 4 canonical SDP hooks by default: pre-commit, pre-push, post-merge, post-checkout
+2. Optionally installs provenance hooks with `--with-provenance`: commit-msg, post-commit
+3. Marks each hook with `# SDP-MANAGED-HOOK` for ownership tracking
+4. Preserves existing non-SDP hooks
+5. Makes hooks executable
+6. Hooks check for `sdp` binary and warn if missing
 
 **Expected output:**
 ```
@@ -54,6 +60,12 @@ sdp hooks install
 
 Git hooks installed!
 Customize hooks in .git/hooks/ if needed
+```
+
+For provenance validation after install:
+
+```bash
+sdp doctor hooks-provenance
 ```
 
 **Re-running install (idempotent):**
@@ -240,16 +252,30 @@ When you commit with a WS ID in the message (e.g., `feat: WS-060-01 - Create sub
 **What it does:**
 
 1. Gets latest commit hash and message
-2. Extracts WS ID (format: `WS-XXX-YY`)
-3. Finds WS file in `workstreams/`
-4. Extracts `github_issue` from WS frontmatter
-5. Posts comment to GitHub issue
+2. Reads provenance trailers (`SDP-Agent`, `SDP-Model`, `SDP-Task`)
+3. Emits evidence event (`skill=commit`, `type=generation`) into `.sdp/log/events.jsonl`
+4. Extracts WS ID (format: `WS-XXX-YY`)
+5. Finds WS file in `workstreams/`
+6. Extracts `github_issue` from WS frontmatter
+7. Posts comment to GitHub issue
 
 **Silent failures:**
 - If `GITHUB_TOKEN` not set → silently skip
 - If `GITHUB_REPO` not set → silently skip
 - If no WS ID in commit message → silently skip
 - If WS file not found → log warning, continue
+
+### commit-msg
+
+**What it does:**
+
+1. Validates conventional commit first line
+2. Auto-adds provenance trailers if missing:
+   - `SDP-Agent` (`opencode` when `OPENCODE=1`, otherwise `human`)
+   - `SDP-Model` (from `SDP_MODEL_ID`, `OPENCODE_MODEL`, `ANTHROPIC_MODEL`, `OPENAI_MODEL`, or `MODEL`)
+   - `SDP-Task` (from `SDP_TASK_ID` or commit text tokens like `WS-123-45`, `00-123-45`, `F123`)
+
+This metadata is used by post-commit evidence logging for commit provenance.
 
 ### pre-push
 

@@ -2,6 +2,10 @@
 
 # <body>
 
+# SDP-Agent: opencode|human
+# SDP-Model: <model-id>
+# SDP-Task: WS-XXX-YY | 00-XXX-YY | FXXX
+
 # Co-authored-by: Cursor AI <cursor-ai@cursor.sh>
 # 
 # Type: feat, fix, docs, style, refactor, test, chore
