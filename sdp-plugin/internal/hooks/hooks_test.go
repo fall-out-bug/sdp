@@ -676,3 +676,26 @@ func TestInstallFromDirectoryMissingHook(t *testing.T) {
 		t.Error("pre-commit hook should have been installed")
 	}
 }
+
+func TestEnsureManagedMarker_InsertsAfterShebang(t *testing.T) {
+	input := "#!/bin/sh\necho hello\n"
+	out := ensureManagedMarker(input)
+	lines := strings.Split(out, "\n")
+	if len(lines) < 2 {
+		t.Fatalf("unexpected output: %q", out)
+	}
+	if lines[0] != "#!/bin/sh" {
+		t.Fatalf("shebang changed: %q", lines[0])
+	}
+	if lines[1] != sdpManagedMarker {
+		t.Fatalf("marker not inserted after shebang: %q", out)
+	}
+}
+
+func TestEnsureManagedMarker_Idempotent(t *testing.T) {
+	input := "#!/bin/sh\n" + sdpManagedMarker + "\necho hello\n"
+	out := ensureManagedMarker(input)
+	if strings.Count(out, sdpManagedMarker) != 1 {
+		t.Fatalf("marker duplicated: %q", out)
+	}
+}

@@ -79,11 +79,7 @@ func installFromDirectory(gitDir, sourceDir string, hookNames []string) error {
 			continue
 		}
 
-		// Add SDP marker if not present
-		hookContent := string(content)
-		if !strings.Contains(hookContent, sdpManagedMarker) {
-			hookContent = "#!/bin/bash\n" + sdpManagedMarker + "\n" + hookContent
-		}
+		hookContent := ensureManagedMarker(string(content))
 
 		// Check if hook already exists
 		existingContent, err := os.ReadFile(targetPath)
@@ -117,6 +113,20 @@ func installFromDirectory(gitDir, sourceDir string, hookNames []string) error {
 	fmt.Println("Customize hooks in .git/hooks/ if needed")
 
 	return nil
+}
+
+func ensureManagedMarker(hookContent string) string {
+	if strings.Contains(hookContent, sdpManagedMarker) {
+		return hookContent
+	}
+
+	lines := strings.Split(hookContent, "\n")
+	if len(lines) > 0 && strings.HasPrefix(lines[0], "#!") {
+		withMarker := append([]string{lines[0], sdpManagedMarker}, lines[1:]...)
+		return strings.Join(withMarker, "\n")
+	}
+
+	return "#!/bin/sh\n" + sdpManagedMarker + "\n" + hookContent
 }
 
 // installEmbeddedHooks installs hooks from embedded templates.

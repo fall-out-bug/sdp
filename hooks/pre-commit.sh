@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Pre-commit hook: session validation + quality checks on staged files
 # Part of F065 - Agent Git Safety Protocol
 
@@ -18,7 +18,7 @@ CURRENT_DIR=$(pwd)
 # Check for session file
 if [ -f ".sdp/session.json" ]; then
     # Check if jq is available
-    if command -v jq &> /dev/null; then
+    if command -v jq >/dev/null 2>&1; then
         EXPECTED_BRANCH=$(jq -r '.expected_branch' .sdp/session.json 2>/dev/null)
         EXPECTED_DIR=$(jq -r '.worktree_path' .sdp/session.json 2>/dev/null)
 
@@ -50,7 +50,7 @@ if [ -f ".sdp/session.json" ]; then
         # Check for cross-feature commits (feature branch tracking origin/dev)
         PARENT_BRANCH=$(git rev-parse --abbrev-ref HEAD@{upstream} 2>/dev/null || echo "")
         FEATURE_ID=$(jq -r '.feature_id' .sdp/session.json 2>/dev/null)
-        if [[ -n "$FEATURE_ID" && "$PARENT_BRANCH" == "origin/dev" && "$CURRENT_BRANCH" != "dev" ]]; then
+        if [ -n "$FEATURE_ID" ] && [ "$PARENT_BRANCH" = "origin/dev" ] && [ "$CURRENT_BRANCH" != "dev" ]; then
             echo ""
             echo "WARNING: Feature branch tracking origin/dev instead of origin/$CURRENT_BRANCH"
             echo "  Feature: $FEATURE_ID"
@@ -68,8 +68,12 @@ fi
 
 # Block commits to main/dev for feature work
 if [ -f ".sdp/session.json" ]; then
-    if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "dev" ]]; then
-        FEATURE_ID=$(jq -r '.feature_id' .sdp/session.json 2>/dev/null)
+    case "$CURRENT_BRANCH" in
+    main|dev)
+        FEATURE_ID=""
+        if command -v jq >/dev/null 2>&1; then
+            FEATURE_ID=$(jq -r '.feature_id' .sdp/session.json 2>/dev/null)
+        fi
         if [ -n "$FEATURE_ID" ] && [ "$FEATURE_ID" != "null" ]; then
             echo ""
             echo "ERROR: Cannot commit to $CURRENT_BRANCH for feature $FEATURE_ID"
@@ -79,7 +83,8 @@ if [ -f ".sdp/session.json" ]; then
             echo ""
             exit 1
         fi
-    fi
+        ;;
+    esac
 fi
 
 # =========================================
@@ -92,21 +97,25 @@ if [ -d "sdp-plugin" ]; then
 fi
 
 # Run guard checks for staged files
-if command -v sdp &> /dev/null; then
-    STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
-    if [ -n "$STAGED_FILES" ]; then
-        while IFS= read -r file; do
-            [ -n "$file" ] || continue
-            if ! sdp guard check "$file" >/dev/null 2>&1; then
-                echo ""
-                echo "ERROR: Guard check failed for staged file: $file"
-                sdp guard check "$file" || true
-                echo ""
-                exit 1
-            fi
-        done <<EOF
+if command -v sdp >/dev/null 2>&1; then
+    if sdp guard check --help 2>/dev/null | grep -q -- "--staged"; then
+        sdp guard check --staged || exit $?
+    else
+        STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+        if [ -n "$STAGED_FILES" ]; then
+            while IFS= read -r file; do
+                [ -n "$file" ] || continue
+                if ! sdp guard check "$file" >/dev/null 2>&1; then
+                    echo ""
+                    echo "ERROR: Guard check failed for staged file: $file"
+                    sdp guard check "$file" || true
+                    echo ""
+                    exit 1
+                fi
+            done <<EOF
 $STAGED_FILES
 EOF
+        fi
     fi
 fi
 
