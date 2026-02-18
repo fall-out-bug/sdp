@@ -1,12 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 # SDP Install Script (WS-067-06: AC7)
-# Usage: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
 # Or: ./install.sh [version]
+# Optional env for testing/custom mirrors:
+#   SDP_REPO=owner/repo
+#   SDP_RELEASE_BASE_URL=https://host/path/to/release/<version>
 
-set -euo pipefail
+set -eu
 
 VERSION="${1:-latest}"
-REPO="fall-out-bug/sdp"
+REPO="${SDP_REPO:-fall-out-bug/sdp}"
 BINARY_NAME="sdp"
 INSTALL_DIR="${HOME}/.local/bin"
 
@@ -15,7 +18,7 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 case "$ARCH" in
-    x86_64|amd64) ARCH="amd64" ;;
+    x86_64|amd64) ARCH="x86_64" ;;
     arm64|aarch64) ARCH="arm64" ;;
     *)
         echo "ERROR: Unsupported architecture: $ARCH"
@@ -35,7 +38,12 @@ esac
 
 # Resolve version
 if [ "$VERSION" = "latest" ]; then
-    VERSION=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    latest_json=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest")
+    VERSION=$(printf "%s" "$latest_json" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+    if [ -z "$VERSION" ]; then
+        latest_url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest" || true)
+        VERSION=$(printf "%s" "$latest_url" | sed -n 's#.*/tag/\([^/]*\)$#\1#p')
+    fi
     if [ -z "$VERSION" ]; then
         echo "ERROR: Could not determine latest version"
         exit 1
@@ -45,12 +53,13 @@ fi
 echo "Installing SDP ${VERSION} for ${OS}/${ARCH}..."
 
 # Construct archive name (matches goreleaser naming)
-ARCHIVE_NAME="${BINARY_NAME}_${VERSION:1}_${ARCHIVE_OS}_${ARCH}.tar.gz"
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ARCHIVE_NAME}"
+ARCHIVE_NAME="${BINARY_NAME}_${ARCHIVE_OS}_${ARCH}.tar.gz"
+BASE_URL="${SDP_RELEASE_BASE_URL:-https://github.com/${REPO}/releases/download/${VERSION}}"
+DOWNLOAD_URL="${BASE_URL}/${ARCHIVE_NAME}"
 
 # Create temp directory
 TMP_DIR=$(mktemp -d)
-trap "rm -rf $TMP_DIR" EXIT
+trap 'rm -rf "$TMP_DIR"' EXIT
 
 # Download archive
 echo "Downloading ${ARCHIVE_NAME}..."
@@ -62,7 +71,7 @@ if ! curl -sSLf "$DOWNLOAD_URL" -o "${TMP_DIR}/${ARCHIVE_NAME}"; then
 fi
 
 # Download and verify checksum (FATAL on failure - security)
-CHECKSUM_URL="https://github.com/${REPO}/releases/download/${VERSION}/checksums.txt"
+CHECKSUM_URL="${BASE_URL}/checksums.txt"
 echo "Verifying checksum..."
 if ! curl -sSLf "$CHECKSUM_URL" -o "${TMP_DIR}/checksums.txt"; then
     echo "ERROR: Could not download checksums from $CHECKSUM_URL"
@@ -71,15 +80,16 @@ if ! curl -sSLf "$CHECKSUM_URL" -o "${TMP_DIR}/checksums.txt"; then
 fi
 
 cd "$TMP_DIR"
-if grep -q "${ARCHIVE_NAME}" checksums.txt; then
-    if command -v sha256sum &> /dev/null; then
-        if ! sha256sum -c --ignore-missing checksums.txt; then
+if grep -Fq "${ARCHIVE_NAME}" checksums.txt; then
+    grep -F "${ARCHIVE_NAME}" checksums.txt > checksums.single.txt
+    if command -v sha256sum >/dev/null 2>&1; then
+        if ! sha256sum -c checksums.single.txt; then
             echo "ERROR: Checksum verification FAILED!"
             echo "The downloaded archive may have been tampered with."
             exit 1
         fi
-    elif command -v shasum &> /dev/null; then
-        if ! shasum -a 256 -c checksums.txt 2>/dev/null; then
+    elif command -v shasum >/dev/null 2>&1; then
+        if ! shasum -a 256 -c checksums.single.txt 2>/dev/null; then
             echo "ERROR: Checksum verification FAILED!"
             echo "The downloaded archive may have been tampered with."
             exit 1
@@ -115,14 +125,18 @@ echo "✅ SDP ${VERSION} installed to ${INSTALL_DIR}/${BINARY_NAME}"
 echo ""
 
 # Check if in PATH
-if [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
+case ":$PATH:" in
+*":${INSTALL_DIR}:"*)
+    ;;
+*)
     echo "⚠️  ${INSTALL_DIR} is not in your PATH"
     echo ""
     echo "Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
     echo "    export PATH=\"\${HOME}/.local/bin:\${PATH}\""
     echo ""
     echo "Then reload: source ~/.bashrc  # or ~/.zshrc"
-fi
+    ;;
+esac
 
 # Verify installation
 "${INSTALL_DIR}/${BINARY_NAME}" version 2>/dev/null || echo "Run '${BINARY_NAME} version' to verify installation"

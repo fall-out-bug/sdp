@@ -20,11 +20,14 @@ SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI
 
 ```bash
 # Install for all IDEs
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 
 # Or specify your IDE
-SDP_IDE=claude curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
-SDP_IDE=cursor curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
+
+# Preserve existing IDE links/config files
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
 ```
 
 **Supported IDEs:** `claude`, `cursor`, `opencode`, `all` (default)
@@ -146,7 +149,7 @@ CLI provides helper commands. **Not required for protocol to work.**
 
 ```bash
 # Install
-cd sdp/sdp-plugin && go build -o sdp ./cmd/sdp
+cd sdp/sdp-plugin && CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 
 # Commands
 sdp doctor              # Health check

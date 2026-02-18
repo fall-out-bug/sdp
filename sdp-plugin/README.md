@@ -6,7 +6,7 @@
 
 ```bash
 cd sdp-plugin
-go build -o sdp ./cmd/sdp
+CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 ```
 
 ## Commands

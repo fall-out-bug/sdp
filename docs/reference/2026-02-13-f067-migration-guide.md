@@ -130,7 +130,7 @@ rm -f coverage_quality.out  # if exists locally
 
 ```bash
 # New curl install
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
 
 # Correct go install path
 go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
