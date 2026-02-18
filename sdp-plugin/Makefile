@@ -1,6 +1,6 @@
 VERSION := $(shell git describe --tags --always 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
-GO_BUILD := CGO_ENABLED=0 go build
+GO_BUILD := CGO_ENABLED=0 GOFLAGS=-buildvcs=false go build
 
 .PHONY: build build-all clean test install deps fmt lint version
 
