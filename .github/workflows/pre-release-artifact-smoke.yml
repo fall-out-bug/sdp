@@ -1,0 +1,115 @@
+name: Pre-Release Artifact Smoke
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "sdp-plugin/**"
+      - "scripts/install.sh"
+      - ".github/workflows/**"
+  push:
+    branches: [dev]
+    paths:
+      - "sdp-plugin/**"
+      - "scripts/install.sh"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Snapshot Release Smoke
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdp-plugin
+    env:
+      SMOKE_VERSION: v0.0.0-smoke
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build snapshot artifacts with GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          workdir: ./sdp-plugin
+          args: release --snapshot --clean --skip=sign,sbom,validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare local release mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sdp-release/${SMOKE_VERSION}
+          cp dist/sdp_Linux_x86_64.tar.gz /tmp/sdp-release/${SMOKE_VERSION}/
+          cp dist/checksums.txt /tmp/sdp-release/${SMOKE_VERSION}/
+          ls -lah /tmp/sdp-release/${SMOKE_VERSION}
+
+      - name: Serve local release mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 18080 --directory /tmp/sdp-release > /tmp/sdp-release-server.log 2>&1 &
+          echo $! > /tmp/sdp-release-server.pid
+
+      - name: Smoke test installer against snapshot artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --add-host host.docker.internal:host-gateway \
+            -e SDP_RELEASE_BASE_URL="http://host.docker.internal:18080/${SMOKE_VERSION}" \
+            -v "${GITHUB_WORKSPACE}:/repo" \
+            ubuntu:24.04 \
+            sh -c '
+              set -eu
+              apt-get update >/dev/null
+              apt-get install -y curl ca-certificates >/dev/null
+              sh /repo/scripts/install.sh ${SMOKE_VERSION}
+              test -x "$HOME/.local/bin/sdp"
+              "$HOME/.local/bin/sdp" init --auto --dry-run >/tmp/init-auto.log 2>&1
+              "$HOME/.local/bin/sdp" init --guided --auto --dry-run >/tmp/init-guided.log 2>&1
+              tail -n 20 /tmp/init-auto.log
+              tail -n 20 /tmp/init-guided.log
+            '
+
+      - name: Smoke test source build in fresh Docker
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/repo" \
+            -w /repo/sdp-plugin \
+            golang:1.26-bookworm \
+            sh -c '
+              set -eu
+              apt-get update >/dev/null
+              apt-get install -y make >/dev/null
+              make build
+              /repo/sdp-plugin/bin/sdp init --guided --auto --dry-run >/tmp/init.log 2>&1
+              tail -n 20 /tmp/init.log
+            '
+
+      - name: Cleanup local mirror
+        if: always()
+        shell: bash
+        run: |
+          if [ -f /tmp/sdp-release-server.pid ]; then
+            kill "$(cat /tmp/sdp-release-server.pid)" || true
+          fi
+          rm -f /tmp/sdp-release-server.pid

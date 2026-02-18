@@ -1,0 +1,109 @@
+name: Release Artifact Smoke
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag to validate (for example v0.9.4)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke Test Release Artifacts
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version || github.ref_name }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Wait for release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://github.com/${REPO}/releases/download/${VERSION}"
+          TARGETS=(
+            "sdp_Linux_x86_64.tar.gz"
+            "sdp_Linux_arm64.tar.gz"
+            "sdp_Darwin_x86_64.tar.gz"
+            "sdp_Darwin_arm64.tar.gz"
+            "checksums.txt"
+          )
+
+          for i in {1..30}; do
+            ok=true
+            for asset in "${TARGETS[@]}"; do
+              if ! curl -fsSI "${BASE}/${asset}" >/dev/null; then
+                ok=false
+                break
+              fi
+            done
+
+            if [ "$ok" = true ]; then
+              echo "Release assets are available for ${VERSION}"
+              exit 0
+            fi
+
+            echo "Assets not ready yet (attempt ${i}/30), retrying in 10s..."
+            sleep 10
+          done
+
+          echo "Release assets not available for ${VERSION}"
+          exit 1
+
+      - name: Validate checksums manifest includes required assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://github.com/${REPO}/releases/download/${VERSION}"
+          curl -fsSL "${BASE}/checksums.txt" -o checksums.txt
+          grep -F "sdp_Linux_x86_64.tar.gz" checksums.txt
+          grep -F "sdp_Linux_arm64.tar.gz" checksums.txt
+          grep -F "sdp_Darwin_x86_64.tar.gz" checksums.txt
+          grep -F "sdp_Darwin_arm64.tar.gz" checksums.txt
+
+      - name: Fresh Docker install smoke (release artifact)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -e REPO="${REPO}" -e VERSION="${VERSION}" ubuntu:24.04 sh -c '
+            set -eu
+            apt-get update >/dev/null
+            apt-get install -y curl ca-certificates >/dev/null
+            curl -fsSL "https://raw.githubusercontent.com/${REPO}/${VERSION}/scripts/install.sh" | sh -s -- "${VERSION}"
+            test -x "$HOME/.local/bin/sdp"
+            "$HOME/.local/bin/sdp" init --auto --dry-run >/tmp/init-auto.log 2>&1
+            "$HOME/.local/bin/sdp" init --guided --auto --dry-run >/tmp/init-guided.log 2>&1
+            tail -n 20 /tmp/init-auto.log
+            tail -n 20 /tmp/init-guided.log
+          '
+
+      - name: Fresh Docker source-build smoke (tagged source)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v "${PWD}:/repo" -w /repo/sdp-plugin golang:1.26-bookworm sh -c '
+            set -eu
+            apt-get update >/dev/null
+            apt-get install -y make >/dev/null
+            make build
+            /repo/sdp-plugin/bin/sdp init --guided --auto --dry-run >/tmp/init.log 2>&1
+            tail -n 20 /tmp/init.log
+          '
