@@ -3,6 +3,7 @@ package sdpinit
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -155,6 +156,53 @@ func TestRun_PromptsInSdpSubdirectory(t *testing.T) {
 	copiedSkill := filepath.Join(".claude", "skills", "test.md")
 	if _, err := os.Stat(copiedSkill); os.IsNotExist(err) {
 		t.Error("Test skill was not copied from sdp/prompts fallback")
+	}
+}
+
+func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink test requires elevated privileges on windows")
+	}
+
+	tmpDir := t.TempDir()
+	promptsDir := filepath.Join(tmpDir, "sdp", "prompts")
+	skillsDir := filepath.Join(promptsDir, "skills")
+	agentsDir := filepath.Join(promptsDir, "agents")
+
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		t.Fatalf("mkdir skills: %v", err)
+	}
+	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+		t.Fatalf("mkdir agents: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(skillsDir, "test.md"), []byte("# skill"), 0644); err != nil {
+		t.Fatalf("write skill: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(agentsDir, "test.md"), []byte("# agent"), 0644); err != nil {
+		t.Fatalf("write agent: %v", err)
+	}
+
+	claudeDir := filepath.Join(tmpDir, ".claude")
+	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+		t.Fatalf("mkdir .claude: %v", err)
+	}
+
+	if err := os.Symlink(filepath.Join("..", "sdp", "prompts", "skills"), filepath.Join(claudeDir, "skills")); err != nil {
+		t.Fatalf("symlink skills: %v", err)
+	}
+	if err := os.Symlink(filepath.Join("..", "sdp", "prompts", "agents"), filepath.Join(claudeDir, "agents")); err != nil {
+		t.Fatalf("symlink agents: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := Run(Config{ProjectType: "go"}); err != nil {
+		t.Fatalf("Run() failed with symlinked .claude dirs: %v", err)
 	}
 }
 
