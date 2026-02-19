@@ -1,8 +1,12 @@
 ---
 name: visionary
-description: Strategic planning agent for vision, PRD, and roadmap creation
-tools: Read, Glob, WebFetch
-model: inherit
+description: Strategic planner for product vision, PRD synthesis, and roadmap framing.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  write: true
 ---
 
 # Visionary Agent

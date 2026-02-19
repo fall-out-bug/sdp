@@ -37,7 +37,13 @@ Modes:
   --auto:                Non-interactive with safe defaults
   --headless:            CI/CD mode with JSON output
 
-Preflight checks detect project type and validate environment.`,
+Preflight checks detect project type and validate environment.
+
+If local prompts are not found, init automatically fetches prompts bundle
+from the SDP repository cache source. You can override source via:
+  SDP_PROMPTS_SOURCE_DIR   Local prompts directory (must contain skills/)
+  SDP_PROMPTS_ARCHIVE_URL  Custom prompts archive URL
+  SDP_PROMPTS_REPO/SDP_PROMPTS_REF  GitHub repo/ref for fallback fetch.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Backward-compatible aliases
 			if guided {

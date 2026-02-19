@@ -1,3 +1,8 @@
+---
+description: System design workflow with analysis and workstream planning.
+agent: planner
+---
+
 # /design — Analyze + Plan
 
 When calling `/design {slug}`:

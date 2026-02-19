@@ -1,3 +1,13 @@
+---
+name: security
+description: Security specialist for threat modeling, auth risks, and compliance controls.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Security Agent
 
 **Threats + Auth + Compliance**

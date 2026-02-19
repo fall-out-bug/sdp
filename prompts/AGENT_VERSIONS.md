@@ -49,6 +49,7 @@ The following agents lack version frontmatter and should be updated:
 ---
 name: agent-name
 description: Brief description
+model: inherit
 version: X.Y.Z
 changes:
   - Change description for this version

@@ -1,3 +1,13 @@
+---
+name: qa
+description: QA specialist for test strategy, quality metrics, and release quality gates.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # QA Agent
 
 **Test strategy + Quality metrics + Quality gates**

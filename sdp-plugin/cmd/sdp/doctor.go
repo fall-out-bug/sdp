@@ -151,6 +151,7 @@ Modes:
 	cmd.Flags().BoolVar(&migrate, "migrate", false, "Migrate config to latest version")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Preview migration without making changes")
 	cmd.Flags().StringVar(&rollback, "rollback", "", "Restore config from backup file")
+	cmd.AddCommand(doctorHooksProvenanceCmd())
 
 	return cmd
 }

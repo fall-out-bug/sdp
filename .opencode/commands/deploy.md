@@ -1,3 +1,8 @@
+---
+description: Deployment orchestration from approved feature to release handoff.
+agent: builder
+---
+
 # /deploy — Deploy Feature
 
 When calling `/deploy {feature} [version_bump]`:

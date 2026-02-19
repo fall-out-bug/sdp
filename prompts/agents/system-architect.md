@@ -1,3 +1,14 @@
+---
+name: system-architect
+description: System architect for architecture options, stack selection, and quality attributes.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  write: true
+---
+
 # System Architect Agent
 
 **Architecture design + Tech stack + Quality attributes**

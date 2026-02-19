@@ -81,13 +81,19 @@ func Enabled() bool {
 	return cfg.Evidence.Enabled
 }
 
-// ModelID returns SDP_MODEL_ID or ANTHROPIC_MODEL or "unknown" (AC5).
+// ModelID returns best-effort model identifier from environment (AC5).
 func ModelID() string {
-	if s := os.Getenv("SDP_MODEL_ID"); s != "" {
-		return s
+	keys := []string{
+		"SDP_MODEL_ID",
+		"OPENCODE_MODEL",
+		"ANTHROPIC_MODEL",
+		"OPENAI_MODEL",
+		"MODEL",
 	}
-	if s := os.Getenv("ANTHROPIC_MODEL"); s != "" {
-		return s
+	for _, key := range keys {
+		if s := os.Getenv(key); s != "" {
+			return s
+		}
 	}
 	return "unknown"
 }

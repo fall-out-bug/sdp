@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Pre-push hook: session validation + build/test before pushing
 # Part of F065 - Agent Git Safety Protocol
 
@@ -19,7 +19,7 @@ CURRENT_BRANCH=$(git branch --show-current)
 # Check session
 if [ -f ".sdp/session.json" ]; then
     # Check if jq is available
-    if command -v jq &> /dev/null; then
+    if command -v jq >/dev/null 2>&1; then
         EXPECTED_REMOTE=$(jq -r '.expected_remote' .sdp/session.json 2>/dev/null)
         EXPECTED_PUSH_TARGET="origin/$CURRENT_BRANCH"
 
@@ -42,7 +42,7 @@ fi
 # =========================================
 
 # Prevent pushing to protected branches
-if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "dev" ]]; then
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "dev" ]; then
     echo ""
     echo "ERROR: Direct push to $CURRENT_BRANCH is not allowed!"
     echo ""
@@ -65,6 +65,8 @@ if [ -d "sdp-plugin" ]; then
 fi
 
 # Run staged guard checks before push
-if command -v sdp &> /dev/null; then
-    sdp guard check --staged
+if command -v sdp >/dev/null 2>&1; then
+    if sdp guard check --help 2>/dev/null | grep -q -- "--staged"; then
+        sdp guard check --staged
+    fi
 fi

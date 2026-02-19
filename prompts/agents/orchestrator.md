@@ -1,12 +1,19 @@
 ---
 name: orchestrator
-description: Autonomous feature execution with checkpoints and error handling
+description: Execution orchestrator for autonomous feature delivery with checkpoints and recovery.
 version: 2.2.0
 changes:
   - Added git safety context awareness (F065)
   - Added @deploy step after @review (automated deployment)
   - Clarified continuous execution requirement
   - Added explicit "When to Stop" section
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  edit: true
+  write: true
   - Emphasized checkpoint updates are transparent
   - Removed ambiguity about progress reports
 ---

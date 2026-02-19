@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -66,5 +67,76 @@ func TestDoctorCmdWithDriftFlag(t *testing.T) {
 	// Should succeed (all required checks should pass with .claude present)
 	if err != nil {
 		t.Errorf("doctorCmd() with drift failed: %v", err)
+	}
+}
+
+func TestDoctorHooksProvenanceSubcommandExists(t *testing.T) {
+	cmd := doctorCmd()
+	found := false
+	for _, sub := range cmd.Commands() {
+		if sub.Name() == "hooks-provenance" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("doctor command missing hooks-provenance subcommand")
+	}
+}
+
+func TestDoctorHooksProvenanceRunE(t *testing.T) {
+	tmpDir := t.TempDir()
+	hooksDir := filepath.Join(tmpDir, ".git", "hooks")
+	if err := os.MkdirAll(hooksDir, 0755); err != nil {
+		t.Fatalf("mkdir hooks: %v", err)
+	}
+
+	commitMsg := filepath.Join(hooksDir, "commit-msg")
+	postCommit := filepath.Join(hooksDir, "post-commit")
+	if err := os.WriteFile(commitMsg, []byte("#!/bin/sh\n# SDP-Agent\n# SDP-Model\n# SDP-Task\n"), 0755); err != nil {
+		t.Fatalf("write commit-msg: %v", err)
+	}
+	if err := os.WriteFile(postCommit, []byte("#!/bin/sh\nsdp skill record\n# commit_sha\n# agent\n# model\n"), 0755); err != nil {
+		t.Fatalf("write post-commit: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	cmd := doctorHooksProvenanceCmd()
+	err := cmd.RunE(cmd, []string{})
+	if err != nil {
+		t.Fatalf("doctor hooks-provenance failed: %v", err)
+	}
+}
+
+func TestDoctorHooksProvenanceRunE_MissingHook(t *testing.T) {
+	tmpDir := t.TempDir()
+	hooksDir := filepath.Join(tmpDir, ".git", "hooks")
+	if err := os.MkdirAll(hooksDir, 0755); err != nil {
+		t.Fatalf("mkdir hooks: %v", err)
+	}
+
+	commitMsg := filepath.Join(hooksDir, "commit-msg")
+	if err := os.WriteFile(commitMsg, []byte("#!/bin/sh\n# SDP-Agent\n# SDP-Model\n# SDP-Task\n"), 0755); err != nil {
+		t.Fatalf("write commit-msg: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	cmd := doctorHooksProvenanceCmd()
+	err := cmd.RunE(cmd, []string{})
+	if err == nil {
+		t.Fatal("expected error when post-commit hook is missing")
+	}
+	if !strings.Contains(err.Error(), "failed") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }

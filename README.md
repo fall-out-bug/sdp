@@ -16,21 +16,26 @@ SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI
 
 ## Quick Start
 
-**One-liner installer (recommended):**
+**Install options (recommended):**
 
 ```bash
-# Install (auto-detect IDE integrations)
+# 1) Project assets in current repo (default, auto-detect IDE integrations)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 
-# Or specify your IDE
+# Optional: force integrations
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=all sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
 
-# Force all integrations
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=all sh
-
 # Preserve existing IDE links/config files
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
+
+# 2) Binary-only install (global CLI, no project files)
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
+
+# Direct scripts
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install-project.sh | sh
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
 ```
 
 **Supported IDEs:** `auto` (default), `claude`, `cursor`, `opencode`, `all`

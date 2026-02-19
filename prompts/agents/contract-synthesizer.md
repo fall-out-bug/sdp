@@ -1,8 +1,12 @@
 ---
 name: contract-synthesizer
-description: Multi-agent contract synthesis. Analyzes requirements and proposes OpenAPI contracts with conflict resolution.
-tools: Read, Write, Bash, Glob, Grep
-model: inherit
+description: Contract synthesis agent for proposing and reconciling OpenAPI contracts before implementation.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  write: true
 ---
 
 You are a Contract Synthesizer agent responsible for creating API contracts before implementation.

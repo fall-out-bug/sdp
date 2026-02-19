@@ -1,3 +1,8 @@
+---
+description: Emergency P0 production hotfix workflow with minimal-change deployment.
+agent: fixer
+---
+
 # /hotfix — Emergency Production Fixes
 
 When calling `/hotfix "description" --issue-id=001`:

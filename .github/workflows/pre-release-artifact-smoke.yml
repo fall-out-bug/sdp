@@ -80,13 +80,16 @@ jobs:
             sh -c '
               set -eu
               apt-get update >/dev/null
-              apt-get install -y curl ca-certificates >/dev/null
+              apt-get install -y curl ca-certificates git >/dev/null
               sh /repo/scripts/install.sh ${SMOKE_VERSION}
               test -x "$HOME/.local/bin/sdp"
               "$HOME/.local/bin/sdp" init --auto --dry-run >/tmp/init-auto.log 2>&1
               "$HOME/.local/bin/sdp" init --guided --auto --dry-run >/tmp/init-guided.log 2>&1
+              cd /repo
+              "$HOME/.local/bin/sdp" guard check --staged --json >/tmp/guard-staged.log 2>&1
               tail -n 20 /tmp/init-auto.log
               tail -n 20 /tmp/init-guided.log
+              tail -n 20 /tmp/guard-staged.log
             '
 
       - name: Smoke test source build in fresh Docker
@@ -103,7 +106,10 @@ jobs:
               apt-get install -y make git >/dev/null
               GOFLAGS=-buildvcs=false make build
               /repo/sdp-plugin/bin/sdp init --guided --auto --dry-run >/tmp/init.log 2>&1
+              cd /repo
+              /repo/sdp-plugin/bin/sdp guard check --staged --json >/tmp/guard-staged.log 2>&1
               tail -n 20 /tmp/init.log
+              tail -n 20 /tmp/guard-staged.log
             '
 
       - name: Cleanup local mirror

@@ -9,9 +9,17 @@ import (
 
 func TestModelID(t *testing.T) {
 	os.Unsetenv("SDP_MODEL_ID")
+	os.Unsetenv("OPENCODE_MODEL")
 	os.Unsetenv("ANTHROPIC_MODEL")
+	os.Unsetenv("OPENAI_MODEL")
+	os.Unsetenv("MODEL")
 	if got := ModelID(); got != "unknown" {
 		t.Errorf("ModelID(): want unknown, got %s", got)
+	}
+	os.Setenv("OPENCODE_MODEL", "openai/gpt-5.3-codex")
+	defer os.Unsetenv("OPENCODE_MODEL")
+	if got := ModelID(); got != "openai/gpt-5.3-codex" {
+		t.Errorf("ModelID(): want openai/gpt-5.3-codex, got %s", got)
 	}
 	os.Setenv("SDP_MODEL_ID", "claude-sonnet")
 	defer os.Unsetenv("SDP_MODEL_ID")

@@ -1,8 +1,11 @@
 ---
 name: contract-validator
-description: Contract validation and drift detection. Verifies implementations match locked contracts.
-tools: Read, Bash, Glob, Grep
-model: inherit
+description: Contract validator for detecting implementation drift against locked contracts.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
 ---
 
 You are a Contract Validator agent that verifies implementations against locked contracts.

@@ -1,3 +1,8 @@
+---
+description: Interactive requirements gathering workflow for new feature ideas.
+agent: analyst
+---
+
 # /idea — Requirements Gathering
 
 When calling `/idea {description}`:

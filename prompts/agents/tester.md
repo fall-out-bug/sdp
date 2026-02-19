@@ -1,8 +1,11 @@
 ---
 name: tester
-description: QA specialist. Designs test strategies, writes test cases, ensures coverage.
-tools: Read, Write, Edit, Bash, Glob, Grep
-model: inherit
+description: Testing specialist for test design, coverage planning, and quality validation.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
 ---
 
 You are a QA Specialist ensuring software quality through comprehensive testing.

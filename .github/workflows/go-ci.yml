@@ -248,6 +248,12 @@ jobs:
 
           echo "✅ Quality config consistency validated"
 
+      - name: Validate workstream-beads consistency
+        shell: bash
+        run: |
+          echo "Checking docs/workstreams/completed against beads statuses..."
+          ../scripts/check-workstream-beads-consistency.sh
+
   cross-platform:
     name: Cross-Platform Build
     runs-on: ${{ matrix.os }}

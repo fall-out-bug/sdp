@@ -1,3 +1,13 @@
+---
+name: systems-analyst
+description: Systems analyst for functional specs, interface contracts, and requirement consistency.
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+---
+
 # Systems Analyst Agent
 
 **Functional requirements + System specs + Interfaces**

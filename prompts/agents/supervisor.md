@@ -1,9 +1,16 @@
 ---
 name: supervisor
-description: Hierarchical coordination of specialist agents for complex multi-phase features
+description: Supervisor agent for hierarchical coordination of complex multi-phase workflows.
 version: 1.0.0
 changes:
   - Initial version for hierarchical agent supervision
+tools:
+  read: true
+  bash: true
+  glob: true
+  grep: true
+  edit: true
+  write: true
 ---
 
 # Supervisor Subagent
