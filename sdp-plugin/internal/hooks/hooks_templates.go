@@ -111,6 +111,21 @@ if [ -f ".sdp/session.json" ] && command -v jq >/dev/null 2>&1; then
     fi
 fi
 
+# Clear Go build/test caches on branch switch to avoid stale artifacts
+if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" != "1" ] && command -v go >/dev/null 2>&1; then
+    if go clean -cache -testcache >/dev/null 2>&1; then
+        echo "Go build/test caches cleared"
+    else
+        echo "Warning: failed to clear Go caches (go clean -cache -testcache)" >&2
+    fi
+
+    TMP_BASE=${TMPDIR:-/tmp}
+    for dir in "$TMP_BASE"/go-build*; do
+        [ -d "$dir" ] || continue
+        rm -rf "$dir" >/dev/null 2>&1 || true
+    done
+fi
+
 exit 0
 `
 }
@@ -132,6 +147,20 @@ fi
 if [ -d ".sdp" ]; then
     echo "SDP: Post-merge checks..."
     # Add post-merge validation here
+fi
+
+if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" != "1" ] && command -v go >/dev/null 2>&1; then
+    if go clean -cache -testcache >/dev/null 2>&1; then
+        echo "Go build/test caches cleared"
+    else
+        echo "Warning: failed to clear Go caches (go clean -cache -testcache)" >&2
+    fi
+
+    TMP_BASE=${TMPDIR:-/tmp}
+    for dir in "$TMP_BASE"/go-build*; do
+        [ -d "$dir" ] || continue
+        rm -rf "$dir" >/dev/null 2>&1 || true
+    done
 fi
 
 exit 0

@@ -699,3 +699,17 @@ func TestEnsureManagedMarker_Idempotent(t *testing.T) {
 		t.Fatalf("marker duplicated: %q", out)
 	}
 }
+
+func TestPostCheckoutTemplate_ClearsGoCache(t *testing.T) {
+	template := getPostCheckoutTemplate()
+	if !strings.Contains(template, "go clean -cache -testcache") {
+		t.Fatalf("post-checkout template does not clear Go caches")
+	}
+}
+
+func TestPostMergeTemplate_ClearsGoCache(t *testing.T) {
+	template := getPostMergeTemplate()
+	if !strings.Contains(template, "go clean -cache -testcache") {
+		t.Fatalf("post-merge template does not clear Go caches")
+	}
+}

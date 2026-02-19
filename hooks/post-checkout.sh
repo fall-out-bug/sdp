@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Post-checkout hook: update session file when branch changes
 # Part of F065 - Agent Git Safety Protocol
 
@@ -7,8 +7,6 @@
 # $2 = new HEAD ref
 # $3 = flag indicating whether the checkout was a branch checkout (1) or file checkout (0)
 
-PREV_HEAD="$1"
-NEW_HEAD="$2"
 BRANCH_CHECKOUT="$3"
 
 # Only update session on branch checkout (not file checkout)
@@ -38,6 +36,21 @@ if [ -f ".sdp/session.json" ]; then
             rm -f "$TEMP_FILE"
         fi
     fi
+fi
+
+# Clear Go build/test caches on branch switch to avoid stale artifacts
+if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" != "1" ] && command -v go >/dev/null 2>&1; then
+    if go clean -cache -testcache >/dev/null 2>&1; then
+        echo "Go build/test caches cleared"
+    else
+        echo "Warning: failed to clear Go caches (go clean -cache -testcache)" >&2
+    fi
+
+    TMP_BASE=${TMPDIR:-/tmp}
+    for dir in "$TMP_BASE"/go-build*; do
+        [ -d "$dir" ] || continue
+        rm -rf "$dir" >/dev/null 2>&1 || true
+    done
 fi
 
 exit 0
