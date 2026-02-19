@@ -5,13 +5,17 @@ on:
     branches: [main, dev]
     paths:
       - "sdp-plugin/**"
+      - "install.sh"
       - "scripts/install.sh"
+      - "scripts/install-project.sh"
       - ".github/workflows/**"
   push:
     branches: [dev]
     paths:
       - "sdp-plugin/**"
+      - "install.sh"
       - "scripts/install.sh"
+      - "scripts/install-project.sh"
       - ".github/workflows/**"
   workflow_dispatch:
 
@@ -90,6 +94,27 @@ jobs:
               tail -n 20 /tmp/init-auto.log
               tail -n 20 /tmp/init-guided.log
               tail -n 20 /tmp/guard-staged.log
+            '
+
+      - name: Smoke test root one-liner dispatcher in fresh Docker
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e REPO="${REPO}" \
+            -e REF="${REF}" \
+            ubuntu:24.04 \
+            sh -c '
+              set -eu
+              apt-get update >/dev/null
+              apt-get install -y curl ca-certificates git >/dev/null
+              curl -fsSL "https://raw.githubusercontent.com/${REPO}/${REF}/install.sh" | sh
+              test -d sdp
+              test -L .claude/skills
+              test -L .cursor/skills
             '
 
       - name: Smoke test source build in fresh Docker
