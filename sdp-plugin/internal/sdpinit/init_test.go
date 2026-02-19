@@ -116,6 +116,12 @@ func TestRun_NoPromptsDir(t *testing.T) {
 		t.Fatalf("chdir: %v", err)
 	}
 
+	originalArchiveURL := os.Getenv("SDP_PROMPTS_ARCHIVE_URL")
+	t.Cleanup(func() { _ = os.Setenv("SDP_PROMPTS_ARCHIVE_URL", originalArchiveURL) })
+	if err := os.Setenv("SDP_PROMPTS_ARCHIVE_URL", "http://127.0.0.1:1/prompts.zip"); err != nil {
+		t.Fatalf("setenv SDP_PROMPTS_ARCHIVE_URL: %v", err)
+	}
+
 	// Run init - should fail
 	cfg := Config{ProjectType: "go"}
 	err := Run(cfg)
@@ -123,7 +129,7 @@ func TestRun_NoPromptsDir(t *testing.T) {
 		t.Fatal("Run() should fail when prompts/ doesn't exist")
 	}
 
-	if !strings.Contains(err.Error(), "prompts directory not found") {
+	if !strings.Contains(err.Error(), "prompts not found locally") {
 		t.Errorf("Wrong error: %v", err)
 	}
 }
@@ -203,6 +209,63 @@ func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
 
 	if err := Run(Config{ProjectType: "go"}); err != nil {
 		t.Fatalf("Run() failed with symlinked .claude dirs: %v", err)
+	}
+}
+
+func TestResolvePromptsDir_FromEnvSourceDir(t *testing.T) {
+	tmpDir := t.TempDir()
+	sourcePrompts := filepath.Join(tmpDir, "external-prompts")
+	if err := os.MkdirAll(filepath.Join(sourcePrompts, "skills"), 0755); err != nil {
+		t.Fatalf("mkdir skills: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourcePrompts, "skills", "test.md"), []byte("# env source"), 0644); err != nil {
+		t.Fatalf("write test prompt: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	originalEnv := os.Getenv("SDP_PROMPTS_SOURCE_DIR")
+	t.Cleanup(func() { _ = os.Setenv("SDP_PROMPTS_SOURCE_DIR", originalEnv) })
+	if err := os.Setenv("SDP_PROMPTS_SOURCE_DIR", sourcePrompts); err != nil {
+		t.Fatalf("setenv: %v", err)
+	}
+
+	resolved, err := resolvePromptsDir()
+	if err != nil {
+		t.Fatalf("resolvePromptsDir() failed: %v", err)
+	}
+
+	if resolved != sourcePrompts {
+		t.Fatalf("resolved prompts dir mismatch: got %q want %q", resolved, sourcePrompts)
+	}
+}
+
+func TestResolvePromptsDir_EnvSourceDirMissingSkills(t *testing.T) {
+	tmpDir := t.TempDir()
+	badSource := filepath.Join(tmpDir, "bad-prompts")
+	if err := os.MkdirAll(badSource, 0755); err != nil {
+		t.Fatalf("mkdir bad source: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	originalEnv := os.Getenv("SDP_PROMPTS_SOURCE_DIR")
+	t.Cleanup(func() { _ = os.Setenv("SDP_PROMPTS_SOURCE_DIR", originalEnv) })
+	if err := os.Setenv("SDP_PROMPTS_SOURCE_DIR", badSource); err != nil {
+		t.Fatalf("setenv: %v", err)
+	}
+
+	_, err := resolvePromptsDir()
+	if err == nil {
+		t.Fatalf("resolvePromptsDir() should fail for missing skills in env source dir")
 	}
 }
 

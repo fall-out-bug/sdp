@@ -182,21 +182,23 @@ func pathJoinClean(parts ...string) string {
 }
 
 func resolvePromptsDir() (string, error) {
-	candidates := []string{
-		"prompts",
-		"../prompts",
-		"sdp/prompts",
-		"../sdp/prompts",
+	if envDir, err := envPromptsSourceDir(); err != nil {
+		return "", err
+	} else if envDir != "" {
+		return envDir, nil
 	}
 
-	for _, dir := range candidates {
-		info, err := os.Stat(dir)
-		if err == nil && info.IsDir() {
+	for _, dir := range localPromptsCandidates() {
+		if isValidPromptsDir(dir) {
 			return dir, nil
 		}
 	}
 
-	return "", fmt.Errorf("prompts directory not found: prompts")
+	downloadedDir, err := downloadPromptsToCache()
+	if err != nil {
+		return "", fmt.Errorf("prompts not found locally and remote fetch failed: %w", err)
+	}
+	return downloadedDir, nil
 }
 
 func createSettings(claudeDir string, cfg Config) error {
