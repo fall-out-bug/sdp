@@ -29,6 +29,10 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | S
 # 2) Binary-only install (global CLI, no repo clone in project)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
 
+# (Direct scripts)
+# project assets only: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install-project.sh | sh
+# binary only:         curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
+
 # Preserve existing IDE links/config files (project install)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
 ```
