@@ -122,6 +122,13 @@ func TestRun_NoPromptsDir(t *testing.T) {
 		t.Fatalf("setenv SDP_PROMPTS_ARCHIVE_URL: %v", err)
 	}
 
+	cacheHome := t.TempDir()
+	originalXDG := os.Getenv("XDG_CACHE_HOME")
+	t.Cleanup(func() { _ = os.Setenv("XDG_CACHE_HOME", originalXDG) })
+	if err := os.Setenv("XDG_CACHE_HOME", cacheHome); err != nil {
+		t.Fatalf("setenv XDG_CACHE_HOME: %v", err)
+	}
+
 	// Run init - should fail
 	cfg := Config{ProjectType: "go"}
 	err := Run(cfg)
