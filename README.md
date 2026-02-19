@@ -16,17 +16,20 @@ SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI
 
 ## Quick Start
 
-**One-liner installer (recommended):**
+**Install options (recommended):**
 
 ```bash
-# Install for all IDEs
+# 1) Prompts/hooks in current project (default)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 
-# Or specify your IDE
+# Optional: specify your IDE for project install
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
 
-# Preserve existing IDE links/config files
+# 2) Binary-only install (global CLI, no repo clone in project)
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
+
+# Preserve existing IDE links/config files (project install)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
 ```
 

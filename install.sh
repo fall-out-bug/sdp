@@ -2,15 +2,17 @@
 # SDP One-liner Installer
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
-#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --project-only
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --no-overwrite-config
 #
-# --project-only: install prompts/hooks config in your project (no CLI binary by default)
-# --binary-only: install sdp binary globally; run `sdp init` inside project
+# Default: install prompts/hooks config in your project
+# --binary-only: install sdp binary globally (no project files)
 #
-# Installs SDP prompts/hooks and optionally CLI.
+# For binary installer directly:
+#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
+#
+# Installs SDP prompts/hooks in project and optionally CLI.
 # Works with: Claude Code, Cursor, OpenCode, Windsurf
 
 set -e
@@ -18,7 +20,6 @@ set -e
 SDP_DIR="${SDP_DIR:-sdp}"
 SDP_IDE="${SDP_IDE:-all}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
-SDP_INSTALL_MODE="${SDP_INSTALL_MODE:-project}"
 SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-0}"
 SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
 SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-0}"
@@ -27,20 +28,12 @@ DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
 DEFAULT_REPO="fall-out-bug/sdp"
 SDP_REPO="${SDP_REPO:-$DEFAULT_REPO}"
 SDP_INSTALL_SCRIPT_URL="${SDP_INSTALL_SCRIPT_URL:-https://raw.githubusercontent.com/${SDP_REPO}/main/scripts/install.sh}"
+BINARY_ONLY=0
 
 for arg in "$@"; do
     case "$arg" in
-        --mode=project)
-            SDP_INSTALL_MODE="project"
-            ;;
-        --mode=binary)
-            SDP_INSTALL_MODE="binary"
-            ;;
-        --project-only)
-            SDP_INSTALL_MODE="project"
-            ;;
         --binary-only)
-            SDP_INSTALL_MODE="binary"
+            BINARY_ONLY=1
             ;;
         --no-overwrite-config)
             SDP_PRESERVE_CONFIG="1"
@@ -53,12 +46,11 @@ done
 
 echo "🚀 SDP Installer"
 echo "================"
-echo "Mode: ${SDP_INSTALL_MODE}"
 if [ "$SDP_PRESERVE_CONFIG" = "1" ]; then
     echo "Mode: preserve existing IDE config files"
 fi
 
-if [ "$SDP_INSTALL_MODE" = "binary" ]; then
+if [ "$BINARY_ONLY" = "1" ]; then
     echo "📦 Installing SDP CLI binary only..."
     if ! curl -fsSL "${SDP_INSTALL_SCRIPT_URL}" | SDP_REPO="${SDP_REPO}" sh -s -- "${SDP_CLI_VERSION}"; then
         echo "❌ Binary install failed"
