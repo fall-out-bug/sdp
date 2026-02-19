@@ -119,11 +119,13 @@ if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" != "1" ] && command -v go >/dev/null 2>&1; 
         echo "Warning: failed to clear Go caches (go clean -cache -testcache)" >&2
     fi
 
-    TMP_BASE=${TMPDIR:-/tmp}
-    for dir in "$TMP_BASE"/go-build*; do
-        [ -d "$dir" ] || continue
-        rm -rf "$dir" >/dev/null 2>&1 || true
-    done
+    (
+        TMP_BASE=${TMPDIR:-/tmp}
+        for dir in "$TMP_BASE"/go-build* /private/var/folders/*/*/T/go-build* /var/folders/*/*/T/go-build*; do
+            [ -d "$dir" ] || continue
+            rm -rf "$dir" >/dev/null 2>&1 || true
+        done
+    ) >/dev/null 2>&1 &
 fi
 
 exit 0
@@ -156,11 +158,13 @@ if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" != "1" ] && command -v go >/dev/null 2>&1; 
         echo "Warning: failed to clear Go caches (go clean -cache -testcache)" >&2
     fi
 
-    TMP_BASE=${TMPDIR:-/tmp}
-    for dir in "$TMP_BASE"/go-build*; do
-        [ -d "$dir" ] || continue
-        rm -rf "$dir" >/dev/null 2>&1 || true
-    done
+    (
+        TMP_BASE=${TMPDIR:-/tmp}
+        for dir in "$TMP_BASE"/go-build* /private/var/folders/*/*/T/go-build* /var/folders/*/*/T/go-build*; do
+            [ -d "$dir" ] || continue
+            rm -rf "$dir" >/dev/null 2>&1 || true
+        done
+    ) >/dev/null 2>&1 &
 fi
 
 exit 0
