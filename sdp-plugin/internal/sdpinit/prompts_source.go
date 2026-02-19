@@ -105,48 +105,72 @@ func unzipPrompts(zipPath, destRoot string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		idx := strings.Index(f.Name, "/prompts/")
-		if idx < 0 {
+		rel, ok := promptsArchiveRelPath(f.Name)
+		if !ok {
 			continue
 		}
-		rel := strings.TrimPrefix(f.Name[idx+len("/prompts/"):], "/")
-		if rel == "" {
-			continue
-		}
-		target := filepath.Join(destRoot, rel)
-		if !strings.HasPrefix(target, filepath.Clean(destRoot)+string(os.PathSeparator)) {
+
+		target, err := safePromptsTarget(destRoot, rel)
+		if err != nil {
 			return fmt.Errorf("invalid prompts archive path: %s", f.Name)
 		}
+
 		if f.FileInfo().IsDir() {
 			if err := os.MkdirAll(target, 0755); err != nil {
 				return fmt.Errorf("create prompts dir %s: %w", target, err)
 			}
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-			return fmt.Errorf("create prompts parent dir %s: %w", target, err)
+
+		if err := extractArchiveFile(f, target); err != nil {
+			return err
 		}
-		src, err := f.Open()
-		if err != nil {
-			return fmt.Errorf("open archive entry %s: %w", f.Name, err)
-		}
-		dst, err := os.Create(target)
-		if err != nil {
-			_ = src.Close()
-			return fmt.Errorf("create target file %s: %w", target, err)
-		}
-		if _, err := io.Copy(dst, src); err != nil {
-			_ = dst.Close()
-			_ = src.Close()
-			return fmt.Errorf("extract %s: %w", f.Name, err)
-		}
-		if err := dst.Close(); err != nil {
-			_ = src.Close()
-			return fmt.Errorf("close target file %s: %w", target, err)
-		}
-		if err := src.Close(); err != nil {
-			return fmt.Errorf("close archive entry %s: %w", f.Name, err)
-		}
+	}
+	return nil
+}
+
+func promptsArchiveRelPath(entryName string) (string, bool) {
+	idx := strings.Index(entryName, "/prompts/")
+	if idx < 0 {
+		return "", false
+	}
+	rel := strings.TrimPrefix(entryName[idx+len("/prompts/"):], "/")
+	if rel == "" {
+		return "", false
+	}
+	return rel, true
+}
+
+func safePromptsTarget(destRoot, rel string) (string, error) {
+	target := filepath.Join(destRoot, rel)
+	if !strings.HasPrefix(target, filepath.Clean(destRoot)+string(os.PathSeparator)) {
+		return "", fmt.Errorf("unsafe archive target: %s", target)
+	}
+	return target, nil
+}
+
+func extractArchiveFile(f *zip.File, target string) error {
+	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+		return fmt.Errorf("create prompts parent dir %s: %w", target, err)
+	}
+
+	src, err := f.Open()
+	if err != nil {
+		return fmt.Errorf("open archive entry %s: %w", f.Name, err)
+	}
+	defer src.Close()
+
+	dst, err := os.Create(target)
+	if err != nil {
+		return fmt.Errorf("create target file %s: %w", target, err)
+	}
+
+	if _, err := io.Copy(dst, src); err != nil {
+		_ = dst.Close()
+		return fmt.Errorf("extract %s: %w", f.Name, err)
+	}
+	if err := dst.Close(); err != nil {
+		return fmt.Errorf("close target file %s: %w", target, err)
 	}
 	return nil
 }
