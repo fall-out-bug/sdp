@@ -43,11 +43,13 @@ if [ "$BINARY_ONLY" = "1" ]; then
     if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/install.sh" ]; then
         exec sh "$SCRIPT_DIR/install.sh" "$SDP_CLI_VERSION"
     fi
-    exec run_remote_script "install.sh" "$SDP_CLI_VERSION"
+    run_remote_script "install.sh" "$SDP_CLI_VERSION"
+    exit $?
 fi
 
 echo "🔗 Installing SDP project assets (prompts/hooks/config)..."
 if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/install-project.sh" ]; then
     exec sh "$SCRIPT_DIR/install-project.sh" "$@"
 fi
-exec run_remote_script "install-project.sh" "$@"
+run_remote_script "install-project.sh" "$@"
+exit $?
