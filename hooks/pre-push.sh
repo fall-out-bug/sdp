@@ -19,7 +19,7 @@ CURRENT_BRANCH=$(git branch --show-current)
 # Check session
 if [ -f ".sdp/session.json" ]; then
     # Check if jq is available
-    if command -v jq &> /dev/null; then
+    if command -v jq >/dev/null 2>&1; then
         EXPECTED_REMOTE=$(jq -r '.expected_remote' .sdp/session.json 2>/dev/null)
         EXPECTED_PUSH_TARGET="origin/$CURRENT_BRANCH"
 
