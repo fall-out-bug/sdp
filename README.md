@@ -19,25 +19,26 @@ SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI
 **Install options (recommended):**
 
 ```bash
-# 1) Prompts/hooks in current project (default)
+# 1) Project assets in current repo (default, auto-detect IDE integrations)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 
-# Optional: specify your IDE for project install
+# Optional: force integrations
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=all sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
 
-# 2) Binary-only install (global CLI, no repo clone in project)
+# Preserve existing IDE links/config files
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
+
+# 2) Binary-only install (global CLI, no project files)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
 
-# (Direct scripts)
-# project assets only: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install-project.sh | sh
-# binary only:         curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
-
-# Preserve existing IDE links/config files (project install)
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
+# Direct scripts
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install-project.sh | sh
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
 ```
 
-**Supported IDEs:** `claude`, `cursor`, `opencode`, `all` (default)
+**Supported IDEs:** `auto` (default), `claude`, `cursor`, `opencode`, `all`
 
 **Manual install:**
 
