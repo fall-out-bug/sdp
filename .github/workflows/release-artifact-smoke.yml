@@ -102,6 +102,20 @@ jobs:
             tail -n 20 /tmp/guard-staged.log
           '
 
+      - name: Fresh Docker root one-liner smoke (tag)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -e REPO="${REPO}" -e VERSION="${VERSION}" ubuntu:24.04 sh -c '
+            set -eu
+            apt-get update >/dev/null
+            apt-get install -y curl ca-certificates git >/dev/null
+            curl -fsSL "https://raw.githubusercontent.com/${REPO}/${VERSION}/install.sh" | sh
+            test -d sdp
+            test -L .claude/skills
+            test -L .cursor/skills
+          '
+
       - name: Fresh Docker source-build smoke (tagged source)
         shell: bash
         run: |

@@ -85,6 +85,12 @@ jobs:
       - name: Build SDP CLI
         run: go build -o sdp ./cmd/sdp
 
+      - name: Root installer dispatcher regression check
+        shell: bash
+        run: |
+          set -euo pipefail
+          ../scripts/test-root-installer.sh
+
       - name: Check for contracts
         id: check_contracts
         run: |
