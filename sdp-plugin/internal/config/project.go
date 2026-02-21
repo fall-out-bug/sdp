@@ -35,8 +35,11 @@ type EvidenceSection struct {
 
 // QualitySection holds quality gate settings (stub for WS-06).
 type QualitySection struct {
-	CoverageThreshold int `yaml:"coverage_threshold"`
-	MaxFileLOC        int `yaml:"max_file_loc"`
+	CoverageThreshold   int      `yaml:"coverage_threshold"`
+	MaxFileLOC          int      `yaml:"max_file_loc"`
+	CoverageExclude     []string `yaml:"coverage_exclude"`
+	ComplexityThreshold int     `yaml:"complexity_threshold"`
+	ComplexityExclude   []string `yaml:"complexity_exclude"`
 }
 
 // GuardSection holds guard policy settings (WS-063-03).
