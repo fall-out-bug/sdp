@@ -31,7 +31,8 @@ func (c *Checker) shouldExcludeComplexity(fileName string) bool {
 
 func (c *Checker) checkGoComplexity(result *ComplexityResult) (*ComplexityResult, error) {
 	// Use gocyclo if available
-	cmd := exec.Command("gocyclo", "-over", "10", ".")
+	over := strconv.Itoa(result.Threshold)
+	cmd := exec.Command("gocyclo", "-over", over, ".")
 	cmd.Dir = c.projectPath
 	output, err := cmd.CombinedOutput()
 
