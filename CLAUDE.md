@@ -57,7 +57,7 @@ New project?
 +-- No --> Working on existing project?
     |-- Yes --> What's the state?
     |   |-- Don't know --> @reality --quick
-    |   +-- Know state --> @feature "add feature"
+    |   +-- Know state --> @feature "add feature" (or @discovery for pre-check only)
     +-- No --> Workstreams exist?
         |-- Yes --> @oneshot F050
         +-- No --> @feature "plan feature"
@@ -69,7 +69,7 @@ New project?
 |-------|-------------|---------|--------|
 | **Strategic** | @vision (7 agents) | Product planning | VISION, PRD, ROADMAP |
 | **Analysis** | @reality (8 agents) | Codebase analysis | Reality report |
-| **Feature** | @feature (@idea + @design) | Requirements + WS | Workstreams |
+| **Feature** | @feature (@discovery + @idea + @ux + @design) | Requirements + WS | Workstreams |
 | **Execution** | @oneshot (@build) | Parallel execution | Implemented code |
 
 ### When to Use Each Level
@@ -78,7 +78,11 @@ New project?
 
 **@reality** — New to project, before @feature, track tech debt, quarterly review
 
-**@feature** — Feature idea but no workstreams, need interactive planning
+**@feature** — Feature idea but no workstreams, need interactive planning (full discovery flow)
+
+**@discovery** — Roadmap pre-check, product research, feature brief (standalone or via @feature)
+
+**@ux** — UX research for user-facing features (standalone or auto-triggered by @feature)
 
 **@oneshot** — Workstreams exist, want autonomous execution with checkpoint/resume
 
@@ -94,8 +98,10 @@ New project?
 |-------|---------|-------|
 | `@vision` | Strategic product planning (7 expert agents) | Strategic |
 | `@reality` | Codebase analysis (8 expert agents) | Analysis |
-| `@feature` | Planning orchestrator (interactive) | Planning |
+| `@feature` | Planning orchestrator (discovery + idea + ux + design) | Planning |
+| `@discovery` | Product discovery gate (roadmap check, research loop) | Planning |
 | `@idea` | Requirements gathering (AskUserQuestion) | Planning |
+| `@ux` | UX research (mental model elicitation) | Planning |
 | `@design` | Workstream design (EnterPlanMode) | Planning |
 | `@oneshot` | Execution orchestrator (autonomous) | Execution |
 | `@build` | Execute single workstream (TDD) | Execution |
