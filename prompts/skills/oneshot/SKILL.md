@@ -239,7 +239,7 @@ go test ./...
 
 ```bash
 git push origin feature/F067-xxx
-gh pr create --base dev --head feature/F067-xxx --title "feat(F067): {title}" --body "..."
+gh pr create --base master --head feature/F067-xxx --title "feat(F067): {title}" --body "..."
 PR_URL=$(gh pr view --json url -q '.url')
 PR_NUMBER=$(gh pr list --head $(git branch --show-current) --json number -q '.[0].number')
 

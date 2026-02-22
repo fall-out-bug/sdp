@@ -4,6 +4,7 @@
     { "id": "traceability", "path": "traceability.schema.json", "title": "TraceabilityReport" },
     { "id": "intent", "path": "intent.schema.json", "title": "SDP Intent Specification" },
     { "id": "config", "path": "config.schema.json", "title": "SDP Project Config" },
-    { "id": "evidence", "path": "evidence.schema.json", "title": "SDP Evidence Event" }
+    { "id": "evidence", "path": "evidence.schema.json", "title": "SDP Evidence Event" },
+    { "id": "evidence-envelope", "path": "evidence-envelope.schema.json", "title": "Evidence Envelope (9-section strict)" }
   ]
 }
