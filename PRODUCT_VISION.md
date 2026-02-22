@@ -1,172 +1,111 @@
-# PRODUCT_VISION.md
+# SDP — Product Vision
 
-> **Last Updated:** 2026-02-14
-> **Version:** 3.2 (Multi-Agent, Public OSS Layered Platform)
+> **Updated:** 2026-02-22
+> **Version:** 4.0 (Evidence Layer for the OpenCode Ecosystem)
 
 ## Mission
 
-Transform SDP into a **multi-agent, multi-layer platform** for autonomous software delivery: protocol-first planning, guided CLI UX, and resilient orchestration.
+Add the missing layer to AI agent tooling: **structured evidence**.
 
-### Architecture Evolution (v2.0 → v3.0)
+The OpenCode ecosystem has orchestration, policy, session management, and parallel execution. It has zero tools for proving what agents did, why, and whether the work was verified. SDP fills that gap.
 
-**Original Vision (v2.0):** Language-agnostic Claude Plugin for protocol enforcement
-**Pivot to Multi-Agent (v3.0):** Orchestration system for autonomous development
+## What SDP Is
 
-**Rationale for Pivot:**
-- Claude Plugin marketplace not yet available (platform limitation)
-- Multi-agent architecture enables autonomous execution (higher value)
-- Strategic planning (@vision) and reality checking (@reality) prevent drift
-- Parallel execution achieves 5x speedup vs sequential workflows
+**A protocol and evidence layer**, not a platform.
 
-## Platform Topology (Public OSS Scope)
+- **The Protocol** — prompts, JSON schemas, shell hooks that structure agent work into phases (Intent → Plan → Execute → Verify → Review → Publish). Language-agnostic. Works with OpenCode, Claude Code, Cursor.
+- **The Evidence Envelope** — a strict 9-section JSON document (intent, plan, execution, verification, review, risk, boundary, provenance, trace) that every agent run produces. Validated by schema. Hash-chained for tamper detection.
+- **The PR Gate** — one CLI command in CI that blocks merge unless evidence is complete and valid.
 
-SDP is currently delivered as a monorepo, but product direction is explicit: split into multiple repositories once interfaces stabilize.
+## What SDP Is Not
 
-| Layer | Future Repository | Responsibility |
-|-------|-------------------|----------------|
-| Protocol | `sdp-protocol` | Core spec, schemas, event formats, frontmatter contracts, compatibility policy |
-| CLI | `sdp-cli` | Developer-facing command UX, onboarding, status/help/next-step flow |
-| Orchestrator | `sdp-orchestrator` | Planning/execution engine, dependency graph, dispatch, checkpoint/recovery |
+- Not an orchestrator (use Vibe Kanban, Swarm Tools)
+- Not a policy engine (use Cupcake)
+- Not a K8s operator (use kubeopencode — we contribute upstream)
+- Not a session manager (use micode, oh-my-opencode)
 
-Private extensions may exist outside this repository, but are intentionally out of scope for public OSS planning docs.
-
-## Progressive Adoption Model (L0-L2, Public OSS)
-
-SDP must be adoptable without "the whole spaceship." The operating model is progressive:
-
-| Level | Product Scope | Primary Buyer/User | Distribution Channel | License |
-|-------|---------------|--------------------|----------------------|---------|
-| `L0` | Protocol assets only (prompts, guides, templates, schemas) | Individual developers and teams validating method | Claude plugin + prompt package | MIT |
-| `L1` | Safety and evidence layer (hooks, guard, traces, provenance) | Teams needing control and auditability | Homebrew package | MIT |
-| `L2` | Orchestrator and core SDP tooling | Teams scaling spec-driven execution | Homebrew package | MIT |
-
-### Adoption Principle
-
-- Every level must be independently valuable.
-- `L0-L2` must be installable without non-public dependencies.
-- Upgrade path is additive (`L0` -> `L1` -> `L2`), not all-or-nothing.
-- Feature work must declare which level it belongs to.
-
-### Monorepo-to-Multi-Repo Rules
-
-- Keep layer boundaries explicit in workstreams and architecture docs
-- Evolve contracts before extracting code
-- Avoid hidden cross-layer dependencies that block future split
-- Treat extraction readiness as a roadmap KPI, not an ad-hoc refactor
-
-## Public OSS Commitment
-
-- Public SDP layers in this repository (`L0-L2`) remain MIT.
-- Public docs in this repository track public OSS scope only.
-- Non-public extensions must not become a hard dependency for public layers.
+SDP composes with all of these. It adds evidence to whatever workflow you already have.
 
 ## Users
 
-1. **Development Teams Using AI Agents**
-   - Want autonomous feature execution
-   - Need quality assurance before merge
-   - Require fault tolerance and checkpointing
+1. **Individual developer** — installs SDP as a submodule, gets structured agent workflow + evidence log
+2. **Team using AI agents in CI** — adds `sdp-evidence validate` to PR gates, gets audit trail
+3. **Platform team on K8s** — uses kubeopencode + SDP evidence bridge for agent-to-PR pipeline with proof
 
-2. **Strategic Planners**
-   - Product managers defining roadmaps
-   - Tech leads planning quarterly goals
-   - Architects analyzing codebase health
+## Adoption Model
 
-3. **Solo Developers**
-   - Want AI assistance for feature planning
-   - Need reality checks on code quality
-   - Require autonomous execution of repetitive tasks
+SDP is adoptable without "the whole spaceship":
 
-## Success Metrics (v3.2 - Public OSS Platform)
+| Level | What You Get | What You Install |
+|-------|-------------|-----------------|
+| **Protocol only** | Structured agent workflow via skills | `curl install.sh` — prompts, schemas, hooks |
+| **+ Evidence** | Audit log with hash-chain provenance | CLI: `sdp log`, `sdp-evidence validate` |
+| **+ K8s Bridge** | Agent runs on kubeopencode produce evidence | Adapter controller (in development) |
 
-### Delivered ✅
-- [x] Multi-agent orchestration with 19 specialized agents
-- [x] Parallel execution achieving 4.96x speedup
-- [x] Fault tolerance (circuit breaker + checkpoint/resume)
-- [x] Strategic planning via @vision (7 expert agents)
-- [x] Codebase analysis via @reality (8 expert agents)
-- [x] Two-stage quality review (implementer → spec reviewer → quality)
-- [x] Agent synthesis for conflict resolution
-- [x] Progressive disclosure for reduced question fatigue
-- [x] 83.2% test coverage across 26 workstreams
+Each level is independently valuable. Upgrade path is additive.
 
-### Deferred 🔄
-- [ ] Claude Plugin marketplace distribution (awaiting platform support)
-- [ ] Zero runtime dependency (Go binary required for orchestration)
-- [ ] Prompts-only distribution (binary provides agent coordination)
-
-### Maintained ✅
-- [x] Language-agnostic validation (works on any project)
-- [x] Backward compatibility with Python SDP (protocol unchanged)
-
-## Strategic Tradeoffs (v3.1)
-
-| Aspect | Decision | Rationale |
-|--------|----------|-----------|
-| **Architecture** | Multi-agent orchestration | Enables autonomous execution, parallel speedup, fault tolerance |
-| **Planning** | 4-level model (@vision/@reality/@feature/@oneshot) | Strategic planning → Reality check → Feature planning → Autonomous execution |
-| **Execution** | Parallel dispatcher with DAG | 4.96x speedup via dependency-aware parallelization |
-| **Quality** | Two-stage review + synthesis | Implementer → Spec reviewer → Quality reviewer with conflict resolution |
-| **Fault Tolerance** | Circuit breaker + checkpoint | Crash-safe execution with automatic recovery |
-| **Language Support** | Go binary with protocol enforcement | Language-agnostic rules via prompts, Go provides performance |
-| **Distribution** | Binary (Go) + Claude skills | Binary for orchestration, skills for protocol definition |
-| **Repository Strategy** | Monorepo now, split later | Faster iteration now; clearer ownership and scaling after contract maturity |
-| **Adoption Model** | Progressive (`L0-L2`) | Low-friction entry with independent OSS adoption layers |
-
-## Architecture Overview (v3.x Monorepo Runtime)
+## Ecosystem Position
 
 ```
-Strategic Level                 Analysis Level                 Feature Level                Execution Level
-┌──────────────────┐           ┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
-│     @vision      │           │    @reality      │         │    @feature      │         │    @oneshot      │
-│  (strategic)     │           │  (codebase anal) │         │   (planning)     │         │   (execution)    │
-└──────────────────┘           └──────────────────┘         └──────────────────┘         └──────────────────┘
-         │                              │                             │                             │
-         ▼                              ▼                             ▼                             ▼
-  7 Expert Agents             8 Expert Agents              @idea + @design            @build (all WS)
-  (product analysis)           (codebase analysis)          (requirements + WS)         (implement)
-         │                              │                             │                             │
-         ▼                              ▼                             ▼                             ▼
-  Product Artifacts            Reality Report               workstreams                 @review + @deploy
-  (VISION, PRD, ROADMAP)      (health, gaps, debt)         (00-FFF-SS.md)              (quality + merge)
+┌─────────────────────────────────────────────────┐
+│              OpenCode Ecosystem                  │
+│                                                  │
+│  Orchestration: Vibe Kanban, Swarm Tools         │
+│  Policy: Cupcake                                 │
+│  K8s: kubeopencode                               │
+│  Issues: Beads                                   │
+│  Sessions: micode, oh-my-opencode                │
+│                                                  │
+│  Evidence: SDP  ◄── this is us                   │
+│                                                  │
+└─────────────────────────────────────────────────┘
 ```
 
-## Delivered Features (F052)
+## What's Shipped
 
-### Phase 1A: Strategic Planning (@vision)
-- 7 expert agents (product, market, technical, UX, business, growth, risk)
-- PRODUCT_VISION.md, PRD.md, ROADMAP.md generation
-- Feature extraction from PRD with priority tagging
+- Protocol spec with 12 skills (v0.9.6, 18 releases)
+- Evidence log with hash-chain provenance
+- CLI: `sdp doctor`, `sdp guard`, `sdp log`, `sdp status`
+- Multi-agent review (6 agents), strategic planning (7 agents), codebase analysis (8 agents)
+- Install script with auto-detect for Claude Code, Cursor, OpenCode
+- 1,004 commits, 16 stars, MIT license
 
-### Phase 1B: Codebase Analysis (@reality)
-- 8 expert agents (architecture, quality, testing, security, performance, docs, debt, standards)
-- Language/framework detection (Go, Python, JS, TS, Rust, Java)
-- Health scoring and gap analysis
-- Vision vs reality drift detection
+## What's Next
 
-### Phase 2: Quality Lock-in (Two-Stage Review)
-- Implementer agent (TDD discipline: Red → Green → Refactor)
-- Spec compliance reviewer (DO NOT TRUST pattern, verifies actual code)
-- @build orchestration (3 stages with max 2 retries per stage)
+| Priority | What | Status |
+|----------|------|--------|
+| **P0** | Publish evidence JSON Schema in `schema/` | Ready |
+| **P0** | Release `sdp-evidence` CLI as standalone binary | In progress |
+| **P1** | awesome-opencode listing | After first evidence CLI release |
+| **P1** | kubeopencode upstream PRs (retry budget, evidence hooks) | In progress |
+| **P2** | OpenCode plugin for local evidence collection | Planned |
+| **P2** | Adapter controller hardening for K8s bridge | In development |
 
-### Phase 3: Speed Track (Parallel Execution)
-- Parallel dispatcher with Kahn's algorithm
-- Dependency graph from workstream files
-- 4.96x speedup (5 WS: 55ms → 11ms, 10 WS: 109ms → 22ms)
+## Research (sdp_lab)
 
-### Phase 4: Synthesis Track (Agent Coordination)
-- Agent proposal system with confidence scoring
-- Synthesizer with priority-based rules (unanimous → domain expertise → quality gate → merge → escalate)
-- Hierarchical supervisor for specialist agent coordination
-- Conflict type detection (major, medium, minor)
+Exploratory work, no promises:
 
-### Phase 5: UX Track (Progressive Disclosure)
-- 3-question cycles with trigger points
-- TMI detection and --quiet mode
-- Target: 12-27 questions per feature (down from unbounded)
-- Verbosity tiers (--quiet, --verbose, --debug)
+- Multi-persona adversarial review with dissent tracking
+- Agent self-improvement loops (failure pattern → adjustment)
+- Cross-project federation via NATS
+- Telemetry-driven backlog generation
 
-### Phase 6: Documentation Track
-- Agent catalog (21 agents documented)
-- Migration guide (v3.x to v4.0)
-- Updated CLAUDE.md with 4-level planning model
+Private repo [`sdp_lab`](https://github.com/fall-out-bug/sdp_lab) — open an issue to request access.
+
+## Success Metrics
+
+| Metric | Current | Target |
+|--------|---------|--------|
+| Protocol releases | 18 (v0.9.6) | v1.0 |
+| Evidence CLI published | No | Yes |
+| awesome-opencode listing | No | Yes |
+| External users of evidence CLI | 0 | >= 1 |
+| kubeopencode upstream PRs | In progress | >= 1 merged |
+
+## Principles
+
+- **Evidence is the moat.** Everything else is ecosystem.
+- **Compose, don't replace.** Use Vibe Kanban for orchestration, Cupcake for policy, kubeopencode for K8s.
+- **Ship what exists.** Don't announce what isn't built.
+- **One developer, honest scope.** Scale the community, not the claims.
+- **MIT forever.** Public SDP layers stay open source.
