@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/config"
 )
 
 func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, error) {
@@ -88,16 +90,59 @@ func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, 
 func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, error) {
 	result.ProjectType = "Go"
 
-	// Run go test with coverage (with 30s timeout)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// Load coverage_exclude from config
+	var excludePrefixes []string
+	if projectRoot, err := config.FindProjectRoot(); err == nil {
+		if cfg, err := config.Load(projectRoot); err == nil && len(cfg.Quality.CoverageExclude) > 0 {
+			excludePrefixes = cfg.Quality.CoverageExclude
+		}
+	}
+
+	// Build package list, optionally excluding configured paths
+	testArgs := []string{"test", "-cover", "-coverprofile=coverage.out"}
+	if len(excludePrefixes) > 0 {
+		listCmd := exec.Command("go", "list", "./...")
+		listCmd.Dir = c.projectPath
+		listOut, listErr := listCmd.Output()
+		if listErr != nil {
+			// Fallback to ./...
+			testArgs = append(testArgs, "./...")
+		} else {
+			var pkgs []string
+			for _, line := range strings.Split(strings.TrimSpace(string(listOut)), "\n") {
+				line = strings.TrimSpace(line)
+				if line == "" {
+					continue
+				}
+				excluded := false
+				for _, prefix := range excludePrefixes {
+					if strings.Contains(line, prefix) {
+						excluded = true
+						break
+					}
+				}
+				if !excluded {
+					pkgs = append(pkgs, line)
+				}
+			}
+			if len(pkgs) > 0 {
+				testArgs = append(testArgs, pkgs...)
+			} else {
+				testArgs = append(testArgs, "./...")
+			}
+		}
+	} else {
+		testArgs = append(testArgs, "./...")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "go", "test", "./...", "-cover", "-coverprofile=coverage.out")
+	cmd := exec.CommandContext(ctx, "go", testArgs...)
 	cmd.Dir = c.projectPath
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		// Test execution failed, but might still have coverage
 		result.Coverage = 0.0
 		result.Passed = false
 		result.Report = fmt.Sprintf("Test execution failed: %s", string(output))

@@ -2,11 +2,19 @@ package quality
 
 import (
 	"fmt"
+
+	"github.com/fall-out-bug/sdp/internal/config"
 )
 
 func (c *Checker) CheckComplexity() (*ComplexityResult, error) {
+	threshold := 10
+	if projectRoot, err := config.FindProjectRoot(); err == nil {
+		if cfg, err := config.Load(projectRoot); err == nil && cfg.Quality.ComplexityThreshold > 0 {
+			threshold = cfg.Quality.ComplexityThreshold
+		}
+	}
 	result := &ComplexityResult{
-		Threshold: 10,
+		Threshold: threshold,
 	}
 
 	switch c.projectType {

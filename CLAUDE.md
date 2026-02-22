@@ -16,27 +16,12 @@ Quick reference for using SDP CLI v0.9.4 with Claude Code.
 
 ---
 
-## Milestone Context
-
-**Current milestone:** M1 "T-shirt" (UX Excellence)
-
-| Milestone | Features | Status |
-|-----------|----------|--------|
-| **M1** | F054, F063, F064, F067, F068, F070, F075, F076 | **CURRENT** |
-| M2 | F060, F071, F073, F077, F078 | Future |
-| M3 | F057, F058, F069, F072, F074, F079 | Future |
-| M4 | F055, F056, F059, F061 | Future |
-
-**Only work on current milestone features unless explicitly requested.**
-
----
-
 ## Protocol Flow
 
 The correct workflow is:
 
 ```
-@oneshot F067  →  @review F067  →  @deploy F067
+@oneshot F001  →  @review F001  →  @deploy F001
     │                 │                │
     ▼                 ▼                ▼
  Execute WS      APPROVED?         Merge PR

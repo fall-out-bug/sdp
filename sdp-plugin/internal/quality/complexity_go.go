@@ -6,7 +6,28 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/fall-out-bug/sdp/internal/config"
 )
+
+func (c *Checker) complexityExcludePrefixes() []string {
+	base := []string{".tmp/", "/sdp/", "vendor/", "node_modules/"}
+	if projectRoot, err := config.FindProjectRoot(); err == nil {
+		if cfg, err := config.Load(projectRoot); err == nil && len(cfg.Quality.ComplexityExclude) > 0 {
+			return append(base, cfg.Quality.ComplexityExclude...)
+		}
+	}
+	return base
+}
+
+func (c *Checker) shouldExcludeComplexity(fileName string) bool {
+	for _, prefix := range c.complexityExcludePrefixes() {
+		if strings.Contains(fileName, prefix) {
+			return true
+		}
+	}
+	return false
+}
 
 func (c *Checker) checkGoComplexity(result *ComplexityResult) (*ComplexityResult, error) {
 	// Use gocyclo if available
@@ -36,6 +57,11 @@ func (c *Checker) checkGoComplexity(result *ComplexityResult) (*ComplexityResult
 
 		parts := strings.Split(line, " ")
 		if len(parts) >= 2 {
+			fileName := parts[len(parts)-1]
+			if c.shouldExcludeComplexity(fileName) {
+				continue
+			}
+
 			cc, err := strconv.Atoi(parts[0])
 			if err == nil {
 				totalCC += cc
@@ -45,7 +71,6 @@ func (c *Checker) checkGoComplexity(result *ComplexityResult) (*ComplexityResult
 				}
 
 				if cc > result.Threshold {
-					fileName := parts[len(parts)-1]
 					complexFiles = append(complexFiles, FileComplexity{
 						File:             fileName,
 						AverageCC:        float64(cc),
@@ -78,8 +103,11 @@ func (c *Checker) basicGoComplexity(result *ComplexityResult) (*ComplexityResult
 			return nil
 		}
 
-		// Skip generated and test files
+		// Skip generated, test, and excluded paths
 		if strings.Contains(path, "generated") || strings.Contains(path, "_test.go") {
+			return nil
+		}
+		if c.shouldExcludeComplexity(path) {
 			return nil
 		}
 

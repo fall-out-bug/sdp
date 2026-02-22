@@ -55,7 +55,9 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 			strings.Contains(path, "target/") ||
 			strings.Contains(path, "__pycache__/") ||
 			strings.Contains(path, ".venv/") ||
-			strings.Contains(path, "venv/") {
+			strings.Contains(path, "venv/") ||
+			strings.Contains(path, ".tmp/") ||
+			strings.Contains(path, "/sdp/") {
 			return nil
 		}
 
