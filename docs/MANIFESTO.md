@@ -44,7 +44,7 @@ Every agent run produces a JSON document with 9 required sections:
 
 This is not logging. Logging says "agent ran at 14:32." An evidence envelope says "the agent declared intent to fix bug #42, planned to modify auth.go and auth_test.go, executed changes to those files, ran tests that passed with 94% coverage, was reviewed by a reviewer agent who approved with 2 suggestions that were addressed, and the boundary check confirms no files outside declared scope were modified." Machine-readable. Validatable. Hashable.
 
-**Status:** Implemented. JSON Schema defined. Validation works. Hash chain provenance works.
+**Status:** Implemented. JSON Schema published at `schema/evidence-envelope.schema.json` (version `evidence-envelope/v1`). Validation works. Hash chain provenance works.
 
 ### The PR Gate
 
@@ -86,7 +86,7 @@ We don't rebuild what the ecosystem already does well. We add the one thing it d
 
 | What | When | How |
 |------|------|-----|
-| Evidence JSON Schema published | Soon | In this repo (`schema/`) |
+| Evidence JSON Schema published | Done | `schema/evidence-envelope.schema.json` (evidence-envelope/v1) |
 | `sdp-evidence` CLI as standalone binary | Soon | `go install` or binary release |
 | awesome-opencode listing | After first release | Protocol + evidence CLI |
 | kubeopencode upstream contributions | In progress | PRs to kubeopencode |

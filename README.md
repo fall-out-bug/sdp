@@ -40,6 +40,8 @@ Each phase has a contract. Skip a phase and the state machine blocks the next on
 
 Every run creates a strict evidence envelope — a JSON document proving intent, plan, execution, verification, review, boundary compliance, and provenance (SHA-256 hash chain). [Details in the Manifesto](docs/MANIFESTO.md#the-evidence-envelope).
 
+**Schema:** Validate evidence against `schema/evidence-envelope.schema.json` (version `evidence-envelope/v1`).
+
 ### 3. Gates PRs on evidence
 
 ```bash
