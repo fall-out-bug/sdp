@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/evidence-envelope/v1",
+  "title": "Evidence Envelope",
+  "description": "9-section strict evidence envelope for autonomous agent runs. Each section captures a phase of the workflow from intent through trace.",
+  "type": "object",
+  "required": [
+    "intent",
+    "plan",
+    "execution",
+    "verification",
+    "review",
+    "risk_notes",
+    "boundary",
+    "provenance",
+    "trace"
+  ],
+  "properties": {
+    "intent": {
+      "type": "object",
+      "required": ["issue_id", "trigger", "acceptance", "risk_class"],
+      "properties": {
+        "issue_id": { "type": "string" },
+        "trigger": { "type": "string" },
+        "acceptance": { "type": "array", "items": { "type": "string" } },
+        "risk_class": { "type": "string" }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "required": ["workstreams", "ordering_rationale"],
+      "properties": {
+        "workstreams": { "type": "array", "items": { "type": "string" } },
+        "ordering_rationale": { "type": "string" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["claimed_issue_ids", "branch", "changed_files"],
+      "properties": {
+        "claimed_issue_ids": { "type": "array", "items": { "type": "string" } },
+        "branch": { "type": "string" },
+        "changed_files": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["tests", "lint", "contracts", "coverage"],
+      "properties": {
+        "tests": { "type": "array", "items": { "type": "string" } },
+        "lint": { "type": "array", "items": { "type": "string" } },
+        "contracts": { "type": "array", "items": { "type": "string" } },
+        "coverage": {
+          "type": "object",
+          "required": ["value", "threshold"],
+          "properties": {
+            "value": { "type": "number" },
+            "threshold": { "type": "number" }
+          }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": ["self_review", "adversarial_review"],
+      "properties": {
+        "self_review": { "type": "array", "items": { "type": "string" } },
+        "adversarial_review": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "risk_notes": {
+      "type": "object",
+      "required": ["residual_risks", "out_of_scope"],
+      "properties": {
+        "residual_risks": { "type": "array", "items": { "type": "string" } },
+        "out_of_scope": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "required": ["declared", "observed", "compliance"],
+      "properties": {
+        "declared": {
+          "type": "object",
+          "required": ["allowed_path_prefixes", "control_path_prefixes", "forbidden_path_prefixes"],
+          "properties": {
+            "allowed_path_prefixes": { "type": "array", "items": { "type": "string" } },
+            "control_path_prefixes": { "type": "array", "items": { "type": "string" } },
+            "forbidden_path_prefixes": { "type": "array", "items": { "type": "string" } },
+            "role": { "type": "string" },
+            "lane": { "type": "string" }
+          }
+        },
+        "observed": {
+          "type": "object",
+          "required": ["touched_paths", "out_of_boundary_paths"],
+          "properties": {
+            "touched_paths": { "type": "array", "items": { "type": "string" } },
+            "out_of_boundary_paths": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "compliance": {
+          "type": "object",
+          "required": ["ok", "reason"],
+          "properties": {
+            "ok": { "type": "boolean" },
+            "reason": { "type": "string" }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Provenance record with hash chain. hash_prev links to the previous record's hash; genesis (sequence 0) has empty hash_prev. hash and payload_digest are SHA-256 hex (64 chars) when non-empty.",
+      "required": [
+        "run_id",
+        "orchestrator",
+        "runtime",
+        "model",
+        "gate_results",
+        "phase",
+        "role",
+        "captured_at",
+        "source_issue_id",
+        "artifact_id",
+        "contract_version",
+        "hash_algorithm",
+        "sequence",
+        "payload_digest",
+        "hash",
+        "hash_prev"
+      ],
+      "properties": {
+        "run_id": { "type": "string" },
+        "orchestrator": { "type": "string" },
+        "runtime": { "type": "string" },
+        "model": { "type": "string" },
+        "gate_results": { "type": "array", "items": { "type": "object" } },
+        "phase": { "type": "string" },
+        "role": { "type": "string" },
+        "captured_at": { "type": "string" },
+        "source_issue_id": { "type": "string" },
+        "artifact_id": { "type": "string" },
+        "contract_version": { "type": "string" },
+        "hash_algorithm": { "type": "string" },
+        "sequence": { "type": "number", "minimum": 0 },
+        "payload_digest": { "type": "string" },
+        "hash": { "type": "string" },
+        "hash_prev": { "type": "string" }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "required": ["beads_ids", "branch", "commits", "pr_url"],
+      "properties": {
+        "beads_ids": { "type": "array", "items": { "type": "string" } },
+        "branch": { "type": "string" },
+        "commits": { "type": "array", "items": { "type": "string" } },
+        "pr_url": { "type": "string" }
+      }
+    }
+  }
+}
