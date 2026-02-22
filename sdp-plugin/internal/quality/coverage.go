@@ -7,24 +7,27 @@ import (
 )
 
 func (c *Checker) CheckCoverage() (*CoverageResult, error) {
-	// Load threshold from guard rules (AC6)
+	// Load threshold from project config first, then guard rules
 	threshold := 80.0 // default
 	projectRoot, rootErr := config.FindProjectRoot()
 	if rootErr == nil {
-		guardRules, rulesErr := config.LoadGuardRules(projectRoot)
-		if rulesErr == nil {
-			// Find coverage-threshold rule and get its threshold
-			for _, rule := range guardRules.Rules {
-				if rule.Enabled && rule.ID == "coverage-threshold" {
-					if minVal, ok := rule.Config["minimum"]; ok {
-						switch v := minVal.(type) {
-						case int:
-							threshold = float64(v)
-						case float64:
-							threshold = v
+		if cfg, err := config.Load(projectRoot); err == nil && cfg.Quality.CoverageThreshold > 0 {
+			threshold = float64(cfg.Quality.CoverageThreshold)
+		} else {
+			guardRules, rulesErr := config.LoadGuardRules(projectRoot)
+			if rulesErr == nil {
+				for _, rule := range guardRules.Rules {
+					if rule.Enabled && rule.ID == "coverage-threshold" {
+						if minVal, ok := rule.Config["minimum"]; ok {
+							switch v := minVal.(type) {
+							case int:
+								threshold = float64(v)
+							case float64:
+								threshold = v
+							}
 						}
+						break
 					}
-					break
 				}
 			}
 		}
