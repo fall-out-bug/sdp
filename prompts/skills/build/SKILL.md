@@ -1,12 +1,14 @@
 ---
 name: build
-description: Execute workstream with TDD and guard enforcement
+description: Execute workstream with TDD, guard enforcement, evidence lifecycle, and ws-verdict output
 cli: sdp apply --ws
 llm: Spawn subagents for 3-stage review
-version: 6.4.0
+version: 7.0.0
 changes:
-  - Added Git Safety section with context verification
-  - Added feature branch check before starting work
+  - Evidence file creation at WS start (intent.acceptance from AC)
+  - Real coverage measurement, ws-verdict with ac_evidence
+  - Checkpoint-based defensive branch check
+  - Provenance and trace.commits in evidence
 ---
 
 # build
@@ -60,19 +62,52 @@ bd ready
 # Step 1: Verify context
 pwd
 git branch --show-current
-sdp guard context check
 
-# Step 2: Verify feature branch
-sdp guard branch check --feature=$FEATURE_ID
+# Step 2: Defensive branch check via checkpoint (from @oneshot)
+FEATURE_ID=$(grep "^feature_id:" docs/workstreams/backlog/${WS_ID}.md 2>/dev/null | awk '{print $2}')
+EXPECTED=$(jq -r .branch .sdp/checkpoints/${FEATURE_ID}.json 2>/dev/null)
+CURRENT=$(git branch --show-current)
+if [ -n "$EXPECTED" ] && [ "$CURRENT" != "$EXPECTED" ]; then
+  echo "ERROR: Wrong branch. Expected $EXPECTED, got $CURRENT."
+  echo "Run: git checkout $EXPECTED"
+  exit 1
+fi
 
-# Step 3: If check fails, recover
-sdp guard context go $FEATURE_ID
-
-# Step 4: Only then proceed with implementation
+# Step 3: If sdp guard available, use it as secondary check
+sdp guard context check 2>/dev/null || true
+sdp guard branch check --feature=$FEATURE_ID 2>/dev/null || true
 ```
 
-**NOTE:** Features MUST be implemented in feature branches (e.g., `feature/F065`).
-Never commit to `dev` or `main` for feature work.
+**NOTE:** Features MUST be implemented in feature branches. @oneshot creates the branch; @build only verifies.
+
+---
+
+## Evidence Lifecycle
+
+**BEFORE any code** (at WS start):
+
+1. Resolve beads_id from `.beads-sdp-mapping.jsonl` (sdp_id = WS_ID) or from "Feature: F{NNN} (beads_id)" line in WS file
+2. Extract AC list from WS file (lines under `## Acceptance Criteria`, e.g. `- [ ] ...` or `- AC1: ...`)
+3. Create `.sdp/evidence/{beads_id}.json`:
+
+```bash
+mkdir -p .sdp/evidence .sdp/ws-verdicts
+RUN_ID=$(ls .sdp/runs/oneshot-F*.json 2>/dev/null | head -1 | xargs basename .json)
+# Extract ACs from WS file
+ACCEPTANCES=$(grep -A 20 "## Acceptance Criteria" docs/workstreams/backlog/${WS_ID}.md | grep "^- " | sed 's/^- \[.\] //' | sed 's/^- //' | head -20)
+# Create evidence with intent.acceptance populated (NOT empty [])
+# Include provenance: run_id, orchestrator: cursor-oneshot, captured_at
+```
+
+Schema: `intent` (acceptance, issue_id, risk_class, trigger), `plan` (workstreams, ordering_rationale), `provenance` (artifact_id, run_id, orchestrator, captured_at).
+
+**DURING execution:** Patch `execution.branch`, `execution.changed_files` as files change.
+
+**AFTER go test:** Patch `verification.tests`, `verification.coverage.value` (real value from `go test -coverprofile`), `verification.lint`. Add `review.self_review` with per-AC evidence: `"AC1: {text} -> satisfied by TestXxx in file.go:NN"`.
+
+**AFTER git commit:** Patch `trace.commits = [$(git rev-parse HEAD)]`, `execution.claimed_issue_ids = [beads_id]`.
+
+**AFTER commit:** Write `.sdp/ws-verdicts/{ws-id}.json` with `verdict`, `commit`, `quality_gates`, `ac_evidence[]` (per-AC proof).
 
 ---
 
@@ -80,7 +115,8 @@ Never commit to `dev` or `main` for feature work.
 
 When user invokes `@build 00-067-01`:
 
-1. Run CLI to setup and validate:
+1. **Create evidence file** (see Evidence Lifecycle above) — BEFORE any code
+2. Run CLI to setup and validate:
 ```bash
 # Git safety verification (F065)
 sdp guard context check
@@ -160,8 +196,9 @@ CRITICAL: Do NOT trust the implementer's report. Verify yourself.
 2. Run tests yourself
 3. Check coverage yourself
 4. Verify each AC is implemented
+5. Output ac_evidence mapping: for each AC, list {"ac_id": "AC1", "ac_text": "...", "evidence": "TestName in file.go:line", "status": "SATISFIED"}
 
-Output: Verdict PASS or FAIL with evidence
+Output: Verdict PASS or FAIL with evidence. Include AC_EVIDENCE: [array of ac_evidence objects]
 ```
 
 ---
@@ -198,13 +235,48 @@ Output: Verdict PASS or FAIL with evidence
 ## After All Subagents Complete
 
 **If all 3 PASS:**
+
 ```bash
-sdp guard complete 00-067-01
+# 1. Measure real coverage
+go test -coverprofile=/tmp/cover.out ./... 2>/dev/null
+COVERAGE=$(go tool cover -func=/tmp/cover.out 2>/dev/null | tail -1 | awk '{print $3}' | tr -d '%')
+[ -z "$COVERAGE" ] && COVERAGE=0
+
+# 2. Build ac_evidence array (per-AC proof)
+# For each AC in WS file, map to test/evidence: "AC1: {text} -> satisfied by TestXxx in file:line"
+
+# 3. Write ws-verdict file
+mkdir -p .sdp/ws-verdicts
+cat > .sdp/ws-verdicts/${WS_ID}.json << EOF
+{
+  "ws_id": "${WS_ID}",
+  "feature_id": "${FEATURE_ID}",
+  "verdict": "PASS",
+  "commit": "$(git rev-parse HEAD)",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "quality_gates": {
+    "tests": "PASS",
+    "coverage": ${COVERAGE},
+    "lint": "PASS",
+    "loc_ok": true
+  },
+  "ac_evidence": [
+    {"ac_id": "AC1", "ac_text": "...", "evidence": "TestXxx in file.go:NN", "status": "SATISFIED"}
+  ]
+}
+EOF
+
+# 4. Patch evidence file: verification.coverage.value, trace.commits, review.self_review
+
+# 5. Commit
+sdp guard complete 00-067-01 2>/dev/null || true
 git add .
-git commit -m "feat(F067): 00-067-01 - {title}"
+git commit -m "feat(${FEATURE_ID}): ${WS_ID} - {title}"
 ```
 
-**If any FAIL:** Report failure, do not commit.
+**If any FAIL:** Report failure, do not commit. Do not write ws-verdict.
+
+**ac_evidence:** Populate from Implementer/Spec Reviewer output. Each AC in the WS file must have one entry: `{"ac_id": "AC1", "ac_text": "...", "evidence": "TestName in file.go:line", "status": "SATISFIED"}`.
 
 ---
 
