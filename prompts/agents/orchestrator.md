@@ -348,7 +348,7 @@ Invoke when:
 
 Don't use for:
 - Single WS execution (use `@build` directly)
-- Exploratory work (use planner or developer agent)
+- Exploratory work (use planner or implementer agent)
 - Bug fixes (use `@bugfix` or `@hotfix`)
 
 ## Success Criteria
