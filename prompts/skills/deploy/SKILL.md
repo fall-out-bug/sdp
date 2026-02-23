@@ -49,8 +49,7 @@ feature/F020-xxx -> dev (via PR)
    bd list --status open --json | jq '[.[] | select(.priority <= 1)] | length'
    # Must be 0
 
-   # Verify tests pass
-   go test ./... -q
+   # Verify tests pass — run quality gates (see Quality Gates in AGENTS.md)
    ```
 
    **Gate:** If no APPROVED review, blocking findings, or tests fail -> STOP.
@@ -104,8 +103,7 @@ master -> release (with version bump)
    # Verify master is up to date
    git pull origin master
 
-   # Verify tests pass
-   go test ./... -q
+   # Verify tests pass — run quality gates (see Quality Gates in AGENTS.md)
    ```
 
 2. **Version Resolution**
@@ -187,7 +185,7 @@ bd list --status open --json | jq '[.[] | select(.priority <= 1)] | length'
 | Issue | Solution |
 |-------|----------|
 | PR creation fails | Check branch exists and is pushed |
-| CI failing | Run `go test ./...` locally |
+| CI failing | Run quality gates locally (see AGENTS.md) |
 | Blocking issues | `bd list --status open` then fix P0/P1 |
 | Merge conflict | Resolve in feature branch first |
 

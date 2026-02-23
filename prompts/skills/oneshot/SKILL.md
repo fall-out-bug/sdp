@@ -237,7 +237,7 @@ OPEN_BLOCKING=$(bd list --label review-finding --label F067 --status open --json
 if [ "$OPEN_BLOCKING" -ne 0 ]; then
   echo "$OPEN_BLOCKING blocking findings remain"; exit 1
 fi
-go test ./...
+# Run quality gates (see Quality Gates in AGENTS.md)
 ```
 
 ### Step 6: Create PR

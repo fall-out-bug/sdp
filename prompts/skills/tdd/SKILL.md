@@ -9,16 +9,16 @@ TDD discipline. Called by @build, not users.
 
 ## Cycle
 
-1. **RED** — Write failing test first. Run: `go test ./...` — must FAIL
-2. **GREEN** — Minimal implementation. Run: `go test ./...` — must PASS
-3. **REFACTOR** — Improve code. Run: `go test ./...` — still PASS
+1. **RED** — Write failing test first. Run test suite (see Quality Gates in AGENTS.md) — must FAIL
+2. **GREEN** — Minimal implementation. Run test suite (see Quality Gates in AGENTS.md) — must PASS
+3. **REFACTOR** — Improve code. Run test suite (see Quality Gates in AGENTS.md) — still PASS
 4. **COMMIT** — Save state
 
 ## Exit When
 
 - All AC met
-- `go test ./...` passes
-- `go vet ./...` passes
+- Test suite passes (see Quality Gates in AGENTS.md)
+- Static analysis passes (see Quality Gates in AGENTS.md)
 
 ## Example (Go)
 
