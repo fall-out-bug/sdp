@@ -2,8 +2,11 @@
 name: oneshot
 description: Autonomous multi-agent execution with review-fix loop, PR creation, CI-fix loop, provenance, and drift detection
 cli: sdp orchestrate (file ops only - requires @build for actual work)
-version: 8.0.0
+version: 8.1.0
 changes:
+  - Step 7: PENDING vs FAILURE; CI loop mandatory; no handoff lists
+  - Step 8: Completion output — only "CI GREEN", no delegation
+  - CRITICAL RULES 7–8
   - Step 0a: Feature Context Loading from ROADMAP
   - Step 0b: Branch Setup with checkpoint and run file
   - Step 1.5: Pre-Build Drift Gate (sdp drift detect)
@@ -29,6 +32,8 @@ Autonomous feature execution: Feature Context → Branch → Drift Gate → Buil
 4. **ONLY STOP IF:** All WS done OR unrecoverable blocker OR user explicitly stops you.
 5. **POST-COMPACTION RECOVERY** - After context compaction, read checkpoint first. Never drift to side tasks.
 6. **PROVENANCE** - Populate evidence files, run file events, and decision log. Never skip artifact writes.
+7. **CI LOOP MANDATORY** - Step 7: poll until green. If PENDING → wait, retry. Never hand off with "wait for CI yourself".
+8. **NO HANDOFF LISTS** - When done, output only "CI GREEN - @oneshot complete". Do NOT output "Next steps", "Optional: run /review", or delegation lists. Human UAT and merge are implicit — no handoff.
 
 ---
 
@@ -254,15 +259,22 @@ done
 
 ### Step 7: CI Check-Fix Loop
 
+**RULE:** Do NOT hand off. Poll until green or escalate. Never say "wait for CI yourself" or "next steps: wait for CI".
+
 ```bash
 CI_ITER=0
-CI_MAX_ITER=3
+CI_MAX_ITER=5
 sleep 90  # CI boot
 
 while [ $CI_ITER -lt $CI_MAX_ITER ]; do
-  FAILING=$(gh pr checks $PR_NUMBER --json name,state -q '.[] | select(.state != "SUCCESS" and .state != "SKIPPED") | .name' 2>/dev/null)
+  PENDING=$(gh pr checks $PR_NUMBER --json name,state -q '.[] | select(.state == "PENDING" or .state == "IN_PROGRESS") | .name' 2>/dev/null)
+  FAILING=$(gh pr checks $PR_NUMBER --json name,state -q '.[] | select(.state == "FAILURE" or .state == "ERROR") | .name' 2>/dev/null)
+
+  if [ -n "$PENDING" ]; then
+    echo "CI checks still running: $PENDING"; sleep 60; continue
+  fi
+
   if [ -z "$FAILING" ]; then
-    # CI GREEN
     bd list --label ci-finding --label F067 --status open --json 2>/dev/null | jq -r '.[].id' | while read id; do bd update "$id" --status=closed --notes="CI green"; done
     echo "CI GREEN - @oneshot complete"; break
   fi
@@ -275,8 +287,17 @@ while [ $CI_ITER -lt $CI_MAX_ITER ]; do
   # If not: bd create --title="CI BLOCKED: ..." --priority=0 --labels "ci-finding,F067"
   #         sdp decisions log --decision "ESCALATE" --rationale "..."
   #         HALT
+  CI_ITER=$((CI_ITER + 1))
 done
 ```
+
+### Step 8: Completion Output
+
+**When done:** Output only `CI GREEN - @oneshot complete` and PR URL. Do NOT output:
+- "Next steps"
+- "Optional: run /review"
+- "Human UAT → approve and merge"
+- Any delegation list
 
 ---
 
