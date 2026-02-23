@@ -31,9 +31,8 @@ You are working in a worktree for a specific feature. Your CWD may reset after t
 **BEFORE any git operation:**
 
 1. Run: `pwd` and `git branch --show-current`
-2. Run: `sdp guard context check`
-3. If check fails: Run: `sdp guard context go $FEATURE_ID`
-4. Then proceed with git command
+2. Checkpoint branch: `EXPECTED=$(jq -r .branch .sdp/checkpoints/${FEATURE_ID}.json 2>/dev/null)`. If EXPECTED is set and differs from current branch, run `git checkout $EXPECTED`
+3. Then proceed with git command
 
 **NEVER skip these steps.** Your CWD may reset after tool calls.
 

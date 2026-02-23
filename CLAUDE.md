@@ -264,8 +264,6 @@ The SDP CLI provides terminal commands for planning, executing, and tracking wor
 | `sdp guard check <file>` | Verify file is in scope |
 | `sdp guard status` | Show guard status |
 | `sdp guard deactivate` | Clear edit scope |
-| `sdp guard finding list` | List guard findings |
-| `sdp guard finding resolve <id>` | Resolve a finding |
 
 ### Session Commands
 

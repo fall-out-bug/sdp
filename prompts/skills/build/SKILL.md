@@ -43,8 +43,6 @@ if [ -n "$EXPECTED" ] && [ "$CURRENT" != "$EXPECTED" ]; then
   echo "ERROR: Wrong branch. Expected $EXPECTED, got $CURRENT."
   exit 1
 fi
-sdp guard context check 2>/dev/null || true
-sdp guard branch check --feature=$FEATURE_ID 2>/dev/null || true
 ```
 
 ---
@@ -66,7 +64,7 @@ sdp apply --ws 00-067-01 --dry-run
 
 3. **Commit and STOP:**
 ```bash
-sdp guard complete 00-067-01 2>/dev/null || true
+sdp guard deactivate 2>/dev/null || true
 git add .
 git commit -m "feat(F067): 00-067-01 - {title}"
 # STOP. Orchestrator continues to next WS if any.
