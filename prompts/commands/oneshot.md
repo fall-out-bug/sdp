@@ -1,3 +1,8 @@
+---
+description: Autonomous multi-step feature execution with checkpoints and review loop.
+agent: orchestrator
+---
+
 # /oneshot — Autonomous Feature Execution
 
 **Note:** This is Cursor-specific command. For Claude Code, use Task tool-based orchestration (see `.claude/skills/oneshot/SKILL.md`).
@@ -31,7 +36,7 @@ When calling `/oneshot F{XX}` in Cursor:
 - Cursor: Inline execution (no Task tool)
 - Claude Code: Task tool orchestrator with isolated agent
 
-**Next:** Human UAT → `/deploy F{XX}`
+**Post-oneshot (human gate):** UAT → merge → `/release F{XX}` if needed. Agent does NOT output "next steps".
 
 ## Checkpoint Files
 
