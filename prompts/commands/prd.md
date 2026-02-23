@@ -1,32 +1,10 @@
 ---
-description: PRD generation and maintenance workflow.
+description: PRD generation and maintenance. Use @vision.
 agent: builder
 ---
 
-# /prd — Prd
+# /prd
 
-## Overview
+PRD generation is now part of @vision. Use `@vision "project-name"` for initial PRD creation. Use `@vision "project-name" --update` to regenerate diagrams from @prd annotations.
 
-This command implements the prd skill from the SDP workflow.
-
-See `/prompts/skills/prd/SKILL.md` for complete documentation.
-
-## Usage
-
-```bash
-/prd [arguments]
-```
-
-## Implementation
-
-The command delegates to the `prd` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
-
-## Related
-
-- Skills: `prompts/skills/prd/SKILL.md`
-- Agents: `prompts/agents/builder.md`
+See `prompts/skills/vision/SKILL.md` for documentation.

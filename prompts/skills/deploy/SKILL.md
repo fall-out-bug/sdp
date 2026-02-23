@@ -84,12 +84,6 @@ feature/F020-xxx -> dev (via PR)
    Base: master
    Head: feature/F020-xxx
    CI: Running...
-
-   Next steps:
-   1. Wait for CI to pass
-   2. Human UAT (5-10 min)
-   3. Merge PR when ready
-   4. Run @deploy F020 --release for production
    ```
 
 ### Mode 2: Release to Main (`--release`)
@@ -184,21 +178,7 @@ bd list --status open --json | jq '[.[] | select(.priority <= 1)] | length'
 
 **CRITICAL:** Before ANY git operation, verify context.
 
-**MANDATORY before any git command:**
-
-```bash
-# Step 1: Verify context
-pwd
-git branch --show-current
-sdp guard context check
-
-# Step 2: If check fails, recover
-sdp guard context go $FEATURE_ID
-
-# Step 3: Only then proceed with deployment
-```
-
-**NOTE:** Deployment typically merges to main, which is allowed for @deploy.
+**Before git:** Verify `pwd`, `git branch --show-current`. Proceed only when context is correct.
 
 ---
 
