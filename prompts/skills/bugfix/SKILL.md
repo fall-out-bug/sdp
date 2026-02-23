@@ -1,6 +1,6 @@
 ---
 name: bugfix
-description: Quality bug fixes (P1/P2). Full TDD cycle, branch from feature/develop, no production deploy.
+description: Quality bug fixes (P1/P2). Full TDD cycle, branch from master via feature/, no production deploy.
 version: 2.0.0
 changes:
   - Converted to LLM-agnostic format
@@ -20,15 +20,16 @@ When user invokes `@bugfix "description"` or `@bugfix <issue-id>`:
 
 ### Step 1: Read Issue
 
-Load issue file from `docs/issues/` or resolve via `sdp resolve <id>`.
+Load issue file from `docs/issues/` or resolve via `bd show <id>`.
 
 ### Step 2: Create Branch
 
 ```bash
-git checkout -b bugfix/{issue-id}-{slug} dev
+git checkout master && git pull
+git checkout -b fix/{issue-id}-{slug}
 ```
 
-Branch from dev or feature branch (NOT main).
+Branch from master via feature/ (NOT main).
 
 ### Step 3: TDD Cycle
 
@@ -39,17 +40,9 @@ Branch from dev or feature branch (NOT main).
 ### Step 4: Quality Gates
 
 ```bash
-# Tests
-pytest tests/ -x
-
-# Coverage >= 80%
-pytest tests/ --cov=src/ --cov-fail-under=80
-
-# Type checking
-mypy src/ --strict
-
-# Linting
-ruff check src/
+go test ./...
+go vet ./...
+go build ./...
 ```
 
 ### Step 5: Commit
@@ -62,13 +55,12 @@ git commit -m "fix(scope): description (issue NNN)"
 ### Step 6: Merge and Push (CRITICAL)
 
 ```bash
-# 1. Merge to dev
-git checkout dev
-git merge bugfix/{branch-name} --no-edit
-
-# 2. Push to remote (MANDATORY)
+# 1. Push branch (MANDATORY)
 git pull --rebase || true
-git push
+git push -u origin fix/{branch-name}
+
+# 2. Create PR to master
+gh pr create --base master --head fix/{branch-name} --title "fix: description"
 
 # 3. Verify
 git status  # MUST show "up to date with origin"
@@ -96,7 +88,7 @@ git status  # MUST show "up to date with origin"
 @bugfix ISSUE-0001     # Issue ID
 ```
 
-**Resolution:** Uses `sdp resolve <id>` to find task file.
+**Resolution:** Uses `bd show <id>` to find task file.
 
 ---
 
@@ -105,7 +97,7 @@ git status  # MUST show "up to date with origin"
 | Aspect | Hotfix | Bugfix |
 |--------|--------|--------|
 | Severity | P0 | P1/P2 |
-| Branch from | main | develop/feature |
+| Branch from | master | master via feature/ |
 | Testing | Fast | Full |
 | Deploy | Production | Staging |
 
@@ -113,7 +105,7 @@ git status  # MUST show "up to date with origin"
 
 ## Output
 
-- Bug fixed in dev branch
+- Bug fixed in feature branch
 - Tests added with >=80% coverage
 - Issue marked closed
 - Changes pushed to origin

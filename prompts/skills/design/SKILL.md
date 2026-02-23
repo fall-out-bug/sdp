@@ -65,34 +65,15 @@ Skip topics already covered by @idea.
 - Skip block (skip remaining blocks)
 - Done (generate workstreams with current info)
 
-### Step 3: Cross-Feature Boundary Detection
-
-**Before parallel implementation, check for shared boundaries:**
-
-```bash
-sdp collision detect
-```
-
-- Analyzes scope files for shared types/interfaces across parallel features
-- Reports: shared types, fields needed by each feature, merge recommendations
-- If boundaries found -> suggest shared contracts
-
-**If boundaries detected:**
-```bash
-sdp contract generate --features=F054,F055
-sdp contract lock .contracts/User.yaml
-```
-
-### Step 4: Workstream Generation
+### Step 3: Workstream Generation
 
 Generate workstreams based on:
-- Shared contracts (from Step 3)
 - Architecture decisions (from discovery blocks)
 - Quality gates (TDD, coverage, type hints)
 
 **Output:** Workstream files in `docs/workstreams/backlog/00-FFF-SS.md`
 
-### Step 5: Create Beads Tasks
+### Step 4: Create Beads Tasks
 
 ```bash
 bd create --title="WS-FFF-01: {title}" --type=task --priority=2
@@ -142,12 +123,6 @@ Minimal blocks (2 blocks, 6 questions):
 ```
 
 ---
-
-## Contract Validation
-
-If shared contracts were generated:
-- Contract validation workstream runs AFTER implementation
-- Detects drift between contract and implementation
 
 ---
 

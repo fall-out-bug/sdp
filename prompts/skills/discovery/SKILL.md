@@ -20,11 +20,10 @@ When user invokes `@discovery "feature description"` or when `@feature` invokes 
 ### Phase 1: Roadmap Pre-Check
 
 1. Extract 3-5 high-signal keywords from the feature description (nouns + domain verbs — NOT generic terms like "add", "update", "implement").
-2. If memory search returns > 10 results, reduce to 2 most specific terms.
+2. Search docs for overlap:
 
 ```bash
-sdp memory stats   # warn if index > 24h old
-sdp memory search "<keyword1> <keyword2> <keyword3>"
+rg "<keyword1>|<keyword2>|<keyword3>" docs/ --type-add 'md:*.md' -t md -l
 ```
 
 3. Analyze results for:

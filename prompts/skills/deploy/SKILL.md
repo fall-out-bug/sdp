@@ -45,9 +45,9 @@ feature/F020-xxx -> dev (via PR)
    # Verify on feature branch
    git branch --show-current  # Should be feature/F020-xxx
 
-   # Verify no blocking findings
-   sdp guard finding list
-   # Must show: "0 blocking"
+   # Verify no blocking beads issues (P0/P1 open)
+   bd list --status open --json | jq '[.[] | select(.priority <= 1)] | length'
+   # Must be 0
 
    # Verify tests pass
    go test ./... -q
@@ -60,9 +60,9 @@ feature/F020-xxx -> dev (via PR)
    # Push feature branch
    git push origin feature/F020-xxx
 
-   # Create PR to dev
+   # Create PR to master
    gh pr create \
-       --base dev \
+       --base master \
        --head feature/F020-xxx \
        --title "feat(F020): Feature Title" \
        --body "## Summary
@@ -81,7 +81,7 @@ feature/F020-xxx -> dev (via PR)
 3. **Report**
    ```
    PR Created: https://github.com/owner/repo/pull/123
-   Base: dev
+   Base: master
    Head: feature/F020-xxx
    CI: Running...
 
@@ -94,21 +94,21 @@ feature/F020-xxx -> dev (via PR)
 
 ### Mode 2: Release to Main (`--release`)
 
-Used after PR merged to dev and human UAT complete.
+Used after PR merged to master and human UAT complete.
 
 ```
-dev -> main (with version bump)
+master -> release (with version bump)
 ```
 
 **Steps:**
 
 1. **Pre-flight Checks**
    ```bash
-   # Verify on dev branch
-   git branch --show-current  # Should be dev
+   # Verify on master branch
+   git branch --show-current  # Should be master
 
-   # Verify dev is up to date
-   git pull origin dev
+   # Verify master is up to date
+   git pull origin master
 
    # Verify tests pass
    go test ./... -q
@@ -164,21 +164,18 @@ dev -> main (with version bump)
 
 | Mode | Command | Action |
 |------|---------|--------|
-| PR | `@deploy F020` | Create PR: feature -> dev |
-| Release | `@deploy F020 --release` | Merge: dev -> main |
+| PR | `@deploy F020` | Create PR: feature -> master |
+| Release | `@deploy F020 --release` | Merge: master -> main |
 
 ---
 
-## Guard Integration
+## Pre-Deploy Check
 
-Before any deployment, check for blocking findings:
+Before any deployment, verify no blocking beads issues (P0/P1 open):
 
 ```bash
-sdp guard finding list
-
-# If blocking findings exist:
-sdp guard finding resolve finding-xxx --by="Fixed in commit abc123"
-sdp guard finding clear
+bd list --status open --json | jq '[.[] | select(.priority <= 1)] | length'
+# Must be 0 before deploy
 ```
 
 ---
@@ -211,7 +208,7 @@ sdp guard context go $FEATURE_ID
 |-------|----------|
 | PR creation fails | Check branch exists and is pushed |
 | CI failing | Run `go test ./...` locally |
-| Blocking findings | `sdp guard finding list` then fix |
+| Blocking issues | `bd list --status open` then fix P0/P1 |
 | Merge conflict | Resolve in feature branch first |
 
 ---

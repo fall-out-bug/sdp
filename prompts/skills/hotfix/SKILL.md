@@ -1,6 +1,6 @@
 ---
 name: hotfix
-description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, immediate deploy.
+description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from master, immediate deploy.
 version: 2.0.0
 changes:
   - Converted to LLM-agnostic format
@@ -21,10 +21,11 @@ When user invokes `@hotfix "description"` or `@hotfix <issue-id>`:
 ### Step 1: Create Branch
 
 ```bash
-git checkout -b hotfix/{issue-id}-{slug} main
+git checkout master && git pull
+git checkout -b hotfix/{issue-id}-{slug}
 ```
 
-Branch from main (NOT dev or feature).
+Branch from master (NOT dev or feature).
 
 ### Step 2: Minimal Fix
 
@@ -48,18 +49,13 @@ git commit -m "fix(scope): description (issue NNN)"
 ### Step 5: Merge, Tag, Push (CRITICAL)
 
 ```bash
-# 1. Merge to main and tag
-git checkout main
+# 1. Merge to master and tag
+git checkout master
 git merge hotfix/{branch} --no-edit
 git tag -a v{VERSION} -m "Hotfix: {description}"
-git push origin main --tags
+git push origin master --tags
 
-# 2. Backport to dev
-git checkout dev
-git merge main --no-edit
-git push origin dev
-
-# 3. Verify
+# 2. Verify
 git status  # MUST show "up to date with origin"
 ```
 
@@ -88,14 +84,13 @@ Update status in issue file.
 | **No new features** | Fix bug only |
 | **Fast testing** | Smoke + critical path |
 | **SLA target** | Immediate (emergency) |
-| **Backport mandatory** | To dev and feature branches |
+| **Merge to master** | Tag and push |
 
 ---
 
 ## Output
 
-- Hotfix merged to main with tag
-- Backported to dev
+- Hotfix merged to master with tag
 - All changes pushed to origin
 - Issue marked closed
 

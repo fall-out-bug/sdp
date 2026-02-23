@@ -23,7 +23,10 @@ Check that commands referenced in docs/workstreams/hooks actually exist.
 For target workstreams:
 
 ```bash
-sdp parse ws <ws-id>
+# Read workstream file directly
+cat docs/workstreams/backlog/<ws-id>.md
+
+# Detect drift
 sdp drift detect <ws-id>
 ```
 

@@ -28,7 +28,7 @@ Invoke the discovery skill for roadmap pre-check and product research:
 ```
 
 **What @discovery does:**
-- Phase 1: Roadmap pre-check (sdp memory search, overlap report)
+- Phase 1: Roadmap pre-check (doc search, overlap report)
 - Phase 2: Signal check (2 questions + web search) → route to Obvious / Competitive / Novel
 - Phase 3: Product research (track-dependent: OBVIOUS skips; COMPETITIVE single pass; NOVEL max 3 iterations)
 - Phase 4: Feature brief in `docs/drafts/discovery-{slug}.md`
@@ -120,7 +120,7 @@ After @design creates workstream files:
    ```
 3. Also run:
    ```bash
-   sdp memory search "<new feature domain terms>"
+   rg "<domain term1>|<domain term2>" docs/ -l
    sdp drift detect
    ```
 4. Categorize matches:

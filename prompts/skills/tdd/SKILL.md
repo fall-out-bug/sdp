@@ -58,8 +58,8 @@ After each cycle:
 ## Exit When
 
 - All acceptance criteria met
-- Coverage >= 80%
-- mypy --strict passes
+- `go test ./...` passes
+- `go vet ./...` passes
 
 ## Full Cycle Example
 
@@ -68,78 +68,68 @@ After each cycle:
 
 → Writing test for email validation...
 
-File: tests/unit/test_validators.py
-```python
-def test_email_validation():
-    validator = EmailValidator()
-    assert validator.is_valid("user@example.com") is True
-    assert validator.is_valid("invalid-email") is False
+File: internal/validators/validators_test.go
+```go
+func TestEmailValidation(t *testing.T) {
+    v := NewEmailValidator()
+    if !v.IsValid("user@example.com") {
+        t.Error("expected valid email to pass")
+    }
+    if v.IsValid("invalid-email") {
+        t.Error("expected invalid email to fail")
+    }
+}
 ```
 
 → Running test...
-$ pytest tests/unit/test_validators.py
-FAILED - ModuleNotFoundError: No module named 'validators'
+$ go test ./internal/validators/...
+FAIL: undefined: NewEmailValidator
 ✓ Test fails as expected (RED phase complete)
 
 # Phase 2: GREEN - Minimal Implementation
 
 → Writing minimal implementation...
 
-File: src/validators.py
-```python
-import re
+File: internal/validators/validators.go
+```go
+package validators
 
-class EmailValidator:
-    def is_valid(self, email: str) -> bool:
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return bool(re.match(pattern, email))
+import "regexp"
+
+func NewEmailValidator() *EmailValidator { return &EmailValidator{} }
+
+type EmailValidator struct{}
+
+func (e *EmailValidator) IsValid(email string) bool {
+    re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+    return re.MatchString(email)
+}
 ```
 
 → Running test...
-$ pytest tests/unit/test_validators.py
-PASSED
+$ go test ./internal/validators/...
+PASS
 ✓ Test passes (GREEN phase complete)
 
 # Phase 3: REFACTOR - Improve Code
 
-→ Refactoring: Extract pattern as constant...
-
-File: src/validators.py
-```python
-import re
-from typing import Final
-
-EMAIL_PATTERN: Final[str] = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-
-class EmailValidator:
-    def is_valid(self, email: str) -> bool:
-        return bool(re.match(EMAIL_PATTERN, email))
-```
+→ Refactoring: Extract pattern as package variable...
 
 → Running test...
-$ pytest tests/unit/test_validators.py
-PASSED
+$ go test ./internal/validators/...
+PASS
 ✓ Tests still pass after refactor
 
-→ Running coverage...
-$ pytest --cov=src/validators tests/unit/test_validators.py
-Coverage: 100%
-✓ Coverage >= 80%
-
-→ Running type check...
-$ mypy src/validators.py --strict
-Success: no issues found
-✓ Type checking passed
+→ Running quality gates...
+$ go vet ./...
+$ go build ./...
+✓ Quality gates passed
 
 # Phase 4: COMMIT - Save State
 
 → Creating commit...
-$ git add src/validators.py tests/unit/test_validators.py
-$ git commit -m "feat(validators): add email validation
-
-- Add EmailValidator class with regex pattern
-- Cover basic valid/invalid cases
-- 100% test coverage"
+$ git add internal/validators/
+$ git commit -m "feat(validators): add email validation"
 
 ✓ TDD cycle complete! Ready for next AC.
 ```

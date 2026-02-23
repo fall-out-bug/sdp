@@ -165,7 +165,7 @@ Claude:
 → Mapping: 00-050-01 → sdp-x8p
 → Setting up dependencies: bd dep add sdp-gtw sdp-x8p...
 → Verifying dependency graph: ✅ No cycles
-→ Migration command: poetry run sdp beads migrate docs/workstreams/backlog/ --real
+→ Migration command: sdp beads migrate docs/workstreams/backlog/ --real
 ```
 
 ## Helper Commands
@@ -287,7 +287,7 @@ bd-resolve() {
 
 ```bash
 # Migrate all backlog workstreams
-poetry run sdp beads migrate docs/workstreams/backlog/ --real
+sdp beads migrate docs/workstreams/backlog/ --real
 
 # Validate migration
 cat .beads-sdp-mapping.jsonl | wc -l  # Should match workstream count
