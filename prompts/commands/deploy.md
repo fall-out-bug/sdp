@@ -8,12 +8,12 @@ agent: builder
 When calling `/deploy {feature} [version_bump]`:
 
 1. Load skill: `.claude/skills/deploy/SKILL.md`
-2. Pre-flight: pytest, verify APPROVED
+2. Pre-flight: run quality gates (see AGENTS.md), verify APPROVED
 3. Version: bump semver (patch/minor/major)
-4. Generate: CHANGELOG, release notes, pyproject.toml
+4. Generate: CHANGELOG, release notes
 5. **EXECUTE** (do NOT propose):
    - `git commit` artifacts
-   - `git merge dev → main`
+   - `git merge feature/F{XX} → master` (via PR)
    - `git tag v{X.Y.Z}`
    - `git push origin main v{X.Y.Z}`
 6. Report summary

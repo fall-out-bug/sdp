@@ -145,38 +145,6 @@ Skip deep-dive cycles, move directly to @design.
 
 ---
 
-## Example Session
-
-```
-@idea "Add user authentication"
-
-# Cycle 1: Vision (3 questions)
-[Mission] What is the core mission?
-[Alignment] How does this align with vision?
-[Users] Who are the primary users?
-
-# TRIGGER: Continue? (yes/deep design/skip)
-User selects: Continue
-
-# Cycle 2: Problem (3 questions)
-...
-
-# TRIGGER: Continue? (yes/deep design/skip)
-User selects: Deep design
-
-# Jump to @design with architectural exploration
-
-Created Beads task: sdp-xxx
-   Title: Add user authentication
-   Questions asked: 6
-   Priority: P2
-
-# Next:
-@design sdp-xxx
-```
-
----
-
 ## Quick Reference
 
 | Command | Purpose |

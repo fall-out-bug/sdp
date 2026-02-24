@@ -7,7 +7,7 @@ agent: fixer
 
 When calling `/hotfix "description" --issue-id=001`:
 
-1. **Create branch** — `git checkout -b hotfix/{id}-{slug}` from main
+1. **Create branch** — `git checkout -b hotfix/{id}-{slug}` from master
 2. **Minimal fix** — No refactoring, fix bug only
 3. **Fast testing** — Smoke + critical path (no full suite)
 4. **Commit** — `fix(scope): description (issue NNN)`
@@ -18,16 +18,11 @@ When calling `/hotfix "description" --issue-id=001`:
 ## CRITICAL: You MUST Complete
 
 ```bash
-# Merge to main and tag
-git checkout main
+# Merge to master and tag
+git checkout master
 git merge hotfix/{branch} --no-edit
 git tag -a v{VERSION} -m "Hotfix: {description}"
-git push origin main --tags
-
-# Backport to dev
-git checkout dev
-git merge main --no-edit
-git push origin dev
+git push origin master --tags
 ```
 
 **Work is NOT complete until all `git push` commands succeed.**

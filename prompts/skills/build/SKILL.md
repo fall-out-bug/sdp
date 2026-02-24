@@ -1,7 +1,7 @@
 ---
 name: build
 description: Execute ONE workstream with TDD, guard enforcement, and ws-verdict output
-cli: sdp apply --ws
+cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
 version: 8.0.0
 changes:
@@ -12,7 +12,7 @@ changes:
 
 # build
 
-> **CLI:** `sdp apply --ws <workstream-id>` (file operations only)
+> **CLI:** `sdp guard activate <workstream-id>` (scope enforcement)
 > **LLM:** Execute one workstream following TDD discipline
 
 Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
@@ -54,7 +54,6 @@ When user invokes `@build 00-067-01`:
 1. **Setup:**
 ```bash
 sdp guard activate 00-067-01
-sdp apply --ws 00-067-01 --dry-run
 ```
 
 2. **TDD cycle** (spawn subagents if available, else do yourself):
@@ -113,4 +112,3 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 - `@oneshot` — Orchestrator that invokes @build per WS
 - `@tdd` — TDD pattern
-- `sdp-plugin/cmd/sdp/apply.go`

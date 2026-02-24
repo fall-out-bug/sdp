@@ -22,7 +22,7 @@ Trust nothing, verify everything. Do NOT trust implementer report, test output, 
 2. **Read implementation** — All scope files. Verify existence, structure, logic.
 3. **Compare** — For each AC: does code do what spec says? Evidence: code snippet, test output.
 4. **Verify tests** — Test exists, covers AC, uses real data. Reject tautologies.
-5. **Run quality gates** — `go test ./...`, `go test -cover`, `go vet` — yourself.
+5. **Run quality gates** — Execute project quality gates (see AGENTS.md) — yourself.
 6. **Verdict** — PASS if all AC verified with evidence. FAIL with specific fix required.
 
 ## Verdict Format

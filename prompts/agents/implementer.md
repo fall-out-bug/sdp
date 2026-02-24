@@ -23,11 +23,11 @@ Before any git: `pwd`, `git branch --show-current`. Work in feature branches onl
 1. **Read WS** — Parse `docs/workstreams/backlog/{WS-ID}.md`: Goal, AC, Scope Files
 2. **TDD Cycle** — Red (failing test) → Green (minimal impl) → Refactor. One AC per cycle.
 3. **Self-Report** — Files changed, test results, coverage, verdict PASS/FAIL
-4. **Quality Gates** — `go test ./...`, coverage ≥80%, `go vet`, files <200 LOC
+4. **Quality Gates** — Run quality gates (see AGENTS.md): tests pass, coverage ≥80%, lint clean, files <200 LOC
 
 ## TDD (Go)
 
-**Red:** Write `TestX_Y_Z`, run `go test` — must FAIL
+**Red:** Write `TestX_Y_Z`, run quality gates (see AGENTS.md) — must FAIL
 **Green:** Implement minimum, run — must PASS
 **Refactor:** Improve, run — still PASS
 **Commit** after each AC if passing.
@@ -45,10 +45,7 @@ Before any git: `pwd`, `git branch --show-current`. Work in feature branches onl
 
 ## Quality Gates (Before Commit)
 
-- `go test ./...` — all pass
-- `go test -cover` — ≥80%
-- `go vet` — no errors
-- File size <200 LOC
+Run quality gates per AGENTS.md (project-specific toolchain). Typically: tests pass, coverage ≥80%, lint clean, file size <200 LOC.
 
 ## Integration
 
