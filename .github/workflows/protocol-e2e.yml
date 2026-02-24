@@ -18,20 +18,30 @@ permissions:
   contents: read
 
 jobs:
-  protocol-e2e:
-    name: Protocol E2E (Docker)
+  build-test:
+    name: Build and test sdp-plugin
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Protocol E2E (Docker)
-        env:
-          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build and test sdp-plugin
         run: |
-          docker build -f ci/Dockerfile.protocol-e2e -t sdp-protocol-e2e:latest .
-          docker run --rm \
-            -e GLM_API_KEY="${GLM_API_KEY}" \
-            sdp-protocol-e2e:latest
+          cd sdp-plugin
+          go build ./...
+          go test ./... -count=1
+
+  protocol-e2e:
+    name: Protocol E2E (Docker)
+    needs: [build-test]
+    uses: ./.github/workflows/protocol-e2e-reusable.yml
+    with:
+      submodules: false
