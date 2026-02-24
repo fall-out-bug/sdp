@@ -135,16 +135,6 @@ Skip deep-dive cycles, move directly to @design.
 
 ---
 
-## Next Steps
-
-```bash
-@design sdp-xxx      # Decompose into workstreams
-bd show sdp-xxx      # View task details
-bd ready             # Check ready tasks
-```
-
----
-
 ## Key Principles
 
 1. **Progressive disclosure** - 3 questions at a time

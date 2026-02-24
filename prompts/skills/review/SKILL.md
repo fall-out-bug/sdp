@@ -1,9 +1,10 @@
 ---
 name: review
-description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation)
+description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 12.0.0
+version: 13.0.0
 changes:
+  - "13.0.0: Add Subagent 7 — Prompt Engineer for skill/agent/command file review"
   - P2/P3 PASS rule: Output PASS if all findings are P2 or P3
   - Beads: --silent --labels "review-finding,F{NNN},round-N,{role}"
   - Verdict: finding_ids, blocking_ids for @oneshot integration
@@ -13,7 +14,7 @@ changes:
 # review
 
 > **CLI:** `sdp quality all` (quality checks only)
-> **LLM:** Spawn 6 specialist subagents for full review
+> **LLM:** Spawn 7 specialist subagents for full review
 
 Comprehensive multi-agent quality review.
 
@@ -28,13 +29,14 @@ When user invokes `@review F067`, you MUST:
 sdp quality all
 ```
 
-2. Then spawn 6 specialist subagents IN PARALLEL for review:
+2. Then spawn 7 specialist subagents IN PARALLEL for review:
    - QA expert
    - Security expert
    - DevOps expert
    - SRE expert
    - TechLead expert
    - Documentation expert
+   - Prompt Engineer expert
 
 **DO NOT skip step 2.** The CLI only runs basic checks. Full review requires spawning subagents.
 
@@ -184,6 +186,40 @@ Output verdict: PASS or FAIL
 
 ---
 
+## Subagent 7: Prompt Engineer Expert
+
+**Role file:** None (inline task)
+
+**Task:**
+```
+You are the PROMPT ENGINEER expert for feature F067.
+
+Review scope: all files in sdp/prompts/skills/, sdp/prompts/agents/, sdp/prompts/commands/ that were changed or are referenced by the feature's workstreams.
+
+Your task:
+1. Language-agnostic compliance: skills must NOT hardcode language-specific commands (go test, npm test, cargo test, etc.) in CRITICAL execution paths. Skills reference "quality gates (see AGENTS.md)" instead. AGENTS.md is the project-specific toolchain config.
+2. No handoff lists: skills must NOT end with "Next steps:", "Follow-up:", or delegation lists. The agent completes its work or reports failure — no handoff.
+3. No phantom CLI: every CLI command referenced in a skill must actually exist. Check with `which {cmd}` or verify in cmd/ directory. Flag references to commands that don't exist.
+4. Symlink integrity: verify .cursor/commands, .opencode/commands, .claude/skills, .claude/agents are symlinks to sdp/ canonical source (not duplicated files).
+5. Skill size: skills should be 50-150 lines. Flag skills over 200 lines as bloated.
+6. Agent liveness: every agent in sdp/prompts/agents/ must be referenced by at least one skill or command. Flag unreferenced agents as dead code.
+7. Command consistency: every command in sdp/prompts/commands/ should have correct YAML frontmatter (description, agent fields).
+8. For each finding: create beads issue with `bd create --silent --labels "review-finding,F067,round-1,promptops" --priority={0-3} --type=bug`
+9. Include in your output: FINDINGS_CREATED: {space-separated ids}
+
+Priority guide:
+- P0: phantom CLI command (agent will fail at runtime)
+- P1: hardcoded language-specific command in CRITICAL path, handoff list in skill output
+- P2: bloated skill (>200 lines), missing frontmatter field
+- P3: style issue, minor inconsistency
+
+Rule: Output PASS if ALL your findings are P2 or P3 priority. Output FAIL only if you have P0 or P1 findings.
+
+Output verdict: PASS or FAIL
+```
+
+---
+
 ## After All Subagents Complete
 
 **Step 1: Synthesize verdict:**
@@ -197,10 +233,11 @@ Output verdict: PASS or FAIL
 ### SRE: {PASS/FAIL} - {summary}
 ### TechLead: {PASS/FAIL} - {summary}
 ### Documentation: {PASS/FAIL} - {summary}
+### PromptOps: {PASS/FAIL} - {summary}
 
 ## Overall Verdict
 
-**APPROVED** if all 6 PASS
+**APPROVED** if all 7 PASS
 **CHANGES_REQUESTED** if any FAIL
 ```
 
@@ -225,7 +262,8 @@ cat > .sdp/review_verdict.json << EOF
     "devops": "PASS/FAIL",
     "sre": "PASS/FAIL",
     "techlead": "PASS/FAIL",
-    "docs": "PASS/FAIL"
+    "docs": "PASS/FAIL",
+    "promptops": "PASS/FAIL"
   },
   "finding_ids": ["sdp_dev-abc", "sdp_dev-xyz"],
   "blocking_ids": ["sdp_dev-abc"],
@@ -263,7 +301,7 @@ FINDING_ID=$(bd create \
 echo "FINDING:$FINDING_ID"
 ```
 
-Replace `F{NNN}` with feature ID (e.g. F067), `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
+Replace `F{NNN}` with feature ID (e.g. F067), `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs/promptops.
 
 After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 id3`
 

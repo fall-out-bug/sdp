@@ -3,73 +3,18 @@ name: protocol-consistency
 description: Audit consistency across workstream docs, CLI capabilities, and CI workflows.
 ---
 
-# Protocol Consistency
+# @protocol-consistency
 
-Run this skill when you suspect process drift between documentation, CLI commands, and automation workflows.
+Detect drift between docs, CLI, and CI.
 
 ## Workflow
 
-### 1) Verify declared commands vs available CLI
+1. **Verify CLI** — `sdp --help`, `sdp <cmd> --help` — commands in docs exist
+2. **Validate WS schema** — Read `docs/workstreams/backlog/<ws-id>.md`, run `sdp drift detect <ws-id>`
+3. **Validate CI** — `rg "sdp .*" .github/workflows hooks scripts` — paths valid
+4. **Report** — Source file, observed vs expected, risk, suggested fix
+5. **Track** — `bd create --title="Protocol drift: ..." --type=task --priority=2`
 
-```bash
-sdp --help
-sdp <command> --help
-```
+## Output
 
-Check that commands referenced in docs/workstreams/hooks actually exist.
-
-### 2) Validate workstream schema compatibility
-
-For target workstreams:
-
-```bash
-sdp parse ws <ws-id>
-sdp drift detect <ws-id>
-```
-
-Identify schema mismatches (e.g. `feature` vs `feature_id`).
-
-### 3) Validate CI/workflow command paths
-
-```bash
-rg -n "sdp .*" .github/workflows hooks scripts -S
-```
-
-Confirm every referenced command is valid in current CLI and has expected flags.
-
-### 4) Report mismatches
-
-For each mismatch, include:
-
-- Source file + line
-- Observed behavior
-- Expected behavior
-- Risk (blocking/non-blocking)
-- Suggested minimal fix
-
-### 5) Track in Beads
-
-For blocking or repeat issues:
-
-```bash
-bd create --title="Protocol drift: <summary>" --type=task --priority=2
-bd sync
-```
-
-## Output Template
-
-```markdown
-## Protocol Consistency Report
-
-- Scope: ...
-- Blocking mismatches: N
-- Non-blocking mismatches: N
-
-### Findings
-1. ...
-2. ...
-
-### Recommended fixes
-1. ...
-2. ...
-```
+Report: scope, blocking/non-blocking mismatches, findings, recommended fixes.
