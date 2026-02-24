@@ -378,9 +378,9 @@ func TestNewQualityWatcher_CustomPatterns(t *testing.T) {
 	}
 
 	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{
-		Quiet:            true,
-		IncludePatterns:  []string{"*.py"},
-		ExcludePatterns:  []string{"test_*.py"},
+		Quiet:           true,
+		IncludePatterns: []string{"*.py"},
+		ExcludePatterns: []string{"test_*.py"},
 	})
 	if err != nil {
 		t.Fatalf("NewQualityWatcher: %v", err)
