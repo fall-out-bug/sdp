@@ -200,7 +200,7 @@ Why:
 
 ## What SDP Does Better (Current/Planned Moat)
 
-- Protocol-centric roadmap with explicit schema/evidence trace direction (`docs/vision/ROADMAP.md`).
+- Protocol-centric roadmap with explicit schema/evidence trace direction ([docs/roadmap/ROADMAP.md](../roadmap/ROADMAP.md)).
 - Quality + provenance narrative in one platform (plan/generation/verification/approval chain).
 - Multi-layer product direction already defined (`README.md`, `PRODUCT_VISION.md`): protocol, CLI, orchestrator.
 - Existing workstream discipline and dependency modeling in backlog system.

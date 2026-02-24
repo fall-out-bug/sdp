@@ -214,7 +214,7 @@ We're exploring multi-persona adversarial review, self-improvement loops, cross-
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
 | [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md) | in-toto predicate spec (evidence v2) |
 | [CLAUDE.md](CLAUDE.md) | Quick reference for Claude Code |
-| [docs/vision/ROADMAP.md](docs/vision/ROADMAP.md) | Roadmap and milestones |
+| [docs/roadmap/ROADMAP.md](docs/roadmap/ROADMAP.md) | Roadmap and milestones |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## License

@@ -109,7 +109,7 @@ These live in [`sdp_lab`](https://github.com/fall-out-bug/sdp_lab) — our resea
 |---|---|
 | **Developers** | 1 |
 | **Daily use** | Yes, on our own work |
-| **Releases** | 18 (v0.9.6) |
+| **Releases** | 19 (v0.9.7) |
 | **Stars** | 16 |
 | **Evidence tooling** | Working, not yet published separately |
 | **Core code** | ~14K LOC Go |
