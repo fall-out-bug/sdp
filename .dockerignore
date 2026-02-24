@@ -1,0 +1,2 @@
+# Exclude .beads so E2E gets fresh sqlite init (host may have dolt/daemon state)
+.beads/

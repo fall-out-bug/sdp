@@ -1,0 +1,12 @@
+## Constraints
+
+You may ONLY modify files under these path prefixes:
+- internal/
+- cmd/
+
+You must NOT modify:
+- .git/
+- .beads/
+- .sdp/
+
+Produce working, testable code. Run `go test ./...` to verify.

@@ -1,0 +1,73 @@
+# Project registry for SDP swarm. Each project has a repo, workstreams, and model policy.
+# Used by federation and orchestrator for multi-project scheduling.
+
+projects:
+  - id: sdp_dev
+    repo_url: .
+    repo_branch: main
+    beads_prefix: sdp_dev
+    language: go
+    workstreams:
+      - workstream:generic
+      - workstream:builder
+    model_policy: ""
+    config: {}
+
+  - id: sdp
+    repo_url: https://github.com/fall-out-bug/sdp
+    repo_branch: main
+    beads_prefix: sdp
+    language: go
+    workstreams:
+      - workstream:generic
+    model_policy: ""
+    config: {}
+
+  - id: opencode
+    repo_url: https://github.com/fall-out-bug/opencode
+    repo_branch: main
+    beads_prefix: opencode
+    language: go
+    workstreams:
+      - workstream:generic
+    model_policy: ""
+    fork: true
+    upstream_remote: upstream
+    upstream_url: https://github.com/anomalyco/opencode
+    config: {}
+
+  - id: kubeopencode
+    repo_url: https://github.com/fall-out-bug/kubeopencode
+    repo_branch: main
+    beads_prefix: kubeopencode
+    language: go
+    workstreams:
+      - workstream:generic
+    model_policy: ""
+    fork: true
+    upstream_remote: upstream
+    upstream_url: https://github.com/kubeopencode/kubeopencode
+    config: {}
+
+  - id: openclaw
+    repo_url: https://github.com/openclaw/openclaw
+    repo_branch: main
+    beads_prefix: openclaw
+    language: go
+    workstreams:
+      - workstream:generic
+    model_policy: ""
+    config: {}
+
+  - id: beads
+    repo_url: https://github.com/fall-out-bug/beads
+    repo_branch: main
+    beads_prefix: beads
+    language: go
+    workstreams:
+      - workstream:generic
+    model_policy: ""
+    fork: true
+    upstream_remote: upstream
+    upstream_url: https://github.com/steveyegge/beads
+    config: {}
