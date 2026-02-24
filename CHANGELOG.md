@@ -382,8 +382,6 @@ Pre-edit scope enforcement for workstreams.
 - `sdp guard activate <ws-id>` - Enforce edit scope
 - `sdp guard check <file>` - Verify file is in scope
 - `sdp guard status` - Show guard status
-- `sdp guard finding list` - List findings
-- `sdp guard finding resolve <id>` - Resolve finding
 
 ### F064: Unified Task Resolver
 

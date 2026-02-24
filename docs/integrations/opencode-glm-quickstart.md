@@ -63,4 +63,4 @@ Requires `sdp-orchestrate` from [sdp_lab](https://github.com/fall-out-bug/sdp_la
 
 - [SDP README](../../README.md)
 - [docs/attestation/coding-workflow-v1.md](../attestation/coding-workflow-v1.md) — evidence format
-- [CHANGELOG](../../CHANGELOG.md) — v0.9.5+ for @feature --auto, @design
+- [CHANGELOG](../../CHANGELOG.md) — v0.9.7+ for @feature --auto, @design
