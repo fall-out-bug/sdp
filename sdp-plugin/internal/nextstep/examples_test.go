@@ -58,10 +58,10 @@ func TestExampleInProgressWorkstream(t *testing.T) {
 		ActiveWorkstream: "00-069-01",
 		Mode:             ModeDrive,
 		GitStatus: GitStatusInfo{
-			IsRepo:       true,
-			Branch:       "feature/F069-next-step",
-			Uncommitted:  false,
-			MainBranch:   "main",
+			IsRepo:      true,
+			Branch:      "feature/F069-next-step",
+			Uncommitted: false,
+			MainBranch:  "main",
 		},
 		Config: ConfigInfo{
 			HasSDPConfig:    true,
