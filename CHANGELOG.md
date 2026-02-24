@@ -2,9 +2,9 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
-## [0.9.5] - 2026-02-24
+## [0.9.7] - 2026-02-24
 
-### Phase 0 + Roadmap v2: Skills, Schema, Constraints
+### Phase 0 + protocol E2E: Skills, Schema, Constraints, Full Protocol
 
 **New:**
 - **Coding Workflow Predicate (in-toto v1)** — `schema/coding-workflow-predicate.schema.json` for attestations. Predicate type: `https://sdp.dev/attestation/coding-workflow/v1`. See [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md).
@@ -20,7 +20,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - Deleted `help.md`, `init.md`; compressed deploy, review, implementer
 
 **Install:**
-- `SDP_REF` env var for branch/ref (e.g. `SDP_REF=v0.9.5` for testing)
+- `SDP_REF` env var for branch/ref (e.g. `SDP_REF=v0.9.7` for testing)
 - OpenCode/Windsurf: `SDP_IDE=opencode` or `SDP_IDE=all`
 
 ---
