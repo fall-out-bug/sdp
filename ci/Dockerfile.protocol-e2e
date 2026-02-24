@@ -13,12 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libzstd-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install beads via release binary (v0.55.4 has sqlite; v0.56+ requires Dolt server)
-ARG BEADS_VERSION=v0.55.4
-ARG TARGETARCH
-RUN ARCH=$(case $(uname -m) in aarch64|arm64) echo arm64;; x86_64|amd64) echo amd64;; *) echo amd64;; esac) && \
-    curl -fsSL -o /tmp/beads.tar.gz "https://github.com/steveyegge/beads/releases/download/${BEADS_VERSION}/beads_${BEADS_VERSION#v}_linux_${ARCH}.tar.gz" && \
-    tar -xzf /tmp/beads.tar.gz -C /usr/local/bin && rm /tmp/beads.tar.gz
+# Install beads via go install (avoids libicu version mismatch with prebuilt binary)
+RUN CGO_ENABLED=1 go install github.com/steveyegge/beads/cmd/bd@v0.55.4
 ENV PATH="/usr/local/bin:/go/bin:$PATH"
 
 # Install opencode CLI (for LLM integration phase)
@@ -36,8 +32,9 @@ RUN go build -o /usr/local/bin/sdp-evidence ./cmd/sdp-evidence && \
     go build -o /usr/local/bin/sdp-ci-loop ./cmd/sdp-ci-loop && \
     go build -o /usr/local/bin/sdp-eval ./cmd/sdp-eval
 
-# Build sdp CLI from sdp-plugin
-RUN cd sdp-plugin && go build -o /usr/local/bin/sdp ./cmd/sdp
+# Build sdp CLI from sdp-plugin (ARG allows sdp_dev to use sdp/sdp-plugin)
+ARG SDP_PLUGIN_PATH=sdp-plugin
+RUN cd ${SDP_PLUGIN_PATH} && go build -o /usr/local/bin/sdp ./cmd/sdp
 
 # Git config (needed for sdp-guard, orchestrate)
 # When sdp is a submodule, .git is a file; re-init for E2E so git commands work
