@@ -1,0 +1,47 @@
+# Protocol E2E - full SDP protocol test before release
+# Runs on PR and tag push; required before release
+name: Protocol E2E
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "sdp-plugin/**"
+      - "docs/workstreams/**"
+      - ".beads-sdp-mapping.jsonl"
+      - "ci/**"
+      - "schema/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build and test sdp-plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+          cache-dependency-path: sdp-plugin/go.sum
+
+      - name: Build and test sdp-plugin
+        run: |
+          cd sdp-plugin
+          go build ./...
+          go test ./... -count=1
+
+  protocol-e2e:
+    name: Protocol E2E (Docker)
+    needs: [build-test]
+    uses: ./.github/workflows/protocol-e2e-reusable.yml
+    with:
+      submodules: false

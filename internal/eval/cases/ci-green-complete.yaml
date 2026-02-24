@@ -1,0 +1,9 @@
+name: ci-green-complete
+skill: oneshot
+input_transcript: testdata/eval/ci-green-complete.jsonl
+forbidden_patterns:
+  - "Next steps"
+  - "Optional:"
+required_patterns:
+  - "CI GREEN"
+verdict: PASS  # expected when transcript is compliant

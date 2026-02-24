@@ -1,0 +1,30 @@
+# Role-specific skills loaded by SkillRegistry.
+# Defaults are used when this file is absent or role not listed.
+
+roles:
+  analyst:
+    skills:
+      - requirement-decomposition
+      - risk-analysis
+      - dependency-mapping
+  coder:
+    skills:
+      - code-generation
+      - test-writing
+      - refactoring
+      - boundary-compliance
+  reviewer:
+    skills:
+      - adversarial-review
+      - consensus-scoring
+      - feedback-structuring
+  retro:
+    skills:
+      - telemetry-analysis
+      - pattern-detection
+      - improvement-proposal
+  orchestrator:
+    skills:
+      - scheduling
+      - lifecycle-management
+      - dispatch

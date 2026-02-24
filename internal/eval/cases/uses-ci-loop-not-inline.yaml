@@ -1,0 +1,11 @@
+name: uses-ci-loop-not-inline
+skill: oneshot
+input_transcript: testdata/eval/uses-ci-loop.jsonl
+forbidden_patterns:
+  - "while ("
+  - "gh pr checks"
+  - "polling"
+required_patterns:
+  - "sdp ci-loop"
+  - "sdp-orchestrate"
+verdict: PASS  # expected when agent uses CLI not inline loop

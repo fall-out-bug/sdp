@@ -1,15 +1,15 @@
 ---
-description: Contract test generation and validation workflow.
+description: TDD cycle (Red-Green-Refactor) for test-driven development.
 agent: builder
 ---
 
-# /test — Test
+# /test — TDD
 
 ## Overview
 
-This command implements the test skill from the SDP workflow.
+This command implements the TDD skill from the SDP workflow.
 
-See `/prompts/skills/test/SKILL.md` for complete documentation.
+See `prompts/skills/tdd/SKILL.md` for complete documentation.
 
 ## Usage
 
@@ -19,14 +19,13 @@ See `/prompts/skills/test/SKILL.md` for complete documentation.
 
 ## Implementation
 
-The command delegates to the `test` skill, which provides:
+The command delegates to the `@tdd` skill, which provides:
 
-- Systematic workflow
+- Red-Green-Refactor cycle
 - Quality gates
-- Proper error handling
-- Documentation
+- Test-first discipline
 
 ## Related
 
-- Skills: `prompts/skills/test/SKILL.md`
+- Skills: `prompts/skills/tdd/SKILL.md`
 - Agents: `prompts/agents/builder.md`

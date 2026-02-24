@@ -136,6 +136,47 @@ func TestNewWatcher_NilConfig(t *testing.T) {
 	watcher.Close()
 }
 
+// TestAddWatch_File exercises addWatch when path is a file (watches parent directory).
+func TestAddWatch_File(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "watcher-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	filePath := filepath.Join(tmpDir, "single.go")
+	if err := os.WriteFile(filePath, []byte("package p\n"), 0644); err != nil {
+		t.Fatalf("Failed to create file: %v", err)
+	}
+
+	changeChan := make(chan string, 2)
+	w, err := NewWatcher(filePath, &WatcherConfig{
+		IncludePatterns: []string{"*.go"},
+		OnChange:        func(path string) { changeChan <- path },
+	})
+	if err != nil {
+		t.Fatalf("NewWatcher: %v", err)
+	}
+	defer w.Close()
+
+	go w.Start()
+	defer w.Stop()
+	time.Sleep(150 * time.Millisecond)
+
+	if err := os.WriteFile(filePath, []byte("package p\n\nfunc F() {}\n"), 0644); err != nil {
+		t.Fatalf("Write file: %v", err)
+	}
+
+	select {
+	case path := <-changeChan:
+		if path != filePath {
+			t.Errorf("OnChange got path %q, want %q", path, filePath)
+		}
+	case <-time.After(3 * time.Second):
+		t.Error("OnChange not called when watching file path")
+	}
+}
+
 func TestWatcher_StartStop(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "watcher-test")
 	if err != nil {

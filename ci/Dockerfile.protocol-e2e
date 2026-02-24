@@ -1,0 +1,50 @@
+# Protocol E2E test - full SDP protocol in isolated Docker environment
+# Usage: docker build -f ci/Dockerfile.protocol-e2e -t sdp-protocol-e2e .
+#        docker run --rm -e GLM_API_KEY=... sdp-protocol-e2e
+
+FROM golang:1.26-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    jq \
+    libicu-dev \
+    libzstd-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install beads via go install (avoids libicu version mismatch with prebuilt binary)
+RUN CGO_ENABLED=1 go install github.com/steveyegge/beads/cmd/bd@v0.55.4
+ENV PATH="/usr/local/bin:/go/bin:$PATH"
+
+# Install opencode CLI (for LLM integration phase)
+# Use official install script - go package is archived
+RUN curl -fsSL https://opencode.ai/install | bash || true
+
+WORKDIR /workspace
+# Repo COPY'd at build time
+COPY . .
+
+# Build SDP protocol binaries (evidence, guard, orchestrate, ci-loop, eval)
+RUN go build -o /usr/local/bin/sdp-evidence ./cmd/sdp-evidence && \
+    go build -o /usr/local/bin/sdp-guard ./cmd/sdp-guard && \
+    go build -o /usr/local/bin/sdp-orchestrate ./cmd/sdp-orchestrate && \
+    go build -o /usr/local/bin/sdp-ci-loop ./cmd/sdp-ci-loop && \
+    go build -o /usr/local/bin/sdp-eval ./cmd/sdp-eval
+
+# Build sdp CLI from sdp-plugin (ARG allows sdp_dev to use sdp/sdp-plugin)
+ARG SDP_PLUGIN_PATH=sdp-plugin
+RUN cd ${SDP_PLUGIN_PATH} && go build -o /usr/local/bin/sdp ./cmd/sdp
+
+# Git config (needed for sdp-guard, orchestrate)
+# When sdp is a submodule, .git is a file; re-init for E2E so git commands work
+RUN rm -f .git 2>/dev/null; git init && git add -A && git commit -m "e2e" 2>/dev/null || true
+RUN git config --global user.email "e2e@test" && \
+    git config --global user.name "E2E Test"
+
+# Init beads in workspace (best-effort; repo .beads may exist)
+RUN bd init 2>/dev/null || true
+RUN bd sync 2>/dev/null || true
+
+# GLM_API_KEY passed at runtime via -e (not baked into image)
+CMD ["bash", "ci/protocol-e2e-test.sh"]

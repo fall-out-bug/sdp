@@ -1,0 +1,45 @@
+# Reusable workflow for Protocol E2E (Docker)
+# Called from protocol-e2e.yml, go-release.yml, and sdp_dev release.yml
+name: Protocol E2E (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      submodules:
+        description: 'Checkout with submodules (true for sdp_dev)'
+        required: false
+        default: false
+        type: boolean
+      dockerfile_path:
+        description: 'Path to Dockerfile (sdp_dev uses sdp/ci/Dockerfile.protocol-e2e)'
+        required: false
+        default: 'ci/Dockerfile.protocol-e2e'
+        type: string
+      build_args:
+        description: 'Extra docker build args (e.g. --build-arg SDP_PLUGIN_PATH=sdp/sdp-plugin)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  protocol-e2e:
+    name: Protocol E2E (Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: ${{ inputs.submodules }}
+
+      - name: Overlay sdp ci (for sdp_dev build)
+        if: inputs.build_args != ''
+        run: |
+          cp sdp/ci/protocol-e2e-test.sh ci/
+          cp -r sdp/ci/protocol-e2e-fixtures ci/
+
+      - name: Protocol E2E (Docker)
+        env:
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+        run: |
+          docker build -f ${{ inputs.dockerfile_path }} ${{ inputs.build_args }} -t sdp-protocol-e2e:latest .
+          docker run --rm -e GLM_API_KEY="${GLM_API_KEY}" sdp-protocol-e2e:latest

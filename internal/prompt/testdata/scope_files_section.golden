@@ -1,0 +1,5 @@
+### Scope Files
+
+- internal/prompt/sections.go
+- internal/llm/prompt.go
+

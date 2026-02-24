@@ -40,7 +40,7 @@ Each phase has a contract. Skip a phase and the state machine blocks the next on
 
 Every run creates a strict evidence envelope — a JSON document proving intent, plan, execution, verification, review, boundary compliance, and provenance (SHA-256 hash chain). [Details in the Manifesto](docs/MANIFESTO.md#the-evidence-envelope).
 
-**Schema:** Validate evidence against `schema/evidence-envelope.schema.json` (version `evidence-envelope/v1`).
+**Schemas:** `schema/evidence-envelope.schema.json` (legacy), `schema/coding-workflow-predicate.schema.json` (in-toto v1). See [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md).
 
 ### 3. Gates PRs on evidence
 
@@ -212,6 +212,7 @@ We're exploring multi-persona adversarial review, self-improvement loops, cross-
 |------|---------|
 | [docs/MANIFESTO.md](docs/MANIFESTO.md) | Why SDP exists, what's real, what's next |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
+| [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md) | in-toto predicate spec (evidence v2) |
 | [CLAUDE.md](CLAUDE.md) | Quick reference for Claude Code |
 | [docs/vision/ROADMAP.md](docs/vision/ROADMAP.md) | Roadmap and milestones |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |

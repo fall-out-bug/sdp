@@ -2,6 +2,29 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.5] - 2026-02-24
+
+### Phase 0 + Roadmap v2: Skills, Schema, Constraints
+
+**New:**
+- **Coding Workflow Predicate (in-toto v1)** — `schema/coding-workflow-predicate.schema.json` for attestations. Predicate type: `https://sdp.dev/attestation/coding-workflow/v1`. See [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md).
+- **@feature --auto** — Generate workstreams directly from roadmap. Skip full discovery for features already in ROADMAP.md.
+- **@design** — Workstream file format with Scope Files, beads mapping, INDEX.md update. Required sections documented.
+- **PreToolUse constraint enforcement** — `sdp-guard --check-constraints` integration. Reads `.sdp/agent-constraints.yaml` for phase-specific rules (scope, force-push, destructive git).
+
+**Phase 0 (F018, F016, F021, F020):**
+- Removed phantom guard CLI refs (context, branch, complete, finding)
+- Slim @oneshot skill; outer loop via sdp-orchestrate
+- Language-agnostic skills: quality gates per AGENTS.md, `master` not `dev`
+- @build scope fix; stripped evidence boilerplate
+- Deleted `help.md`, `init.md`; compressed deploy, review, implementer
+
+**Install:**
+- `SDP_REF` env var for branch/ref (e.g. `SDP_REF=v0.9.5` for testing)
+- OpenCode/Windsurf: `SDP_IDE=opencode` or `SDP_IDE=all`
+
+---
+
 ## [0.9.4] - 2026-02-18
 
 ### Patch Release
