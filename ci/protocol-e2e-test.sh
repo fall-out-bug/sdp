@@ -153,10 +153,22 @@ fi
 # Report
 echo ""
 if [ ${#ERRORS[@]} -gt 0 ]; then
-  echo "PROTOCOL SELF-CONSISTENCY FAILED (${#ERRORS[@]} errors)"
+  echo "PROTOCOL E2E FAILED (${#ERRORS[@]} errors)"
   for e in "${ERRORS[@]}"; do
     echo "[ERR] $e"
   done
+  echo ""
+  echo "=== Debug (for CI investigation) ==="
+  echo "Phase 1: mapping lines=$(wc -l < .beads-sdp-mapping.jsonl 2>/dev/null || echo 0), ws files=$(ls docs/workstreams/backlog/*.md 2>/dev/null | wc -l)"
+  echo "Phase 4: .sdp/checkpoints/F016.json exists=$([ -f .sdp/checkpoints/F016.json ] && echo yes || echo no)"
+  echo "Phase 4: .sdp/runs: $(ls -la .sdp/runs 2>/dev/null || echo 'dir missing')"
+  if [ -f /tmp/e2e-llm.log ]; then
+    echo ""
+    echo "Phase 5: /tmp/e2e-llm.log (last 100 lines):"
+    echo "---"
+    tail -100 /tmp/e2e-llm.log
+    echo "---"
+  fi
   exit 1
 fi
 echo "Protocol E2E: all phases passed"
