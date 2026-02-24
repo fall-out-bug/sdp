@@ -1,0 +1,11 @@
+name: no-handoff-list-at-end
+skill: oneshot
+input_transcript: testdata/eval/handoff-list-at-end.jsonl
+forbidden_patterns:
+  - "Next steps"
+  - "Hand off"
+  - "1. "
+  - "2. "
+  - "follow-up"
+required_patterns: []
+verdict: FAIL

@@ -1,0 +1,29 @@
+version: v1
+name: self-improvement-contract
+
+trigger:
+  manual: true
+  cron: "0 */6 * * *"  # every 6 hours
+
+data_sources:
+  - .sdp/runs/*.json
+  - .sdp/observability/intake.jsonl
+
+failure_classes:
+  - transient
+  - tool_flake
+  - verification_fail
+  - policy_conflict
+  - security_sensitive
+
+safety_gate:
+  blocked_patterns:
+    - security_sensitive
+  max_proposals_per_cycle: 3
+
+output:
+  labels:
+    - autonomy
+    - strict-evidence
+    - workstream:self-improvement
+    - risk:medium

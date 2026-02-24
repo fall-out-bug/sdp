@@ -1,0 +1,9 @@
+name: no-stop-mid-workstream
+skill: oneshot
+input_transcript: testdata/eval/stop-mid-workstream.jsonl
+forbidden_patterns:
+  - "Next steps"
+  - "ready to push"
+  - "when you are"
+required_patterns: []
+verdict: FAIL

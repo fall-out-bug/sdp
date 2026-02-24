@@ -1,0 +1,143 @@
+{
+  "version": "v1",
+  "artifact": "kubeopencode-sdp-fit-gap",
+  "issue_id": "sdp_dev-2aq.7.3",
+  "severity_scale": [
+    "critical",
+    "high",
+    "medium",
+    "low"
+  ],
+  "disposition_types": [
+    "adapter extension",
+    "upstream PR candidate",
+    "internal patch"
+  ],
+  "requirements": [
+    {
+      "id": "WF-001",
+      "area": "beads-workflow",
+      "sdp_requirement": "Beads remains source of truth for lifecycle transitions.",
+      "fit": "partial",
+      "gap": "No native Beads to CRD lifecycle mapping.",
+      "severity": "high",
+      "disposition": "adapter extension",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.1"
+      ]
+    },
+    {
+      "id": "FSM-001",
+      "area": "fsm-transitions",
+      "sdp_requirement": "Canonical and side-state FSM transitions must be policy-gated.",
+      "fit": "partial",
+      "gap": "Task phase outcomes are not mapped to SDP transition contract.",
+      "severity": "critical",
+      "disposition": "adapter extension",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.1"
+      ]
+    },
+    {
+      "id": "EVD-001",
+      "area": "evidence-capture",
+      "sdp_requirement": "Strict evidence sections plus provenance keys are required per run.",
+      "fit": "partial",
+      "gap": "Role logs exist but strict evidence envelope is not native.",
+      "severity": "critical",
+      "disposition": "adapter extension",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.1"
+      ]
+    },
+    {
+      "id": "POL-001",
+      "area": "policy-enforcement",
+      "sdp_requirement": "Model allowlist and risk/publish policies must enforce deterministic denials.",
+      "fit": "partial",
+      "gap": "Policy contracts are external and not enforced by operator APIs.",
+      "severity": "high",
+      "disposition": "internal patch",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.4"
+      ]
+    },
+    {
+      "id": "OPS-001",
+      "area": "operational-controls",
+      "sdp_requirement": "Duplicate dispatch prevention and idempotent retries by issue/run-id.",
+      "fit": "partial",
+      "gap": "No lock-domain semantics tied to Beads issue/run context.",
+      "severity": "high",
+      "disposition": "adapter extension",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.1"
+      ]
+    },
+    {
+      "id": "RET-001",
+      "area": "retry-escalation",
+      "sdp_requirement": "Bounded retry budget and explicit escalation pathways.",
+      "fit": "partial",
+      "gap": "Generic retry budget and terminal reason fields are not standardized.",
+      "severity": "medium",
+      "disposition": "upstream PR candidate",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.2"
+      ]
+    },
+    {
+      "id": "TRC-001",
+      "area": "traceability",
+      "sdp_requirement": "Run/evidence/PR links must be emitted for every terminal run.",
+      "fit": "partial",
+      "gap": "Trace fields are not first-class in operator status contracts.",
+      "severity": "high",
+      "disposition": "adapter extension",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.1"
+      ]
+    },
+    {
+      "id": "MR-001",
+      "area": "multi-role-dependencies",
+      "sdp_requirement": "Reviewer execution depends on validated analyst/coder outputs.",
+      "fit": "partial",
+      "gap": "Dependency gating is implemented in prototype flow, not reusable API semantics.",
+      "severity": "medium",
+      "disposition": "upstream PR candidate",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.2"
+      ]
+    },
+    {
+      "id": "SEC-001",
+      "area": "security-boundaries",
+      "sdp_requirement": "Private policy bundles and tenant-specific controls stay internal.",
+      "fit": "partial",
+      "gap": "Need explicit boundary split to keep private controls out of upstream.",
+      "severity": "high",
+      "disposition": "internal patch",
+      "drives_tasks": [
+        "sdp_dev-2aq.7.4"
+      ]
+    }
+  ],
+  "sequencing": [
+    {
+      "order": 1,
+      "task": "sdp_dev-2aq.7.1",
+      "reason": "Defines adapter contracts required by all downstream tracks."
+    },
+    {
+      "order": 2,
+      "task": "sdp_dev-2aq.7.2",
+      "reason": "Extract upstream-safe deltas from proven adapter behavior."
+    },
+    {
+      "order": 3,
+      "task": "sdp_dev-2aq.7.4",
+      "reason": "Apply SDP-private hardening after upstream boundary is explicit."
+    }
+  ]
+}

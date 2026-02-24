@@ -1,0 +1,37 @@
+{
+  "runtime": "opencode",
+  "operations": [
+    "claimTask",
+    "loadTask",
+    "createBranch",
+    "executeTask",
+    "runVerification",
+    "buildEvidence",
+    "publishPR",
+    "updateTaskState",
+    "escalate"
+  ],
+  "states": [
+    "open",
+    "in_progress",
+    "review",
+    "verified",
+    "done",
+    "blocked",
+    "escalated",
+    "cancelled"
+  ],
+  "evidence_keys": [
+    "intent",
+    "plan",
+    "execution",
+    "verification",
+    "review",
+    "risk_notes",
+    "trace"
+  ],
+  "allowed_models": [
+    "glm-5",
+    "glm-4.7"
+  ]
+}
