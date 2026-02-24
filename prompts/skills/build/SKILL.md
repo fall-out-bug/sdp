@@ -45,6 +45,8 @@ if [ -n "$EXPECTED" ] && [ "$CURRENT" != "$EXPECTED" ]; then
 fi
 ```
 
+**NOTE:** Features MUST be implemented in feature branches. @oneshot creates the branch; @build only verifies.
+
 ---
 
 ## EXECUTE THIS NOW

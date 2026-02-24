@@ -57,6 +57,10 @@ You are the {ROLE} expert for feature F{XX}. Review your domain. For each findin
 
 `bd create --title "{AREA}: {desc}" --priority {0-3} --labels "review-finding,F{XX},round-{N},{role}" --type bug --silent`
 
+Replace `F{NNN}` with feature ID (e.g. F067), `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
+
+After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 id3`
+
 ---
 
 ## See Also

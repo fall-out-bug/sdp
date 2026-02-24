@@ -1,6 +1,12 @@
 ---
 name: feature
 description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstreams)
+version: 8.0.0
+depends_on: "@discovery v1"
+changes:
+  - v8: Full product discovery flow with @discovery, @ux, impact analysis
+  - Added --quick (skip @discovery), --infra (skip @ux)
+  - Step 3.5: Impact analysis after @design
 ---
 
 # @feature
@@ -99,6 +105,7 @@ Output:
 
 ### Step 0: Roadmap Pre-Check — unless --quick
 
+Use `@discovery "feature description"` for roadmap pre-check and product research. Or manually:
 1. Extract 3-5 keywords from feature description
 2. `rg "<kw1>|<kw2>|<kw3>" docs/ -t md -l`
 3. Analyze: ROADMAP overlap, workstream scope overlap, docs/drafts/idea-*.md
@@ -107,7 +114,7 @@ Output:
 
 ### Step 1: Quick Interview (3-5 questions)
 
-Problem, Users, Success. Gate: if vague (<200 words), ask clarification.
+Problem, Users, Success. Gate: if vague (<200 words), ask clarification. If @discovery ran: use its output.
 
 ### Step 2: @idea
 
@@ -143,6 +150,7 @@ The user is only asked to annotate if they want to (not required).
 
 ## See Also
 
+- @discovery — Product discovery gate (roadmap pre-check)
 - @idea — Requirements
 - @ux — UX research
 - @design — Workstream planning
