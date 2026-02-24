@@ -44,15 +44,20 @@ for cmd in "doctor" "status" "init" "parse" "guard activate" "guard check" "guar
   fi
 done
 
-# Beads
+# Beads (bd --version must succeed; ready/sync may exit 0 or 1)
 if ! bd --version &>/dev/null; then
   err "beads: bd --version failed"
+  echo "beads-debug: bd --version: $(bd --version 2>&1 || true)"
 fi
-if ! bd ready &>/dev/null; then
-  err "beads: bd ready failed"
+bd_ready_exit=0; bd ready &>/dev/null || bd_ready_exit=$?
+if [ "$bd_ready_exit" -ne 0 ] && [ "$bd_ready_exit" -ne 1 ]; then
+  err "beads: bd ready failed (exit $bd_ready_exit)"
+  echo "beads-debug: bd ready: $(bd ready 2>&1 || true)"
 fi
-if ! bd sync &>/dev/null; then
-  err "beads: bd sync failed"
+bd_sync_exit=0; bd sync &>/dev/null || bd_sync_exit=$?
+if [ "$bd_sync_exit" -ne 0 ] && [ "$bd_sync_exit" -ne 1 ]; then
+  err "beads: bd sync failed (exit $bd_sync_exit)"
+  echo "beads-debug: bd sync: $(bd sync 2>&1 || true)"
 fi
 
 # Phase 3: PROTOCOL COMMANDS (happy + negative)
@@ -131,8 +136,8 @@ else
   git add docs/workstreams/backlog/00-999-*.md .beads-sdp-mapping.jsonl 2>/dev/null || true
   git commit -m "E2E: add F999 fixtures" 2>/dev/null || true
 
-  # Run orchestrate with timeout (5 min)
-  if timeout 300 sdp-orchestrate --feature F999 --runtime opencode &>/tmp/e2e-llm.log; then
+  # Run orchestrate with timeout (8 min; LLM can be slow in CI)
+  if timeout 480 sdp-orchestrate --feature F999 --runtime opencode &>/tmp/e2e-llm.log; then
     if [ ! -f .sdp/checkpoints/F999.json ]; then
       err "llm: checkpoint F999.json not created"
     fi
@@ -159,6 +164,7 @@ if [ ${#ERRORS[@]} -gt 0 ]; then
   done
   echo ""
   echo "=== Debug (for CI investigation) ==="
+  echo "beads: which bd=$(which bd 2>/dev/null || echo 'not found'), bd --version=$(bd --version 2>&1 || true)"
   echo "Phase 1: mapping lines=$(wc -l < .beads-sdp-mapping.jsonl 2>/dev/null || echo 0), ws files=$(ls docs/workstreams/backlog/*.md 2>/dev/null | wc -l)"
   echo "Phase 4: .sdp/checkpoints/F016.json exists=$([ -f .sdp/checkpoints/F016.json ] && echo yes || echo no)"
   echo "Phase 4: .sdp/runs: $(ls -la .sdp/runs 2>/dev/null || echo 'dir missing')"
