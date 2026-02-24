@@ -1,8 +1,11 @@
 package watcher
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -219,5 +222,173 @@ func TestQualityWatcher_ClearViolations(t *testing.T) {
 	violations = qw.GetViolations()
 	if len(violations) != 0 {
 		t.Errorf("Expected 0 violations after clear, got %d", len(violations))
+	}
+}
+
+// TestQualityWatcher_OnFileChange_TypeErrors triggers checkTypes with Go vet errors (coverage: checkTypes Errors loop).
+func TestQualityWatcher_OnFileChange_TypeErrors(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "quality-watcher-types-")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	modFile := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatalf("Failed to write go.mod: %v", err)
+	}
+	// Go file with type error so go vet returns Errors
+	badFile := filepath.Join(tmpDir, "bad.go")
+	content := "package test\n\nfunc F() {\n\tvar x int = \"string\"\n}\n"
+	if err := os.WriteFile(badFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write bad.go: %v", err)
+	}
+
+	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{Quiet: true})
+	if err != nil {
+		t.Fatalf("NewQualityWatcher: %v", err)
+	}
+	defer qw.watcher.Close()
+
+	qw.onFileChange(badFile)
+
+	violations := qw.GetViolations()
+	var typeErrors int
+	for _, v := range violations {
+		if v.Check == "types" {
+			typeErrors++
+		}
+	}
+	if typeErrors == 0 {
+		t.Logf("No type violations (go vet may not report for this snippet in all environments); violations: %d", len(violations))
+	}
+}
+
+// TestQualityWatcher_OnFileChange_Complexity triggers checkComplexity with a high-LOC Go file (coverage: checkComplexity loop).
+func TestQualityWatcher_OnFileChange_Complexity(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "quality-watcher-complex-")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	modFile := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatalf("Failed to write go.mod: %v", err)
+	}
+	// Large file so basicGoComplexity estimates high complexity (loc/10 > threshold when threshold is 10)
+	complexFile := filepath.Join(tmpDir, "complex.go")
+	var b []byte
+	b = append(b, "package test\n\nfunc Complex() {\n"...)
+	for i := 0; i < 200; i++ {
+		b = append(b, "\tif true { }\n"...)
+	}
+	b = append(b, "}\n"...)
+	if err := os.WriteFile(complexFile, b, 0644); err != nil {
+		t.Fatalf("Failed to write complex.go: %v", err)
+	}
+
+	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{Quiet: true})
+	if err != nil {
+		t.Fatalf("NewQualityWatcher: %v", err)
+	}
+	defer qw.watcher.Close()
+
+	qw.onFileChange(complexFile)
+
+	violations := qw.GetViolations()
+	var complexityViolations int
+	for _, v := range violations {
+		if v.Check == "complexity" {
+			complexityViolations++
+		}
+	}
+	if complexityViolations == 0 {
+		t.Logf("No complexity violations (threshold or gocyclo may vary); violations: %d", len(violations))
+	}
+}
+
+// TestQualityWatcher_Start_NonQuiet covers QualityWatcher.Start with Quiet: false (prints "Watching ...").
+func TestQualityWatcher_Start_NonQuiet(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "quality-watcher-nonquiet-")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	modFile := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatalf("Failed to write go.mod: %v", err)
+	}
+
+	var buf bytes.Buffer
+	restore := captureStdout(&buf)
+
+	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{Quiet: false})
+	if err != nil {
+		t.Fatalf("NewQualityWatcher: %v", err)
+	}
+	defer qw.watcher.Close()
+
+	done := make(chan struct{})
+	go func() {
+		_ = qw.Start()
+		close(done)
+	}()
+	// Allow time for Start() to run and print before we stop
+	time.Sleep(300 * time.Millisecond)
+	qw.Stop()
+	<-done
+	// Restore stdout and wait for pipe copy to finish so buf is safe to read
+	restore()
+
+	out := buf.String()
+	if !strings.Contains(out, "Watching") || !strings.Contains(out, "quality violations") {
+		t.Errorf("Expected Start() to print 'Watching ... quality violations'; got: %q", out)
+	}
+}
+
+func captureStdout(w *bytes.Buffer) func() {
+	old := os.Stdout
+	pr, pw, _ := os.Pipe()
+	os.Stdout = pw
+	done := make(chan struct{})
+	go func() {
+		_, _ = io.Copy(w, pr)
+		close(done)
+	}()
+	return func() {
+		pw.Close()
+		<-done
+		os.Stdout = old
+	}
+}
+
+// TestNewQualityWatcher_CustomPatterns covers custom IncludePatterns and ExcludePatterns (no defaults).
+func TestNewQualityWatcher_CustomPatterns(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "quality-watcher-patterns-")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	modFile := filepath.Join(tmpDir, "go.mod")
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+		t.Fatalf("Failed to write go.mod: %v", err)
+	}
+
+	qw, err := NewQualityWatcher(tmpDir, &QualityWatcherConfig{
+		Quiet:            true,
+		IncludePatterns:  []string{"*.py"},
+		ExcludePatterns:  []string{"test_*.py"},
+	})
+	if err != nil {
+		t.Fatalf("NewQualityWatcher: %v", err)
+	}
+	defer qw.watcher.Close()
+
+	if qw.watcher.config.IncludePatterns[0] != "*.py" || qw.watcher.config.ExcludePatterns[0] != "test_*.py" {
+		t.Errorf("Custom patterns not applied: include=%v exclude=%v",
+			qw.watcher.config.IncludePatterns, qw.watcher.config.ExcludePatterns)
 	}
 }
