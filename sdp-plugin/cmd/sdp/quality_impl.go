@@ -4,14 +4,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
 func runQualityCoverage(strict bool) error {
-	projectPath, err := os.Getwd()
+	projectPath, err := config.FindProjectRoot()
 	if err != nil {
-		projectPath = "." // Fall back to current directory
+		projectPath, _ = os.Getwd()
+	}
+	if projectPath == "" {
+		projectPath = "."
 	}
 	checker, err := quality.NewChecker(projectPath)
 	if err != nil {
@@ -57,8 +61,11 @@ func runQualityCoverage(strict bool) error {
 }
 
 func runQualityComplexity(strict bool) error {
-	projectPath, err := os.Getwd()
+	projectPath, err := config.FindProjectRoot()
 	if err != nil {
+		projectPath, _ = os.Getwd()
+	}
+	if projectPath == "" {
 		projectPath = "."
 	}
 	checker, err := quality.NewChecker(projectPath)
@@ -102,8 +109,11 @@ func runQualityComplexity(strict bool) error {
 }
 
 func runQualitySize(strict bool) error {
-	projectPath, err := os.Getwd()
+	projectPath, err := config.FindProjectRoot()
 	if err != nil {
+		projectPath, _ = os.Getwd()
+	}
+	if projectPath == "" {
 		projectPath = "."
 	}
 	checker, err := quality.NewChecker(projectPath)

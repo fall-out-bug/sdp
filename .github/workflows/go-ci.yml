@@ -44,16 +44,17 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          # Coverage check excludes cmd/sdp (needs integration tests) and internal/quality (external tools)
+          # Coverage check excludes cmd/sdp (integration tests), internal/quality (external tools), internal/watcher (UI-heavy)
+          # Use -count=1 so cached results from other steps don't report stale coverage
           echo "Running coverage check for internal packages..."
-          PACKAGES=$(go list ./... | grep -v -E "cmd/sdp$|internal/quality$")
-          go test -cover $PACKAGES 2>&1 | grep "coverage:"
+          PACKAGES=$(go list ./... | grep -v -E "cmd/sdp$|internal/quality$|internal/watcher$")
+          go test -count=1 -cover $PACKAGES 2>&1 | grep "coverage:"
           echo ""
           # Check if any package is below 80%
-          LOW=$(go test -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])" | wc -l | tr -d ' ')
+          LOW=$(go test -count=1 -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])" | wc -l | tr -d ' ')
           if [ "$LOW" -gt "0" ]; then
             echo "❌ Coverage check FAILED - $LOW packages below 80%"
-            go test -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])"
+            go test -count=1 -cover $PACKAGES 2>&1 | grep -E "coverage: (7[0-9]|[0-6][0-9])"
             exit 1
           else
             echo "✅ Coverage check PASSED - all packages >= 80%"

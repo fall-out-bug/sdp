@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP CLI v0.9.4 with Claude Code.
+Quick reference for using SDP CLI v0.9.7 with Claude Code.
 
 ## Quick Start
 
@@ -16,27 +16,12 @@ Quick reference for using SDP CLI v0.9.4 with Claude Code.
 
 ---
 
-## Milestone Context
-
-**Current milestone:** M1 "T-shirt" (UX Excellence)
-
-| Milestone | Features | Status |
-|-----------|----------|--------|
-| **M1** | F054, F063, F064, F067, F068, F070, F075, F076 | **CURRENT** |
-| M2 | F060, F071, F073, F077, F078 | Future |
-| M3 | F057, F058, F069, F072, F074, F079 | Future |
-| M4 | F055, F056, F059, F061 | Future |
-
-**Only work on current milestone features unless explicitly requested.**
-
----
-
 ## Protocol Flow
 
 The correct workflow is:
 
 ```
-@oneshot F067  →  @review F067  →  @deploy F067
+@oneshot F001  →  @review F001  →  @deploy F001
     │                 │                │
     ▼                 ▼                ▼
  Execute WS      APPROVED?         Merge PR
@@ -69,7 +54,7 @@ New project?
 |-------|-------------|---------|--------|
 | **Strategic** | @vision (7 agents) | Product planning | VISION, PRD, ROADMAP |
 | **Analysis** | @reality (8 agents) | Codebase analysis | Reality report |
-| **Feature** | @feature (@idea + @design) | Requirements + WS | Workstreams |
+| **Feature** | @feature (roadmap pre-check + @idea + @ux + @design) | Requirements + WS | Workstreams |
 | **Execution** | @oneshot (@build) | Parallel execution | Implemented code |
 
 ### When to Use Each Level
@@ -78,7 +63,9 @@ New project?
 
 **@reality** — New to project, before @feature, track tech debt, quarterly review
 
-**@feature** — Feature idea but no workstreams, need interactive planning
+**@feature** — Feature idea but no workstreams, need interactive planning (full discovery flow)
+
+**@ux** — UX research for user-facing features (standalone or auto-triggered by @feature)
 
 **@oneshot** — Workstreams exist, want autonomous execution with checkpoint/resume
 
@@ -94,8 +81,9 @@ New project?
 |-------|---------|-------|
 | `@vision` | Strategic product planning (7 expert agents) | Strategic |
 | `@reality` | Codebase analysis (8 expert agents) | Analysis |
-| `@feature` | Planning orchestrator (interactive) | Planning |
+| `@feature` | Planning orchestrator (roadmap pre-check + idea + ux + design) | Planning |
 | `@idea` | Requirements gathering (AskUserQuestion) | Planning |
+| `@ux` | UX research (mental model elicitation) | Planning |
 | `@design` | Workstream design (EnterPlanMode) | Planning |
 | `@oneshot` | Execution orchestrator (autonomous) | Execution |
 | `@build` | Execute single workstream (TDD) | Execution |
@@ -118,7 +106,7 @@ New project?
 | `@init` | Initialize SDP in current project |
 | `@help` | Interactive skill discovery |
 | `@prototype` | Rapid prototyping shortcut |
-| `@prd` | PRD generation and maintenance |
+| `@vision --update` | PRD/ diagram regeneration |
 | `@test` | Contract test generation |
 | `@reality-check` | Quick documentation vs code validation |
 | `@verify-workstream` | Validate workstream against codebase |
@@ -276,8 +264,6 @@ The SDP CLI provides terminal commands for planning, executing, and tracking wor
 | `sdp guard check <file>` | Verify file is in scope |
 | `sdp guard status` | Show guard status |
 | `sdp guard deactivate` | Clear edit scope |
-| `sdp guard finding list` | List guard findings |
-| `sdp guard finding resolve <id>` | Resolve a finding |
 
 ### Session Commands
 
@@ -431,4 +417,4 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**CLI Version:** 0.9.4 | **Protocol Version:** 0.10.0
+**CLI Version:** 0.9.7 | **Protocol Version:** 0.10.0

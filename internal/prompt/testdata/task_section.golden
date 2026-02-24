@@ -1,0 +1,15 @@
+## Task
+
+**ID:** 00-025-01
+
+**Title:** Prompt Consolidation
+
+**Description:**
+Consolidate 5 scattered prompt-building functions.
+
+**Acceptance Criteria:**
+- All prompt-building logic consolidated
+- TaskSection pure function
+
+**Spec ID:** sdp_dev-h7qu
+

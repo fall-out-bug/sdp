@@ -38,6 +38,13 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 		Strict:    c.strictMode,
 	}
 
+	skipPrefixes := []string{"vendor/", "node_modules/", ".git/", "target/", "__pycache__/", ".venv/", "venv/", ".tmp/", "/sdp/"}
+	if projectRoot, rootErr := config.FindProjectRoot(); rootErr == nil {
+		if cfg, cfgErr := config.Load(projectRoot); cfgErr == nil && len(cfg.Quality.SizeExclude) > 0 {
+			skipPrefixes = append(skipPrefixes, cfg.Quality.SizeExclude...)
+		}
+	}
+
 	var totalLOC int
 	var totalFiles int
 	var sumLOC int
@@ -48,15 +55,11 @@ func (c *Checker) CheckFileSize() (*FileSizeResult, error) {
 			return walkErr
 		}
 
-		// Skip certain directories
-		if strings.Contains(path, "vendor/") ||
-			strings.Contains(path, "node_modules/") ||
-			strings.Contains(path, ".git/") ||
-			strings.Contains(path, "target/") ||
-			strings.Contains(path, "__pycache__/") ||
-			strings.Contains(path, ".venv/") ||
-			strings.Contains(path, "venv/") {
-			return nil
+		// Skip certain directories (base + config size_exclude)
+		for _, prefix := range skipPrefixes {
+			if strings.Contains(path, prefix) {
+				return nil
+			}
 		}
 
 		// Check file extensions based on project type

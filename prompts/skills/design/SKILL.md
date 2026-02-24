@@ -1,159 +1,109 @@
 ---
 name: design
-description: System design with progressive disclosure
-version: 6.0.0
-changes:
-  - Converted to LLM-agnostic format
-  - Removed tool-specific API references
-  - Focus on WHAT, not HOW to invoke
+description: System design with progressive disclosure, produces workstream files
 ---
 
-# @design - System Design with Progressive Disclosure
+# @design
 
-Multi-agent system design (Arch + Security + SRE) with progressive discovery blocks.
-
----
-
-## EXECUTE THIS NOW
-
-When user invokes `@design <task_id>`:
-
-### Step 1: Load Requirements
-
-Load requirements from:
-- `docs/intent/{task_id}.json` - Machine-readable intent from @idea
-- `docs/drafts/idea-*.md` - Feature spec from @idea
-
-Skip topics already covered by @idea.
-
-### Step 2: Progressive Discovery (3-5 blocks)
-
-**Block Structure:**
-- Each block: 3 questions
-- After each block: trigger point (Continue / Skip block / Done)
-- User can skip blocks not relevant to feature
-
-**Discovery Blocks:**
-
-**Block 1: Data & Storage (3 questions)**
-- Data models?
-- Storage requirements?
-- Persistence strategy?
-
-**Block 2: API & Integration (3 questions)**
-- API endpoints?
-- External integrations?
-- Authentication/authorization?
-
-**Block 3: Architecture (3 questions)**
-- Component structure?
-- Layer boundaries?
-- Error handling strategy?
-
-**Block 4: Security (3 questions)**
-- Input validation?
-- Sensitive data handling?
-- Rate limiting?
-
-**Block 5: Operations (3 questions)**
-- Monitoring?
-- Deployment?
-- Rollback strategy?
-
-**After Each Block: Trigger Point**
-- Continue (next discovery block)
-- Skip block (skip remaining blocks)
-- Done (generate workstreams with current info)
-
-### Step 3: Cross-Feature Boundary Detection
-
-**Before parallel implementation, check for shared boundaries:**
-
-```bash
-sdp collision detect
-```
-
-- Analyzes scope files for shared types/interfaces across parallel features
-- Reports: shared types, fields needed by each feature, merge recommendations
-- If boundaries found -> suggest shared contracts
-
-**If boundaries detected:**
-```bash
-sdp contract generate --features=F054,F055
-sdp contract lock .contracts/User.yaml
-```
-
-### Step 4: Workstream Generation
-
-Generate workstreams based on:
-- Shared contracts (from Step 3)
-- Architecture decisions (from discovery blocks)
-- Quality gates (TDD, coverage, type hints)
-
-**Output:** Workstream files in `docs/workstreams/backlog/00-FFF-SS.md`
-
-### Step 5: Create Beads Tasks
-
-```bash
-bd create --title="WS-FFF-01: {title}" --type=task --priority=2
-```
-
----
+Multi-agent design (Arch + Security + SRE) with progressive discovery blocks.
 
 ## When to Use
 
-- After @idea requirements gathering
-- Need architecture decisions
-- Creating workstream breakdown
+After @idea, or directly from a feature description. Creates workstream files with AC and scope.
 
----
+## Workflow
+
+### 1. Load requirements
+
+- `docs/intent/{task_id}.json` or `docs/drafts/idea-*.md` if available
+- Or: use the feature description directly
+
+### 2. Progressive discovery — unless --quiet
+
+3-5 discovery blocks, 2-3 questions each:
+- **Architecture**: What components change? What's the data model?
+- **Security**: Any auth, crypto, or boundary concerns?
+- **Operations**: Any monitoring, logging, or CI concerns?
+
+After each block: Continue / Skip / Done
+
+### 3. Generate workstream files
+
+Create `docs/workstreams/backlog/00-FFF-SS.md` for each deliverable.
+
+**Required sections:**
+
+```markdown
+# 00-FFF-SS: Feature Name — Step Description
+
+Feature: FFFF (sdp_dev-XXXX)
+Phase: N
+Status: Backlog
+
+## Goal
+
+One paragraph: what and why.
+
+## Scope Files
+
+List exact file paths or directory prefixes this workstream touches.
+Used by sdp-guard for boundary checking and CI scope-compliance.
+
+- internal/evidence/
+- cmd/sdp-evidence/main.go
+
+## Dependencies
+
+- 00-FFF-01: prerequisite workstream (if any)
+
+## Acceptance Criteria
+
+Specific, testable, binary (pass/fail):
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] go build ./... passes
+- [ ] go test ./internal/evidence/... passes
+```
+
+### 4. Create Beads issues
+
+```bash
+bd create --title="WS FFF-SS: Short title" --type=task
+```
+
+Append to `.beads-sdp-mapping.jsonl`:
+```json
+{"sdp_id":"00-FFF-SS","beads_id":"sdp_dev-XXXX","updated_at":"2026-..."}
+```
+
+**ALWAYS verify counts match:**
+```bash
+echo "Mapping: $(wc -l < .beads-sdp-mapping.jsonl)"
+echo "Backlog:  $(ls docs/workstreams/backlog/*.md | wc -l)"
+```
+
+### 5. Update INDEX.md
+
+Add new workstreams to the appropriate phase table in `docs/workstreams/INDEX.md`.
 
 ## Modes
 
-| Mode | Blocks | Purpose |
-|------|--------|---------|
-| Default | 3-5 | Full discovery |
-| `--quiet` | 2 | Minimal (Data + Architecture) |
-
----
-
-## --quiet Mode
-
-Minimal blocks (2 blocks, 6 questions):
-1. Data & Storage
-2. Core Architecture
-
----
+| Mode | Blocks |
+|------|--------|
+| Default | 3-5 discovery blocks |
+| --quiet | 2 blocks (Architecture + Data only) |
 
 ## Output
 
-**Primary:** Workstream files in `docs/workstreams/backlog/`
-
-**Secondary:**
-- `docs/drafts/<task_id>-design.md` - Design document
-
----
-
-## Next Steps
-
-```bash
-@oneshot <feature>  # Execute all workstreams
-@build <ws_id>      # Execute single workstream
-```
-
----
-
-## Contract Validation
-
-If shared contracts were generated:
-- Contract validation workstream runs AFTER implementation
-- Detects drift between contract and implementation
-
----
+- Workstream files in `docs/workstreams/backlog/`
+- `docs/drafts/{task_id}-design.md` (architecture notes)
+- Updated `docs/workstreams/INDEX.md`
+- Updated `.beads-sdp-mapping.jsonl`
 
 ## See Also
 
-- `@idea` - Requirements gathering
-- `@build` - Execute workstream
-- `@oneshot` - Execute all workstreams
-- `@feature` - Orchestrator that calls @idea + @design
+- @idea — Requirements
+- @feature — Full planning orchestrator
+- @build — Execute single workstream
+- @oneshot — Execute all workstreams

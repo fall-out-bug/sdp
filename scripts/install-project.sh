@@ -7,7 +7,8 @@
 set -e
 
 SDP_DIR="${SDP_DIR:-sdp}"
-SDP_IDE="${SDP_IDE:-all}"
+SDP_IDE="${SDP_IDE:-auto}"
+SDP_REF="${SDP_REF:-main}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
 SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-0}"
 SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
@@ -31,13 +32,35 @@ if [ "$SDP_PRESERVE_CONFIG" = "1" ]; then
     echo "Mode: preserve existing IDE config files"
 fi
 
+detect_auto_ide() {
+    detected=""
+
+    if [ -d "../.claude" ] || command -v claude >/dev/null 2>&1; then
+        detected="$detected claude"
+    fi
+    if [ -d "../.cursor" ] || command -v cursor >/dev/null 2>&1; then
+        detected="$detected cursor"
+    fi
+    if [ -d "../.opencode" ] || command -v opencode >/dev/null 2>&1 || command -v windsurf >/dev/null 2>&1; then
+        detected="$detected opencode"
+    fi
+
+    if [ -z "$detected" ]; then
+        echo "No IDE detected from PATH/project; falling back to all integrations." >&2
+        echo "claude cursor opencode"
+        return
+    fi
+
+    echo "$detected"
+}
+
 # Check if already installed
 if [ -d "$SDP_DIR" ]; then
     echo "⚠️  $SDP_DIR already exists. Updating..."
-    git -C "$SDP_DIR" pull origin main
+    git -C "$SDP_DIR" fetch origin "$SDP_REF" && git -C "$SDP_DIR" checkout "$SDP_REF" 2>/dev/null || git -C "$SDP_DIR" pull origin main
 else
-    echo "📦 Cloning SDP..."
-    git clone --depth 1 "$REMOTE" "$SDP_DIR"
+    echo "📦 Cloning SDP (ref: $SDP_REF)..."
+    git clone --depth 1 -b "$SDP_REF" "$REMOTE" "$SDP_DIR" 2>/dev/null || git clone --depth 1 "$REMOTE" "$SDP_DIR"
 fi
 
 cd "$SDP_DIR"
@@ -89,7 +112,13 @@ if [ "$SDP_INSTALL_CLI" = "1" ]; then
 fi
 
 # Setup for selected IDE
-echo "🔗 Setting up for: $SDP_IDE"
+if [ "$SDP_IDE" = "auto" ]; then
+    SDP_IDE_LIST=$(detect_auto_ide)
+    echo "🔗 Setting up for auto-detected IDEs: $SDP_IDE_LIST"
+else
+    SDP_IDE_LIST="$SDP_IDE"
+    echo "🔗 Setting up for: $SDP_IDE"
+fi
 
 setup_claude() {
     mkdir -p ../.claude
@@ -145,22 +174,27 @@ setup_opencode() {
     done
 }
 
-case "$SDP_IDE" in
-    claude|claude-code)
-        setup_claude
-        ;;
-    cursor)
-        setup_cursor
-        ;;
-    opencode|windsurf)
-        setup_opencode
-        ;;
-    all|*)
-        setup_claude
-        setup_cursor
-        setup_opencode
-        ;;
-esac
+for ide in $SDP_IDE_LIST; do
+    case "$ide" in
+        claude|claude-code)
+            setup_claude
+            ;;
+        cursor)
+            setup_cursor
+            ;;
+        opencode|windsurf)
+            setup_opencode
+            ;;
+        all)
+            setup_claude
+            setup_cursor
+            setup_opencode
+            ;;
+        *)
+            echo "⚠️  Unknown SDP_IDE value '$ide', skipping"
+            ;;
+    esac
+done
 
 # Add to .gitignore
 if [ -f ../.gitignore ]; then

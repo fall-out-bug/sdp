@@ -1,78 +1,49 @@
 ---
 name: build
-description: Execute workstream with TDD and guard enforcement
-cli: sdp apply --ws
-llm: Spawn subagents for 3-stage review
-version: 6.4.0
+description: Execute ONE workstream with TDD, guard enforcement, and ws-verdict output
+cli: sdp guard activate
+llm: Spawn subagents for TDD cycle
+version: 8.0.0
 changes:
-  - Added Git Safety section with context verification
-  - Added feature branch check before starting work
+  - F020: Remove auto-continue rules; @build does ONE WS then STOPS
+  - F020: Strip evidence boilerplate to orchestrator/CLI
+  - Single subagent strategy (no Option A/B ambiguity)
 ---
 
 # build
 
-> **CLI:** `sdp apply --ws <workstream-id>` (file operations only)
-> **LLM:** Spawn subagents for TDD cycle + review
+> **CLI:** `sdp guard activate <workstream-id>` (scope enforcement)
+> **LLM:** Execute one workstream following TDD discipline
 
-Execute a single workstream following TDD discipline.
-
----
-
-## 🚨 CRITICAL RULES
-
-1. **CHECK EXISTING CODE FIRST** - Run `@reality --quick` or grep for existing implementations before starting new features.
-2. **NEVER STOP** - Continue to next workstream after commit. No summaries. No pauses.
-3. **USE SPAWN OR DO IT YOURSELF** - If spawn available, use it. If not, implement manually.
-4. **AUTO-CONTINUE** - After commit, immediately start next WS in dependency order.
-5. **POST-COMPACTION RECOVERY** - After context compaction, run `bd ready` to find your task. Never drift to side tasks.
+Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
 
 ---
 
-## 🔄 POST-COMPACTION PROTOCOL
+## CRITICAL RULES
 
-**After any context compaction, you MUST:**
-
-1. **Check active task:**
-```bash
-bd list --status=in_progress
-bd ready
-```
-
-2. **Resume PRIMARY TASK, not side task:**
-   - If you were fixing a bug as side task → return to main feature
-   - If you were improving coverage → return to main feature
-   - Side tasks are distractions from roadmap
-
-3. **Ask yourself: "What was I doing BEFORE the side task?"**
-   - Roadmap execution? → Back to roadmap
-   - Feature implementation? → Back to feature
-   - Review? → Back to review
+1. **CHECK EXISTING CODE FIRST** — Run `@reality --quick` or grep before starting new features.
+2. **ONE WORKSTREAM** — Execute this workstream only. After commit, STOP. Do not start the next WS.
+3. **USE SPAWN OR DO IT YOURSELF** — If spawn available, use it. If not, implement manually.
+4. **POST-COMPACTION RECOVERY** — After context compaction, run `bd ready` to find your task. Never drift to side tasks.
 
 ---
 
 ## Git Safety
 
-**CRITICAL:** Before ANY git operation, verify context.
-
-**MANDATORY before starting work:**
+Before ANY git operation:
 
 ```bash
-# Step 1: Verify context
 pwd
 git branch --show-current
-sdp guard context check
 
-# Step 2: Verify feature branch
-sdp guard branch check --feature=$FEATURE_ID
-
-# Step 3: If check fails, recover
-sdp guard context go $FEATURE_ID
-
-# Step 4: Only then proceed with implementation
+FEATURE_ID=$(grep "^feature_id:" docs/workstreams/backlog/${WS_ID}.md 2>/dev/null | awk '{print $2}')
+EXPECTED=$(jq -r .branch .sdp/checkpoints/${FEATURE_ID}.json 2>/dev/null)
+CURRENT=$(git branch --show-current)
+if [ -n "$EXPECTED" ] && [ "$CURRENT" != "$EXPECTED" ]; then
+  echo "ERROR: Wrong branch. Expected $EXPECTED, got $CURRENT."
+  exit 1
+fi
 ```
-
-**NOTE:** Features MUST be implemented in feature branches (e.g., `feature/F065`).
-Never commit to `dev` or `main` for feature work.
 
 ---
 
@@ -80,168 +51,64 @@ Never commit to `dev` or `main` for feature work.
 
 When user invokes `@build 00-067-01`:
 
-1. Run CLI to setup and validate:
+1. **Setup:**
 ```bash
-# Git safety verification (F065)
-sdp guard context check
-sdp guard branch check --feature=F067
-
-# Guard activation
 sdp guard activate 00-067-01
-sdp apply --ws 00-067-01 --dry-run  # Preview first
 ```
 
-2. **CHOOSE ONE:**
+2. **TDD cycle** (spawn subagents if available, else do yourself):
+   - Implementer: RED → GREEN → REFACTOR per AC
+   - Spec Reviewer: Verify each AC with evidence
+   - Quality Reviewer: Coverage >= 80%, LOC <= 200, lint pass
 
-   **Option A (Preferred):** Spawn 3 subagents for TDD cycle:
-   - **Implementer** - Write tests and code
-   - **Spec Reviewer** - Verify matches spec
-   - **Quality Reviewer** - Run quality gates
-
-   **Option B (Fallback):** If subagent spawning not available, implement yourself:
-   - Write test first (RED)
-   - Write minimal code (GREEN)
-   - Refactor while keeping tests green
-   - Verify coverage >= 80%, LOC <= 200
-
-3. **COMMIT AND CONTINUE:**
+3. **Commit and STOP:**
 ```bash
-git commit -m "feat(F067): 00-067-01 - {title}"
-# IMMEDIATELY start next workstream - NO PAUSE, NO SUMMARY
-```
-
----
-
-## How to Spawn Subagents
-
-Use your tool's subagent capability. For example:
-- Claude Code: Use Task tool with `subagent_type="general-purpose"`
-- Cursor: Use agent panel
-- Windsurf: Use agent spawning
-
----
-
-## Subagent 1: Implementer
-
-**Role file:** `.claude/agents/implementer.md`
-
-**Task:**
-```
-You are the IMPLEMENTER for workstream 00-067-01.
-
-Read the spec: docs/workstreams/backlog/00-067-01.md
-
-Execute TDD cycle for each Acceptance Criteria:
-1. RED: Write failing test first
-2. GREEN: Write minimum code to pass
-3. REFACTOR: Clean up while keeping tests green
-
-Quality gates:
-- Test coverage >= 80%
-- All tests passing
-- No lint errors
-
-Output: Verdict PASS or FAIL with evidence
-```
-
----
-
-## Subagent 2: Spec Reviewer
-
-**Role file:** `.claude/agents/spec-reviewer.md`
-
-**Task:**
-```
-You are the SPEC COMPLIANCE REVIEWER for workstream 00-067-01.
-
-CRITICAL: Do NOT trust the implementer's report. Verify yourself.
-
-1. Read the actual code
-2. Run tests yourself
-3. Check coverage yourself
-4. Verify each AC is implemented
-
-Output: Verdict PASS or FAIL with evidence
-```
-
----
-
-## Subagent 3: Quality Reviewer
-
-**Task:**
-```
-You are the QUALITY REVIEWER for workstream 00-067-01.
-
-Run comprehensive quality check:
-1. Test coverage (>=80%)
-2. LOC check (<=200 lines per file) - MANDATORY
-3. Code quality (complexity, duplication)
-4. Security check
-5. Lint passes
-
-LOC Gate (MANDATORY):
-```bash
-for file in *.go; do
-  loc=$(wc -l < "$file")
-  if [ "$loc" -gt 200 ]; then
-    echo "ERROR: $file is $loc LOC (max: 200)"
-    exit 1
-  fi
-done
-```
-
-Output: Verdict PASS or FAIL with evidence
-```
-
----
-
-## After All Subagents Complete
-
-**If all 3 PASS:**
-```bash
-sdp guard complete 00-067-01
+sdp guard deactivate 2>/dev/null || true
 git add .
 git commit -m "feat(F067): 00-067-01 - {title}"
+# STOP. Orchestrator continues to next WS if any.
 ```
 
-**If any FAIL:** Report failure, do not commit.
+4. **Write ws-verdict** (required):
+```bash
+mkdir -p .sdp/ws-verdicts
+# Populate: ws_id, feature_id, verdict, commit, quality_gates, ac_evidence[]
+```
+
+Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post-build CLI responsibility.
 
 ---
 
-## Identifier Formats
+## Subagent Tasks (if spawning)
 
-```bash
-@build 00-067-01      # Workstream ID (PP-FFF-SS)
-@build 99-F064-01     # Fix workstream (99-{FEATURE}-{SEQ})
-@build sdp-xxx        # Beads task ID (resolved)
-```
+**Implementer:** TDD per AC. Output verdict + evidence.
+
+**Spec Reviewer:** Verify code matches spec. Output ac_evidence: `{"ac_id":"AC1","ac_text":"...","evidence":"TestX in file:line","status":"SATISFIED"}`.
+
+**Quality Reviewer:** Coverage >= 80%, LOC <= 200, lint. Output verdict.
 
 ---
 
 ## Quality Gates
 
-| Gate | Threshold | Check |
-|------|-----------|-------|
-| Tests | 100% pass | `go test ./...` |
-| Coverage | >= 80% | `go test -cover ./...` |
-| Lint | 0 errors | `golangci-lint run` |
-| File Size | <= 200 LOC | `wc -l *.go` |
+| Gate | Threshold |
+|------|-----------|
+| Tests | 100% pass |
+| Coverage | >= 80% |
+| Lint | 0 errors |
+| File Size | <= 200 LOC |
 
 ---
 
 ## Beads Integration
 
-When Beads enabled:
-1. **Before:** `bd update {beads_id} --status in_progress`
-2. **Success:** `bd close {beads_id} --reason "WS completed"`
-3. **Failure:** `bd update {beads_id} --status blocked`
+- **Before:** `bd update {beads_id} --status in_progress`
+- **Success:** `bd close {beads_id} --reason "WS completed"`
+- **Failure:** `bd update {beads_id} --status blocked`
 
 ---
 
 ## See Also
 
-- `.claude/patterns/tdd.md` - TDD pattern
-- `.claude/patterns/quality-gates.md` - Quality gates
-- `@oneshot` - Execute all workstreams
-
-**Implementation:** `sdp-plugin/cmd/sdp/apply.go`
+- `@oneshot` — Orchestrator that invokes @build per WS
+- `@tdd` — TDD pattern

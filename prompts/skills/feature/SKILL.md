@@ -1,205 +1,150 @@
 ---
 name: feature
-description: Feature planning orchestrator (idea -> design -> workstreams)
-version: 7.0.0
-changes:
-  - Converted to LLM-agnostic format
-  - Removed tool-specific API references
-  - Focus on WHAT, not HOW to invoke
+description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstreams)
 ---
 
-# @feature - Feature Planning Orchestrator
+# @feature
 
-**Orchestrate requirements gathering and workstream design.**
+Orchestrate product discovery, requirements, UX research, and workstream design.
+
+## Modes
+
+| Mode | When to use | Steps |
+|------|-------------|-------|
+| `--auto` | Feature already described in roadmap/plan. Generate workstreams directly. | 0, 3, 4 only |
+| `--quick` | User knows what they want. Skip roadmap pre-check. | 1, 2, 3, 4 |
+| Default | New/exploratory feature. Full discovery. | 0, 1, 2, 2.5, 3, 3.5, 4 |
 
 ---
 
-## EXECUTE THIS NOW
+## --auto Mode (Recommended for Roadmap Features)
 
-When user invokes `@feature "Add user authentication"`:
+For features already defined in `docs/roadmap/ROADMAP.md` or `docs/workstreams/INDEX.md`:
+
+### Step A: Extract from Roadmap
+
+1. Find the feature in the roadmap: `rg "F0\d\d" docs/roadmap/ROADMAP.md -A 10`
+2. Extract: feature ID, description, success criteria, listed deliverables
+3. Identify scope: what files/packages this touches (from deliverables and codebase)
+
+### Step B: Auto-Generate Workstreams
+
+For each deliverable in the feature, create a workstream file:
+
+```
+docs/workstreams/backlog/00-FFF-SS.md
+```
+
+**Workstream file format:**
+
+```markdown
+# 00-FFF-SS: Feature Name — Step Description
+
+Feature: FFFF (sdp_dev-XXXX)
+Phase: N
+Status: Backlog
+
+## Goal
+
+One paragraph: what this workstream does and why.
+
+## Scope Files
+
+- path/to/file/or/dir (exact files or directory prefixes this WS touches)
+- ...
+
+## Dependencies
+
+- 00-FFF-S1: prior workstream (if any)
+
+## Acceptance Criteria
+
+- [ ] Specific, testable criterion 1
+- [ ] Specific, testable criterion 2
+- [ ] go build ./... passes
+- [ ] go test ./... passes
+```
+
+### Step C: Create Beads Issues
+
+For each workstream created:
+```bash
+bd create --title="WS FFF-SS: Short title" --type=task
+```
+
+Update `.beads-sdp-mapping.jsonl`:
+```json
+{"sdp_id":"00-FFF-SS","beads_id":"sdp_dev-XXXX","updated_at":"2026-..."}
+```
+
+### Step D: Validate Counts
+
+```bash
+echo "Mapping: $(wc -l < .beads-sdp-mapping.jsonl)"
+echo "Backlog:  $(ls docs/workstreams/backlog/*.md | wc -l)"
+# Must be equal
+```
+
+### Step E: Report
+
+Output:
+- Feature ID + number of workstreams created
+- Workstream file names
+- Beads issue IDs
+- Ready-to-run command: `@build 00-FFF-01` or `@oneshot F0FF`
+
+---
+
+## Default/Interactive Mode
+
+### Step 0: Roadmap Pre-Check — unless --quick
+
+1. Extract 3-5 keywords from feature description
+2. `rg "<kw1>|<kw2>|<kw3>" docs/ -t md -l`
+3. Analyze: ROADMAP overlap, workstream scope overlap, docs/drafts/idea-*.md
+4. Present Overlap Report (HIGH/MEDIUM). User resolves: different / extend / supersede / more detail
+5. Gate: proceed only after user resolves
 
 ### Step 1: Quick Interview (3-5 questions)
 
-Ask the user quick questions to understand scope:
+Problem, Users, Success. Gate: if vague (<200 words), ask clarification.
 
-- **Problem**: What problem does this feature solve?
-  - User pain point / New capability / Technical debt
-- **Users**: Who are the primary users?
-  - End users / Internal / Developers
-- **Success**: What defines success?
-  - Adoption / Efficiency / Quality
+### Step 2: @idea
 
-**Gate:** If description is vague (< 200 words, unclear scope), ask for clarification before proceeding.
+`@idea "..." --spec docs/drafts/discovery-{slug}.md` (if Step 0 ran) or `@idea "..."` (if --quick)
 
-### Step 2: Requirements Gathering (@idea)
+### Step 2.5: @ux — unless --infra
 
-Invoke the idea skill for deep requirements gathering:
+Auto-trigger when @idea output has user-facing keywords (ui, user, interface, dashboard, form) and lacks infra (K8s, CRD, CLI-only).
 
-```
-@idea "Add user authentication"
-```
+### Step 3: @design
 
-**What @idea does:**
-- Deep interviewing with the user
-- Explores technical approach
-- Identifies tradeoffs and concerns
-- Generates comprehensive spec in `docs/drafts/idea-{feature_name}.md`
+`@design {task_id}` — workstream files in docs/workstreams/backlog/
 
-**Output:**
-- `docs/drafts/idea-{feature_name}.md` with requirements
-- User stories, acceptance criteria
-- Success metrics, stakeholders
+Produces workstream files using the **Workstream file format** above.
 
-### Step 3: Workstream Design (@design)
+### Step 3.5: Impact Analysis
 
-Invoke the design skill for workstream planning:
-
-```
-@design idea-user-authentication
-```
-
-**What @design does:**
-- Explores codebase structure
-- Asks architecture questions
-- Designs workstream decomposition
-- Requests user approval
-- Creates `docs/workstreams/backlog/00-FFF-SS.md` files
-
-**Output:**
-- Workstream files (e.g., `00-050-01.md`, `00-050-02.md`)
-- Dependency graph
-- Architecture decisions
+Read scope files. grep/rg for conflicts. Categorize: FILE CONFLICT, DATA BOUNDARY, DEPENDENCY CHAIN, PRIORITY SHIFT. Present report. User acknowledges.
 
 ### Step 4: Verify Outputs
 
-```bash
-# Check that @idea created spec
-ls docs/drafts/idea-{feature_name}.md
-
-# Check that @design created workstreams
-ls docs/workstreams/backlog/00-FFF-*.md
-
-# Count workstreams
-ws_count=$(ls docs/workstreams/backlog/00-FFF-*.md | wc -l)
-echo "Created $ws_count workstreams"
-```
+Check discovery brief, idea spec, ux output, workstreams exist.
 
 ---
 
-## Mental Model
+## Key Principle: Protocol is Invisible
 
-```
-@feature (Planning Orchestrator)
-    |
-    +-> @idea (Requirements)
-    |     +-> Deep interviewing
-    |     +-> User stories
-    |     +-> Success metrics
-    |
-    +-> @design (Workstream Planning)
-          +-> Codebase exploration
-          +-> Architecture decisions
-          +-> Workstream files (00-FFF-SS.md)
-```
+The user sees:
+- Feature description → workstreams created → ready to build
 
----
-
-## When to Use
-
-- Starting new feature from scratch
-- Need to gather requirements (@idea phase)
-- Need to design workstreams (@design phase)
-- Want interactive planning (questions, tradeoffs)
-
----
-
-## Output
-
-**Success:**
-```
-Feature planning complete
-Requirements: docs/drafts/idea-{feature_name}.md
-Workstreams: N created in docs/workstreams/backlog/00-FFF-*.md
-Next step: @oneshot F{FF} or @build 00-FFF-01
-```
-
-**Example:**
-```
-User: @feature "Add payment processing"
-
-Step 1: Quick Interview (3 questions)
-Step 2: @idea "Add payment processing"
-  Interviewing requirements...
-  Created: docs/drafts/idea-payment-processing.md
-Step 3: @design idea-payment-processing
-  Exploring codebase...
-  Designing workstreams...
-  Created: 00-050-01.md, 00-050-02.md, 00-050-03.md
-Step 4: Verification
-  3 workstreams created
-
-Feature F050 planning complete
-docs/drafts/idea-payment-processing.md
-docs/workstreams/backlog/00-050-*.md (3 files)
-
-Next: @oneshot F050 or @build 00-050-01
-```
-
----
-
-## Beads Integration
-
-**Detect Beads:**
-```bash
-if bd --version &>/dev/null && [ -d .beads ]; then
-  BEADS_ENABLED=true
-else
-  BEADS_ENABLED=false
-fi
-```
-
-**Beads operations:**
-- @idea creates feature task if enabled
-- @design creates workstream tasks if enabled
-- @feature itself does NOT create Beads tasks (delegates)
-
----
-
-## Key Differences from @oneshot
-
-| Aspect | @feature | @oneshot |
-|--------|----------|----------|
-| **Phase** | Planning | Execution |
-| **Input** | Feature description | Feature ID or workstreams |
-| **Output** | Workstream files | Implemented code |
-| **Skills used** | @idea, @design | @build, @review, @deploy |
-| **Human interaction** | Heavy (interviewing) | Minimal (only blockers) |
-| **When to use** | Starting new feature | Workstreams exist |
-
----
-
-## Skip @feature If...
-
-**Use @idea directly when:**
-- You already have workstreams
-- Only need requirements gathering
-- Skip workstream design
-
-**Use @design directly when:**
-- You have requirements (idea file)
-- Only need workstream planning
-- Requirements already gathered
-
-**Use @oneshot when:**
-- Workstreams already exist
-- Ready to implement
-- Want autonomous execution
-
----
+The workstream files, scope declarations, and beads IDs are plumbing.
+The user is only asked to annotate if they want to (not required).
 
 ## See Also
 
-- `@idea` - Requirements gathering
-- `@design` - Workstream planning
-- `@oneshot` - Execution orchestrator
-- `CLAUDE.md` - Decision tree: @feature vs @oneshot
+- @idea — Requirements
+- @ux — UX research
+- @design — Workstream planning
+- @build — Execute single workstream
+- @oneshot — Execute all workstreams for a feature

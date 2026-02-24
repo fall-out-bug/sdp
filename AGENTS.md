@@ -12,6 +12,16 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Quality Gates
+
+Before pushing code changes:
+
+```bash
+go build ./...              # must succeed
+go test ./...               # must pass
+go vet ./...                # no issues
+```
+
 ## Canonical Prompt Source
 
 - Canonical prompts live in `prompts/skills/*/SKILL.md` and `prompts/agents/*.md`.

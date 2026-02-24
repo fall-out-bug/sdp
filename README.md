@@ -1,52 +1,54 @@
-# SDP: Spec-Driven Protocol
+# SDP: Structured Development Protocol
 
-**A structured protocol for AI-assisted development.**
+**Protocol + evidence layer for AI agent workflows.**
 
-SDP turns your AI assistant into a predictable process: Discovery → Delivery → Evidence.
+SDP gives your AI agents a structured process (Discovery → Delivery → Evidence) and produces proof of what they actually did. It works with Claude Code, Cursor, OpenCode, or anything that can read a markdown file.
 
-## What it is
-
-SDP is a set of prompts (skills) that load into Claude Code, Cursor, or other AI tools. Skills define:
-
-- **Discovery**: How to gather requirements and plan features
-- **Delivery**: How to write code with TDD and quality gates
-- **Evidence**: How to record decisions in an audit log
-
-**Everything works through skills.** CLI and Beads are optional add-ons.
+> **Read the [Manifesto](docs/MANIFESTO.md)** for the full story — what exists, what's coming, and why evidence matters.
 
 ## Quick Start
 
-**Install options (recommended):**
-
 ```bash
-# 1) Prompts/hooks in current project (default)
+# Install into your project (auto-detects IDE)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 
-# Optional: specify your IDE for project install
+# Or: force specific IDE integration
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
-
-# 2) Binary-only install (global CLI, no repo clone in project)
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
-
-# (Direct scripts)
-# project assets only: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install-project.sh | sh
-# binary only:         curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
-
-# Preserve existing IDE links/config files (project install)
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_PRESERVE_CONFIG=1 sh
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=all sh
 ```
-
-**Supported IDEs:** `claude`, `cursor`, `opencode`, `all` (default)
 
 **Manual install:**
 
 ```bash
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
-echo "sdp/.git" >> .gitignore
 ```
 
 Skills load automatically from `sdp/.claude/skills/` (Claude Code) or `sdp/.cursor/skills/` (Cursor).
+
+## What SDP Does
+
+### 1. Structures agent work into phases
+
+```
+Intent → Plan → Execute → Verify → Review → Publish
+```
+
+Each phase has a contract. Skip a phase and the state machine blocks the next one.
+
+### 2. Produces evidence of what agents did
+
+Every run creates a strict evidence envelope — a JSON document proving intent, plan, execution, verification, review, boundary compliance, and provenance (SHA-256 hash chain). [Details in the Manifesto](docs/MANIFESTO.md#the-evidence-envelope).
+
+**Schemas:** `schema/evidence-envelope.schema.json` (legacy), `schema/coding-workflow-predicate.schema.json` (in-toto v1). See [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md).
+
+### 3. Gates PRs on evidence
+
+```bash
+sdp-evidence validate --evidence .sdp/evidence/run-123.json
+```
+
+One command in CI. Incomplete evidence = blocked merge.
 
 ## Core Workflow
 
@@ -140,32 +142,33 @@ your-project/
 ├── sdp/                      # SDP submodule
 │   ├── prompts/skills/       # Skills (source of truth)
 │   ├── prompts/agents/       # Agent definitions
+│   ├── schema/               # JSON schemas (evidence, protocol)
+│   ├── hooks/                # Git hooks and validators
 │   ├── .claude/              # Claude Code integration
-│   ├── docs/                 # Documentation
-│   └── CLAUDE.md             # Quick reference
+│   ├── .cursor/              # Cursor integration
+│   ├── .opencode/            # OpenCode integration
+│   └── docs/                 # Documentation
 └── docs/workstreams/         # Your workstreams
 ```
 
 ---
 
-# Optional Components
+## Optional Components
 
-## Go CLI (experimental)
+### Go CLI
 
-CLI provides helper commands. **Not required for protocol to work.**
+CLI provides helper commands. **Not required for the protocol to work.**
 
 ```bash
-# Install
 cd sdp/sdp-plugin && CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 
-# Commands
 sdp doctor              # Health check
 sdp status              # Project state
 sdp guard activate WS   # Edit scope enforcement
 sdp log show            # Evidence log
 ```
 
-## Beads (experimental)
+### Beads
 
 Task tracking for multi-session work. **Not required.**
 
@@ -176,9 +179,9 @@ bd create --title="..." # Create task
 bd close <id>           # Close task
 ```
 
-## Evidence Layer (experimental)
+### Evidence Layer
 
-Audit log in `.sdp/log/events.jsonl` with hash-chain.
+Audit log in `.sdp/log/events.jsonl` with hash-chain provenance.
 
 ```bash
 sdp log show            # Show events
@@ -187,13 +190,31 @@ sdp log trace           # Trace by commit/workstream
 
 ---
 
+## Where SDP Fits in the Ecosystem
+
+SDP composes with the tools you already use. It doesn't replace them — it adds evidence.
+
+| You Need | Use | SDP Adds |
+|----------|-----|----------|
+| Orchestration | Vibe Kanban, Swarm Tools | Evidence envelope for each task |
+| Policy | Cupcake | Evidence that policy was checked |
+| K8s agents | kubeopencode | Evidence projection from CRD status |
+| Issue tracking | Beads | Evidence-gated state transitions |
+| CI/CD | GitHub Actions, any CI | `sdp-evidence validate` as a PR gate |
+
+## Research Lab
+
+We're exploring multi-persona adversarial review, self-improvement loops, cross-project federation, and telemetry-driven backlog generation in [`sdp_lab`](https://github.com/fall-out-bug/sdp_lab). It's private for now — open an issue if you'd like to play with us.
+
 ## Documentation
 
 | File | Content |
 |------|---------|
-| [CLAUDE.md](CLAUDE.md) | Quick reference for Claude Code |
+| [docs/MANIFESTO.md](docs/MANIFESTO.md) | Why SDP exists, what's real, what's next |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
-| [docs/vision/ROADMAP.md](docs/vision/ROADMAP.md) | Roadmap and milestones |
+| [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md) | in-toto predicate spec (evidence v2) |
+| [CLAUDE.md](CLAUDE.md) | Quick reference for Claude Code |
+| [docs/roadmap/ROADMAP.md](docs/roadmap/ROADMAP.md) | Roadmap and milestones |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## License
@@ -202,4 +223,4 @@ MIT
 
 ---
 
-**GitHub:** [fall-out-bug/sdp](https://github.com/fall-out-bug/sdp)
+*"AI agents can implement features, but without evidence it's just vibes."*

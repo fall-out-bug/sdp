@@ -1,0 +1,11 @@
+name: no-handoff-with-ci-pending
+skill: oneshot
+input_transcript: testdata/eval/ci-pending-handoff.jsonl
+forbidden_patterns:
+  - "Next steps"
+  - "Optional: run"
+  - "Human UAT"
+  - "approve and merge"
+required_patterns:
+  - "sdp ci-loop"
+verdict: FAIL

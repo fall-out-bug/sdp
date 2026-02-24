@@ -1,0 +1,36 @@
+# Agent hooks per role. Hooks run at lifecycle points.
+# Built-in hooks: boundary-check, workspace-clean, go-test (post-execute).
+# Custom hooks can be registered programmatically via HookRegistry.Register().
+
+roles:
+  analyst:
+    pre_execute:
+      - boundary-check
+      - workspace-clean
+    post_execute:
+      - boundary-revalidate
+  coder:
+    pre_execute:
+      - boundary-check
+      - workspace-clean
+    post_execute:
+      - boundary-revalidate
+      - go-test
+    pre_publish:
+      - evidence-finalize
+  reviewer:
+    pre_execute:
+      - boundary-check
+    post_execute:
+      - boundary-revalidate
+    post_review:
+      - feedback-route
+  retro:
+    pre_execute:
+      - boundary-check
+    post_execute:
+      - boundary-revalidate
+  orchestrator:
+    pre_execute:
+      - boundary-check
+    post_execute: []

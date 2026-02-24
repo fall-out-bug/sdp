@@ -116,10 +116,10 @@ func TestRun_NoPromptsDir(t *testing.T) {
 		t.Fatalf("chdir: %v", err)
 	}
 
-	originalArchiveURL := os.Getenv("SDP_PROMPTS_ARCHIVE_URL")
-	t.Cleanup(func() { _ = os.Setenv("SDP_PROMPTS_ARCHIVE_URL", originalArchiveURL) })
-	if err := os.Setenv("SDP_PROMPTS_ARCHIVE_URL", "http://127.0.0.1:1/prompts.zip"); err != nil {
-		t.Fatalf("setenv SDP_PROMPTS_ARCHIVE_URL: %v", err)
+	originalSourceDir := os.Getenv("SDP_PROMPTS_SOURCE_DIR")
+	t.Cleanup(func() { _ = os.Setenv("SDP_PROMPTS_SOURCE_DIR", originalSourceDir) })
+	if err := os.Setenv("SDP_PROMPTS_SOURCE_DIR", filepath.Join(tmpDir, "missing-prompts-dir")); err != nil {
+		t.Fatalf("setenv SDP_PROMPTS_SOURCE_DIR: %v", err)
 	}
 
 	// Run init - should fail
@@ -129,7 +129,7 @@ func TestRun_NoPromptsDir(t *testing.T) {
 		t.Fatal("Run() should fail when prompts/ doesn't exist")
 	}
 
-	if !strings.Contains(err.Error(), "prompts not found locally") {
+	if !strings.Contains(err.Error(), "SDP_PROMPTS_SOURCE_DIR is invalid") {
 		t.Errorf("Wrong error: %v", err)
 	}
 }

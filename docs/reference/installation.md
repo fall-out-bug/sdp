@@ -29,6 +29,5 @@
 
 ## Related Docs
 
-- `/Users/fall_out_bug/projects/vibe_coding/sdp/PRODUCT_VISION.md`
-- `/Users/fall_out_bug/projects/vibe_coding/sdp/docs/vision/ROADMAP.md`
-- `/Users/fall_out_bug/projects/vibe_coding/sdp/docs/vision/LAYERED-ADOPTION.md`
+- [PRODUCT_VISION.md](../../PRODUCT_VISION.md)
+- [docs/roadmap/ROADMAP.md](../roadmap/ROADMAP.md)

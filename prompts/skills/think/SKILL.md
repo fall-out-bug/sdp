@@ -1,107 +1,39 @@
 ---
 name: think
-description: Deep structured thinking with parallel agents (INTERNAL)
-tools:
-  - Read
-  - Write
-  - Bash
-  - Task
+description: Deep structured thinking with parallel expert analysis before implementation (INTERNAL)
 ---
 
-# /think - Deep Structured Thinking
+# @think (INTERNAL)
 
-**INTERNAL SKILL** — Used by `@idea` and `@design` for deep analysis.
+Used by @idea, @design, @feature. Three stages: breakdown → parallel expert analysis → summary.
 
-## When to Use
+## Stage 1: Task Breakdown
 
-- Complex tradeoffs with no clear answer
-- Architectural decisions with multiple valid approaches
-- Unknown unknowns in requirements
-- System-level implications
+Identify aspects to think through. Choose main expert. Output: Understanding + Aspects table (5-10 rows).
 
-## Parallel Expert Agents Pattern
+## Stage 2: Parallel Expert Analysis
 
-### Step 1: Define Expert Roles
+Launch expert agents (max 4 concurrent) — one per aspect:
 
-| Expert | Focus | When to Use |
-|--------|-------|-------------|
-| **Architect** | System design, patterns | All architectural decisions |
-| **Security** | Threats, auth, data | User data, APIs, external integration |
-| **Performance** | Latency, scalability | High load, real-time |
-| **UX** | User experience | User-facing features |
-| **Ops** | Deployability, monitoring | Production systems |
-
-### Step 2: Launch Parallel Analysis
-
-```python
-# Spawn 2-4 experts in parallel (single message)
-Task(
-    subagent_type="general-purpose",
-    prompt="""You are the ARCHITECT expert.
-    
-PROBLEM: {problem}
-
-Analyze from your perspective:
-1. Key considerations?
-2. Applicable patterns?
-3. Risks?
-
-Return 3-5 bullet points.""",
-    description="Architect analysis"
-)
-# Launch other experts similarly...
+```
+Task(subagent_type="expert"):
+  "Aspect: [name]. Task context: [brief]. Study project and propose options."
 ```
 
-### Step 3: Synthesize
+Each expert: study project → apply expert principles → propose 2-4 options → make decision.
 
-After all experts complete:
+## Stage 3: Summary
 
-```markdown
-## Expert Analysis
+When experts return, create unified document. Save to `docs/plans/YYYY-MM-DD-[topic]-design.md`. Ask: "Which aspects to discuss? Or ready to implement?"
 
-**@architect:** Domain layer first, risk of tight coupling
-**@security:** OAuth2 preferred, need rate limiting
-**@performance:** Caching needed, ~500MB for 10K users
+## Single-Agent Mode (<3 aspects)
 
-## Synthesis
-Recommended approach combining all perspectives...
-
-## Open Questions
-What remains unknown...
-```
-
-## Single-Agent Mode (Simple Problems)
-
-1. **Deconstruct** problem into dimensions
-2. **Explore** 3+ angles (ideal/pragmatic/minimal)
-3. **Synthesize** insights
-4. **Present** findings with tradeoffs
-
-## Output Format
-
-```markdown
-## Problem Analysis
-
-### Context
-{Brief problem statement}
-
-### Expert Analysis
-**@architect:** {analysis}
-**@security:** {analysis}
-
-### Synthesis
-{Combined insights}
-
-### Recommendation
-{Clear recommendation with rationale}
-
-### Open Questions
-{What remains unknown}
-```
+Skip parallel agents: Study → Analyze (named experts) → Propose options → Recommend.
 
 ## Principles
 
-- **Parallel exploration** — Multiple experts simultaneously
-- **Role-based expertise** — Each expert has defined perspective
-- **Explicit tradeoffs** — State what you're optimizing for
-- **Clear recommendation** — Don't leave user hanging
+- Study first — read codebase before analyzing
+- Named expertise — reference real expert principles
+- Specificity — solutions for THIS project
+- Honesty — every option has cons
+- Clear recommendation — don't leave user hanging

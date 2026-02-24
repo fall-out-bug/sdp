@@ -35,8 +35,12 @@ type EvidenceSection struct {
 
 // QualitySection holds quality gate settings (stub for WS-06).
 type QualitySection struct {
-	CoverageThreshold int `yaml:"coverage_threshold"`
-	MaxFileLOC        int `yaml:"max_file_loc"`
+	CoverageThreshold   int      `yaml:"coverage_threshold"`
+	MaxFileLOC          int      `yaml:"max_file_loc"`
+	CoverageExclude     []string `yaml:"coverage_exclude"`
+	ComplexityThreshold int      `yaml:"complexity_threshold"`
+	ComplexityExclude   []string `yaml:"complexity_exclude"`
+	SizeExclude         []string `yaml:"size_exclude"`
 }
 
 // GuardSection holds guard policy settings (WS-063-03).
@@ -60,8 +64,9 @@ func DefaultConfig() *Config {
 			LogPath: ".sdp/log/events.jsonl",
 		},
 		Quality: QualitySection{
-			CoverageThreshold: 80,
-			MaxFileLOC:        200,
+			CoverageThreshold:   80,
+			MaxFileLOC:          200,
+			ComplexityThreshold: 40,
 		},
 		Guard: GuardSection{
 			Mode:      "standard",

@@ -24,9 +24,9 @@ func TestParseCommand(t *testing.T) {
 	}{
 		{
 			name:     "parse valid workstream by ID",
-			args:     []string{"parse", "00-050-01"},
+			args:     []string{"parse", "00-016-01"},
 			wantErr:  false,
-			contains: "00-050-01",
+			contains: "00-016-01",
 		},
 		{
 			name:     "parse missing workstream",

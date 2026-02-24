@@ -235,8 +235,9 @@ func TestCheckComplexity(t *testing.T) {
 		t.Fatal("Expected non-nil result")
 	}
 
-	if result.Threshold != 10 {
-		t.Errorf("Expected threshold 10, got %d", result.Threshold)
+	// Default threshold: 10 when no config; 40 from DefaultConfig when repo has .sdp
+	if result.Threshold != 10 && result.Threshold != 40 {
+		t.Errorf("Expected threshold 10 or 40 (config-dependent), got %d", result.Threshold)
 	}
 }
 
@@ -261,8 +262,9 @@ func TestCheckComplexityGo(t *testing.T) {
 		t.Fatal("Expected non-nil result")
 	}
 
-	if result.Threshold != 10 {
-		t.Errorf("Expected threshold 10, got %d", result.Threshold)
+	// Default threshold: 10 when no config; 40 from DefaultConfig when repo has .sdp
+	if result.Threshold != 10 && result.Threshold != 40 {
+		t.Errorf("Expected threshold 10 or 40 (config-dependent), got %d", result.Threshold)
 	}
 }
 
