@@ -35,7 +35,7 @@ run_remote_script() {
     name="$1"
     shift
     url="https://raw.githubusercontent.com/${SDP_REPO}/${SDP_REF}/scripts/${name}"
-    curl -fsSL "$url" | SDP_REPO="$SDP_REPO" sh -s -- "$@"
+    curl -fsSL "$url" | SDP_REPO="$SDP_REPO" SDP_REF="$SDP_REF" SDP_IDE="${SDP_IDE:-auto}" sh -s -- "$@"
 }
 
 if [ "$BINARY_ONLY" = "1" ]; then

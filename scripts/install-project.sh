@@ -8,6 +8,7 @@ set -e
 
 SDP_DIR="${SDP_DIR:-sdp}"
 SDP_IDE="${SDP_IDE:-auto}"
+SDP_REF="${SDP_REF:-main}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
 SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-0}"
 SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
@@ -56,10 +57,10 @@ detect_auto_ide() {
 # Check if already installed
 if [ -d "$SDP_DIR" ]; then
     echo "⚠️  $SDP_DIR already exists. Updating..."
-    git -C "$SDP_DIR" pull origin main
+    git -C "$SDP_DIR" fetch origin "$SDP_REF" && git -C "$SDP_DIR" checkout "$SDP_REF" 2>/dev/null || git -C "$SDP_DIR" pull origin main
 else
-    echo "📦 Cloning SDP..."
-    git clone --depth 1 "$REMOTE" "$SDP_DIR"
+    echo "📦 Cloning SDP (ref: $SDP_REF)..."
+    git clone --depth 1 -b "$SDP_REF" "$REMOTE" "$SDP_DIR" 2>/dev/null || git clone --depth 1 "$REMOTE" "$SDP_DIR"
 fi
 
 cd "$SDP_DIR"

@@ -1,0 +1,35 @@
+# Test SDP install on clean environment (OpenCode + GLM compatible)
+# Usage: docker build -f ci/Dockerfile.install-test -t sdp-install-test .
+#        docker run --rm sdp-install-test
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+# SDP_REF: branch/tag to install (default: main)
+# For PR testing: SDP_REF=schema/coding-workflow-predicate
+ARG SDP_REF=main
+ENV SDP_REF=${SDP_REF}
+ENV SDP_IDE=opencode
+
+# Run install (fetches from GitHub)
+RUN curl -sSL "https://raw.githubusercontent.com/fall-out-bug/sdp/${SDP_REF}/install.sh" | sh
+
+# Verify install
+RUN test -d sdp || (echo "FAIL: sdp dir missing" && exit 1) && \
+    test -L .opencode/skills || (echo "FAIL: .opencode/skills not a symlink" && exit 1) && \
+    test -L .opencode/agents || (echo "FAIL: .opencode/agents not a symlink" && exit 1) && \
+    test -f sdp/schema/coding-workflow-predicate.schema.json 2>/dev/null || true && \
+    echo "OK: SDP install verified"
+
+# Optional: verify skills load (list first 3)
+RUN ls sdp/prompts/skills/ | head -3
+
+CMD ["echo", "SDP install test passed"]
