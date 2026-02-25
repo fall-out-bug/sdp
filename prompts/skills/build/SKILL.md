@@ -136,7 +136,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
   "existing_work_summary": "Found ResetToken in pkg/auth; extended with email flow."
 }
 ```
-Schema: `.sdp/schema/ws-verdict.schema.json`
+Schema: `schema/ws-verdict.schema.json` (from sdp root; project: `sdp/schema/`)
 
 ---
 
