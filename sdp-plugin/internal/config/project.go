@@ -123,23 +123,30 @@ func Load(projectRoot string) (*Config, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("validate config: %w", err)
 	}
-	// Validate log_path is within project root (path traversal safety)
-	if cfg.Evidence.LogPath != "" && projectRoot != "" {
+	// Validate log_path is within project root (path traversal safety).
+	// When projectRoot is empty, use cwd so we never skip validation for non-empty paths.
+	rootForValidation := projectRoot
+	if rootForValidation == "" {
+		if wd, err := os.Getwd(); err == nil {
+			rootForValidation = wd
+		}
+	}
+	if cfg.Evidence.LogPath != "" && rootForValidation != "" {
 		resolvedLog := cfg.Evidence.LogPath
 		if !filepath.IsAbs(resolvedLog) {
-			resolvedLog = filepath.Join(projectRoot, resolvedLog)
+			resolvedLog = filepath.Join(rootForValidation, resolvedLog)
 		}
-		if err := validatePathWithinRoot(projectRoot, resolvedLog); err != nil {
+		if err := validatePathWithinRoot(rootForValidation, resolvedLog); err != nil {
 			return nil, fmt.Errorf("evidence.log_path: %w", err)
 		}
 	}
 	// Validate guard.rules_file is within project root (path traversal safety)
-	if cfg.Guard.RulesFile != "" && projectRoot != "" {
+	if cfg.Guard.RulesFile != "" && rootForValidation != "" {
 		resolvedRules := cfg.Guard.RulesFile
 		if !filepath.IsAbs(resolvedRules) {
-			resolvedRules = filepath.Join(projectRoot, resolvedRules)
+			resolvedRules = filepath.Join(rootForValidation, resolvedRules)
 		}
-		if err := validatePathWithinRoot(projectRoot, resolvedRules); err != nil {
+		if err := validatePathWithinRoot(rootForValidation, resolvedRules); err != nil {
 			return nil, fmt.Errorf("guard.rules_file: %w", err)
 		}
 	}
