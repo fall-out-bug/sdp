@@ -41,7 +41,7 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 
 **Docs expert:** Check drift (`sdp drift detect`), AC coverage (jq `.ac_evidence|length` vs WS file). Labels: `review-finding,F{XX},round-1,docs`
 
-**PromptOps expert:** Review sdp/prompts/skills, agents, commands. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`
+**PromptOps expert:** Review sdp/prompts/skills, agents, commands. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`. Output `checks` array: `[{"check_id":"language-agnostic","status":"pass","note":"..."},{"check_id":"no-phantom-cli","status":"pass"},...]` per schema/review-verdict.schema.json.
 
 ---
 
@@ -60,7 +60,7 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 **Save verdict** to `.sdp/review_verdict.json` (required for @deploy, @oneshot). **Output must validate against** `schema/review-verdict.schema.json` before saving.
 
 ```json
-{"feature":"F{XX}","verdict":"APPROVED|CHANGES_REQUESTED","timestamp":"...","round":1,"reviewers":{"qa":{"verdict":"PASS","findings":[]},"security":{"verdict":"PASS","findings":[]},"devops":{"verdict":"PASS","findings":[]},"sre":{"verdict":"PASS","findings":[]},"techlead":{"verdict":"PASS","findings":[]},"docs":{"verdict":"PASS","findings":[]},"promptops":{"verdict":"PASS","findings":[]}},"finding_ids":[],"blocking_ids":[],"synthesis":{"conflicts":[],"rubber_stamps":[]},"summary":"..."}
+{"feature":"F{XX}","verdict":"APPROVED|CHANGES_REQUESTED","timestamp":"...","round":1,"reviewers":{"qa":{"verdict":"PASS","findings":[]},"security":{"verdict":"PASS","findings":[]},"devops":{"verdict":"PASS","findings":[]},"sre":{"verdict":"PASS","findings":[]},"techlead":{"verdict":"PASS","findings":[]},"docs":{"verdict":"PASS","findings":[]},"promptops":{"verdict":"PASS","findings":[],"checks":[{"check_id":"language-agnostic","status":"pass"},{"check_id":"no-phantom-cli","status":"pass"},{"check_id":"skill-size","status":"pass"}]}},"finding_ids":[],"blocking_ids":[],"synthesis":{"conflicts":[],"rubber_stamps":[]},"summary":"..."}
 ```
 
 **Priority:** P0/P1 block; P2/P3 track only.
