@@ -2,6 +2,8 @@
 
 Quick reference for using SDP CLI v0.9.7 with Claude Code.
 
+> **Sync:** Shared with sdp_dev/AGENTS.md — placement rules, "продолжай" convention. When updating these, update both files. See sdp_dev/docs/plans/2026-02-25-agents-claude-sync-rules.md.
+
 ## Quick Start
 
 ```bash
@@ -13,6 +15,16 @@ Quick reference for using SDP CLI v0.9.7 with Claude Code.
 ```
 
 **Workstream ID Format:** `PP-FFF-SS` (e.g., `00-001-01`)
+
+---
+
+## Shared Conventions (sync with sdp_dev/AGENTS.md)
+
+**Artifact placement:** `docs/reviews/` (review artifacts), `docs/workstreams/backlog/` (WS only), `docs/drafts/idea-*` (one per feature).
+
+**"Продолжай F053"** = `sdp-orchestrate --feature F053 --next-action`. Convention: "продолжай {feature}" means run the next action for that feature.
+
+**Status:** `sdp-orchestrate --feature F053 --status` — pending WS, open beads, next action.
 
 ---
 
