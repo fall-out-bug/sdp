@@ -1,6 +1,7 @@
 package evidence
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -91,4 +92,39 @@ func TestEmit_EventuallyWrites(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Errorf("events.jsonl not created after retries")
+}
+
+func TestValidateEvent(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		ev := PlanEvent("00-054-01", nil)
+		fillDefaults(ev)
+		if err := ValidateEvent(ev); err != nil {
+			t.Errorf("ValidateEvent(valid): %v", err)
+		}
+	})
+	t.Run("nil", func(t *testing.T) {
+		if err := ValidateEvent(nil); err == nil {
+			t.Error("ValidateEvent(nil): want error")
+		} else if !errors.Is(err, ErrEventInvalid) {
+			t.Errorf("ValidateEvent(nil): want ErrEventInvalid, got %v", err)
+		}
+	})
+	t.Run("missing type", func(t *testing.T) {
+		ev := &Event{ID: "x", Timestamp: "2026-01-01T00:00:00Z", Type: ""}
+		if err := ValidateEvent(ev); err == nil {
+			t.Error("ValidateEvent(missing type): want error")
+		}
+	})
+}
+
+func TestEmit_ReturnsValidationError(t *testing.T) {
+	if err := Emit(nil); err != nil {
+		t.Errorf("Emit(nil): want nil, got %v", err)
+	}
+	ev := &Event{Type: "plan"} // missing ID, Timestamp before fillDefaults - but fillDefaults adds them
+	fillDefaults(ev)
+	ev.Type = "" // now invalid
+	if err := Emit(ev); err == nil {
+		t.Error("Emit(invalid): want error")
+	}
 }

@@ -5,6 +5,8 @@
 package evidence
 
 import (
+	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -13,6 +15,10 @@ import (
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/config"
+)
+
+var (
+	ErrEventInvalid = errors.New("evidence event validation failed")
 )
 
 var (
@@ -64,16 +70,31 @@ func fillDefaults(ev *Event) {
 	}
 }
 
-// Emit appends an event asynchronously in a goroutine. Use only when the
-// process will not exit immediately (e.g. long-running services). For CLI
-// entry points (verify, quality, oneshot) use EmitSync so process exit does
-// not drop evidence before the goroutine completes.
-func Emit(ev *Event) {
+// ValidateEvent validates required Event fields (ID, Type, Timestamp).
+// Call after fillDefaults. Returns error if invalid.
+func ValidateEvent(ev *Event) error {
 	if ev == nil {
-		return
+		return fmt.Errorf("%w: event is nil", ErrEventInvalid)
+	}
+	if ev.ID == "" || ev.Type == "" || ev.Timestamp == "" {
+		return fmt.Errorf("%w: missing required fields (id=%q type=%q timestamp=%q)",
+			ErrEventInvalid, ev.ID, ev.Type, ev.Timestamp)
+	}
+	return nil
+}
+
+// Emit appends an event asynchronously in a goroutine. Validates synchronously and returns
+// validation error to caller; write errors are logged (async). Use EmitSync for CLI entry
+// points so process exit does not drop evidence.
+func Emit(ev *Event) error {
+	if ev == nil {
+		return nil
 	}
 	ev2 := *ev
 	fillDefaults(&ev2)
+	if err := ValidateEvent(&ev2); err != nil {
+		return err
+	}
 	go func() {
 		if err := emitSync(&ev2); err != nil {
 			slog.Error("evidence emission failed",
@@ -83,6 +104,7 @@ func Emit(ev *Event) {
 			)
 		}
 	}()
+	return nil
 }
 
 // EmitSync writes the event immediately. Use from CLI entry points (verify,
@@ -96,12 +118,10 @@ func EmitSync(ev *Event) error {
 	return emitSync(&ev2)
 }
 
-// emitSync writes event to the singleton writer.
+// emitSync writes event to the singleton writer. Caller must validate via ValidateEvent first.
 func emitSync(ev *Event) error {
-	if ev.ID == "" || ev.Type == "" || ev.Timestamp == "" {
-		slog.Warn("evidence event missing required fields, skipping",
-			"id", ev.ID, "type", ev.Type, "timestamp", ev.Timestamp)
-		return nil
+	if err := ValidateEvent(ev); err != nil {
+		return err
 	}
 	w, err := getOrCreateWriter()
 	if err != nil {
