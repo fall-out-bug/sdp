@@ -32,10 +32,10 @@ func WithCommandRunner(r CommandRunner) VerifierOption {
 
 // Verifier handles workstream completion verification
 type Verifier struct {
-	parser           *Parser
-	coverageChecker  CoverageChecker
-	pathValidator    PathValidator
-	commandRunner    CommandRunner
+	parser          *Parser
+	coverageChecker CoverageChecker
+	pathValidator   PathValidator
+	commandRunner   CommandRunner
 }
 
 // NewVerifier creates a new workstream verifier with default implementations.
@@ -108,7 +108,7 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 // VerifyCommands runs verification commands with security validation (sdp-5ho2).
 // Derives per-command timeouts from the parent context; respects ctx cancellation for graceful shutdown.
 func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) []CheckResult {
-	checks := []CheckResult{}
+	checks := make([]CheckResult, 0, len(wsData.VerificationCommands))
 
 	for _, cmd := range wsData.VerificationCommands {
 		check := runVerificationCommand(v, ctx, cmd)

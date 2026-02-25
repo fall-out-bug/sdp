@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"syscall"
 )
 
 const genesisHash = "genesis"
@@ -54,10 +53,10 @@ func (w *Writer) Append(ev *Event) error {
 	}
 	defer lf.Close()
 
-	if err := syscall.Flock(int(lf.Fd()), syscall.LOCK_EX); err != nil {
+	if err := lockFile(lf); err != nil {
 		return fmt.Errorf("acquire file lock: %w", err)
 	}
-	defer func() { _ = syscall.Flock(int(lf.Fd()), syscall.LOCK_UN) }()
+	defer func() { _ = unlockFile(lf) }() //nolint:errcheck // best-effort unlock on defer
 
 	// Re-read last hash under flock — another process may have appended.
 	// This ensures prev_hash is always derived from on-disk state (atomic with append).

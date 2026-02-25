@@ -11,6 +11,8 @@ import (
 )
 
 // executeWorkstreamWithRetry executes a workstream with retry logic
+//
+//nolint:gocognit // retry loop with context checks and progress output
 func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Writer, wsID string, maxRetries int) (int, error) {
 	var lastErr error
 	retries := 0
