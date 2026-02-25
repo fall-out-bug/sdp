@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"io"
+	"sync"
 	"time"
 )
 
@@ -53,10 +54,12 @@ type WorkstreamRunner interface {
 
 // Executor handles workstream execution with progress tracking
 type Executor struct {
-	config         ExecutorConfig
-	runner         WorkstreamRunner
-	progress       *ProgressRenderer
-	evidenceWriter io.Writer
+	config                ExecutorConfig
+	runner                WorkstreamRunner
+	progress              *ProgressRenderer
+	evidenceWriter        io.Writer
+	cachedRetryDelay      time.Duration
+	cachedRetryDelayOnce  sync.Once
 }
 
 // NewExecutor creates a new executor with the given runner.

@@ -20,6 +20,7 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 	}
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
+		// Check context cancellation in loop body (not only at start)
 		select {
 		case <-ctx.Done():
 			return retries, ctx.Err()
@@ -53,7 +54,7 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 			if errW := writeLine(output, e.progress.Output(wsID, progress, "retrying", fmt.Sprintf("failed: %v", err))); errW != nil {
 				return retries, fmt.Errorf("write: %w", errW)
 			}
-			delay := retryDelayFromConfig()
+			delay := e.retryDelayFromConfigCached()
 			select {
 			case <-ctx.Done():
 				return retries, ctx.Err()
@@ -64,6 +65,14 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 
 	slog.Info("workstream execution failed after retries", "ws_id", wsID, "retries", retries, "error", lastErr)
 	return retries, lastErr
+}
+
+// retryDelayFromConfigCached returns retry delay from config, cached to avoid repeated config I/O per retry.
+func (e *Executor) retryDelayFromConfigCached() time.Duration {
+	e.cachedRetryDelayOnce.Do(func() {
+		e.cachedRetryDelay = retryDelayFromConfig()
+	})
+	return e.cachedRetryDelay
 }
 
 // retryDelayFromConfig returns retry delay from config (or env, or default).

@@ -74,6 +74,13 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 			}
 		}
 
+		// Check ctx in loop body (not only at iteration start)
+		select {
+		case <-ctx.Done():
+			return result, ctx.Err()
+		default:
+		}
+
 		// Execute workstream with retry logic
 		retryCount, err := e.executeWorkstreamWithRetry(ctx, output, wsID, opts.Retry)
 		result.Executed++
