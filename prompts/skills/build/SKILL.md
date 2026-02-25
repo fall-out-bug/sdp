@@ -30,12 +30,12 @@ Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orc
 
 ## Git Safety
 
-Before ANY git operation:
+**CLI:** `sdp guard activate <ws-id>` runs branch validation before build. Use it in setup (step 1). If guard reports wrong branch, STOP.
 
+**Manual check** (when guard unavailable):
 ```bash
 pwd
 git branch --show-current
-
 FEATURE_ID=$(grep "^feature_id:" docs/workstreams/backlog/${WS_ID}.md 2>/dev/null | awk '{print $2}')
 EXPECTED=$(jq -r .branch .sdp/checkpoints/${FEATURE_ID}.json 2>/dev/null)
 CURRENT=$(git branch --show-current)
@@ -59,7 +59,7 @@ sdp guard activate 00-067-01
 ```
 
 2. **TDD cycle** (spawn subagents if available, else do yourself):
-   - Implementer: RED → GREEN → REFACTOR per AC
+   - Implementer: RED → GREEN → REFACTOR per AC. **Orchestrator contract:** Emit phase markers so orchestrator can parse: `TDD:RED` (writing failing test), `TDD:GREEN` (test passes), `TDD:REFACTOR` (cleanup). One marker per phase.
    - Spec Reviewer: Verify each AC with evidence
    - Quality Reviewer: Coverage >= 80%, LOC <= 200, lint pass
 

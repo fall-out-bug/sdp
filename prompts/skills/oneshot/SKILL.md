@@ -19,7 +19,7 @@ Outer loop: `sdp-orchestrate` (or `sdp orchestrate` if available) drives phases.
 
 0. **Scope** — Do not change workstream scope mid-run. If scope must change, stop and start a new run.
 1. **Get next action** — Run `sdp-orchestrate --feature F{XX} --next-action`. Parse the JSON output (schema: `sdp/schema/next-action.schema.json`).
-2. **Execute phase and advance** — For `build`: run @build {ws_id}, commit, then run `sdp-orchestrate --feature F{XX} --advance --result $(git rev-parse HEAD)` exactly once. For `review`: run @review F{XX}, fix P0/P1 until approved (max 3 iterations), then run `sdp-orchestrate --feature F{XX} --advance` exactly once. Do not advance in multiple rules; one advance per phase. PR and CI run automatically. When action is `done`, output only: `CI GREEN - @oneshot complete`.
+2. **Execute phase and advance** — For `build`: run @build {ws_id}, commit, then `sdp-orchestrate --feature F{XX} --advance --result $(git rev-parse HEAD)`. For `review`: run @review F{XX}, fix P0/P1 until approved (max 3 iterations), then `sdp-orchestrate --feature F{XX} --advance`. **One advance per phase** — run `--advance` exactly once after build, exactly once after review. PR and CI run automatically. When action is `done`, output only: `CI GREEN - @oneshot complete`.
 
 ## Post-compaction
 
