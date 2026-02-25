@@ -57,12 +57,7 @@ func (w *Writer) Append(ev *Event) error {
 	if err := syscall.Flock(int(lf.Fd()), syscall.LOCK_EX); err != nil {
 		return fmt.Errorf("acquire file lock: %w", err)
 	}
-	locked := true
-	defer func() {
-		if locked {
-			_ = syscall.Flock(int(lf.Fd()), syscall.LOCK_UN)
-		}
-	}()
+	defer func() { _ = syscall.Flock(int(lf.Fd()), syscall.LOCK_UN) }()
 
 	// Re-read last hash under flock — another process may have appended.
 	// This ensures prev_hash is always derived from on-disk state (atomic with append).

@@ -1,3 +1,7 @@
+// Package evidence provides event emission for SDP workflows.
+//
+// CLI usage: Use EmitSync from CLI entry points (sdp verify, sdp quality, sdp apply)
+// so process exit does not drop evidence. Emit() is async and may lose events on exit.
 package evidence
 
 import (
