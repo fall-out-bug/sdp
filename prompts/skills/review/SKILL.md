@@ -2,10 +2,10 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 14.0.0
+version: 14.1.0
 changes:
+  - "14.1.0: Language-agnostic (platform-agnostic spawn, agents/ path)"
   - "14.0.0: Compress to ~150 lines (P2 remediation)"
-  - Subagent tasks consolidated into template
 ---
 
 # review
@@ -21,7 +21,7 @@ Comprehensive multi-agent quality review.
 When user invokes `@review F{XX}`:
 
 1. **Run CLI:** `sdp quality all`
-2. **Spawn 7 subagents IN PARALLEL** (Task tool, agent panel). **DO NOT skip.** CLI is basic; full review needs subagents.
+2. **Spawn 7 subagents IN PARALLEL** (use your platform's subagent spawn). **DO NOT skip.** CLI is basic; full review needs subagents.
 
 **Roles:** qa, security, devops, sre, techlead, docs, promptops
 
@@ -37,7 +37,7 @@ When user invokes `@review F{XX}`:
 
 For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
 
-**Role files:** `.claude/agents/qa.md`, `security.md`, `devops.md`, `sre.md`, `tech-lead.md`. Docs and PromptOps: inline (see below).
+**Role files:** `agents/qa.md`, `agents/security.md`, `agents/devops.md`, `agents/sre.md`, `agents/tech-lead.md`. Docs and PromptOps: inline (see below).
 
 **Docs expert:** Check drift (`sdp drift detect`), AC coverage (jq `.ac_evidence|length` vs WS file). Labels: `review-finding,F{XX},round-1,docs`
 
