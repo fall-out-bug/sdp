@@ -133,6 +133,16 @@ func Load(projectRoot string) (*Config, error) {
 			return nil, fmt.Errorf("evidence.log_path: %w", err)
 		}
 	}
+	// Validate guard.rules_file is within project root (path traversal safety)
+	if cfg.Guard.RulesFile != "" && projectRoot != "" {
+		resolvedRules := cfg.Guard.RulesFile
+		if !filepath.IsAbs(resolvedRules) {
+			resolvedRules = filepath.Join(projectRoot, resolvedRules)
+		}
+		if err := validatePathWithinRoot(projectRoot, resolvedRules); err != nil {
+			return nil, fmt.Errorf("guard.rules_file: %w", err)
+		}
+	}
 	return cfg, nil
 }
 
