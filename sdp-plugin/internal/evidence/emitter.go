@@ -60,8 +60,10 @@ func fillDefaults(ev *Event) {
 	}
 }
 
-// Emit appends an event asynchronously. Use EmitSync for CLI entry points
-// (verify, oneshot) so process exit does not drop evidence.
+// Emit appends an event asynchronously in a goroutine. Use only when the
+// process will not exit immediately (e.g. long-running services). For CLI
+// entry points (verify, quality, oneshot) use EmitSync so process exit does
+// not drop evidence before the goroutine completes.
 func Emit(ev *Event) {
 	if ev == nil {
 		return
@@ -79,7 +81,8 @@ func Emit(ev *Event) {
 	}()
 }
 
-// EmitSync writes the event immediately (use from CLI so process exit doesn't drop it).
+// EmitSync writes the event immediately. Use from CLI entry points (verify,
+// quality, oneshot) so process exit does not drop evidence.
 func EmitSync(ev *Event) error {
 	if ev == nil {
 		return nil
