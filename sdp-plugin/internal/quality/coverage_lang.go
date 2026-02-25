@@ -3,6 +3,7 @@ package quality
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -55,7 +56,13 @@ func (c *Checker) checkPythonCoverage(ctx context.Context, result *CoverageResul
 			return result, nil
 		}
 		cmd.Dir = c.projectPath
-		output, _ := cmd.CombinedOutput()
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			result.Coverage = 0.0
+			result.Passed = false
+			result.Report = fmt.Sprintf("pytest failed: %v\n%s", err, truncateOutput(output, 500))
+			return result, nil
+		}
 
 		// Parse output for coverage percentage
 		outputStr := string(output)
@@ -82,28 +89,12 @@ func (c *Checker) checkPythonCoverage(ctx context.Context, result *CoverageResul
 
 	// Try reading .coverage file
 	if _, err := os.Stat(covFile); err == nil {
-		// Parse .coveragerc or coverage.json if exists
 		jsonFile := filepath.Join(c.projectPath, "coverage.json")
 		if data, err := os.ReadFile(jsonFile); err == nil {
-			// Parse JSON coverage report
-			content := string(data)
-			if strings.Contains(content, "percent_covered") {
-				// Simple parse - look for "percent_covered": NUMBER
-				lines := strings.Split(content, "\n")
-				for _, line := range lines {
-					if strings.Contains(line, "percent_covered") {
-						parts := strings.Split(line, ":")
-						if len(parts) == 2 {
-							covStr := strings.TrimSpace(strings.Trim(strings.TrimSuffix(strings.TrimSuffix(parts[1], ","), "}"), "\""))
-							cov, err := strconv.ParseFloat(covStr, 64)
-							if err == nil {
-								result.Coverage = cov
-								result.Passed = cov >= result.Threshold
-								return result, nil
-							}
-						}
-					}
-				}
+			if cov := parseCoverageJSON(data); cov >= 0 {
+				result.Coverage = cov
+				result.Passed = cov >= result.Threshold
+				return result, nil
 			}
 		}
 	}
@@ -143,33 +134,32 @@ func (c *Checker) checkGoCoverage(ctx context.Context, result *CoverageResult) (
 		} else {
 			listCmd.Dir = c.projectPath
 			listOut, listErr := listCmd.Output()
-		if listErr != nil {
-			// Fallback to ./...
-			testArgs = append(testArgs, "./...")
-		} else {
-			var pkgs []string
-			for _, line := range strings.Split(strings.TrimSpace(string(listOut)), "\n") {
-				line = strings.TrimSpace(line)
-				if line == "" {
-					continue
-				}
-				excluded := false
-				for _, prefix := range excludePrefixes {
-					if strings.Contains(line, prefix) {
-						excluded = true
-						break
+			if listErr != nil {
+				testArgs = append(testArgs, "./...")
+			} else {
+				var pkgs []string
+				for _, line := range strings.Split(strings.TrimSpace(string(listOut)), "\n") {
+					line = strings.TrimSpace(line)
+					if line == "" {
+						continue
+					}
+					excluded := false
+					for _, prefix := range excludePrefixes {
+						if strings.Contains(line, prefix) {
+							excluded = true
+							break
+						}
+					}
+					if !excluded {
+						pkgs = append(pkgs, line)
 					}
 				}
-				if !excluded {
-					pkgs = append(pkgs, line)
+				if len(pkgs) > 0 {
+					testArgs = append(testArgs, pkgs...)
+				} else {
+					testArgs = append(testArgs, "./...")
 				}
 			}
-			if len(pkgs) > 0 {
-				testArgs = append(testArgs, pkgs...)
-			} else {
-				testArgs = append(testArgs, "./...")
-			}
-		}
 		}
 	} else {
 		testArgs = append(testArgs, "./...")
@@ -279,6 +269,12 @@ func (c *Checker) checkJavaCoverage(ctx context.Context, result *CoverageResult)
 				}
 			}
 		}
+		if err := scanner.Err(); err != nil {
+			result.Coverage = 0.0
+			result.Passed = false
+			result.Report = fmt.Sprintf("jacoco.csv read error: %v", err)
+			return result, nil
+		}
 
 		if totalLines > 0 {
 			result.Coverage = float64(coveredLines) / float64(totalLines) * 100
@@ -292,4 +288,39 @@ func (c *Checker) checkJavaCoverage(ctx context.Context, result *CoverageResult)
 
 	result.Passed = result.Coverage >= result.Threshold
 	return result, nil
+}
+
+func truncateOutput(b []byte, maxLen int) string {
+	s := string(b)
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
+}
+
+// parseCoverageJSON extracts percent_covered from JSON. Returns -1 if not found or invalid.
+func parseCoverageJSON(data []byte) float64 {
+	var m map[string]interface{}
+	if err := json.Unmarshal(data, &m); err != nil {
+		return -1
+	}
+	if v, ok := m["percent_covered"]; ok {
+		switch x := v.(type) {
+		case float64:
+			return x
+		case int:
+			return float64(x)
+		}
+	}
+	if totals, ok := m["totals"].(map[string]interface{}); ok {
+		if v, ok := totals["percent_covered"]; ok {
+			switch x := v.(type) {
+			case float64:
+				return x
+			case int:
+				return float64(x)
+			}
+		}
+	}
+	return -1
 }
