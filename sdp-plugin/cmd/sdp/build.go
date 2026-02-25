@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/guard"
@@ -19,6 +22,9 @@ func buildCmd() *cobra.Command {
 For full TDD cycle with agent, use @build or sdp-orchestrate.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+			defer stop()
+
 			wsID := args[0]
 			root, err := config.FindProjectRoot()
 			if err != nil {
@@ -37,7 +43,7 @@ For full TDD cycle with agent, use @build or sdp-orchestrate.`,
 			}
 			preHook := filepath.Join(root, "scripts", "hooks", "pre-build.sh")
 			if _, err := os.Stat(preHook); err == nil {
-				c := exec.Command(preHook, wsID)
+				c := exec.CommandContext(ctx, preHook, wsID)
 				c.Dir = root
 				c.Stdout = os.Stdout
 				c.Stderr = os.Stderr
@@ -45,7 +51,7 @@ For full TDD cycle with agent, use @build or sdp-orchestrate.`,
 					return fmt.Errorf("pre-build hook: %w", err)
 				}
 			}
-			goTest := exec.Command("go", "test", "./...")
+			goTest := exec.CommandContext(ctx, "go", "test", "./...")
 			goTest.Dir = root
 			goTest.Stdout = os.Stdout
 			goTest.Stderr = os.Stderr
@@ -54,7 +60,7 @@ For full TDD cycle with agent, use @build or sdp-orchestrate.`,
 			}
 			postHook := filepath.Join(root, "scripts", "hooks", "post-build.sh")
 			if _, err := os.Stat(postHook); err == nil {
-				c := exec.Command(postHook, wsID, "completed")
+				c := exec.CommandContext(ctx, postHook, wsID, "completed")
 				c.Dir = root
 				c.Stdout = os.Stdout
 				c.Stderr = os.Stderr

@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/executor"
@@ -68,8 +70,9 @@ Examples:
 			}, runner)
 			exec.SetOutputFormat(outputFormat)
 
-			// Create context for cancellation
-			ctx := context.Background()
+			// Create context for cancellation (SIGINT/SIGTERM)
+			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+			defer stop()
 
 			// Determine execution options
 			opts := executor.ExecuteOptions{
