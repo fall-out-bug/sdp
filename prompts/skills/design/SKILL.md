@@ -1,6 +1,7 @@
 ---
 name: design
 description: System design with progressive disclosure, produces workstream files
+version: 2.1.0
 ---
 
 # @design
@@ -10,6 +11,12 @@ Multi-agent design (Arch + Security + SRE) with progressive discovery blocks.
 ## When to Use
 
 After @idea, or directly from a feature description. Creates workstream files with AC and scope.
+
+## Pre-flight
+
+**Before creating draft:** `ls docs/drafts/idea-*` — do not duplicate. If an idea draft already covers this topic, reuse or extend it instead of creating a new one.
+
+**Beads from review:** In scope by default. Mark OOS only with explicit justification (e.g. "duplicate", "superseded by F054").
 
 ## Workflow
 
@@ -28,6 +35,8 @@ After @idea, or directly from a feature description. Creates workstream files wi
 After each block: Continue / Skip / Done
 
 ### 3. Generate workstream files
+
+**When source is beads (review findings):** For each bead, run `bd show <id>` and grep the codebase for the fix. If already fixed, run `bd close <id>` and remove from scope. Do not create WS for beads that are already addressed.
 
 Create `docs/workstreams/backlog/00-FFF-SS.md` for each deliverable.
 
