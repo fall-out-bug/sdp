@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -12,7 +13,11 @@ import (
 func runQualityCoverage(strict bool) error {
 	projectPath, err := config.FindProjectRoot()
 	if err != nil {
-		projectPath, _ = os.Getwd()
+		var wdErr error
+		projectPath, wdErr = os.Getwd()
+		if wdErr != nil {
+			return fmt.Errorf("project root: FindProjectRoot failed (%v); Getwd failed (%v)", err, wdErr)
+		}
 	}
 	if projectPath == "" {
 		projectPath = "."
@@ -23,7 +28,7 @@ func runQualityCoverage(strict bool) error {
 	}
 	checker.SetStrictMode(strict)
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		return fmt.Errorf("coverage check failed: %w", err)
 	}
@@ -63,7 +68,11 @@ func runQualityCoverage(strict bool) error {
 func runQualityComplexity(strict bool) error {
 	projectPath, err := config.FindProjectRoot()
 	if err != nil {
-		projectPath, _ = os.Getwd()
+		var wdErr error
+		projectPath, wdErr = os.Getwd()
+		if wdErr != nil {
+			return fmt.Errorf("project root: FindProjectRoot failed (%v); Getwd failed (%v)", err, wdErr)
+		}
 	}
 	if projectPath == "" {
 		projectPath = "."
@@ -111,7 +120,11 @@ func runQualityComplexity(strict bool) error {
 func runQualitySize(strict bool) error {
 	projectPath, err := config.FindProjectRoot()
 	if err != nil {
-		projectPath, _ = os.Getwd()
+		var wdErr error
+		projectPath, wdErr = os.Getwd()
+		if wdErr != nil {
+			return fmt.Errorf("project root: FindProjectRoot failed (%v); Getwd failed (%v)", err, wdErr)
+		}
 	}
 	if projectPath == "" {
 		projectPath = "."

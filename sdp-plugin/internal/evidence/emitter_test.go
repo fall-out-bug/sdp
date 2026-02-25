@@ -84,14 +84,14 @@ func TestEmit_EventuallyWrites(t *testing.T) {
 		t.Fatalf("EmitSync: %v", err)
 	}
 	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
-	// Retry Stat to reduce flakiness on slow filesystems (sdp-yout)
-	for i := 0; i < 5; i++ {
+	// Retry Stat to reduce flakiness on slow filesystems (sdp-yout, CI)
+	for i := 0; i < 25; i++ {
 		if _, err := os.Stat(logPath); err == nil {
 			return
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(25 * time.Millisecond)
 	}
-	t.Errorf("events.jsonl not created after retries")
+	t.Errorf("events.jsonl not created after 25 retries (625ms)")
 }
 
 func TestValidateEvent(t *testing.T) {

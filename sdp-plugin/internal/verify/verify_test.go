@@ -2,7 +2,9 @@ package verify
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
@@ -432,6 +434,37 @@ func TestVerifierOutputFilesAbsolutePath(t *testing.T) {
 	// Evidence should be absolute path
 	if !filepath.IsAbs(checks[0].Evidence) {
 		t.Errorf("Evidence should be absolute path, got %s", checks[0].Evidence)
+	}
+}
+
+// mockCommandRunner returns real exec.Cmd for "true"/"false" to test command execution path.
+type mockCommandRunner struct{}
+
+func (m *mockCommandRunner) SafeCommand(ctx context.Context, name string, args ...string) (*exec.Cmd, error) {
+	if name == "true" {
+		return exec.CommandContext(ctx, "true"), nil
+	}
+	if name == "false" {
+		return exec.CommandContext(ctx, "false"), nil
+	}
+	return nil, fmt.Errorf("mock: unknown command %s", name)
+}
+
+func TestVerifierVerifyCommandsSuccess(t *testing.T) {
+	// Use mock that allows "true" - tests successful command path
+	verifier := NewVerifierWithOptions("/tmp", WithCommandRunner(&mockCommandRunner{}))
+
+	wsData := &WorkstreamData{
+		VerificationCommands: []string{"true"},
+	}
+
+	checks := verifier.VerifyCommands(context.Background(), wsData)
+
+	if len(checks) != 1 {
+		t.Fatalf("Expected 1 check, got %d", len(checks))
+	}
+	if !checks[0].Passed {
+		t.Errorf("Expected 'true' command to pass, got: %s", checks[0].Message)
 	}
 }
 
