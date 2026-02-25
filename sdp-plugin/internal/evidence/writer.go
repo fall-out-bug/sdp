@@ -64,7 +64,8 @@ func (w *Writer) Append(ev *Event) error {
 		}
 	}()
 
-	// Re-read last hash under lock — another process may have appended.
+	// Re-read last hash under flock — another process may have appended.
+	// This ensures prev_hash is always derived from on-disk state (atomic with append).
 	if b, err := os.ReadFile(w.path); err == nil && len(b) > 0 {
 		if last := lastLineBytes(b); len(last) > 0 {
 			w.lastHash = hashLine(last)
