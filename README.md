@@ -6,6 +6,30 @@ SDP gives your AI agents a structured process (Discovery → Delivery → Eviden
 
 > **Read the [Manifesto](docs/MANIFESTO.md)** for the full story — what exists, what's coming, and why evidence matters.
 
+## Demo
+
+```
+$ @feature "OpenCode plugin for beads visualization"
+→ @idea: Requirements gathered
+→ @design: Workstreams created
+
+$ @oneshot F001
+→ 00-001-01 ✅  00-001-02 ✅  00-001-03 ✅
+
+$ @review F001  →  APPROVED
+$ @deploy F001  →  PR merged
+
+$ bd viz
+┌─────────────────────────────────────────┐
+│ BEADS                    ready: 3       │
+│ sdp-abc1  Add auth          P1  in_prog │
+│ sdp-def2  Fix login bug     P2  ready   │
+│ sdp-ghi3  Beads viz plugin   P1  done   │
+└─────────────────────────────────────────┘
+```
+
+*Animated GIF: `vhs demo.tape` — [install vhs](https://github.com/charmbracelet/vhs#installation)*
+
 ## Quick Start
 
 ```bash
@@ -216,6 +240,7 @@ We're exploring multi-persona adversarial review, self-improvement loops, cross-
 
 | File | Content |
 |------|---------|
+| [docs/QUICKSTART.md](docs/QUICKSTART.md) | 5-minute getting started |
 | [docs/MANIFESTO.md](docs/MANIFESTO.md) | Why SDP exists, what's real, what's next |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
 | [docs/attestation/coding-workflow-v1.md](docs/attestation/coding-workflow-v1.md) | in-toto predicate spec (evidence v2) |

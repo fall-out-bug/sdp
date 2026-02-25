@@ -6,6 +6,7 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 
 | Doc | Purpose |
 |-----|---------|
+| [QUICKSTART.md](QUICKSTART.md) | 5-minute getting started |
 | [PROTOCOL.md](PROTOCOL.md) | Full protocol specification |
 | [CLI_REFERENCE.md](CLI_REFERENCE.md) | SDP CLI commands |
 | [MANIFESTO.md](MANIFESTO.md) | Vision, evidence, roadmap |

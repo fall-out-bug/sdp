@@ -16,4 +16,4 @@ Run `sdp --help` for the full list. Key commands:
 | `sdp checkpoint` | Long-running feature checkpoints |
 | `sdp completion` | Shell completion |
 
-See [reference/commands.md](reference/commands.md) for details.
+See [reference/skills.md](reference/skills.md) for skill catalog and [PROTOCOL.md](PROTOCOL.md) for full spec.

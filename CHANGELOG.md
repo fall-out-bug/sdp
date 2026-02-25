@@ -2,6 +2,40 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.8] - 2026-02-25
+
+### F053: Coverage Context + Protocol-Only Docs Boundary
+
+**Theme:** Context propagation for cancellation, protocol-only documentation boundary.
+
+**New:**
+- **CheckCoverage(ctx)** — Coverage checker accepts `context.Context` for cancellation support.
+- **Intent schema docs** — `docs/intent/README.md` documents intent specification format.
+- **Schema path consistency** — Schemas served from `schema/` at SDP root.
+- **ws-verdict, review-verdict** — JSON schemas for build and review outputs.
+
+**Protocol boundary:**
+- Removed non-protocol docs (workstreams, roadmap, plans, reviews, decisions, specs) — migrated to sdp_dev.
+- Kept minimal `docs/reference/` (PRINCIPLES, GLOSSARY, build/design/review specs).
+- Added `docs/README.md` index for protocol documentation.
+
+**Fixes:**
+- **intent.schema.json** — Restored valid JSON (was corrupted).
+- **Windows build** — Added `lock_windows.go` (no-op flock); evidence layer requires UNIX.
+- **Lint** — gofmt, prealloc, gocognit, errcheck nolints.
+- **TestVerifyCmd** — Replaced hanging integration test with `TestVerifyCmdConstructed` unit test.
+
+**Audit remediation (F053 beads):**
+- Verifier interface abstraction (CoverageChecker, PathValidator, CommandRunner).
+- Parser frontmatter fix (Index for both `---` delimiters).
+- Configurable coverage timeouts, EmitSync docstrings, Writer hash-chain atomicity.
+- Guard rules path validation, ParseDependencies safe fallback, ctx propagation.
+
+**Install:**
+- `SDP_REF=v0.9.8` for testing. OpenCode: `SDP_IDE=opencode` or `SDP_IDE=all`.
+
+---
+
 ## [0.9.7] - 2026-02-24
 
 ### Phase 0 + protocol E2E: Skills, Schema, Constraints, Full Protocol

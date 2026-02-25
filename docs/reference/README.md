@@ -34,7 +34,7 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 - `@hotfix` - Emergency fix (P0)
 - `@bugfix` - Quality fix (P1/P2)
 
-**See:** [commands.md](commands.md) - Complete command reference
+**See:** [../CLI_REFERENCE.md](../CLI_REFERENCE.md) — SDP CLI commands
 
 ---
 
@@ -75,7 +75,7 @@ max_lines = 200
 strict_mode = true
 ```
 
-**See:** [configuration.md](configuration.md) - All configuration options
+**See:** [../PROTOCOL.md](../PROTOCOL.md) — Protocol and config
 
 ---
 
@@ -101,7 +101,7 @@ Structured errors with:
 - `BuildValidationError` - Build check failed
 - `ArtifactValidationError` - Artifact invalid
 
-**See:** [error-handling.md](error-handling.md) - Error patterns and usage
+**See:** [skills.md](skills.md) — Skill contracts and error handling
 
 ---
 
@@ -127,7 +127,7 @@ Structured errors with:
 **Internal:**
 - `tdd` - TDD enforcement (automatic)
 
-**See:** [skills.md](skills.md) - Complete skill reference
+**See:** [skills.md](skills.md) — Skill catalog
 
 ---
 
@@ -135,16 +135,14 @@ Structured errors with:
 
 ### Looking For...
 
-**Command syntax** → [commands.md](commands.md)
-**Quality standards** → [quality-gates.md](quality-gates.md)
-**Config files** → [configuration.md](configuration.md)
-**Error patterns** → [error-handling.md](error-handling.md)
-**Skill details** → [skills.md](skills.md)
-**Beginner guides** → [beginner/](../beginner/)
-**Architecture** → [internals/](../internals/)
+| Need | Doc |
+|------|-----|
+| Command syntax | [../CLI_REFERENCE.md](../CLI_REFERENCE.md) |
+| Quality standards | [build-spec.md](build-spec.md) |
+| Skill details | [skills.md](skills.md) |
+| Design workflow | [design-spec.md](design-spec.md) |
+| Review workflow | [review-spec.md](review-spec.md) |
 
 ---
 
-**Version:** SDP v0.9.0
-**Updated:** 2026-01-29
-**Purpose:** Quick reference for SDP users
+**Version:** SDP v0.9.8 | **Updated:** 2026-02-25
