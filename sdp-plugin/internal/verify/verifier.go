@@ -10,20 +10,48 @@ import (
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/config"
-	"github.com/fall-out-bug/sdp/internal/quality"
-	"github.com/fall-out-bug/sdp/internal/security"
 )
+
+// VerifierOption configures optional dependencies for Verifier.
+type VerifierOption func(*Verifier)
+
+// WithCoverageChecker injects a CoverageChecker. Default: quality.Checker.
+func WithCoverageChecker(c CoverageChecker) VerifierOption {
+	return func(v *Verifier) { v.coverageChecker = c }
+}
+
+// WithPathValidator injects a PathValidator. Default: security.ValidatePathInDirectory.
+func WithPathValidator(p PathValidator) VerifierOption {
+	return func(v *Verifier) { v.pathValidator = p }
+}
+
+// WithCommandRunner injects a CommandRunner. Default: security.SafeCommand.
+func WithCommandRunner(r CommandRunner) VerifierOption {
+	return func(v *Verifier) { v.commandRunner = r }
+}
 
 // Verifier handles workstream completion verification
 type Verifier struct {
-	parser *Parser
+	parser           *Parser
+	coverageChecker  CoverageChecker
+	pathValidator    PathValidator
+	commandRunner    CommandRunner
 }
 
-// NewVerifier creates a new workstream verifier
+// NewVerifier creates a new workstream verifier with default implementations.
 func NewVerifier(wsDir string) *Verifier {
-	return &Verifier{
+	return NewVerifierWithOptions(wsDir)
+}
+
+// NewVerifierWithOptions creates a verifier with optional injected dependencies.
+func NewVerifierWithOptions(wsDir string, opts ...VerifierOption) *Verifier {
+	v := &Verifier{
 		parser: NewParser(wsDir),
 	}
+	for _, opt := range opts {
+		opt(v)
+	}
+	return v
 }
 
 // VerifyOutputFiles checks all scope_files exist and are within project root (path traversal safety).
@@ -34,6 +62,11 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 		projectRoot = ""
 	}
 
+	pv := v.pathValidator
+	if pv == nil {
+		pv = defaultPathValidator()
+	}
+
 	for _, filePath := range wsData.ScopeFiles {
 		check := CheckResult{
 			Name: fmt.Sprintf("File: %s", filePath),
@@ -41,7 +74,7 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 
 		// Path traversal: ensure path is within project root
 		if projectRoot != "" {
-			if err := security.ValidatePathInDirectory(projectRoot, filePath); err != nil {
+			if err := pv.ValidatePathInDirectory(projectRoot, filePath); err != nil {
 				check.Passed = false
 				check.Message = fmt.Sprintf("Path outside project: %v", err)
 				checks = append(checks, check)
@@ -94,7 +127,11 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 		cmdCtx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		command, err := security.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
+		cr := v.commandRunner
+		if cr == nil {
+			cr = defaultCommandRunner()
+		}
+		command, err := cr.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
 		if err != nil {
 			check.Passed = false
 			check.Message = fmt.Sprintf("Security validation: %v", err)
@@ -120,31 +157,34 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 	return checks
 }
 
-// VerifyCoverage runs actual coverage check via quality.Checker. ctx is used for cancellation.
+// VerifyCoverage runs actual coverage check via CoverageChecker. ctx is used for cancellation.
 func (v *Verifier) VerifyCoverage(ctx context.Context, wsData *WorkstreamData) *CheckResult {
 	if wsData.CoverageThreshold == 0 {
 		return nil
 	}
 
-	projectRoot, err := config.FindProjectRoot()
-	if err != nil {
-		return &CheckResult{
-			Name:    "Coverage Check",
-			Passed:  false,
-			Message: fmt.Sprintf("project root: %v", err),
+	cc := v.coverageChecker
+	if cc == nil {
+		projectRoot, rootErr := config.FindProjectRoot()
+		if rootErr != nil {
+			return &CheckResult{
+				Name:    "Coverage Check",
+				Passed:  false,
+				Message: fmt.Sprintf("project root: %v", rootErr),
+			}
+		}
+		var err error
+		cc, err = defaultCoverageChecker(projectRoot)
+		if err != nil {
+			return &CheckResult{
+				Name:    "Coverage Check",
+				Passed:  false,
+				Message: fmt.Sprintf("checker init: %v", err),
+			}
 		}
 	}
 
-	checker, err := quality.NewChecker(projectRoot)
-	if err != nil {
-		return &CheckResult{
-			Name:    "Coverage Check",
-			Passed:  false,
-			Message: fmt.Sprintf("checker init: %v", err),
-		}
-	}
-
-	result, err := checker.CheckCoverage(ctx)
+	result, err := cc.CheckCoverage(ctx)
 	if err != nil {
 		return &CheckResult{
 			Name:    "Coverage Check",

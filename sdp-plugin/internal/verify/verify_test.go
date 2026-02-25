@@ -1,6 +1,7 @@
 package verify
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -109,7 +110,8 @@ func TestVerifierVerifyOutputFiles(t *testing.T) {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
-	verifier := NewVerifier(tmpDir)
+	// Use mock PathValidator so path traversal check passes for temp dir (projectRoot may differ)
+	verifier := NewVerifierWithOptions(tmpDir, WithPathValidator(mockPathValidator{}))
 	wsData := &WorkstreamData{
 		ScopeFiles: []string{existingFile, filepath.Join(tmpDir, "missing.go")},
 	}
@@ -132,23 +134,74 @@ func TestVerifierVerifyOutputFiles(t *testing.T) {
 }
 
 func TestVerifierVerifyCoverage(t *testing.T) {
-	verifier := NewVerifier("/tmp")
+	// Use mock to avoid running real coverage (which may fail in /tmp)
+	mock := &mockCoverageChecker{
+		result: &CoverageResult{Coverage: 85.0, Threshold: 80.0, Report: "ok"},
+	}
+	verifier := NewVerifierWithOptions("/tmp", WithCoverageChecker(mock))
 
 	// No coverage threshold
 	wsData := &WorkstreamData{CoverageThreshold: 0}
-	result := verifier.VerifyCoverage(wsData)
+	result := verifier.VerifyCoverage(context.Background(), wsData)
 	if result != nil {
 		t.Error("Expected nil when no coverage threshold")
 	}
 
 	// With coverage threshold
 	wsData = &WorkstreamData{CoverageThreshold: 80.0}
-	result = verifier.VerifyCoverage(wsData)
+	result = verifier.VerifyCoverage(context.Background(), wsData)
 	if result == nil {
 		t.Fatal("Expected result with coverage threshold")
 	}
 	if !result.Passed {
-		t.Error("Expected coverage check to pass (placeholder)")
+		t.Error("Expected coverage check to pass with mock")
+	}
+}
+
+// mockCoverageChecker is a test double for CoverageChecker.
+type mockCoverageChecker struct {
+	result *CoverageResult
+	err    error
+}
+
+func (m *mockCoverageChecker) CheckCoverage(ctx context.Context) (*CoverageResult, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.result, nil
+}
+
+// mockPathValidator is a test double that always passes (no path traversal check).
+type mockPathValidator struct{}
+
+func (mockPathValidator) ValidatePathInDirectory(baseDir, targetPath string) error {
+	return nil
+}
+
+func TestVerifierVerifyCoverageWithMock(t *testing.T) {
+	// Inject mock that returns 90% coverage (above threshold)
+	mock := &mockCoverageChecker{
+		result: &CoverageResult{Coverage: 90.0, Threshold: 80.0, Report: "mock report"},
+	}
+	verifier := NewVerifierWithOptions("/tmp", WithCoverageChecker(mock))
+
+	wsData := &WorkstreamData{CoverageThreshold: 80.0}
+	result := verifier.VerifyCoverage(context.Background(), wsData)
+	if result == nil {
+		t.Fatal("Expected result")
+	}
+	if !result.Passed {
+		t.Errorf("Expected pass with 90%% coverage, got %s", result.Message)
+	}
+	if result.Evidence != "mock report" {
+		t.Errorf("Expected 'mock report' evidence, got %s", result.Evidence)
+	}
+
+	// Inject mock that returns 50% (below threshold)
+	mock.result = &CoverageResult{Coverage: 50.0, Threshold: 80.0, Report: "low"}
+	result = verifier.VerifyCoverage(context.Background(), wsData)
+	if result.Passed {
+		t.Error("Expected fail with 50% coverage")
 	}
 }
 
@@ -173,7 +226,7 @@ func TestTruncate(t *testing.T) {
 
 func TestVerifierVerifyWSNotFound(t *testing.T) {
 	verifier := NewVerifier("/nonexistent/path")
-	result := verifier.Verify("00-000-00")
+	result := verifier.Verify(context.Background(), "00-000-00")
 
 	if result.Passed {
 		t.Error("Expected verification to fail for nonexistent WS")
@@ -190,7 +243,7 @@ func TestVerifierCommandsEmptyCommand(t *testing.T) {
 		VerificationCommands: []string{""}, // Empty command
 	}
 
-	checks := verifier.VerifyCommands(wsData)
+	checks := verifier.VerifyCommands(context.Background(), wsData)
 
 	if len(checks) != 1 {
 		t.Fatalf("Expected 1 check, got %d", len(checks))
@@ -214,7 +267,7 @@ func TestVerifierCommandsMultipleCommands(t *testing.T) {
 		},
 	}
 
-	checks := verifier.VerifyCommands(wsData)
+	checks := verifier.VerifyCommands(context.Background(), wsData)
 
 	if len(checks) != 2 {
 		t.Fatalf("Expected 2 checks, got %d", len(checks))
@@ -257,8 +310,10 @@ Test
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
-	verifier := NewVerifier(tmpDir)
-	result := verifier.Verify("00-999-99")
+	// Use mocks to avoid real coverage run and path validation (temp dir may be outside project root)
+	mockCC := &mockCoverageChecker{result: &CoverageResult{Coverage: 100, Threshold: 80, Report: "ok"}}
+	verifier := NewVerifierWithOptions(tmpDir, WithCoverageChecker(mockCC), WithPathValidator(mockPathValidator{}))
+	result := verifier.Verify(context.Background(), "00-999-99")
 
 	// Should fail because file doesn't exist and command is empty
 	if result.Passed {
@@ -328,7 +383,7 @@ func TestVerifierOutputFilesAbsolutePath(t *testing.T) {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
-	verifier := NewVerifier(tmpDir)
+	verifier := NewVerifierWithOptions(tmpDir, WithPathValidator(mockPathValidator{}))
 	wsData := &WorkstreamData{
 		ScopeFiles: []string{testFile},
 	}
