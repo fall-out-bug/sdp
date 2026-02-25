@@ -111,7 +111,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 ---
 
-## Examples
+## Few-Shot Examples
 
 **Good ws-verdict (all gates green):**
 ```json
@@ -120,15 +120,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
   "feature_id": "F067",
   "verdict": "PASS",
   "commit": "a1b2c3d",
-  "quality_gates": {
-    "tests_pass": true,
-    "lint_clean": true,
-    "coverage_pct": 85.2,
-    "coverage_threshold": 80,
-    "max_file_loc": 142,
-    "build_ok": true,
-    "vet_ok": true
-  },
+  "quality_gates": {"tests_pass": true, "lint_clean": true, "coverage_pct": 85.2, "coverage_threshold": 80, "max_file_loc": 142, "build_ok": true, "vet_ok": true},
   "ac_evidence": [
     {"ac": "User can reset password via email", "met": true, "evidence": "TestResetPassword in internal/auth/reset_test.go:42"},
     {"ac": "Rate limit 5/min per email", "met": true, "evidence": "TestRateLimit in internal/auth/reset_test.go:89"}
@@ -136,6 +128,19 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
   "existing_work_summary": "Found ResetToken in pkg/auth; extended with email flow."
 }
 ```
+
+**Bad — missing existing_work_summary:**
+```json
+{"ws_id": "00-067-01", "feature_id": "F067", "verdict": "PASS", "ac_evidence": [...]}
+```
+Reason: `existing_work_summary` is required. Add one-line summary of pre-existing code/tests found before implementation.
+
+**Bad — ac_evidence without evidence field:**
+```json
+{"ac": "User can reset password", "met": true}
+```
+Reason: Each ac_evidence entry must include `evidence` (file:line or test name).
+
 Schema: `schema/ws-verdict.schema.json` (from sdp root; project: `sdp/schema/`)
 
 ---

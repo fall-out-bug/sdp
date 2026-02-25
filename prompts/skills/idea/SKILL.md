@@ -158,9 +158,9 @@ Skip deep-dive cycles, move directly to @design.
 
 ---
 
-## Examples
+## Few-Shot Examples
 
-**Productive 3-question cycle (answers chain):**
+**Good — productive 3-question cycle (answers chain):**
 - Q1: What is the core mission of this feature?  
   A: "Let users reset password via email when they forget it."  
 - Q2: How does this align with PRODUCT_VISION.md?  
@@ -169,7 +169,15 @@ Skip deep-dive cycles, move directly to @design.
   A: "End users who forgot password; support team (fewer tickets)."  
 → Trigger: Continue (next cycle: problem/pain) or Skip to @design.
 
-**Bad:** Single yes/no question. **Good:** Each answer informs the next; 3 questions per cycle.
+**Bad — single yes/no question:**
+- Q: Do you need authentication? A: "Yes."  
+Reason: No exploration. Each answer should inform the next question.
+
+**Bad — TMI upfront (offer shortcut):**
+User writes 500+ chars: "I need a full auth system with OAuth, MFA, session management, rate limiting..."
+→ Offer: Continue with targeted questions (recommended) | Skip to @design | --quiet mode.
+
+**Good:** Each answer informs the next; 3 questions per cycle; explore tradeoffs, not yes/no.
 
 ---
 

@@ -27,7 +27,7 @@ When user invokes `@review F{XX}`:
 
 **Per-subagent task template** (replace F{XX}, round-N, {role}):
 
-Before filing findings, complete this analysis in order:
+**5-step evaluation structure** — complete in order:
 
 1. **SCOPE:** What files/packages does this feature touch? (list from checkpoint or scope files)
 2. **RISK MAP:** For your domain ({role}), what are the top 3 risk areas in this scope?
@@ -51,7 +51,8 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 
 1. **CONFLICT CHECK:** Do any two reviewers contradict? (e.g. Security says "add auth" but SRE says "remove auth middleware for latency"). If yes, create one escalation finding with both perspectives; add to `synthesis.conflicts`.
 2. **COVERAGE CHECK:** Did any reviewer report 0 findings? Note role in `synthesis.rubber_stamps` for transparency (does not by itself change verdict).
-3. **VERDICT:** **APPROVED** only if **ALL 7 roles** have an entry in `reviewers` and verdict=PASS. **Missing role = FAIL** (set verdict=CHANGES_REQUESTED). **CHANGES_REQUESTED** if any FAIL or escalation.
+3. **ADVERSARIAL SYNTHESIS:** Before final verdict, ask: "What if we're wrong?" For each PASS, note one plausible blind spot (e.g. "QA passed but load tests not run"). Add to synthesis. Does not change verdict unless evidence supports it.
+4. **VERDICT:** **APPROVED** only if **ALL 7 roles** have an entry in `reviewers` and verdict=PASS. **Missing role = FAIL** (set verdict=CHANGES_REQUESTED). **CHANGES_REQUESTED** if any FAIL or escalation.
 
 **Before final verdict:** Verify `reviewers` contains exactly these keys: **qa, security, devops, sre, techlead, docs, promptops**. If any is missing, set verdict=CHANGES_REQUESTED and add a note.
 
@@ -77,7 +78,7 @@ After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 
 
 ---
 
-## Examples
+## Few-Shot Examples
 
 **Good P0 finding (Security):**
 ```
@@ -91,13 +92,24 @@ bd create --title "Docs: typo in README deployment section" --priority 2 --label
 ```
 Reason: Maintenance debt, not blocking.
 
-**No findings (explicit output):**
+**Bad — vague finding (no file:line):**
+```
+bd create --title "Security: possible vulnerability" --priority 0 ...
+```
+Reason: P0 requires evidence. Add file:line or downgrade to P2.
+
+**Bad — missing FINDINGS_CREATED:**
+```
+SCOPE: internal/auth/*.go. RISK MAP: token validation. EVIDENCE: All checks present. VERDICT: PASS
+```
+Reason: Must output `FINDINGS_CREATED: (none)` explicitly; never leave blank.
+
+**Good — no findings (explicit output):**
 ```
 SCOPE: internal/auth/*.go (3 files). RISK MAP: token validation, rate limit. EVIDENCE: All checks present. VERDICT: PASS
 FINDINGS_CREATED: (none)
 PASS
 ```
-Always output `FINDINGS_CREATED: (none)` when there are no findings; never leave blank.
 
 ---
 
