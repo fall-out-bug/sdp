@@ -1,6 +1,7 @@
 package quality
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,7 +32,7 @@ func TestCheckPythonCoverageWithFile(t *testing.T) {
 		projectType: Python,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -53,7 +54,7 @@ func TestCheckPythonCoverageNoData(t *testing.T) {
 		projectType: Python,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -122,7 +123,7 @@ func TestAdd(t *testing.T) {
 		projectType: Go,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -344,7 +345,7 @@ func TestUnsupportedProjectType(t *testing.T) {
 		projectType: Type(999), // Invalid type
 	}
 
-	_, err = checker.CheckCoverage()
+	_, err = checker.CheckCoverage(context.Background())
 	if err == nil {
 		t.Error("Expected error for unsupported project type")
 	}
@@ -474,7 +475,7 @@ func TestCheckJavaCoverageNoJacocoCsv(t *testing.T) {
 	}
 
 	// Run Java coverage check
-	finalResult, err := checker.checkJavaCoverage(result)
+	finalResult, err := checker.checkJavaCoverage(context.Background(), result)
 	if err != nil {
 		t.Fatalf("checkJavaCoverage() failed: %v", err)
 	}
@@ -504,7 +505,7 @@ func TestCheckPythonCoverageNoCoverageFile(t *testing.T) {
 	}
 
 	// Run Python coverage check
-	finalResult, err := checker.checkPythonCoverage(result)
+	finalResult, err := checker.checkPythonCoverage(context.Background(), result)
 	if err != nil {
 		t.Fatalf("checkPythonCoverage() failed: %v", err)
 	}

@@ -81,7 +81,7 @@ Each level is independently valuable. Upgrade path is additive.
 | **P2** | OpenCode plugin for local evidence collection | Planned |
 | **P2** | Adapter controller hardening for K8s bridge | In development |
 
-## Research (sdp_lab)
+## Research (sdp_dev)
 
 Exploratory work, no promises:
 
