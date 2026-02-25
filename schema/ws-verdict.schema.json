@@ -4,7 +4,13 @@
   "title": "SDP Workstream Verdict",
   "description": "Output schema for @build skill. Captures single workstream execution result with quality gates and acceptance criteria evidence.",
   "type": "object",
-  "required": ["ws_id", "feature_id", "verdict", "quality_gates", "timestamp", "existing_work_summary"],
+  "required": [
+    "ws_id",
+    "feature_id",
+    "verdict",
+    "quality_gates",
+    "existing_work_summary"
+  ],
   "properties": {
     "ws_id": {
       "type": "string",
@@ -17,7 +23,11 @@
     },
     "verdict": {
       "type": "string",
-      "enum": ["PASS", "FAIL", "PARTIAL"],
+      "enum": [
+        "PASS",
+        "FAIL",
+        "PARTIAL"
+      ],
       "description": "Overall workstream verdict"
     },
     "commit": {
@@ -30,10 +40,17 @@
     },
     "quality_gates": {
       "type": "object",
-      "required": ["tests_pass", "lint_clean"],
+      "required": [
+        "tests_pass",
+        "lint_clean"
+      ],
       "properties": {
-        "tests_pass": { "type": "boolean" },
-        "lint_clean": { "type": "boolean" },
+        "tests_pass": {
+          "type": "boolean"
+        },
+        "lint_clean": {
+          "type": "boolean"
+        },
         "coverage_pct": {
           "type": "number",
           "minimum": 0,
@@ -48,21 +65,30 @@
           "type": "integer",
           "description": "Largest file in LOC (should be < 200)"
         },
-        "build_ok": { "type": "boolean" },
-        "vet_ok": { "type": "boolean" }
+        "build_ok": {
+          "type": "boolean"
+        },
+        "vet_ok": {
+          "type": "boolean"
+        }
       }
     },
     "ac_evidence": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["ac", "met"],
+        "required": [
+          "ac",
+          "met"
+        ],
         "properties": {
           "ac": {
             "type": "string",
             "description": "Acceptance criterion text"
           },
-          "met": { "type": "boolean" },
+          "met": {
+            "type": "boolean"
+          },
           "evidence": {
             "type": "string",
             "description": "File:line reference or test name proving this AC"
@@ -77,7 +103,9 @@
     },
     "changed_files": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "tdd_cycles": {
       "type": "integer",
