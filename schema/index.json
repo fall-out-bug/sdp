@@ -6,6 +6,8 @@
     { "id": "config", "path": "config.schema.json", "title": "SDP Project Config" },
     { "id": "evidence", "path": "evidence.schema.json", "title": "SDP Evidence Event" },
     { "id": "evidence-envelope", "path": "evidence-envelope.schema.json", "title": "Evidence Envelope (9-section strict)" },
-    { "id": "coding-workflow-predicate", "path": "coding-workflow-predicate.schema.json", "title": "SDP Coding Workflow Predicate (in-toto v1)" }
+    { "id": "coding-workflow-predicate", "path": "coding-workflow-predicate.schema.json", "title": "SDP Coding Workflow Predicate (in-toto v1)" },
+    { "id": "review-verdict", "path": "review-verdict.schema.json", "title": "SDP Review Verdict" },
+    { "id": "ws-verdict", "path": "ws-verdict.schema.json", "title": "SDP Workstream Verdict" }
   ]
 }
