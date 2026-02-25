@@ -11,7 +11,9 @@ changes:
 
 # oneshot
 
-Outer loop: `sdp-orchestrate` (or `sdp orchestrate` if available) drives phases. You execute @build and @review inline. Ensure `sdp-orchestrate` is on PATH (see AGENTS.md build instructions).
+Outer loop: `sdp-orchestrate` (or `sdp orchestrate` if available) drives phases. You execute @build and @review inline.
+
+**Run orchestrate:** Either `sdp-orchestrate` on PATH, or from project root: `go run ./cmd/sdp-orchestrate`. See AGENTS.md for build/install.
 
 ## Rules
 
