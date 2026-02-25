@@ -111,50 +111,55 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 	checks := []CheckResult{}
 
 	for _, cmd := range wsData.VerificationCommands {
-		check := CheckResult{
-			Name: fmt.Sprintf("Command: %s", truncate(cmd, 50)),
-		}
-
-		cmdParts := strings.Fields(cmd)
-		if len(cmdParts) == 0 {
-			check.Passed = false
-			check.Message = "Empty command"
-			checks = append(checks, check)
-			continue
-		}
-
-		timeout := verificationTimeout()
-		cmdCtx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
-
-		cr := v.commandRunner
-		if cr == nil {
-			cr = defaultCommandRunner()
-		}
-		command, err := cr.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
-		if err != nil {
-			check.Passed = false
-			check.Message = fmt.Sprintf("Security validation: %v", err)
-			checks = append(checks, check)
-			continue
-		}
-
-		output, err := command.CombinedOutput()
-
-		if err != nil {
-			check.Passed = false
-			check.Message = fmt.Sprintf("Exit code: %v", err)
-			check.Evidence = truncate(string(output), 500)
-		} else {
-			check.Passed = true
-			check.Message = "Exit code: 0"
-			check.Evidence = truncate(string(output), 500)
-		}
-
+		check := runVerificationCommand(v, ctx, cmd)
 		checks = append(checks, check)
 	}
 
 	return checks
+}
+
+// runVerificationCommand runs a single verification command. Uses scoped defer so cancel()
+// runs immediately after each command (no timer leak) and is panic-safe.
+func runVerificationCommand(v *Verifier, ctx context.Context, cmd string) CheckResult {
+	check := CheckResult{
+		Name: fmt.Sprintf("Command: %s", truncate(cmd, 50)),
+	}
+
+	cmdParts := strings.Fields(cmd)
+	if len(cmdParts) == 0 {
+		check.Passed = false
+		check.Message = "Empty command"
+		return check
+	}
+
+	timeout := verificationTimeout()
+	cmdCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel() // Runs at end of this function; panic-safe; releases timer immediately
+
+	cr := v.commandRunner
+	if cr == nil {
+		cr = defaultCommandRunner()
+	}
+	command, err := cr.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
+	if err != nil {
+		check.Passed = false
+		check.Message = fmt.Sprintf("Security validation: %v", err)
+		return check
+	}
+
+	output, err := command.CombinedOutput()
+
+	if err != nil {
+		check.Passed = false
+		check.Message = fmt.Sprintf("Exit code: %v", err)
+		check.Evidence = truncate(string(output), 500)
+	} else {
+		check.Passed = true
+		check.Message = "Exit code: 0"
+		check.Evidence = truncate(string(output), 500)
+	}
+
+	return check
 }
 
 // VerifyCoverage runs actual coverage check via CoverageChecker. ctx is used for cancellation.
@@ -208,6 +213,7 @@ func (v *Verifier) VerifyCoverage(ctx context.Context, wsData *WorkstreamData) *
 }
 
 // Verify runs all verification checks. ctx is used for command timeouts and cancellation.
+// If ctx is nil, context.TODO() is used (callers should pass non-nil ctx when possible).
 func (v *Verifier) Verify(ctx context.Context, wsID string) *VerificationResult {
 	start := time.Now()
 
