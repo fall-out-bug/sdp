@@ -5,9 +5,10 @@
 // Executor requires a WorkstreamRunner to execute individual workstreams. The interface
 // has one method: Run(ctx, wsID) error. Callers must provide an implementation.
 //
-// # Reference implementation: CLIRunner
+// # Production implementation: CLIRunner
 //
-// CLIRunner runs a configurable command (e.g. "sdp build") for each workstream.
+// CLIRunner is the production implementation for CLI-driven workstream execution.
+// It runs a configurable command (e.g. "sdp build") for each workstream.
 // Use it when workstream execution is delegated to a CLI or agent:
 //
 //	r := executor.NewCLIRunner("sdp", "build")
