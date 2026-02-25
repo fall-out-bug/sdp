@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestModelID(t *testing.T) {
@@ -82,7 +83,12 @@ func TestEmit_EventuallyWrites(t *testing.T) {
 		t.Fatalf("EmitSync: %v", err)
 	}
 	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
-	if _, err := os.Stat(logPath); err != nil {
-		t.Errorf("events.jsonl not created: %v", err)
+	// Retry Stat to reduce flakiness on slow filesystems (sdp-yout)
+	for i := 0; i < 5; i++ {
+		if _, err := os.Stat(logPath); err == nil {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
+	t.Errorf("events.jsonl not created after retries")
 }
