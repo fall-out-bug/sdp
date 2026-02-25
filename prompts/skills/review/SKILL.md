@@ -2,8 +2,9 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 14.1.0
+version: 14.2.0
 changes:
+  - "14.2.0: Handoff block when CHANGES_REQUESTED"
   - "14.1.0: Language-agnostic (platform-agnostic spawn, agents/ path)"
   - "14.0.0: Compress to ~150 lines (P2 remediation)"
 ---
@@ -65,6 +66,16 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 ```
 
 **Priority:** P0/P1 block; P2/P3 track only.
+
+**When verdict=CHANGES_REQUESTED** — output this handoff block prominently (e.g. at end of synthesis, before See Also):
+
+```
+---
+## Next Step
+
+Run `@design phase4-remediation` with findings to create workstreams.
+---
+```
 
 ---
 
