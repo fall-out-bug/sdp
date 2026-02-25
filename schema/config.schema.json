@@ -5,27 +5,56 @@
   "type": "object",
   "required": ["version"],
   "properties": {
-    "version": { "type": "integer", "minimum": 1 },
+    "version": {"type": "integer", "minimum": 1},
     "acceptance": {
       "type": "object",
       "properties": {
-        "command": { "type": "string" },
-        "timeout": { "type": "string" },
-        "expected": { "type": "string" }
+        "command": {"type": "string"},
+        "timeout": {"type": "string"},
+        "expected": {"type": "string"}
       }
     },
     "evidence": {
       "type": "object",
       "properties": {
-        "enabled": { "type": "boolean" },
-        "log_path": { "type": "string" }
+        "enabled": {"type": "boolean"},
+        "log_path": {"type": "string"}
       }
     },
     "quality": {
       "type": "object",
       "properties": {
-        "coverage_threshold": { "type": "integer", "minimum": 0, "maximum": 100 },
-        "max_file_loc": { "type": "integer", "minimum": 1 }
+        "coverage_threshold": {"type": "integer", "minimum": 0, "maximum": 100},
+        "max_file_loc": {"type": "integer", "minimum": 1},
+        "coverage_exclude": {"type": "array", "items": {"type": "string"}, "description": "Path prefixes to exclude from coverage"},
+        "complexity_threshold": {"type": "integer", "minimum": 1, "description": "Max cyclomatic complexity per function"},
+        "complexity_exclude": {"type": "array", "items": {"type": "string"}, "description": "Path prefixes to exclude from complexity check"},
+        "size_exclude": {"type": "array", "items": {"type": "string"}, "description": "Path prefixes to exclude from LOC check"}
+      }
+    },
+    "guard": {
+      "type": "object",
+      "properties": {
+        "mode": {"type": "string", "description": "Guard mode: standard, strict, off"},
+        "rules_file": {"type": "string", "description": "Path to guard rules YAML"},
+        "severity_mapping": {
+          "type": "object",
+          "additionalProperties": {"type": "string"},
+          "description": "Map rule severity to action: block, warn, log"
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "properties": {
+        "verification_command": {"type": "string"},
+        "retry_delay": {"type": "string"},
+        "build_phase": {"type": "string"},
+        "review_phase": {"type": "string"},
+        "coverage_python": {"type": "string"},
+        "coverage_go": {"type": "string"},
+        "coverage_list": {"type": "string"},
+        "coverage_java": {"type": "string"}
       }
     }
   }

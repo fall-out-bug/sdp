@@ -190,6 +190,12 @@ sdp log trace           # Trace by commit/workstream
 
 ---
 
+## Platform
+
+**Evidence file lock requires UNIX (macOS/Linux).** The evidence layer uses `flock` for inter-process safety. Windows is not supported. SDP targets macOS/Linux CI.
+
+---
+
 ## Where SDP Fits in the Ecosystem
 
 SDP composes with the tools you already use. It doesn't replace them — it adds evidence.
