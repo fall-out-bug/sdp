@@ -54,7 +54,8 @@
         "coverage_pct": {
           "type": "number",
           "minimum": 0,
-          "maximum": 100
+          "maximum": 100,
+          "description": "Optional. Recommended when coverage measured (build target >= 80%)."
         },
         "coverage_threshold": {
           "type": "number",

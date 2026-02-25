@@ -2,6 +2,8 @@
 
 Quick lookup guides for SDP commands, configuration, and quality standards.
 
+**CLI reference:** [../CLI_REFERENCE.md](../CLI_REFERENCE.md) — key `sdp` commands.
+
 ---
 
 ## Contents
