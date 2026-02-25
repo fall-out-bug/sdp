@@ -11,17 +11,12 @@ import (
 func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Writer, wsID string, maxRetries int) (int, error) {
 	var lastErr error
 	retries := 0
-	var attemptCount int // Track total attempts
 
-	// Use configured retry count if not specified
 	if maxRetries <= 0 {
 		maxRetries = e.config.RetryCount
 	}
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		attemptCount++
-
-		// Check context
 		select {
 		case <-ctx.Done():
 			return retries, ctx.Err()
@@ -40,7 +35,7 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 			return retries, fmt.Errorf("write: %w", err)
 		}
 
-		err := e.executeWorkstreamMock(ctx, wsID, attemptCount)
+		err := e.runner.Run(ctx, wsID)
 		if err == nil {
 			if err := writeLine(output, e.progress.RenderSuccess(wsID, "completed successfully")); err != nil {
 				return retries, fmt.Errorf("write: %w", err)
@@ -59,21 +54,4 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 	}
 
 	return retries, lastErr
-}
-
-// executeWorkstreamMock is a mock executor for testing
-// In production, this would call the actual workstream execution logic
-func (e *Executor) executeWorkstreamMock(ctx context.Context, wsID string, attemptCount int) error {
-	// Mock: 00-054-02 fails on first attempt, succeeds on retry
-	if wsID == "00-054-02" {
-		if attemptCount == 1 {
-			// First attempt fails
-			return fmt.Errorf("mock execution failure for %s", wsID)
-		}
-		// Second attempt (retry) succeeds
-		return nil
-	}
-
-	// Other workstreams always succeed
-	return nil
 }

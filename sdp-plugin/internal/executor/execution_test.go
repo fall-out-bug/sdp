@@ -13,7 +13,7 @@ func TestExecutor_ExecuteAllReady(t *testing.T) {
 		BacklogDir: "testdata/backlog",
 		DryRun:     false,
 		RetryCount: 1,
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer
@@ -49,7 +49,7 @@ func TestExecutor_ExecuteSpecificWS(t *testing.T) {
 		BacklogDir: "testdata/backlog",
 		DryRun:     false,
 		RetryCount: 1,
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer
@@ -81,12 +81,11 @@ func TestExecutor_ExecuteSpecificWS(t *testing.T) {
 
 // TestExecutor_RetryFailed tests AC3: retry failed workstream up to N times
 func TestExecutor_RetryFailed(t *testing.T) {
-	// Mock executor that fails on first attempt
 	exec := NewExecutor(ExecutorConfig{
 		BacklogDir: "testdata/backlog",
 		DryRun:     false,
 		RetryCount: 3,
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer
@@ -118,7 +117,7 @@ func TestExecutor_ProgressBar(t *testing.T) {
 		BacklogDir: "testdata/backlog",
 		DryRun:     false,
 		RetryCount: 1,
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer

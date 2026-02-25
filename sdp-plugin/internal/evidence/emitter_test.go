@@ -33,6 +33,7 @@ func TestEnabled(t *testing.T) {
 }
 
 func TestEmitSync_Enabled(t *testing.T) {
+	ResetGlobalWriter()
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
@@ -60,6 +61,7 @@ func TestEmitSync_Enabled(t *testing.T) {
 }
 
 func TestEmit_EventuallyWrites(t *testing.T) {
+	ResetGlobalWriter()
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")

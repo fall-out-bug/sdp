@@ -54,7 +54,8 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 	return checks
 }
 
-// VerifyCommands runs verification commands with security validation (sdp-5ho2)
+// VerifyCommands runs verification commands with security validation (sdp-5ho2).
+// Derives per-command timeouts from the parent context.
 func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 	checks := []CheckResult{}
 
@@ -63,7 +64,6 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 			Name: fmt.Sprintf("Command: %s", truncate(cmd, 50)),
 		}
 
-		// Run command with timeout and security validation
 		cmdParts := strings.Fields(cmd)
 		if len(cmdParts) == 0 {
 			check.Passed = false
@@ -72,14 +72,11 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 			continue
 		}
 
-		// Create context with 60s timeout
-		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-		defer cancel()
+		cmdCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 
-		// Use SafeCommand for security validation to prevent command injection
-		command, err := security.SafeCommand(ctx, cmdParts[0], cmdParts[1:]...)
+		command, err := security.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
 		if err != nil {
-			// Command validation failed - security rejection
+			cancel()
 			check.Passed = false
 			check.Message = fmt.Sprintf("Security validation: %v", err)
 			checks = append(checks, check)
@@ -87,6 +84,7 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 		}
 
 		output, err := command.CombinedOutput()
+		cancel()
 
 		if err != nil {
 			check.Passed = false

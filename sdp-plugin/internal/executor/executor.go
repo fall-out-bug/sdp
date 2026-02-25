@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"context"
 	"io"
 	"time"
 )
@@ -44,17 +45,30 @@ type ExecutionSummary struct {
 	Duration         float64 `json:"duration_seconds"`
 }
 
+// WorkstreamRunner executes a single workstream.
+// Implementations: CLIRunner (production), mock in tests.
+type WorkstreamRunner interface {
+	Run(ctx context.Context, wsID string) error
+}
+
 // Executor handles workstream execution with progress tracking
 type Executor struct {
 	config         ExecutorConfig
+	runner         WorkstreamRunner
 	progress       *ProgressRenderer
 	evidenceWriter io.Writer
 }
 
-// NewExecutor creates a new executor
-func NewExecutor(config ExecutorConfig) *Executor {
+// NewExecutor creates a new executor with the given runner.
+// If runner is nil, a no-op runner is used (for dry-run/testing without explicit mock).
+func NewExecutor(config ExecutorConfig, runner ...WorkstreamRunner) *Executor {
+	var r WorkstreamRunner
+	if len(runner) > 0 && runner[0] != nil {
+		r = runner[0]
+	}
 	return &Executor{
 		config:   config,
+		runner:   r,
 		progress: NewProgressRenderer("human"),
 	}
 }

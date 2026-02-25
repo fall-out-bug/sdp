@@ -72,6 +72,7 @@ func TestLesson_MatchesOutcome(t *testing.T) {
 }
 
 func TestEmitLesson_WritesWhenEnabled(t *testing.T) {
+	ResetGlobalWriter()
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")

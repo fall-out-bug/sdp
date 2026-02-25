@@ -8,11 +8,13 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"syscall"
 )
 
 const genesisHash = "genesis"
 
 // Writer appends events to .sdp/log/events.jsonl with hash chain (AC1–AC4, AC8).
+// Safe for concurrent use within a process (mutex) and across processes (flock).
 type Writer struct {
 	path     string
 	mu       sync.Mutex
@@ -29,7 +31,6 @@ func NewWriter(path string) (*Writer, error) {
 		return nil, fmt.Errorf("create log dir: %w", err)
 	}
 	w := &Writer{path: path, lastHash: genesisHash}
-	// Load last hash from existing file
 	if b, err := os.ReadFile(path); err == nil && len(b) > 0 {
 		lastLine := lastLineBytes(b)
 		if len(lastLine) > 0 {
@@ -40,9 +41,31 @@ func NewWriter(path string) (*Writer, error) {
 }
 
 // Append writes event with prev_hash and fsync (AC2, AC3, AC4).
+// Uses flock for inter-process safety: re-reads lastHash under lock
+// in case another process appended since our last write.
 func (w *Writer) Append(ev *Event) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+
+	lockPath := w.path + ".lock"
+	lf, err := os.OpenFile(lockPath, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return fmt.Errorf("open lock file: %w", err)
+	}
+	defer lf.Close()
+
+	if err := syscall.Flock(int(lf.Fd()), syscall.LOCK_EX); err != nil {
+		return fmt.Errorf("acquire file lock: %w", err)
+	}
+	defer func() { _ = syscall.Flock(int(lf.Fd()), syscall.LOCK_UN) }()
+
+	// Re-read last hash under lock — another process may have appended.
+	if b, err := os.ReadFile(w.path); err == nil && len(b) > 0 {
+		if last := lastLineBytes(b); len(last) > 0 {
+			w.lastHash = hashLine(last)
+		}
+	}
+
 	ev.PrevHash = w.lastHash
 	data, err := json.Marshal(ev)
 	if err != nil {

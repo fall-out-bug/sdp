@@ -9,7 +9,7 @@ import (
 func TestExecutor_ParseWorkstreamDependencies(t *testing.T) {
 	exec := NewExecutor(ExecutorConfig{
 		BacklogDir: "testdata/backlog",
-	})
+	}, newTestRunner())
 
 	wsID := "00-054-02"
 	deps, err := exec.ParseDependencies(wsID)
@@ -40,7 +40,7 @@ func TestExecutor_ParseWorkstreamDependencies(t *testing.T) {
 func TestExecutor_TopologicalSort(t *testing.T) {
 	exec := NewExecutor(ExecutorConfig{
 		BacklogDir: "testdata/backlog",
-	})
+	}, newTestRunner())
 
 	// Create a test graph with dependencies
 	workstreams := []string{"00-054-01", "00-054-02", "00-054-03"}
@@ -74,7 +74,7 @@ func TestExecutor_TopologicalSort(t *testing.T) {
 func TestExecutor_CyclicDependencies(t *testing.T) {
 	exec := NewExecutor(ExecutorConfig{
 		BacklogDir: "testdata/backlog",
-	})
+	}, newTestRunner())
 
 	// Create a cyclic dependency
 	workstreams := []string{"00-054-01", "00-054-02"}

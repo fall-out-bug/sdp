@@ -13,7 +13,7 @@ func TestExecutor_ContextCancellation(t *testing.T) {
 		BacklogDir: "testdata/backlog",
 		DryRun:     false,
 		RetryCount: 1,
-	})
+	}, newTestRunner())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately

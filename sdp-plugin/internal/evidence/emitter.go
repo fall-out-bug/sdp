@@ -1,29 +1,80 @@
 package evidence
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 )
 
-// Emit appends an event to the evidence log (AC6, AC7). Non-blocking; errors are ignored.
+var (
+	globalWriter     *Writer
+	globalWriterOnce sync.Once
+	globalWriterErr  error
+	globalWriterPath string
+)
+
+// ResetGlobalWriter clears the singleton for testing.
+func ResetGlobalWriter() {
+	globalWriterOnce = sync.Once{}
+	globalWriter = nil
+	globalWriterErr = nil
+	globalWriterPath = ""
+}
+
+func getOrCreateWriter() (*Writer, error) {
+	globalWriterOnce.Do(func() {
+		root, err := config.FindProjectRoot()
+		if err != nil {
+			globalWriterErr = err
+			return
+		}
+		cfg, err := config.Load(root)
+		if err != nil {
+			globalWriterErr = err
+			return
+		}
+		if cfg == nil || !cfg.Evidence.Enabled {
+			return
+		}
+		logPath := cfg.Evidence.LogPath
+		if logPath == "" {
+			logPath = ".sdp/log/events.jsonl"
+		}
+		globalWriterPath = filepath.Join(root, logPath)
+		globalWriter, globalWriterErr = NewWriter(globalWriterPath)
+	})
+	return globalWriter, globalWriterErr
+}
+
+func fillDefaults(ev *Event) {
+	if ev.ID == "" {
+		ev.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	}
+	if ev.Timestamp == "" {
+		ev.Timestamp = time.Now().UTC().Format(time.RFC3339)
+	}
+}
+
+// Emit appends an event to the evidence log (AC6, AC7).
+// Non-blocking; errors are logged via slog.
 func Emit(ev *Event) {
 	if ev == nil {
 		return
 	}
 	ev2 := *ev
-	if ev2.ID == "" {
-		ev2.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	}
-	if ev2.Timestamp == "" {
-		ev2.Timestamp = time.Now().UTC().Format(time.RFC3339)
-	}
+	fillDefaults(&ev2)
 	go func() {
 		if err := emitSync(&ev2); err != nil {
-			return
+			slog.Error("evidence emission failed",
+				"event_id", ev2.ID,
+				"event_type", ev2.Type,
+				"error", err,
+			)
 		}
 	}()
 }
@@ -34,36 +85,18 @@ func EmitSync(ev *Event) error {
 		return nil
 	}
 	ev2 := *ev
-	if ev2.ID == "" {
-		ev2.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	}
-	if ev2.Timestamp == "" {
-		ev2.Timestamp = time.Now().UTC().Format(time.RFC3339)
-	}
+	fillDefaults(&ev2)
 	return emitSync(&ev2)
 }
 
-// emitSync writes event to log; returns error (caller may ignore).
+// emitSync writes event to the singleton writer.
 func emitSync(ev *Event) error {
-	root, err := config.FindProjectRoot()
+	w, err := getOrCreateWriter()
 	if err != nil {
 		return err
 	}
-	cfg, err := config.Load(root)
-	if err != nil {
-		return err
-	}
-	if cfg == nil || !cfg.Evidence.Enabled {
+	if w == nil {
 		return nil
-	}
-	logPath := cfg.Evidence.LogPath
-	if logPath == "" {
-		logPath = ".sdp/log/events.jsonl"
-	}
-	path := filepath.Join(root, logPath)
-	w, err := NewWriter(path)
-	if err != nil {
-		return err
 	}
 	return w.Append(ev)
 }
