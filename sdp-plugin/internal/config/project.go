@@ -120,6 +120,9 @@ func Load(projectRoot string) (*Config, error) {
 	if err := yaml.Unmarshal(data, cfg); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("validate config: %w", err)
+	}
 	// Validate log_path is within project root (path traversal safety)
 	if cfg.Evidence.LogPath != "" && projectRoot != "" {
 		resolvedLog := cfg.Evidence.LogPath

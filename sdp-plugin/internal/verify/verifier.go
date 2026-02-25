@@ -125,7 +125,6 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 
 		timeout := verificationTimeout()
 		cmdCtx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
 
 		cr := v.commandRunner
 		if cr == nil {
@@ -140,6 +139,7 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 		}
 
 		output, err := command.CombinedOutput()
+		cancel()
 
 		if err != nil {
 			check.Passed = false
@@ -219,7 +219,7 @@ func (v *Verifier) Verify(ctx context.Context, wsID string) *VerificationResult 
 	}
 
 	if ctx == nil {
-		ctx = context.Background()
+		ctx = context.TODO()
 	}
 
 	// Find WS file

@@ -88,6 +88,26 @@ func TestLoadInvalidYAML(t *testing.T) {
 	}
 }
 
+func TestLoadInvalidDurationFailsValidate(t *testing.T) {
+	dir := t.TempDir()
+	sdpDir := filepath.Join(dir, configDir)
+	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	path := filepath.Join(sdpDir, configFile)
+	content := "version: 1\ntimeouts:\n  verification_command: \"not-a-duration\"\n"
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	_, err := Load(dir)
+	if err == nil {
+		t.Error("Load should fail when Validate rejects invalid duration")
+	}
+	if !strings.Contains(err.Error(), "validate") {
+		t.Errorf("error should mention validate, got: %v", err)
+	}
+}
+
 func TestValidate(t *testing.T) {
 	cfg := DefaultConfig()
 	if err := cfg.Validate(); err != nil {

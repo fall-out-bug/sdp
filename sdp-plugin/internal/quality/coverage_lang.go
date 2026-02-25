@@ -41,7 +41,7 @@ func (c *Checker) checkPythonCoverage(ctx context.Context, result *CoverageResul
 	if _, err := os.Stat(covFile); os.IsNotExist(err) {
 		// Try running pytest with coverage
 		if ctx == nil {
-			ctx = context.Background()
+			ctx = context.TODO()
 		}
 		timeout := c.coverageTimeout("python", "SDP_TIMEOUT_COVERAGE_PYTHON", 30*time.Second)
 		runCtx, cancel := context.WithTimeout(ctx, timeout)
@@ -120,7 +120,7 @@ func (c *Checker) checkGoCoverage(ctx context.Context, result *CoverageResult) (
 	result.ProjectType = "Go"
 
 	if ctx == nil {
-		ctx = context.Background()
+		ctx = context.TODO()
 	}
 
 	// Load coverage_exclude from config
@@ -231,7 +231,7 @@ func (c *Checker) checkJavaCoverage(ctx context.Context, result *CoverageResult)
 	result.ProjectType = "Java"
 
 	if ctx == nil {
-		ctx = context.Background()
+		ctx = context.TODO()
 	}
 	javaTimeout := c.coverageTimeout("java", "SDP_TIMEOUT_COVERAGE_JAVA", 30*time.Second)
 	runCtx, cancel := context.WithTimeout(ctx, javaTimeout)
