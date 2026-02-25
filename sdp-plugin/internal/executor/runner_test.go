@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 )
 
 // testRunner is a mock WorkstreamRunner for tests.
@@ -29,4 +30,23 @@ func (r *testRunner) Run(_ context.Context, wsID string) error {
 		return fmt.Errorf("mock execution failure for %s", wsID)
 	}
 	return nil
+}
+
+// blockingRunner is a WorkstreamRunner that blocks until ctx is cancelled.
+// Used to test mid-execution context cancellation.
+type blockingRunner struct{}
+
+func newBlockingRunner() *blockingRunner { return &blockingRunner{} }
+
+func (r *blockingRunner) Run(ctx context.Context, _ string) error {
+	ticker := time.NewTicker(5 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			// Keep running, check ctx again
+		}
+	}
 }

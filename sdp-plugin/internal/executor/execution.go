@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -45,6 +46,8 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 			if err := writeFmt(output, "Warning: failed to parse dependencies for %s: %v\n", wsID, err); err != nil {
 				return nil, fmt.Errorf("write: %w", err)
 			}
+			// Safe fallback: treat parse failure as no dependencies (not skip)
+			dependencies[wsID] = []string{}
 			continue
 		}
 		dependencies[wsID] = deps
@@ -80,6 +83,10 @@ func (e *Executor) Execute(ctx context.Context, output io.Writer, opts ExecuteOp
 			result.Failed++
 			if err := writeLine(output, e.progress.RenderError(wsID, err)); err != nil {
 				return nil, fmt.Errorf("write: %w", err)
+			}
+			// Propagate context cancellation so caller can stop
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return result, err
 			}
 		} else {
 			result.Succeeded++
