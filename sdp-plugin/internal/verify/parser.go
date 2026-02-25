@@ -51,13 +51,18 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 	}
 
 	// Extract frontmatter (between --- markers)
+	// Do not assume "---" at position 0: use Index to find both delimiters.
 	contentStr := string(content)
-	frontmatterEnd := strings.Index(contentStr[4:], "---")
-	if frontmatterEnd == -1 {
+	openDelim := strings.Index(contentStr, "---")
+	if openDelim == -1 {
 		return nil, fmt.Errorf("no frontmatter found in %s", wsPath)
 	}
-
-	frontmatter := contentStr[4 : frontmatterEnd+4]
+	afterOpen := openDelim + 3 // skip "---"
+	closeDelim := strings.Index(contentStr[afterOpen:], "---")
+	if closeDelim == -1 {
+		return nil, fmt.Errorf("no frontmatter found in %s", wsPath)
+	}
+	frontmatter := contentStr[afterOpen : afterOpen+closeDelim]
 
 	// Parse frontmatter fields
 	data := &WorkstreamData{

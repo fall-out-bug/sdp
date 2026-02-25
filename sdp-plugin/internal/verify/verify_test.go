@@ -101,6 +101,37 @@ Just content`
 	}
 }
 
+func TestParserParseWSFileFrontmatterNotAtStart(t *testing.T) {
+	// Frontmatter may not be at byte 0 (e.g. leading newline)
+	tmpDir := t.TempDir()
+	wsFile := filepath.Join(tmpDir, "ws.md")
+	content := "\n---\nws_id: 00-099-01\nstatus: backlog\n---\n## Body\n"
+	if err := os.WriteFile(wsFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+	parser := NewParser(tmpDir)
+	data, err := parser.ParseWSFile(wsFile)
+	if err != nil {
+		t.Fatalf("ParseWSFile failed: %v", err)
+	}
+	if data.WSID != "00-099-01" {
+		t.Errorf("Expected WSID 00-099-01, got %s", data.WSID)
+	}
+}
+
+func TestParserParseWSFileEmptyContent(t *testing.T) {
+	tmpDir := t.TempDir()
+	wsFile := filepath.Join(tmpDir, "empty.md")
+	if err := os.WriteFile(wsFile, []byte(""), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+	parser := NewParser(tmpDir)
+	_, err := parser.ParseWSFile(wsFile)
+	if err == nil {
+		t.Error("Expected error when parsing empty file")
+	}
+}
+
 func TestVerifierVerifyOutputFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
