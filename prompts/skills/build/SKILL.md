@@ -3,8 +3,9 @@ name: build
 description: Execute ONE workstream with TDD, guard enforcement, and ws-verdict output
 cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
-version: 8.0.0
+version: 8.1.0
 changes:
+  - F054: Post-build bd close for each bead in WS frontmatter; batch syntax /build 00-053-16..25
   - F020: Remove auto-continue rules; @build does ONE WS then STOPS
   - F020: Strip evidence boilerplate to orchestrator/CLI
   - Single subagent strategy (no Option A/B ambiguity)
@@ -16,6 +17,8 @@ changes:
 > **LLM:** Execute one workstream following TDD discipline
 
 Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
+
+**Batch syntax:** `/build 00-053-16..25` (or `/build 00-053-16 00-053-17 … 00-053-25`) — run workstreams sequentially. Stop on first failure. Report: N done, M failed.
 
 ---
 
@@ -106,7 +109,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 ## Beads Integration
 
 - **Before:** `bd update {beads_id} --status in_progress`
-- **Success:** `bd close {beads_id} --reason "WS completed"`
+- **Success:** Run `bd close {beads_id} --reason "WS completed"` for each bead in WS frontmatter (e.g. `Feature: F054 (sdp_dev-hryg)` or `## Beads` list). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from WS body (`Feature: … (beads_id)`, `Bead:`, `Beads:`).
 - **Failure:** `bd update {beads_id} --status blocked`
 
 ---
@@ -142,6 +145,17 @@ Reason: `existing_work_summary` is required. Add one-line summary of pre-existin
 Reason: Each ac_evidence entry must include `evidence` (file:line or test name).
 
 Schema: `schema/ws-verdict.schema.json` (from sdp root; project: `sdp/schema/`)
+
+---
+
+## Batch Execution
+
+When user invokes `/build 00-053-16..25` (or multiple WS IDs):
+
+1. **Expand range:** `00-053-16..25` → `00-053-16`, `00-053-17`, …, `00-053-25`
+2. **Sequential:** Execute each WS one at a time. Do not parallelize.
+3. **Stop on first failure:** If any WS fails (commit, test, or gate), STOP. Do not continue to the next.
+4. **Report:** At end, output `N done, M failed` (e.g. `3 done, 1 failed` if 00-053-18 failed after 00-053-16, 17 succeeded).
 
 ---
 
