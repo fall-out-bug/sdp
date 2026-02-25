@@ -14,17 +14,40 @@ import (
 	"github.com/fall-out-bug/sdp/internal/security"
 )
 
-func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, error) {
+func (c *Checker) coverageTimeout(cfgKey string, envKey string, fallback time.Duration) time.Duration {
+	cfg, err := config.Load(c.projectPath)
+	if err != nil {
+		return config.TimeoutFromEnv(envKey, fallback)
+	}
+	switch cfgKey {
+	case "python":
+		return config.TimeoutFromConfigOrEnv(cfg.Timeouts.CoveragePython, envKey, fallback)
+	case "go":
+		return config.TimeoutFromConfigOrEnv(cfg.Timeouts.CoverageGo, envKey, fallback)
+	case "list":
+		return config.TimeoutFromConfigOrEnv(cfg.Timeouts.CoverageList, envKey, fallback)
+	case "java":
+		return config.TimeoutFromConfigOrEnv(cfg.Timeouts.CoverageJava, envKey, fallback)
+	default:
+		return fallback
+	}
+}
+
+func (c *Checker) checkPythonCoverage(ctx context.Context, result *CoverageResult) (*CoverageResult, error) {
 	result.ProjectType = "Python"
 
 	// Check if .coverage file exists
 	covFile := filepath.Join(c.projectPath, ".coverage")
 	if _, err := os.Stat(covFile); os.IsNotExist(err) {
-		// Try running pytest with coverage (with 30s timeout)
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		// Try running pytest with coverage
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		timeout := c.coverageTimeout("python", "SDP_TIMEOUT_COVERAGE_PYTHON", 30*time.Second)
+		runCtx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		cmd, errCmd := security.SafeCommand(ctx, "pytest", "--cov", "--cov-report=term-missing")
+		cmd, errCmd := security.SafeCommand(runCtx, "pytest", "--cov", "--cov-report=term-missing")
 		if errCmd != nil {
 			result.Coverage = 0.0
 			result.Passed = false
@@ -93,8 +116,12 @@ func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, 
 	return result, nil
 }
 
-func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, error) {
+func (c *Checker) checkGoCoverage(ctx context.Context, result *CoverageResult) (*CoverageResult, error) {
 	result.ProjectType = "Go"
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	// Load coverage_exclude from config
 	var excludePrefixes []string
@@ -107,9 +134,10 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 	// Build package list, optionally excluding configured paths
 	testArgs := []string{"test", "-cover", "-coverprofile=coverage.out"}
 	if len(excludePrefixes) > 0 {
-		listCtx, listCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		listTimeout := c.coverageTimeout("list", "SDP_TIMEOUT_COVERAGE_LIST", 10*time.Second)
+		listCtx, listCancel := context.WithTimeout(ctx, listTimeout)
+		defer listCancel()
 		listCmd, errList := security.SafeCommand(listCtx, "go", "list", "./...")
-		listCancel()
 		if errList != nil {
 			testArgs = append(testArgs, "./...")
 		} else {
@@ -147,10 +175,11 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 		testArgs = append(testArgs, "./...")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	goTimeout := c.coverageTimeout("go", "SDP_TIMEOUT_COVERAGE_GO", 60*time.Second)
+	runCtx, cancel := context.WithTimeout(ctx, goTimeout)
 	defer cancel()
 
-	cmd, errCmd := security.SafeCommand(ctx, "go", testArgs...)
+	cmd, errCmd := security.SafeCommand(runCtx, "go", testArgs...)
 	if errCmd != nil {
 		result.Coverage = 0.0
 		result.Passed = false
@@ -198,14 +227,17 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 	return result, nil
 }
 
-func (c *Checker) checkJavaCoverage(result *CoverageResult) (*CoverageResult, error) {
+func (c *Checker) checkJavaCoverage(ctx context.Context, result *CoverageResult) (*CoverageResult, error) {
 	result.ProjectType = "Java"
 
-	// Run mvn test with jacoco (with 30s timeout)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	javaTimeout := c.coverageTimeout("java", "SDP_TIMEOUT_COVERAGE_JAVA", 30*time.Second)
+	runCtx, cancel := context.WithTimeout(ctx, javaTimeout)
 	defer cancel()
 
-	cmd, errCmd := security.SafeCommand(ctx, "mvn", "test")
+	cmd, errCmd := security.SafeCommand(runCtx, "mvn", "test")
 	if errCmd != nil {
 		result.Coverage = 0.0
 		result.Passed = false
@@ -213,7 +245,12 @@ func (c *Checker) checkJavaCoverage(result *CoverageResult) (*CoverageResult, er
 		return result, nil
 	}
 	cmd.Dir = c.projectPath
-	_ = cmd.Run()
+	if err := cmd.Run(); err != nil {
+		result.Report = fmt.Sprintf("mvn test failed: %v", err)
+		result.Coverage = 0.0
+		result.Passed = false
+		return result, nil
+	}
 
 	// Try to find jacoco.csv
 	jacocoFile := filepath.Join(c.projectPath, "target/site/jacoco/jacoco.csv")

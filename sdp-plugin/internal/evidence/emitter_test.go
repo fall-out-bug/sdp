@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
 
 func TestModelID(t *testing.T) {
@@ -79,18 +78,11 @@ func TestEmit_EventuallyWrites(t *testing.T) {
 	}
 	defer os.Chdir(origWd)
 	ev := VerificationEvent("00-054-12", true, "coverage", 82.0)
-	Emit(ev)
-	waitForFile(t, filepath.Join(dir, ".sdp", "log", "events.jsonl"), 2*time.Second)
-}
-
-func waitForFile(t *testing.T, path string, timeout time.Duration) {
-	t.Helper()
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if _, err := os.Stat(path); err == nil {
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
+	if err := EmitSync(ev); err != nil {
+		t.Fatalf("EmitSync: %v", err)
 	}
-	t.Errorf("file %s not created within %v", path, timeout)
+	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
+	if _, err := os.Stat(logPath); err != nil {
+		t.Errorf("events.jsonl not created: %v", err)
+	}
 }

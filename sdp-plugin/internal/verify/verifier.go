@@ -3,11 +3,14 @@ package verify
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/config"
+	"github.com/fall-out-bug/sdp/internal/quality"
 	"github.com/fall-out-bug/sdp/internal/security"
 )
 
@@ -23,13 +26,27 @@ func NewVerifier(wsDir string) *Verifier {
 	}
 }
 
-// VerifyOutputFiles checks all scope_files exist
+// VerifyOutputFiles checks all scope_files exist and are within project root (path traversal safety).
 func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 	checks := make([]CheckResult, 0, len(wsData.ScopeFiles))
+	projectRoot, rootErr := config.FindProjectRoot()
+	if rootErr != nil {
+		projectRoot = ""
+	}
 
 	for _, filePath := range wsData.ScopeFiles {
 		check := CheckResult{
 			Name: fmt.Sprintf("File: %s", filePath),
+		}
+
+		// Path traversal: ensure path is within project root
+		if projectRoot != "" {
+			if err := security.ValidatePathInDirectory(projectRoot, filePath); err != nil {
+				check.Passed = false
+				check.Message = fmt.Sprintf("Path outside project: %v", err)
+				checks = append(checks, check)
+				continue
+			}
 		}
 
 		// Check if file exists
@@ -39,6 +56,7 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 			check.Message = filePath
 			absPath, err := filepath.Abs(filePath)
 			if err != nil {
+				slog.Debug("filepath.Abs failed, using relative path", "path", filePath, "error", err)
 				absPath = filePath // Fall back to original path
 			}
 			check.Evidence = absPath
@@ -55,8 +73,8 @@ func (v *Verifier) VerifyOutputFiles(wsData *WorkstreamData) []CheckResult {
 }
 
 // VerifyCommands runs verification commands with security validation (sdp-5ho2).
-// Derives per-command timeouts from the parent context.
-func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
+// Derives per-command timeouts from the parent context; respects ctx cancellation for graceful shutdown.
+func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) []CheckResult {
 	checks := []CheckResult{}
 
 	for _, cmd := range wsData.VerificationCommands {
@@ -72,7 +90,8 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 			continue
 		}
 
-		cmdCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		timeout := verificationTimeout()
+		cmdCtx, cancel := context.WithTimeout(ctx, timeout)
 
 		command, err := security.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
 		if err != nil {
@@ -102,21 +121,55 @@ func (v *Verifier) VerifyCommands(wsData *WorkstreamData) []CheckResult {
 	return checks
 }
 
-// VerifyCoverage checks test coverage (placeholder for now)
-func (v *Verifier) VerifyCoverage(wsData *WorkstreamData) *CheckResult {
+// VerifyCoverage runs actual coverage check via quality.Checker. ctx is used for cancellation.
+func (v *Verifier) VerifyCoverage(ctx context.Context, wsData *WorkstreamData) *CheckResult {
 	if wsData.CoverageThreshold == 0 {
 		return nil
 	}
 
+	projectRoot, err := config.FindProjectRoot()
+	if err != nil {
+		return &CheckResult{
+			Name:    "Coverage Check",
+			Passed:  false,
+			Message: fmt.Sprintf("project root: %v", err),
+		}
+	}
+
+	checker, err := quality.NewChecker(projectRoot)
+	if err != nil {
+		return &CheckResult{
+			Name:    "Coverage Check",
+			Passed:  false,
+			Message: fmt.Sprintf("checker init: %v", err),
+		}
+	}
+
+	result, err := checker.CheckCoverage(ctx)
+	if err != nil {
+		return &CheckResult{
+			Name:    "Coverage Check",
+			Passed:  false,
+			Message: fmt.Sprintf("coverage check: %v", err),
+		}
+	}
+
+	threshold := result.Threshold
+	if wsData.CoverageThreshold > 0 {
+		threshold = wsData.CoverageThreshold
+	}
+	passed := result.Coverage >= threshold
+
 	return &CheckResult{
-		Name:    "Coverage Check",
-		Passed:  true, // Placeholder - would run actual coverage check
-		Message: fmt.Sprintf("Coverage threshold: %.1f%%", wsData.CoverageThreshold),
+		Name:     "Coverage Check",
+		Passed:   passed,
+		Message:  fmt.Sprintf("Coverage: %.1f%% (threshold: %.1f%%)", result.Coverage, threshold),
+		Evidence: result.Report,
 	}
 }
 
-// Verify runs all verification checks
-func (v *Verifier) Verify(wsID string) *VerificationResult {
+// Verify runs all verification checks. ctx is used for command timeouts and cancellation.
+func (v *Verifier) Verify(ctx context.Context, wsID string) *VerificationResult {
 	start := time.Now()
 
 	result := &VerificationResult{
@@ -124,6 +177,10 @@ func (v *Verifier) Verify(wsID string) *VerificationResult {
 		Checks:         []CheckResult{},
 		MissingFiles:   []string{},
 		FailedCommands: []string{},
+	}
+
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
 	// Find WS file
@@ -162,7 +219,7 @@ func (v *Verifier) Verify(wsID string) *VerificationResult {
 	}
 
 	// Check 2: Run verification commands
-	cmdChecks := v.VerifyCommands(wsData)
+	cmdChecks := v.VerifyCommands(ctx, wsData)
 	result.Checks = append(result.Checks, cmdChecks...)
 	for _, check := range cmdChecks {
 		if !check.Passed {
@@ -171,7 +228,7 @@ func (v *Verifier) Verify(wsID string) *VerificationResult {
 	}
 
 	// Check 3: Verify coverage
-	coverageCheck := v.VerifyCoverage(wsData)
+	coverageCheck := v.VerifyCoverage(ctx, wsData)
 	if coverageCheck != nil {
 		result.Checks = append(result.Checks, *coverageCheck)
 	}
@@ -187,6 +244,19 @@ func (v *Verifier) Verify(wsID string) *VerificationResult {
 
 	result.Duration = time.Since(start)
 	return result
+}
+
+// verificationTimeout returns verification command timeout from config (or env, or default).
+func verificationTimeout() time.Duration {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return config.TimeoutFromEnv("SDP_TIMEOUT_VERIFICATION", 60*time.Second)
+	}
+	cfg, err := config.Load(root)
+	if err != nil || cfg == nil {
+		return config.TimeoutFromEnv("SDP_TIMEOUT_VERIFICATION", 60*time.Second)
+	}
+	return config.TimeoutFromConfigOrEnv(cfg.Timeouts.VerificationCommand, "SDP_TIMEOUT_VERIFICATION", 60*time.Second)
 }
 
 // truncate truncates a string to max length
