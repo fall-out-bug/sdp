@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -61,7 +62,10 @@ func runQualityTypes(strict bool) error {
 	return nil
 }
 
-func runQualityAll(strict bool) error {
+func runQualityAll(ctx context.Context, strict bool) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	projectPath, err := os.Getwd()
 	if err != nil {
 		projectPath = "." // Fall back to current directory
@@ -82,7 +86,11 @@ func runQualityAll(strict bool) error {
 
 	// Coverage
 	fmt.Println("=== Coverage ===")
-	covResult, _ := checker.CheckCoverage() //nolint:errcheck // UI display, error is non-critical
+	covResult, err := checker.CheckCoverage(ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: coverage check failed: %v\n", err)
+		covResult = &quality.CoverageResult{Coverage: 0, Threshold: 80, Passed: false}
+	}
 	fmt.Printf("Coverage: %.1f%% (threshold: %.1f%%) ", covResult.Coverage, covResult.Threshold)
 	if covResult.Passed {
 		fmt.Println("✓")
@@ -92,7 +100,11 @@ func runQualityAll(strict bool) error {
 
 	// Complexity
 	fmt.Println("\n=== Complexity ===")
-	ccResult, _ := checker.CheckComplexity() //nolint:errcheck // UI display, error is non-critical
+	ccResult, err := checker.CheckComplexity()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: complexity check failed: %v\n", err)
+		ccResult = &quality.ComplexityResult{MaxCC: 0, Threshold: 40, Passed: false}
+	}
 	fmt.Printf("Max CC: %d (threshold: %d) ", ccResult.MaxCC, ccResult.Threshold)
 	if ccResult.Passed {
 		fmt.Println("✓")
@@ -102,7 +114,11 @@ func runQualityAll(strict bool) error {
 
 	// File Size
 	fmt.Println("\n=== File Size ===")
-	sizeResult, _ := checker.CheckFileSize() //nolint:errcheck // UI display, error is non-critical
+	sizeResult, err := checker.CheckFileSize()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: file size check failed: %v\n", err)
+		sizeResult = &quality.FileSizeResult{Threshold: 200, Passed: false}
+	}
 	if len(sizeResult.Warnings) > 0 {
 		fmt.Printf("Warnings: %d (threshold: %d LOC) ⚠️\n", len(sizeResult.Warnings), sizeResult.Threshold)
 	}
@@ -115,7 +131,11 @@ func runQualityAll(strict bool) error {
 
 	// Types
 	fmt.Println("\n=== Types ===")
-	typeResult, _ := checker.CheckTypes() //nolint:errcheck // UI display, error is non-critical
+	typeResult, err := checker.CheckTypes()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: type check failed: %v\n", err)
+		typeResult = &quality.TypeResult{Passed: false}
+	}
 	fmt.Printf("Errors: %d ", len(typeResult.Errors))
 	if typeResult.Passed {
 		fmt.Println("✓")

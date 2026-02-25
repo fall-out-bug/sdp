@@ -1,6 +1,7 @@
 package quality
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -78,10 +79,18 @@ func TestAllCheckersNoCrash(t *testing.T) {
 	}
 
 	// Test all checkers - they should handle empty projects gracefully
-	_, _ = checker.CheckCoverage()
-	_, _ = checker.CheckComplexity()
-	_, _ = checker.CheckFileSize()
-	_, _ = checker.CheckTypes()
+	if _, err := checker.CheckCoverage(context.Background()); err != nil {
+		t.Logf("CheckCoverage (empty project): %v", err)
+	}
+	if _, err := checker.CheckComplexity(); err != nil {
+		t.Logf("CheckComplexity (empty project): %v", err)
+	}
+	if _, err := checker.CheckFileSize(); err != nil {
+		t.Logf("CheckFileSize (empty project): %v", err)
+	}
+	if _, err := checker.CheckTypes(); err != nil {
+		t.Logf("CheckTypes (empty project): %v", err)
+	}
 }
 
 // Test coverage result structure

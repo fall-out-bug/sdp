@@ -92,10 +92,10 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 
 		timeout := verificationTimeout()
 		cmdCtx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
 
 		command, err := security.SafeCommand(cmdCtx, cmdParts[0], cmdParts[1:]...)
 		if err != nil {
-			cancel()
 			check.Passed = false
 			check.Message = fmt.Sprintf("Security validation: %v", err)
 			checks = append(checks, check)
@@ -103,7 +103,6 @@ func (v *Verifier) VerifyCommands(ctx context.Context, wsData *WorkstreamData) [
 		}
 
 		output, err := command.CombinedOutput()
-		cancel()
 
 		if err != nil {
 			check.Passed = false

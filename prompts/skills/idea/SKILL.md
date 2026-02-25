@@ -94,6 +94,8 @@ Include in description:
 
 Create `docs/intent/{task_id}.json` with machine-readable intent.
 
+**Output must validate against** `schema/intent.schema.json` ([intent.schema.json](../../schema/intent.schema.json)). **Required fields:** `problem`, `users`, `success_criteria`. Optional: `context`, `non_goals`, `risks`, `question_count`.
+
 ---
 
 ## When to Use
@@ -153,6 +155,21 @@ Skip deep-dive cycles, move directly to @design.
 | `@idea "feature" --quiet` | Minimal questions (3-5 core only) |
 | `bd show {id}` | View task details |
 | `@design {id}` | Decompose into workstreams |
+
+---
+
+## Examples
+
+**Productive 3-question cycle (answers chain):**
+- Q1: What is the core mission of this feature?  
+  A: "Let users reset password via email when they forget it."  
+- Q2: How does this align with PRODUCT_VISION.md?  
+  A: "Vision says 'self-service account recovery'; this is the main path."  
+- Q3: Who are the primary users?  
+  A: "End users who forgot password; support team (fewer tickets)."  
+→ Trigger: Continue (next cycle: problem/pain) or Skip to @design.
+
+**Bad:** Single yes/no question. **Good:** Each answer informs the next; 3 questions per cycle.
 
 ---
 

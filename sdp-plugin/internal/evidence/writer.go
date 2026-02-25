@@ -57,7 +57,12 @@ func (w *Writer) Append(ev *Event) error {
 	if err := syscall.Flock(int(lf.Fd()), syscall.LOCK_EX); err != nil {
 		return fmt.Errorf("acquire file lock: %w", err)
 	}
-	defer func() { _ = syscall.Flock(int(lf.Fd()), syscall.LOCK_UN) }()
+	locked := true
+	defer func() {
+		if locked {
+			_ = syscall.Flock(int(lf.Fd()), syscall.LOCK_UN)
+		}
+	}()
 
 	// Re-read last hash under lock — another process may have appended.
 	if b, err := os.ReadFile(w.path); err == nil && len(b) > 0 {
@@ -85,6 +90,9 @@ func hashLine(data []byte) string {
 }
 
 func lastLineBytes(b []byte) []byte {
+	if len(b) == 0 {
+		return nil
+	}
 	lastNewline := -1
 	for i := len(b) - 1; i >= 0; i-- {
 		if b[i] == '\n' {

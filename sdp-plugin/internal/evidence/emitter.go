@@ -91,6 +91,11 @@ func EmitSync(ev *Event) error {
 
 // emitSync writes event to the singleton writer.
 func emitSync(ev *Event) error {
+	if ev.ID == "" || ev.Type == "" || ev.Timestamp == "" {
+		slog.Warn("evidence event missing required fields, skipping",
+			"id", ev.ID, "type", ev.Type, "timestamp", ev.Timestamp)
+		return nil
+	}
 	w, err := getOrCreateWriter()
 	if err != nil {
 		return err

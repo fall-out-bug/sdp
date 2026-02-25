@@ -158,6 +158,30 @@ func (c *Config) Validate() error {
 	if c.Version < 1 {
 		return fmt.Errorf("version must be >= 1, got %d", c.Version)
 	}
+	timeoutFields := []struct {
+		name, val string
+	}{
+		{"timeouts.verification_command", c.Timeouts.VerificationCommand},
+		{"timeouts.retry_delay", c.Timeouts.RetryDelay},
+		{"timeouts.build_phase", c.Timeouts.BuildPhase},
+		{"timeouts.review_phase", c.Timeouts.ReviewPhase},
+		{"timeouts.coverage_python", c.Timeouts.CoveragePython},
+		{"timeouts.coverage_go", c.Timeouts.CoverageGo},
+		{"timeouts.coverage_list", c.Timeouts.CoverageList},
+		{"timeouts.coverage_java", c.Timeouts.CoverageJava},
+	}
+	for _, f := range timeoutFields {
+		if f.val != "" {
+			if _, err := time.ParseDuration(f.val); err != nil {
+				return fmt.Errorf("%s: invalid duration %q: %w", f.name, f.val, err)
+			}
+		}
+	}
+	if c.Acceptance.Timeout != "" {
+		if _, err := time.ParseDuration(c.Acceptance.Timeout); err != nil {
+			return fmt.Errorf("acceptance.timeout: invalid duration %q: %w", c.Acceptance.Timeout, err)
+		}
+	}
 	return nil
 }
 

@@ -21,7 +21,7 @@ Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orc
 
 ## CRITICAL RULES
 
-1. **CHECK EXISTING CODE FIRST** — Run `@reality --quick` or grep before starting new features.
+1. **CHECK EXISTING CODE FIRST** — Run `@reality --quick` or grep before starting new features. Output `existing_work_summary` in ws-verdict — **required**. Short summary: files/functions/risks found before implementation.
 2. **ONE WORKSTREAM** — Execute this workstream only. After commit, STOP. Do not start the next WS.
 3. **USE SPAWN OR DO IT YOURSELF** — If spawn available, use it. If not, implement manually.
 4. **POST-COMPACTION RECOVERY** — After context compaction, run `bd ready` to find your task. Never drift to side tasks.
@@ -74,8 +74,9 @@ git commit -m "feat(F067): 00-067-01 - {title}"
 4. **Write ws-verdict** (required):
 ```bash
 mkdir -p .sdp/ws-verdicts
-# Populate: ws_id, feature_id, verdict, commit, quality_gates, ac_evidence[]
+# Populate: ws_id, feature_id, verdict, commit, quality_gates, ac_evidence[], existing_work_summary (required)
 ```
+**Required fields:** `existing_work_summary` — one line summary of pre-existing code/tests found before implementation. **Output must validate against** `schema/ws-verdict.schema.json` ([ws-verdict.schema.json](../../schema/ws-verdict.schema.json)).
 
 Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post-build CLI responsibility.
 
@@ -85,7 +86,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 **Implementer:** TDD per AC. Output verdict + evidence.
 
-**Spec Reviewer:** Verify code matches spec. Output ac_evidence: `{"ac_id":"AC1","ac_text":"...","evidence":"TestX in file:line","status":"SATISFIED"}`.
+**Spec Reviewer:** Verify code matches spec. Output ac_evidence per [ws-verdict.schema.json](../../schema/ws-verdict.schema.json): `{"ac":"AC text","met": true|false,"evidence":"file:line or test name"}`.
 
 **Quality Reviewer:** Coverage >= 80%, LOC <= 200, lint. Output verdict.
 
@@ -107,6 +108,35 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 - **Before:** `bd update {beads_id} --status in_progress`
 - **Success:** `bd close {beads_id} --reason "WS completed"`
 - **Failure:** `bd update {beads_id} --status blocked`
+
+---
+
+## Examples
+
+**Good ws-verdict (all gates green):**
+```json
+{
+  "ws_id": "00-067-01",
+  "feature_id": "F067",
+  "verdict": "PASS",
+  "commit": "a1b2c3d",
+  "quality_gates": {
+    "tests_pass": true,
+    "lint_clean": true,
+    "coverage_pct": 85.2,
+    "coverage_threshold": 80,
+    "max_file_loc": 142,
+    "build_ok": true,
+    "vet_ok": true
+  },
+  "ac_evidence": [
+    {"ac": "User can reset password via email", "met": true, "evidence": "TestResetPassword in internal/auth/reset_test.go:42"},
+    {"ac": "Rate limit 5/min per email", "met": true, "evidence": "TestRateLimit in internal/auth/reset_test.go:89"}
+  ],
+  "existing_work_summary": "Found ResetToken in pkg/auth; extended with email flow."
+}
+```
+Schema: `.sdp/schema/ws-verdict.schema.json`
 
 ---
 

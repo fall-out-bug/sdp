@@ -4,7 +4,7 @@
   "title": "SDP Workstream Verdict",
   "description": "Output schema for @build skill. Captures single workstream execution result with quality gates and acceptance criteria evidence.",
   "type": "object",
-  "required": ["ws_id", "feature_id", "verdict", "quality_gates", "timestamp"],
+  "required": ["ws_id", "feature_id", "verdict", "quality_gates", "timestamp", "existing_work_summary"],
   "properties": {
     "ws_id": {
       "type": "string",

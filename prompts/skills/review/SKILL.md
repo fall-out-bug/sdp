@@ -27,9 +27,15 @@ When user invokes `@review F{XX}`:
 
 **Per-subagent task template** (replace F{XX}, round-N, {role}):
 
-```
-You are the {ROLE} expert for feature F{XX}. Review your domain. For each finding: bd create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug. Output: FINDINGS_CREATED: id1 id2. Rule: PASS if all P2/P3; FAIL if any P0/P1. Output verdict: PASS or FAIL
-```
+Before filing findings, complete this analysis in order:
+
+1. **SCOPE:** What files/packages does this feature touch? (list from checkpoint or scope files)
+2. **RISK MAP:** For your domain ({role}), what are the top 3 risk areas in this scope?
+3. **EVIDENCE:** For each risk area, what did you find? (file:line, test name, config entry)
+4. **SEVERITY:** Classify each finding. P0 = exploitable in production. P1 = breaks on edge case. P2 = maintenance debt. P3 = style.
+5. **VERDICT:** PASS if max severity ≤ P2. FAIL if any P0/P1.
+
+For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
 
 **Role files:** `.claude/agents/qa.md`, `security.md`, `devops.md`, `sre.md`, `tech-lead.md`. Docs and PromptOps: inline (see below).
 
@@ -39,14 +45,22 @@ You are the {ROLE} expert for feature F{XX}. Review your domain. For each findin
 
 ---
 
-## After All Complete
+## After All Complete — Synthesis Phase
 
-**Synthesize:** `## Feature Review: F{XX}` with `### QA: PASS/FAIL`, etc. **APPROVED** if all 7 PASS; **CHANGES_REQUESTED** if any FAIL.
+**MUST include all 7 roles in `reviewers`:** qa, security, devops, sre, techlead, docs, promptops. **Missing role = FAIL** (set verdict=CHANGES_REQUESTED).
 
-**Save verdict** to `.sdp/review_verdict.json` (required for @deploy, @oneshot):
+1. **CONFLICT CHECK:** Do any two reviewers contradict? (e.g. Security says "add auth" but SRE says "remove auth middleware for latency"). If yes, create one escalation finding with both perspectives; add to `synthesis.conflicts`.
+2. **COVERAGE CHECK:** Did any reviewer report 0 findings? Note role in `synthesis.rubber_stamps` for transparency (does not by itself change verdict).
+3. **VERDICT:** **APPROVED** only if **ALL 7 roles** have an entry in `reviewers` and verdict=PASS. **Missing role = FAIL** (set verdict=CHANGES_REQUESTED). **CHANGES_REQUESTED** if any FAIL or escalation.
+
+**Before final verdict:** Verify `reviewers` contains exactly these keys: **qa, security, devops, sre, techlead, docs, promptops**. If any is missing, set verdict=CHANGES_REQUESTED and add a note.
+
+**Synthesize:** `## Feature Review: F{XX}` with `### QA: PASS/FAIL`, etc.
+
+**Save verdict** to `.sdp/review_verdict.json` (required for @deploy, @oneshot). **Output must validate against** `schema/review-verdict.schema.json` before saving.
 
 ```json
-{"feature":"F{XX}","verdict":"APPROVED|CHANGES_REQUESTED","timestamp":"...","round":1,"reviewers":{...},"finding_ids":[...],"blocking_ids":[...],"summary":"..."}
+{"feature":"F{XX}","verdict":"APPROVED|CHANGES_REQUESTED","timestamp":"...","round":1,"reviewers":{"qa":{"verdict":"PASS","findings":[]},"security":{"verdict":"PASS","findings":[]},"devops":{"verdict":"PASS","findings":[]},"sre":{"verdict":"PASS","findings":[]},"techlead":{"verdict":"PASS","findings":[]},"docs":{"verdict":"PASS","findings":[]},"promptops":{"verdict":"PASS","findings":[]}},"finding_ids":[],"blocking_ids":[],"synthesis":{"conflicts":[],"rubber_stamps":[]},"summary":"..."}
 ```
 
 **Priority:** P0/P1 block; P2/P3 track only.
@@ -60,6 +74,30 @@ You are the {ROLE} expert for feature F{XX}. Review your domain. For each findin
 Replace `F{NNN}` with feature ID (e.g. F067), `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
 
 After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 id3`
+
+---
+
+## Examples
+
+**Good P0 finding (Security):**
+```
+bd create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,F001,round-1,security" --type bug --silent
+```
+Reason: Exploitable in production; attacker can bypass auth. Include file:line.
+
+**Good P2 finding (style):**
+```
+bd create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,F001,round-1,docs" --type bug --silent
+```
+Reason: Maintenance debt, not blocking.
+
+**No findings (explicit output):**
+```
+SCOPE: internal/auth/*.go (3 files). RISK MAP: token validation, rate limit. EVIDENCE: All checks present. VERDICT: PASS
+FINDINGS_CREATED: (none)
+PASS
+```
+Always output `FINDINGS_CREATED: (none)` when there are no findings; never leave blank.
 
 ---
 
