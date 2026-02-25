@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/config"
+	"github.com/fall-out-bug/sdp/internal/security"
 )
 
 func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, error) {
@@ -24,7 +24,13 @@ func (c *Checker) checkPythonCoverage(result *CoverageResult) (*CoverageResult, 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		cmd := exec.CommandContext(ctx, "pytest", "--cov", "--cov-report=term-missing")
+		cmd, errCmd := security.SafeCommand(ctx, "pytest", "--cov", "--cov-report=term-missing")
+		if errCmd != nil {
+			result.Coverage = 0.0
+			result.Passed = false
+			result.Report = fmt.Sprintf("pytest not allowed or invalid args: %v", errCmd)
+			return result, nil
+		}
 		cmd.Dir = c.projectPath
 		output, _ := cmd.CombinedOutput()
 
@@ -101,9 +107,14 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 	// Build package list, optionally excluding configured paths
 	testArgs := []string{"test", "-cover", "-coverprofile=coverage.out"}
 	if len(excludePrefixes) > 0 {
-		listCmd := exec.Command("go", "list", "./...")
-		listCmd.Dir = c.projectPath
-		listOut, listErr := listCmd.Output()
+		listCtx, listCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		listCmd, errList := security.SafeCommand(listCtx, "go", "list", "./...")
+		listCancel()
+		if errList != nil {
+			testArgs = append(testArgs, "./...")
+		} else {
+			listCmd.Dir = c.projectPath
+			listOut, listErr := listCmd.Output()
 		if listErr != nil {
 			// Fallback to ./...
 			testArgs = append(testArgs, "./...")
@@ -131,6 +142,7 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 				testArgs = append(testArgs, "./...")
 			}
 		}
+		}
 	} else {
 		testArgs = append(testArgs, "./...")
 	}
@@ -138,7 +150,13 @@ func (c *Checker) checkGoCoverage(result *CoverageResult) (*CoverageResult, erro
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "go", testArgs...)
+	cmd, errCmd := security.SafeCommand(ctx, "go", testArgs...)
+	if errCmd != nil {
+		result.Coverage = 0.0
+		result.Passed = false
+		result.Report = fmt.Sprintf("go test not allowed or invalid args: %v", errCmd)
+		return result, nil
+	}
 	cmd.Dir = c.projectPath
 	output, err := cmd.CombinedOutput()
 
@@ -187,7 +205,13 @@ func (c *Checker) checkJavaCoverage(result *CoverageResult) (*CoverageResult, er
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "mvn", "test")
+	cmd, errCmd := security.SafeCommand(ctx, "mvn", "test")
+	if errCmd != nil {
+		result.Coverage = 0.0
+		result.Passed = false
+		result.Report = fmt.Sprintf("mvn not allowed or invalid args: %v", errCmd)
+		return result, nil
+	}
 	cmd.Dir = c.projectPath
 	_ = cmd.Run()
 

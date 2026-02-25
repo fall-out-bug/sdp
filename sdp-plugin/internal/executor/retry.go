@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/config"
 )
 
 // executeWorkstreamWithRetry executes a workstream with retry logic
@@ -44,14 +47,34 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 		}
 
 		lastErr = err
+		slog.Debug("workstream run failed", "ws_id", wsID, "attempt", attempt, "max_retries", maxRetries, "error", err)
 
 		if attempt < maxRetries {
 			if errW := writeLine(output, e.progress.Output(wsID, progress, "retrying", fmt.Sprintf("failed: %v", err))); errW != nil {
 				return retries, fmt.Errorf("write: %w", errW)
 			}
-			time.Sleep(100 * time.Millisecond) // Small delay before retry
+			delay := retryDelayFromConfig()
+			select {
+			case <-ctx.Done():
+				return retries, ctx.Err()
+			case <-time.After(delay):
+			}
 		}
 	}
 
+	slog.Info("workstream execution failed after retries", "ws_id", wsID, "retries", retries, "error", lastErr)
 	return retries, lastErr
+}
+
+// retryDelayFromConfig returns retry delay from config (or env, or default).
+func retryDelayFromConfig() time.Duration {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return config.TimeoutFromEnv("SDP_TIMEOUT_RETRY_DELAY", 100*time.Millisecond)
+	}
+	cfg, err := config.Load(root)
+	if err != nil || cfg == nil {
+		return config.TimeoutFromEnv("SDP_TIMEOUT_RETRY_DELAY", 100*time.Millisecond)
+	}
+	return config.TimeoutFromConfigOrEnv(cfg.Timeouts.RetryDelay, "SDP_TIMEOUT_RETRY_DELAY", 100*time.Millisecond)
 }

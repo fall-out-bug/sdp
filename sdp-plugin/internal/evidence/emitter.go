@@ -60,8 +60,8 @@ func fillDefaults(ev *Event) {
 	}
 }
 
-// Emit appends an event to the evidence log (AC6, AC7).
-// Non-blocking; errors are logged via slog.
+// Emit appends an event asynchronously. Use EmitSync for CLI entry points
+// (verify, oneshot) so process exit does not drop evidence.
 func Emit(ev *Event) {
 	if ev == nil {
 		return
