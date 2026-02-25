@@ -2,7 +2,7 @@
 
 Quick reference for using SDP CLI v0.9.7 with Claude Code.
 
-> **Sync:** Shared with sdp_dev/AGENTS.md — placement rules, "продолжай" convention. When updating these, update both files. See sdp_dev/docs/plans/2026-02-25-agents-claude-sync-rules.md.
+> **Sync:** Shared with sdp_dev/AGENTS.md — placement rules, "продолжай" convention. When updating these, update both files. Sync rules: sdp_dev/docs/plans/2026-02-25-agents-claude-sync-rules.md (in parent repo).
 
 ## Quick Start
 
