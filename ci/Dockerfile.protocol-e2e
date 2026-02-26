@@ -18,8 +18,9 @@ RUN CGO_ENABLED=1 go install github.com/steveyegge/beads/cmd/bd@v0.55.4
 ENV PATH="/usr/local/bin:/go/bin:$PATH"
 
 # Install opencode CLI (for LLM integration phase)
-# Use official install script - go package is archived
-RUN curl -fsSL https://opencode.ai/install | bash || true
+# Install to /root/.opencode/bin, add to PATH (Docker has no shell rc)
+RUN curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path \
+    && ln -sf /root/.opencode/bin/opencode /usr/local/bin/opencode
 
 WORKDIR /workspace
 # Repo COPY'd at build time
@@ -45,6 +46,9 @@ RUN git config --global user.email "e2e@test" && \
 # Init beads in workspace (best-effort; repo .beads may exist)
 RUN bd init 2>/dev/null || true
 RUN bd sync 2>/dev/null || true
+
+# Overlay: when sdp is submodule (sdp_dev), ci lives in sdp/ci
+RUN if [ -d sdp/ci ]; then mkdir -p ci && cp sdp/ci/protocol-e2e-test.sh ci/ && cp -r sdp/ci/protocol-e2e-fixtures ci/; fi
 
 # GLM_API_KEY passed at runtime via -e (not baked into image)
 CMD ["bash", "ci/protocol-e2e-test.sh"]

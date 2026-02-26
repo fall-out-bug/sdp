@@ -1,7 +1,7 @@
 # WS-018: NotificationRouter Implementation
 
 > **Workstream ID:** WS-018  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-017
 
 ## Goal

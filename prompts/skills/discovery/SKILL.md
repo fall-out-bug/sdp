@@ -35,14 +35,14 @@ sdp memory search "<keyword1> <keyword2> <keyword3>"
 4. Present **Overlap Report** (HIGH and MEDIUM confidence only; log LOW to file):
    ```
    Found N potentially related items:
-   [HIGH] F005 Rework Loop — covers [summary]. Similarity reason: [1 sentence]
+   [HIGH] Rework Loop — covers [summary]. Similarity reason: [1 sentence]
    [MEDIUM] 00-008-02 — touches [same module]. Overlap type: [data model / API / user flow]
    ```
 
 5. User resolution (single question):
    - A) These are different — proceed to Phase 2
-   - B) This extends F005 — incorporate and modify existing workstream
-   - C) This supersedes F005 — flag for later review (propose: set F005 status to 'deferred')
+   - B) This extends existing workstream — incorporate and modify
+   - C) This supersedes existing workstream — flag for later review (propose: set status to 'deferred')
    - D) Show me more detail before deciding
 
 **Gate:** Proceed only after user resolves.

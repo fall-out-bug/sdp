@@ -2,7 +2,7 @@
 
 Enterprise reference for the Spec-Driven Protocol (SDP) evidence layer. Use this document for security reviews, RFPs, and contract discussions.
 
-**Evidence schema:** [schema/evidence.schema.json](../../schema/evidence.schema.json) (F054).
+**Evidence schema:** [schema/evidence.schema.json](../../schema/evidence.schema.json).
 
 ---
 
@@ -84,4 +84,4 @@ Mapping is indicative; final compliance is the customer's responsibility with th
 ## Reference
 
 - Evidence schema: [schema/evidence.schema.json](../../schema/evidence.schema.json)
-- F054: SDP Evidence Layer (schema and event types)
+- Evidence layer: schema and event types

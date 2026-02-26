@@ -12,7 +12,17 @@ import (
 )
 
 func localPromptsCandidates() []string {
-	return []string{"prompts", "../prompts", "sdp/prompts", "../sdp/prompts"}
+	candidates := []string{"prompts", "../prompts", "sdp/prompts", "../sdp/prompts"}
+	// When running from repo (go run, or binary next to prompts), try executable-relative path
+	if exe, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exe)
+		// sdp-plugin/cmd/sdp -> sdp/prompts or ../prompts
+		candidates = append(candidates,
+			filepath.Join(exeDir, "..", "..", "prompts"),
+			filepath.Join(exeDir, "..", "prompts"),
+		)
+	}
+	return candidates
 }
 
 func isValidPromptsDir(dir string) bool {
@@ -61,6 +71,8 @@ func downloadPromptsToCache() (string, error) {
 	if isValidPromptsDir(promptsRoot) {
 		return promptsRoot, nil
 	}
+	// Clear invalid/partial cache before re-download
+	_ = os.RemoveAll(promptsRoot)
 	if err := os.MkdirAll(promptsRoot, 0755); err != nil {
 		return "", fmt.Errorf("create prompts cache dir: %w", err)
 	}

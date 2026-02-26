@@ -1,7 +1,7 @@
 # WS-021: Integration Tests for Agent Coordination
 
 > **Workstream ID:** WS-021  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-019
 
 ## Goal

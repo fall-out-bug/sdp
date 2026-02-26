@@ -32,7 +32,7 @@ This glossary provides canonical definitions for all SDP (Spec-Driven Protocol) 
 
 **Context:** The overarching framework that defines how AI agents should plan, execute, and track development work through workstreams.
 
-**Example:** "SDP v0.9.0 integrates multi-agent coordination with Beads task tracking."
+**Example:** "SDP v0.9.8 integrates multi-agent coordination with Beads task tracking."
 
 **See Also:** Workstream, Feature, Release, Beads
 

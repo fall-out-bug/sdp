@@ -1,4 +1,4 @@
-# Feature F051: SDP Long-term Memory System
+# SDP Long-term Memory System
 
 **Vision:** Transform SDP from development tool into organization's collective brain - capturing not just what was built, but **why decisions were made**, what patterns emerge over time, and what knowledge can be reused.
 

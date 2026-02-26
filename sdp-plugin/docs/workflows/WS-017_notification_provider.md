@@ -1,7 +1,7 @@
 # WS-017: NotificationProvider Interface
 
 > **Workstream ID:** WS-017  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-013
 
 ## Goal

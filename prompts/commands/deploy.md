@@ -26,6 +26,6 @@ When calling `/deploy {feature} [version_bump]`:
 
 ## Version Bump
 
-- `@deploy F020` — patch (0.5.0 → 0.5.1)
-- `@deploy F020 minor` — minor (0.5.0 → 0.6.0)
-- `@deploy F020 major` — major (0.5.0 → 1.0.0)
+- `@deploy <feature-id>` — patch (0.5.0 → 0.5.1)
+- `@deploy <feature-id> minor` — minor (0.5.0 → 0.6.0)
+- `@deploy <feature-id> major` — major (0.5.0 → 1.0.0)

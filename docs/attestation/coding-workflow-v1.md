@@ -39,8 +39,8 @@ This predicate attests that an AI coding agent (or human) followed the SDP proto
 Use `sdp-evidence` from [sdp_lab](https://github.com/fall-out-bug/sdp_lab):
 
 ```bash
-sdp-evidence validate .sdp/evidence/F028.json
-sdp-evidence inspect .sdp/evidence/F028.json
+sdp-evidence validate .sdp/evidence/run-123.json
+sdp-evidence inspect .sdp/evidence/run-123.json
 ```
 
 ## Signing

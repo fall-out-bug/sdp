@@ -2,232 +2,34 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sdp.dev/attestation/coding-workflow/v1",
   "title": "SDP Coding Workflow Predicate",
-  "description": "in-toto predicate type for structured development protocol (SDP) coding workflow attestations. Attests that an AI coding agent followed the SDP protocol: planned workstreams, stayed within scope, passed verification, and completed review.",
+  "description": "Predicate body for SDP coding workflow in-toto attestations. snake_case per design decision (D2).",
   "type": "object",
-  "required": ["intent", "plan", "execution", "verification", "review", "risk_notes", "boundary", "provenance", "trace"],
+  "required": ["version"],
   "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Predicate schema version for evolution"
+    },
     "intent": {
       "type": "object",
-      "description": "What the agent was asked to do",
-      "required": ["issue_id", "trigger"],
-      "properties": {
-        "issue_id": {
-          "type": "string",
-          "description": "Beads issue ID or external tracker reference (e.g. sdp_dev-abc)"
-        },
-        "trigger": {
-          "type": "string",
-          "description": "What triggered this coding session (e.g. ci-auto-attestation, sdp-orchestrate, manual)"
-        },
-        "acceptance_criteria": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Acceptance criteria from the workstream definition"
-        },
-        "risk_class": {
-          "type": "string",
-          "enum": ["low", "medium", "high", "critical"],
-          "description": "Risk classification of the change"
-        }
-      }
+      "description": "Problem statement, users, success criteria from @idea"
     },
     "plan": {
       "type": "object",
-      "description": "How the agent planned to complete the work",
-      "properties": {
-        "workstreams": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Workstream IDs (e.g. 00-028-01) executed in this session"
-        },
-        "ordering_rationale": {
-          "type": "string",
-          "description": "Why workstreams were ordered this way"
-        }
-      }
+      "description": "Execution plan or workstream references"
     },
     "execution": {
       "type": "object",
-      "description": "What the agent actually did",
-      "properties": {
-        "claimed_issue_ids": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Beads issue IDs claimed during execution"
-        },
-        "branch": {
-          "type": "string",
-          "description": "Git branch name"
-        },
-        "changed_files": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Files changed relative to base branch"
-        }
-      }
+      "description": "Build/execution metadata (e.g. changed_files, tdd_cycles)"
     },
     "verification": {
       "type": "object",
-      "description": "Test and quality gate results",
-      "properties": {
-        "tests": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["name", "status"],
-            "properties": {
-              "name": { "type": "string" },
-              "status": { "type": "string" }
-            }
-          }
-        },
-        "lint": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["name", "status"],
-            "properties": {
-              "name": { "type": "string" },
-              "status": { "type": "string" }
-            }
-          }
-        },
-        "coverage": {
-          "type": "object",
-          "properties": {
-            "value": { "type": "number", "minimum": 0, "maximum": 100 },
-            "threshold": { "type": "number", "minimum": 0, "maximum": 100 }
-          }
-        }
-      }
+      "description": "Quality gates and verification results"
     },
     "review": {
       "type": "object",
-      "description": "Code review results",
-      "properties": {
-        "self_review": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["reviewer", "verdict"],
-            "properties": {
-              "reviewer": { "type": "string" },
-              "verdict": { "type": "string", "enum": ["APPROVED", "CHANGES_REQUESTED", "pending"] },
-              "notes": { "type": "string" }
-            }
-          }
-        },
-        "adversarial_review": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["reviewer", "verdict"],
-            "properties": {
-              "reviewer": { "type": "string" },
-              "verdict": { "type": "string" },
-              "notes": { "type": "string" }
-            }
-          }
-        }
-      }
-    },
-    "risk_notes": {
-      "type": "object",
-      "description": "Risk documentation",
-      "properties": {
-        "residual_risks": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "out_of_scope": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
-      }
-    },
-    "boundary": {
-      "type": "object",
-      "description": "Scope compliance: declared vs observed file changes",
-      "required": ["compliance"],
-      "properties": {
-        "declared": {
-          "type": "object",
-          "properties": {
-            "allowed_path_prefixes": { "type": "array", "items": { "type": "string" } },
-            "control_path_prefixes": { "type": "array", "items": { "type": "string" } },
-            "forbidden_path_prefixes": { "type": "array", "items": { "type": "string" } }
-          }
-        },
-        "observed": {
-          "type": "object",
-          "properties": {
-            "touched_paths": { "type": "array", "items": { "type": "string" } },
-            "out_of_boundary_paths": { "type": "array", "items": { "type": "string" } }
-          }
-        },
-        "compliance": {
-          "type": "object",
-          "required": ["ok", "reason"],
-          "properties": {
-            "ok": { "type": "boolean" },
-            "reason": { "type": "string" }
-          }
-        }
-      }
-    },
-    "provenance": {
-      "type": "object",
-      "description": "Where this attestation came from",
-      "required": ["run_id", "orchestrator", "captured_at"],
-      "properties": {
-        "run_id": { "type": "string" },
-        "orchestrator": { "type": "string", "description": "e.g. sdp-orchestrate, github-actions" },
-        "runtime": { "type": "string", "description": "e.g. local, ci" },
-        "model": { "type": "string", "description": "LLM model used (if applicable)" },
-        "phase": { "type": "string" },
-        "role": { "type": "string" },
-        "captured_at": { "type": "string", "format": "date-time" },
-        "source_issue_id": { "type": "string" },
-        "prompt_hash": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$",
-          "description": "SHA-256 hex of the prompt used (if recorded)"
-        },
-        "context_sources": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["type", "path", "hash"],
-            "properties": {
-              "type": { "type": "string" },
-              "path": { "type": "string" },
-              "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
-            }
-          }
-        }
-      }
-    },
-    "trace": {
-      "type": "object",
-      "description": "Audit trail linking to external artifacts",
-      "properties": {
-        "beads_ids": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Issue IDs in the beads tracker"
-        },
-        "branch": { "type": "string" },
-        "commits": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Git commit SHAs included in this PR"
-        },
-        "pr_url": {
-          "type": "string",
-          "format": "uri",
-          "description": "GitHub PR URL"
-        }
-      }
+      "description": "Review verdict summary (7 roles, findings)"
     }
   }
 }

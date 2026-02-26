@@ -1,7 +1,7 @@
 # WS-015: Dormant/Active Role Switching
 
 > **Workstream ID:** WS-015  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-014
 
 ## Goal

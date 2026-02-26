@@ -1,0 +1,1 @@
+{"id": "build-001", "input": "00-067-01", "expected_keys": ["ws_id", "feature_id", "verdict", "quality_gates", "timestamp", "existing_work_summary"], "schema": "schema/ws-verdict.schema.json"}

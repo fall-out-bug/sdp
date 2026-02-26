@@ -1,7 +1,7 @@
 # WS-012: AgentSpawner via Task Tool
 
 > **Workstream ID:** WS-012  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-011
 
 ## Goal

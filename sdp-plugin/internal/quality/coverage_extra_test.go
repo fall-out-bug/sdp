@@ -1,6 +1,7 @@
 package quality
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +27,7 @@ func TestCheckPythonCoverageParseOutput(t *testing.T) {
 	}
 
 	// Test the parsing logic
-	result, err := checker.checkPythonCoverage(&CoverageResult{Threshold: 80.0})
+	result, err := checker.checkPythonCoverage(context.Background(), &CoverageResult{Threshold: 80.0})
 	if err != nil {
 		t.Fatalf("checkPythonCoverage failed: %v", err)
 	}
@@ -321,7 +322,7 @@ func TestCheckCoverage_PythonProject(t *testing.T) {
 		projectType: Python,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -338,7 +339,7 @@ func TestCheckCoverage_JavaProject(t *testing.T) {
 		projectType: Java,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -551,7 +552,7 @@ func TestCheckJavaCoverage(t *testing.T) {
 		projectType: Java,
 	}
 
-	result, err := checker.checkJavaCoverage(&CoverageResult{Threshold: 80.0})
+	result, err := checker.checkJavaCoverage(context.Background(), &CoverageResult{Threshold: 80.0})
 	if err != nil {
 		t.Fatalf("checkJavaCoverage failed: %v", err)
 	}
@@ -852,7 +853,7 @@ func TestCheckPythonCoverage_WithCoverageFile(t *testing.T) {
 		Threshold: 80,
 	}
 
-	got, err := checker.checkPythonCoverage(result)
+	got, err := checker.checkPythonCoverage(context.Background(), result)
 	if err != nil {
 		t.Logf("checkPythonCoverage error: %v", err)
 		return
@@ -892,7 +893,7 @@ Total,,-,100,400,10,40,10,40,5,15,2,8,0,1
 		Threshold: 80,
 	}
 
-	got, err := checker.checkJavaCoverage(result)
+	got, err := checker.checkJavaCoverage(context.Background(), result)
 	if err != nil {
 		t.Logf("checkJavaCoverage error: %v", err)
 		return
@@ -1044,7 +1045,7 @@ func TestCheckCoverage_UnsupportedType(t *testing.T) {
 		projectType: Type(99), // Invalid/unsupported type
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err == nil {
 		t.Error("Expected error for unsupported project type")
 	}

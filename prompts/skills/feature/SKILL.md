@@ -13,6 +13,8 @@ changes:
 
 Orchestrate product discovery, requirements, UX research, and workstream design.
 
+**Phase 0:** This skill targets Go projects (e.g. `go build`/`go test` in acceptance criteria). Language-agnostic expansion is planned.
+
 ## Modes
 
 | Mode | When to use | Steps |
@@ -67,7 +69,7 @@ One paragraph: what this workstream does and why.
 
 - [ ] Specific, testable criterion 1
 - [ ] Specific, testable criterion 2
-- [ ] go build ./... passes
+- [ ] go build ./... passes (Phase 0: Go; other languages later)
 - [ ] go test ./... passes
 ```
 

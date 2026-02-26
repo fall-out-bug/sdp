@@ -4,10 +4,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/fall-out-bug/sdp/internal/evidence"
 )
 
 // TestDeployCmd_ApprovalEvent tests that deploy command emits approval event (F056-01 AC3, AC4)
 func TestDeployCmd_ApprovalEvent(t *testing.T) {
+	evidence.ResetGlobalWriter()
 	originalWd, _ := os.Getwd()
 	tmpDir := t.TempDir()
 
@@ -64,6 +67,7 @@ func TestDeployCmd_ApprovalEvent(t *testing.T) {
 
 // TestDeployCmd_DefaultValues tests deploy with default values
 func TestDeployCmd_DefaultValues(t *testing.T) {
+	evidence.ResetGlobalWriter()
 	originalWd, _ := os.Getwd()
 	tmpDir := t.TempDir()
 
@@ -92,6 +96,7 @@ func TestDeployCmd_DefaultValues(t *testing.T) {
 
 // TestDeployCmd_EvidenceDisabled tests deploy when evidence is disabled
 func TestDeployCmd_EvidenceDisabled(t *testing.T) {
+	evidence.ResetGlobalWriter()
 	originalWd, _ := os.Getwd()
 	tmpDir := t.TempDir()
 

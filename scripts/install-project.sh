@@ -104,9 +104,11 @@ if [ "$SDP_INSTALL_CLI" = "1" ]; then
     if [ "$cli_installed" != "1" ]; then
         echo "⚠️  CLI installation failed. Prompts are installed, but 'sdp init' may not be available yet."
         if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
-            echo "   Retry manually: sh scripts/install.sh"
+            echo ""
+            echo "   Retry CLI install:"
+            echo "   curl -sSL https://raw.githubusercontent.com/${SDP_REPO:-fall-out-bug/sdp}/main/install.sh | sh -s -- --binary-only"
         else
-            echo "   Retry manually after installing Go toolchain."
+            echo "   Retry: install Go, then run 'cd sdp/sdp-plugin && go build -o \${HOME}/.local/bin/sdp ./cmd/sdp'"
         fi
     fi
 fi
@@ -211,24 +213,25 @@ if [ -f ../.gitignore ]; then
     fi
 fi
 
+# Install Git hooks (pre-commit, pre-push)
+if [ -f hooks/install-git-hooks.sh ]; then
+    if (cd .. && sh "$SDP_DIR/hooks/install-git-hooks.sh" 2>/dev/null); then
+        echo "✅ Git hooks installed (pre-commit, pre-push)"
+    fi
+fi
+
 echo ""
 echo "✅ SDP project assets installed successfully!"
 echo ""
 if [ -x "${HOME}/.local/bin/sdp" ]; then
     echo "CLI: ${HOME}/.local/bin/sdp"
-    if "${HOME}/.local/bin/sdp" init --help 2>/dev/null | grep -q -- "--guided"; then
-        echo "Try: ${HOME}/.local/bin/sdp init --guided"
-    else
-        echo "Try: ${HOME}/.local/bin/sdp init --auto"
-    fi
+    echo "Try: ${HOME}/.local/bin/sdp init --auto"
+    echo "     (update CLI: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only)"
 elif command -v sdp >/dev/null 2>&1; then
     cli_path=$(command -v sdp)
     echo "CLI: ${cli_path}"
-    if "$cli_path" init --help 2>/dev/null | grep -q -- "--guided"; then
-        echo "Try: sdp init --guided"
-    else
-        echo "Try: sdp init --auto"
-    fi
+    echo "Try: sdp init --auto"
+    echo "     (update CLI: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only)"
 else
     echo "CLI not found in PATH. Install binary with:"
     echo "  curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only"

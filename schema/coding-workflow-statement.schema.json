@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/attestation/coding-workflow-statement/v1",
+  "title": "SDP Coding Workflow in-toto Statement",
+  "description": "Full in-toto Statement envelope for SDP coding workflow attestations. Wraps the predicate in the standard in-toto v1 Statement structure.",
+  "type": "object",
+  "required": [
+    "_type",
+    "subject",
+    "predicateType",
+    "predicate"
+  ],
+  "properties": {
+    "_type": {
+      "type": "string",
+      "const": "https://in-toto.io/Statement/v1",
+      "description": "in-toto Statement type (v1)"
+    },
+    "subject": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "digest"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Subject identifier (e.g. PR URL or artifact name)"
+          },
+          "digest": {
+            "type": "object",
+            "description": "digestSet per SLSA/in-toto",
+            "required": [
+              "sha256"
+            ],
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      },
+      "description": "Artifacts being attested (e.g. the PR or commit)"
+    },
+    "predicateType": {
+      "type": "string",
+      "const": "https://sdp.dev/attestation/coding-workflow/v1",
+      "description": "SDP coding workflow predicate type"
+    },
+    "predicate": {
+      "$ref": "https://sdp.dev/attestation/coding-workflow/v1",
+      "description": "SDP coding workflow predicate (intent, plan, execution, verification, review, etc.)"
+    }
+  }
+}

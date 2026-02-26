@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/promptops-check/v1",
+  "title": "PromptOps Check",
+  "description": "Single PromptOps reviewer check for downstream tool consumption",
+  "type": "object",
+  "required": ["check_id", "status"],
+  "properties": {
+    "check_id": {
+      "type": "string",
+      "description": "Check identifier (e.g. language-agnostic, no-phantom-cli, skill-size)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail"],
+      "description": "Check result"
+    },
+    "note": {
+      "type": "string",
+      "description": "Optional note or evidence"
+    }
+  }
+}

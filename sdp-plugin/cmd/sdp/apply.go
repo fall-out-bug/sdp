@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/executor"
@@ -55,17 +57,22 @@ Examples:
 				return fmt.Errorf("backlog directory not found: %s\nRun 'sdp plan' first to create workstreams", backlogDir)
 			}
 
-			// Create executor (evidence logging is handled internally)
+			// Create executor with CLIRunner (sdp build) for non-dry-run
+			var runner executor.WorkstreamRunner
+			if !dryRun {
+				runner = executor.NewCLIRunner("sdp", "build")
+			}
 			exec := executor.NewExecutor(executor.ExecutorConfig{
 				BacklogDir:      backlogDir,
 				DryRun:          dryRun,
 				RetryCount:      retryCount,
 				EvidenceLogPath: logPath,
-			})
+			}, runner)
 			exec.SetOutputFormat(outputFormat)
 
-			// Create context for cancellation
-			ctx := context.Background()
+			// Create context for cancellation (SIGINT/SIGTERM)
+			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+			defer stop()
 
 			// Determine execution options
 			opts := executor.ExecuteOptions{

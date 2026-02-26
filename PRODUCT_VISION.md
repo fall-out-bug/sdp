@@ -63,7 +63,7 @@ Each level is independently valuable. Upgrade path is additive.
 
 ## What's Shipped
 
-- Protocol spec with 12 skills (v0.9.6, 18 releases)
+- Protocol spec with 12 skills (v0.9.8, 18 releases)
 - Evidence log with hash-chain provenance
 - CLI: `sdp doctor`, `sdp guard`, `sdp log`, `sdp status`
 - Multi-agent review (6 agents), strategic planning (7 agents), codebase analysis (8 agents)
@@ -81,7 +81,7 @@ Each level is independently valuable. Upgrade path is additive.
 | **P2** | OpenCode plugin for local evidence collection | Planned |
 | **P2** | Adapter controller hardening for K8s bridge | In development |
 
-## Research (sdp_lab)
+## Research (sdp_dev)
 
 Exploratory work, no promises:
 
@@ -96,7 +96,7 @@ Private repo [`sdp_lab`](https://github.com/fall-out-bug/sdp_lab) — open an is
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| Protocol releases | 18 (v0.9.6) | v1.0 |
+| Protocol releases | 18 (v0.9.8) | v1.0 |
 | Evidence CLI published | No | Yes |
 | awesome-opencode listing | No | Yes |
 | External users of evidence CLI | 0 | >= 1 |

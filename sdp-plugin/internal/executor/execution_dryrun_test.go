@@ -13,7 +13,7 @@ func TestExecutor_DryRun(t *testing.T) {
 		BacklogDir: "testdata/backlog",
 		DryRun:     true,
 		RetryCount: 1,
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer

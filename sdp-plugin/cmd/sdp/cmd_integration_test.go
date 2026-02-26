@@ -23,7 +23,10 @@ func TestCheckpointCommand(t *testing.T) {
 	// May fail if no checkpoints directory, that's OK
 
 	output := stdout.String() + stderr.String()
-	t.Logf("Checkpoint list output: %s\nError: %v", output, err)
+	t.Logf("Checkpoint list output: %s", output)
+	if err != nil {
+		t.Logf("Checkpoint list exit: %v", err)
+	}
 }
 
 // TestInitCommand tests the sdp init command
@@ -49,7 +52,10 @@ func TestInitCommand(t *testing.T) {
 
 	// May fail if prompts/ dir not found (that's OK in test environment)
 	output := stdout.String() + stderr.String()
-	t.Logf("Init output: %s\nError: %v", output, err)
+	t.Logf("Init output: %s", output)
+	if err != nil {
+		t.Logf("Init exit: %v", err)
+	}
 
 	// Check if .claude was created (should succeed if prompts exist)
 	if err == nil {

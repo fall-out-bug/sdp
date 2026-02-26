@@ -13,7 +13,7 @@ func TestExecutor_EvidenceChain(t *testing.T) {
 		DryRun:          false,
 		RetryCount:      1,
 		EvidenceLogPath: "testdata/evidence.jsonl",
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer

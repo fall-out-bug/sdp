@@ -45,3 +45,4 @@ jobs:
     uses: ./.github/workflows/protocol-e2e-reusable.yml
     with:
       submodules: false
+    secrets: inherit

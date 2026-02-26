@@ -1,6 +1,4 @@
-# F024: Unified Workflow - Hybrid SDP Implementation
-
-> **Feature ID:** F024
+# Unified Workflow - Hybrid SDP Implementation
 > **Status:** Completed
 > **Created:** 2026-01-28
 > **Workstreams:** 26 (18 completed/implemented, 8 optional/deferred)
