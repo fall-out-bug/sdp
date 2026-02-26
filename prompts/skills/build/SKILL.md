@@ -69,7 +69,7 @@ sdp guard activate 00-067-01
 
 3. **Commit and STOP:**
 ```bash
-sdp guard deactivate 2>/dev/null || true
+sdp guard deactivate
 git add .
 git commit -m "feat(F067): 00-067-01 - {title}"
 # STOP. Orchestrator continues to next WS if any.

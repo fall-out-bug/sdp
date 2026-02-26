@@ -4,11 +4,22 @@ Get from zero to your first feature in 5 minutes.
 
 ## 1. Install
 
+**Full project** (prompts + hooks + optional CLI): default install
+
 ```bash
 # Into your project (auto-detects Claude Code, Cursor, OpenCode)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
+```
 
-# Or: submodule
+**Binary only** (CLI to ~/.local/bin):
+
+```bash
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
+```
+
+**Or: submodule**
+
+```bash
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
 ```
 

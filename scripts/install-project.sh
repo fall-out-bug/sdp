@@ -104,9 +104,11 @@ if [ "$SDP_INSTALL_CLI" = "1" ]; then
     if [ "$cli_installed" != "1" ]; then
         echo "⚠️  CLI installation failed. Prompts are installed, but 'sdp init' may not be available yet."
         if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
-            echo "   Retry manually: sh scripts/install.sh"
+            echo ""
+            echo "   Retry CLI install:"
+            echo "   curl -sSL https://raw.githubusercontent.com/${SDP_REPO:-fall-out-bug/sdp}/main/install.sh | sh -s -- --binary-only"
         else
-            echo "   Retry manually after installing Go toolchain."
+            echo "   Retry: install Go, then run 'cd sdp/sdp-plugin && go build -o \${HOME}/.local/bin/sdp ./cmd/sdp'"
         fi
     fi
 fi

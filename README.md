@@ -14,14 +14,22 @@ SDP gives your AI agents a structured process (Discovery → Delivery → Eviden
 
 ## Quick Start
 
+**Install modes:**
+
+| Mode | Command | What you get |
+|------|---------|--------------|
+| **Full project** (default) | `curl -sSL .../install.sh \| sh` | Prompts, hooks, config + optional CLI |
+| **Binary only** | `curl -sSL .../install.sh \| sh -s -- --binary-only` | CLI binary only |
+
 ```bash
-# Install into your project (auto-detects IDE)
+# Full: install into your project (auto-detects IDE)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
+
+# Binary only: CLI to ~/.local/bin
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
 
 # Or: force specific IDE integration
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=claude sh
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=cursor sh
-curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | SDP_IDE=all sh
 ```
 
 **Manual install:**

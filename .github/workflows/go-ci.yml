@@ -117,7 +117,7 @@ jobs:
           fi
 
           # Run contract validation
-          ./sdp contract validate "${CONTRACTS[@]}" --output validation-report.md || true
+          ./sdp contract validate "${CONTRACTS[@]}" --output validation-report.md
 
           # Move report to artifacts directory
           if [ -f "validation-report.md" ]; then

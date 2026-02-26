@@ -95,7 +95,9 @@ if grep -Fq "${ARCHIVE_NAME}" checksums.txt; then
             exit 1
         fi
     else
-        echo "WARNING: No sha256 tool found, skipping checksum verification"
+        echo "ERROR: No sha256 tool found (sha256sum or shasum required for checksum verification)"
+        echo "Install one of: coreutils (sha256sum), perl (shasum)"
+        exit 1
     fi
     echo "✅ Checksum verified"
 else
@@ -140,4 +142,6 @@ case ":$PATH:" in
 esac
 
 # Verify installation
-"${INSTALL_DIR}/${BINARY_NAME}" version 2>/dev/null || echo "Run '${BINARY_NAME} version' to verify installation"
+if ! "${INSTALL_DIR}/${BINARY_NAME}" version >/dev/null 2>&1; then
+        echo "WARNING: Installation verification failed. Run '${BINARY_NAME} version' to check."
+fi
