@@ -91,3 +91,6 @@ sdp-plugin/.beads/*.db-wal
 
 # SDP session files in subdirs
 sdp-plugin/**/.sdp/
+
+# Demo project (created by vhs demo.tape)
+demo-beads-viz/
