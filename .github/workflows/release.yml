@@ -41,12 +41,34 @@ jobs:
         with:
           go-version: '1.26'
 
+      - name: Ensure release notes exist
+        run: |
+          V="${{ github.ref_name }}"
+          F="docs/releases/${V}.md"
+          if [ ! -f "$F" ]; then
+            mkdir -p docs/releases
+            VER="${V#v}"
+            VER_ESC=$(echo "$VER" | sed 's/\./\\./g')
+            {
+              echo "# SDP ${V}"
+              echo ""
+              echo "See [CHANGELOG](../../CHANGELOG.md) for full details."
+              echo ""
+              sed -n "/^## \\[${VER_ESC}\\] /,/^## \\[/p" CHANGELOG.md | sed '$d' || true
+            } > "$F"
+          fi
+
+      - name: Prepare GoReleaser args
+        id: goreleaser
+        run: |
+          echo "args=release --clean --release-notes ../docs/releases/${{ github.ref_name }}.md" >> $GITHUB_OUTPUT
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: 'v2.5.0'
           workdir: sdp-plugin
-          args: release --clean
+          args: ${{ steps.goreleaser.outputs.args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

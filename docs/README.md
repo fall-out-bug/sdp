@@ -34,6 +34,12 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 | [compliance/](compliance/) | Compliance, threat model |
 | [intent/](intent/) | Intent specification |
 
+## Releases
+
+| Doc | Purpose |
+|-----|---------|
+| [releases/v0.9.8.md](releases/v0.9.8.md) | v0.9.8 — Evidence Before Push |
+
 ## Artifacts
 
 - **Prompts:** `../prompts/skills/`, `../prompts/agents/`
