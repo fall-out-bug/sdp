@@ -5,6 +5,7 @@ cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
 version: 8.1.0
 changes:
+  - F055: Evidence + checkpoint commit step after sdp-orchestrate --advance (step 3b)
   - F054: Post-build bd close for each bead in WS frontmatter; batch syntax /build 00-053-16..25
   - F020: Remove auto-continue rules; @build does ONE WS then STOPS
   - F020: Strip evidence boilerplate to orchestrator/CLI
@@ -72,6 +73,12 @@ sdp guard deactivate 2>/dev/null || true
 git add .
 git commit -m "feat(F067): 00-067-01 - {title}"
 # STOP. Orchestrator continues to next WS if any.
+```
+
+3b. **Evidence and checkpoint** (after `sdp-orchestrate --advance` when running as part of @oneshot):
+```bash
+git add .sdp/evidence/ .sdp/checkpoints/
+git commit --amend --no-edit || git commit -m "FXXX: evidence"
 ```
 
 4. **Write ws-verdict** (required):
