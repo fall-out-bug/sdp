@@ -1,7 +1,7 @@
 # WS-022: E2E Tests with Real Beads
 
 > **Workstream ID:** WS-022  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-020
 
 ## Goal

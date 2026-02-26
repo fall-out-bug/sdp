@@ -1,7 +1,7 @@
 # WS-023: E2E Tests with Real Telegram
 
 > **Workstream ID:** WS-023  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-019
 
 ## Goal

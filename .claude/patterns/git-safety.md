@@ -29,7 +29,7 @@ git stash list
 ## Branch Convention
 
 ```
-feature/F050-description    # New feature
+feature/<feature-id>-description    # New feature
 bugfix/sdp-xxx-description  # Bug fix (P1/P2)
 hotfix/sdp-xxx-description  # Emergency fix (P0)
 docs/description            # Documentation only
@@ -38,10 +38,10 @@ docs/description            # Documentation only
 ## Commit Convention
 
 ```
-feat(F050): add user authentication
+feat(<feature-id>): add user authentication
 fix(sdp-xxx): prevent panic on empty input
 docs: update README with new commands
-test(F051): add coverage for memory store
+test(<feature-id>): add coverage for memory store
 refactor: extract common validation logic
 ```
 

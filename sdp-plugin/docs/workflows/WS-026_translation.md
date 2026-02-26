@@ -1,7 +1,7 @@
 # WS-026: English Translation + Role Setup Guide
 
 > **Workstream ID:** WS-026  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-025
 
 ## Goal
@@ -11,7 +11,7 @@ Translate docs to English, create role setup guide.
 ## Acceptance Criteria
 
 ### AC1: English Translation
-- [ ] All F024 docs in English
+- [ ] All Unified Workflow docs in English
 - [ ] PROTOCOL.md updated
 - [ ] TUTORIAL_FEATURE.md translated
 

@@ -116,6 +116,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(planCmd())
 	rootCmd.AddCommand(applyCmd())
 	rootCmd.AddCommand(beadsCmd())
+	rootCmd.AddCommand(buildCmd())
 	rootCmd.AddCommand(tddCmd())
 	rootCmd.AddCommand(driftCmd())
 	rootCmd.AddCommand(qualityCmd())

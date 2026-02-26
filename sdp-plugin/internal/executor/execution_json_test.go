@@ -14,7 +14,7 @@ func TestExecutor_JSONOutput(t *testing.T) {
 		BacklogDir: "testdata/backlog",
 		DryRun:     false,
 		RetryCount: 1,
-	})
+	}, newTestRunner())
 
 	ctx := context.Background()
 	var output bytes.Buffer

@@ -1,7 +1,7 @@
 # WS-014: RoleLoader and Prompt Management
 
 > **Workstream ID:** WS-014  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-012
 
 ## Goal

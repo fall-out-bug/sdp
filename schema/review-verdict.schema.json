@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/review-verdict/v1",
+  "title": "SDP Review Verdict",
+  "description": "Output schema for @review skill. Captures multi-agent quality review results with 7 required reviewer roles.",
+  "type": "object",
+  "required": [
+    "feature",
+    "verdict",
+    "reviewers",
+    "round",
+    "timestamp"
+  ],
+  "properties": {
+    "feature": {
+      "type": "string",
+      "description": "Feature ID (e.g. F001)",
+      "pattern": "^F\\d{3}$"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "CHANGES_REQUESTED"
+      ],
+      "description": "Overall verdict. APPROVED only if all reviewers PASS."
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Review round number"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewers": {
+      "type": "object",
+      "description": "Results from each of the 7 required reviewer roles",
+      "required": [
+        "qa",
+        "security",
+        "devops",
+        "sre",
+        "techlead",
+        "docs",
+        "promptops"
+      ],
+      "properties": {
+        "qa": {
+          "$ref": "#/$defs/reviewerResult"
+        },
+        "security": {
+          "$ref": "#/$defs/reviewerResult"
+        },
+        "devops": {
+          "$ref": "#/$defs/reviewerResult"
+        },
+        "sre": {
+          "$ref": "#/$defs/reviewerResult"
+        },
+        "techlead": {
+          "$ref": "#/$defs/reviewerResult"
+        },
+        "docs": {
+          "$ref": "#/$defs/reviewerResult"
+        },
+        "promptops": {
+          "$ref": "#/$defs/reviewerResult"
+        }
+      }
+    },
+    "synthesis": {
+      "type": "object",
+      "description": "Cross-reviewer synthesis (optional, from adversarial round)",
+      "properties": {
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "roles",
+              "description"
+            ],
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "rubber_stamps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Reviewer roles that reported 0 findings (flagged for review)"
+        },
+        "escalations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "p0_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "p1_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Beads issue IDs for all created findings"
+    },
+    "blocking_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Beads IDs that block APPROVED (P0/P1)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief human-readable summary of the review"
+    }
+  },
+  "$defs": {
+    "reviewerResult": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "findings"
+      ],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Beads issue IDs for findings from this reviewer"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Brief summary from this reviewer"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/promptopsCheck"
+          },
+          "description": "PromptOps: check_id, status, note per check"
+        }
+      }
+    },
+    "promptopsCheck": {
+      "type": "object",
+      "required": ["check_id", "status"],
+      "properties": {
+        "check_id": {"type": "string"},
+        "status": {"type": "string", "enum": ["pass", "fail"]},
+        "note": {"type": "string"}
+      }
+    }
+  }
+}

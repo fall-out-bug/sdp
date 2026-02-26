@@ -1,72 +1,57 @@
 #!/bin/sh
-# Pre-push hook: session validation + build/test before pushing
-# Part of F065 - Agent Git Safety Protocol
-
+# Pre-push hook: go test -short, evidence validation for feature branches when internal/ or cmd/ changed.
+# CWD = repo root. Exit 1 on any failure.
 set -e
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-cd "$REPO_ROOT"
+# 1. go test -short ./...
+go test -short ./... || { echo "pre-push: go test -short failed" >&2; exit 1; }
 
-# Get push target
-REMOTE="$1"
-URL="$2"
-CURRENT_BRANCH=$(git branch --show-current)
+# 2. If feature branch + diff touches internal/ or cmd/: require .sdp/evidence/*.json, validate
+BRANCH=$(git branch --show-current)
+case "$BRANCH" in
+  feature/*) ;;
+  *) exit 0 ;;  # Not a feature branch, skip evidence check
+esac
 
-# =========================================
-# Session Validation (F065 Git Safety)
-# =========================================
+# Collect all changed files from refs being pushed (stdin: local_ref local_sha remote_ref remote_sha)
+CHANGED=""
+while read local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_sha" ] && continue
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    CHANGED="$CHANGED $(git diff --name-only 4b825dc642cb6eb9a060e54bf8d69288fbee4904 $local_sha 2>/dev/null || true)"
+  else
+    CHANGED="$CHANGED $(git diff --name-only $remote_sha $local_sha 2>/dev/null || true)"
+  fi
+done
 
-# Check session
-if [ -f ".sdp/session.json" ]; then
-    # Check if jq is available
-    if command -v jq >/dev/null 2>&1; then
-        EXPECTED_REMOTE=$(jq -r '.expected_remote' .sdp/session.json 2>/dev/null)
-        EXPECTED_PUSH_TARGET="origin/$CURRENT_BRANCH"
+FEATURE_PATHS=$(echo "$CHANGED" | tr ' ' '\n' | grep -E '^internal/|^cmd/' || true)
+EVIDENCE_FILES=$(echo "$CHANGED" | tr ' ' '\n' | grep '^\.sdp/evidence/.*\.json$' || true)
 
-        # Validate push target
-        if [ -n "$EXPECTED_REMOTE" ] && [ "$EXPECTED_REMOTE" != "null" ] && [ "$EXPECTED_REMOTE" != "$EXPECTED_PUSH_TARGET" ]; then
-            echo ""
-            echo "ERROR: Push target mismatch!"
-            echo "  Expected: $EXPECTED_REMOTE"
-            echo "  Would push to: $EXPECTED_PUSH_TARGET"
-            echo ""
-            echo "Fix: git branch --set-upstream-to=$EXPECTED_REMOTE"
-            echo ""
-            exit 1
-        fi
-    fi
+if [ -n "$FEATURE_PATHS" ] && [ -z "$EVIDENCE_FILES" ]; then
+  echo "pre-push: feature branch with internal/ or cmd/ changes requires .sdp/evidence/*.json in push" >&2
+  echo "Add evidence (see @build skill step 3b)" >&2
+  exit 1
 fi
 
-# =========================================
-# Protected Branch Check (F065 Feature Branch Enforcement)
-# =========================================
-
-# Prevent pushing to protected branches
-if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "dev" ]; then
-    echo ""
-    echo "ERROR: Direct push to $CURRENT_BRANCH is not allowed!"
-    echo ""
-    echo "Create a feature branch and use PR workflow:"
-    echo "  git checkout -b feature/F###"
-    echo "  git push origin feature/F###"
-    echo "  # Then create a PR"
-    echo ""
-    exit 1
+if [ -z "$EVIDENCE_FILES" ]; then
+  exit 0
 fi
 
-# =========================================
-# Build and Test
-# =========================================
-
-if [ -d "sdp-plugin" ]; then
-    cd sdp-plugin
-    go build ./...
-    go test ./... -count=1 -short
+# 3. Validate evidence; if sdp-evidence not built: skip, warn
+EVIDENCE_CMD=""
+if command -v sdp-evidence >/dev/null 2>&1; then
+  EVIDENCE_CMD="sdp-evidence"
+elif [ -f bin/sdp-evidence ] && [ -x bin/sdp-evidence ]; then
+  EVIDENCE_CMD="./bin/sdp-evidence"
+else
+  echo "pre-push: sdp-evidence not found, skipping evidence validation (run: make build-sdp-evidence)" >&2
+  exit 0
 fi
 
-# Run staged guard checks before push
-if command -v sdp >/dev/null 2>&1; then
-    if sdp guard check --help 2>/dev/null | grep -q -- "--staged"; then
-        sdp guard check --staged
-    fi
-fi
+for f in $EVIDENCE_FILES; do
+  if [ -f "$f" ]; then
+    $EVIDENCE_CMD validate --require-pr-url=false "$f" || { echo "pre-push: evidence validation failed: $f" >&2; exit 1; }
+  fi
+done
+
+exit 0

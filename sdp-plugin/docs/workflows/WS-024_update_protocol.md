@@ -1,7 +1,7 @@
 # WS-024: Update PROTOCOL.md with Unified Workflow
 
 > **Workstream ID:** WS-024  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-009
 
 ## Goal

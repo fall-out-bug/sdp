@@ -2,6 +2,73 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [0.9.8] - 2026-02-26
+
+### Skills Sync, Beads Integration
+
+- **@build** — Post-build `bd close` for beads in WS frontmatter; batch syntax `/build 00-XXX-YY..ZZ`
+- **@design** — Pre-draft check, bead verification, default-in-scope
+- **@review** — Handoff block when CHANGES_REQUESTED
+- **CLAUDE.md** — Sync with sdp_dev/AGENTS.md (placement, "продолжай" convention)
+
+### Evidence + Checkpoint Commit, Guard Strict
+
+- **@build** — Step 3b: commit evidence + checkpoint after `sdp-orchestrate --advance`
+- **.gitignore** — `!.sdp/evidence/`, `!.sdp/checkpoints/` (evidence must be committed with PR)
+- **sdp guard** — `deactivate` without `|| true`; `activate` in pre-build without `|| true` (blocking)
+- **go-ci** — `sdp contract validate` without `|| true` (blocking)
+
+### Installer
+
+- **install.sh** — Fail when no sha256 tool (security); do not skip checksum verification
+- **install-project.sh** — Clear retry command on CLI install failure
+- **README, QUICKSTART** — Document binary-only vs full project install modes
+
+### Release, Init
+
+- **Release workflow** — In sdp repo: protocol-e2e with GLM_API_KEY, then sdp CLI release
+- **sdp init** — Executable-relative paths for global install; `--auto` in protocol-e2e Phase 2b
+- **Phase 5** — Fail when GLM_API_KEY not set (opencode LLM required)
+
+### Git Hooks (pre-commit, pre-push)
+
+- **pre-commit** — `go build ./...`; ws-verdict schema validation when `docs/ws-verdicts/*.json` changed
+- **pre-push** — `go test -short ./...`; evidence validation for feature branches when `internal/` or `cmd/` changed
+- **install-git-hooks.sh** — Symlinks `.git/hooks/pre-commit`, `.git/hooks/pre-push` to `scripts/hooks/`
+- **Docs** — AGENTS.md, runbook for sdp_dev (Go project, evidence, ws-verdict)
+
+---
+
+### Coverage Context + Protocol-Only Docs Boundary
+
+**New:**
+- **CheckCoverage(ctx)** — Coverage checker accepts `context.Context` for cancellation support.
+- **Intent schema docs** — `docs/intent/README.md` documents intent specification format.
+- **Schema path consistency** — Schemas served from `schema/` at SDP root.
+- **ws-verdict, review-verdict** — JSON schemas for build and review outputs.
+
+**Protocol boundary:**
+- Removed non-protocol docs (workstreams, roadmap, plans, reviews, decisions, specs) — migrated to sdp_dev.
+- Kept minimal `docs/reference/` (PRINCIPLES, GLOSSARY, build/design/review specs).
+- Added `docs/README.md` index for protocol documentation.
+
+**Fixes:**
+- **intent.schema.json** — Restored valid JSON (was corrupted).
+- **Windows build** — Added `lock_windows.go` (no-op flock); evidence layer requires UNIX.
+- **Lint** — gofmt, prealloc, gocognit, errcheck nolints.
+- **TestVerifyCmd** — Replaced hanging integration test with `TestVerifyCmdConstructed` unit test.
+
+**Audit remediation:**
+- Verifier interface abstraction (CoverageChecker, PathValidator, CommandRunner).
+- Parser frontmatter fix (Index for both `---` delimiters).
+- Configurable coverage timeouts, EmitSync docstrings, Writer hash-chain atomicity.
+- Guard rules path validation, ParseDependencies safe fallback, ctx propagation.
+
+**Install:**
+- `SDP_REF=v0.9.8` for testing. OpenCode: `SDP_IDE=opencode` or `SDP_IDE=all`.
+
+---
+
 ## [0.9.7] - 2026-02-24
 
 ### Phase 0 + protocol E2E: Skills, Schema, Constraints, Full Protocol
@@ -12,7 +79,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - **@design** — Workstream file format with Scope Files, beads mapping, INDEX.md update. Required sections documented.
 - **PreToolUse constraint enforcement** — `sdp-guard --check-constraints` integration. Reads `.sdp/agent-constraints.yaml` for phase-specific rules (scope, force-push, destructive git).
 
-**Phase 0 (F018, F016, F021, F020):**
+**Phase 0:**
 - Removed phantom guard CLI refs (context, branch, complete, finding)
 - Slim @oneshot skill; outer loop via sdp-orchestrate
 - Language-agnostic skills: quality gates per AGENTS.md, `master` not `dev`
@@ -96,7 +163,7 @@ This release focuses on UX improvements, intelligent next-step recommendations, 
 
 ### Statistics
 
-- **Features completed:** 8 (F054, F063, F064, F067, F068, F070, F075, F076)
+- **Features completed:** 8
 - **Workstreams:** 57
 - **Test coverage:** 80%+ (all packages)
 - **M1 Status:** ✅ COMPLETE
@@ -105,7 +172,7 @@ This release focuses on UX improvements, intelligent next-step recommendations, 
 
 ## New Features
 
-### F068: UX Foundation & First-Run Experience
+### UX Foundation & First-Run Experience
 
 Guided setup and improved user experience.
 
@@ -120,7 +187,7 @@ Guided setup and improved user experience.
 - Quickstart templates
 - Improved help text with user intent grouping
 
-### F069: Next-Step Engine
+### Next-Step Engine
 
 Intelligent recommendation system for development workflow.
 
@@ -136,7 +203,7 @@ Intelligent recommendation system for development workflow.
 - Interactive loop: accept/refine/reject
 - Quality metrics: acceptance rate, correction rate
 
-### F070: Failure & Recovery UX
+### Failure & Recovery UX
 
 Structured error handling with recovery guidance.
 
@@ -159,7 +226,7 @@ Structured error handling with recovery guidance.
 - Recovery playbooks with fast/deep path steps
 - Diagnostics reports (JSON/text)
 
-### F075: Self-Healing Doctor
+### Self-Healing Doctor
 
 Automatic environment repair.
 
@@ -173,7 +240,7 @@ Automatic environment repair.
 - Repair corrupted config
 - Sync stale state
 
-### F076: Guided Onboarding Wizard
+### Guided Onboarding Wizard
 
 Interactive project initialization.
 
@@ -192,7 +259,7 @@ Interactive project initialization.
 
 ## Updated Features
 
-### F056: Full Skills Instrumentation (Completed)
+### Full Skills Instrumentation (Completed)
 
 Evidence tracking for all skills.
 
@@ -203,7 +270,7 @@ Evidence tracking for all skills.
 
 **Coverage:** 84.8%
 
-### F065: Agent Git Safety Protocol (Completed)
+### Agent Git Safety Protocol (Completed)
 
 Git safety with session validation.
 
@@ -215,7 +282,7 @@ Git safety with session validation.
 
 **Coverage:** 83-90%
 
-### F024: Unified Workflow (Completed)
+### Unified Workflow (Completed)
 
 Unified workflow orchestration.
 
@@ -257,7 +324,7 @@ This release transforms SDP into a multi-agent orchestration system with autonom
 
 ### Statistics
 
-- **Features completed:** 16 (F014, F024, F051-F067)
+- **Features completed:** 16
 - **Workstreams:** 120+
 - **Test coverage:** 68% → 80%+
 
@@ -265,11 +332,11 @@ This release transforms SDP into a multi-agent orchestration system with autonom
 
 ## Features
 
-### F014: Workflow Efficiency
+### Workflow Efficiency
 
 Workflow optimization and efficiency improvements.
 
-### F024: Unified Workflow
+### Unified Workflow
 
 Unified workflow implementation with 18 workstreams covering end-to-end development process.
 
@@ -290,7 +357,7 @@ Unified workflow implementation with 18 workstreams covering end-to-end developm
 - `internal/checkpoint/` - 84.4% coverage
 - `internal/notification/` - 82.9% coverage
 
-### F051: Long-term Memory System
+### Long-term Memory System
 
 Project memory for avoiding duplicated work.
 
@@ -300,7 +367,7 @@ Project memory for avoiding duplicated work.
 - `sdp memory stats` - Show index statistics
 - `sdp drift detect [ws_id]` - Detect code↔docs drift
 
-### F052: Multi-Agent SDP + @vision + @reality
+### Multi-Agent SDP + @vision + @reality
 
 **@vision Skill:**
 - 7 expert agents: product, market, technical, UX, business, growth, risk
@@ -319,7 +386,7 @@ Project memory for avoiding duplicated work.
 - Stage 1: Spec compliance
 - Stage 2: Code quality (coverage >= 80%)
 
-### F054: SDP Evidence Layer
+### SDP Evidence Layer
 
 Hash-chained event log for audit trail.
 
@@ -334,47 +401,47 @@ Hash-chained event log for audit trail.
 .sdp/log/events.jsonl  # Hash-chained event log
 ```
 
-### F055: Compliance Design Doc
+### Compliance Design Doc
 
 - Compliance documentation
 - Threat model (THREAT-MODEL.md)
 - GDPR/SOC2 compliance reference
 
-### F056: Full Skills Instrumentation
+### Full Skills Instrumentation
 
 Instrumentation for @review, @design, @idea and remaining skills with evidence tracking.
 
-### F057: CLI plan/apply/log
+### CLI plan/apply/log
 
 **Commands:**
 - `sdp plan "feature"` - Decompose feature into workstreams
 - `sdp apply --ws <id>` - Execute workstreams
 - `sdp log show/trace/export/stats` - Evidence operations
 
-### F058: CI/CD GitHub Action
+### CI/CD GitHub Action
 
 - SDP Verify Action for GitHub Actions
 - PR evidence comments
 - Release automation
 
-### F059: Observability Bridge Design
+### Observability Bridge Design
 
 - OpenTelemetry semantic conventions
 - Observability integration design
 
-### F060: Shared Contracts for Parallel Features
+### Shared Contracts for Parallel Features
 
 - Cross-feature boundary detection
 - Interface contract generation
 - Contract-first build workflow
 
-### F061: Data Collection & AI Failure Benchmark
+### Data Collection & AI Failure Benchmark
 
 - Metrics collection
 - AI failure taxonomy
 - Benchmark report generator
 
-### F063: Guardian Hooks and Guard Rails
+### Guardian Hooks and Guard Rails
 
 Pre-edit scope enforcement for workstreams.
 
@@ -383,7 +450,7 @@ Pre-edit scope enforcement for workstreams.
 - `sdp guard check <file>` - Verify file is in scope
 - `sdp guard status` - Show guard status
 
-### F064: Unified Task Resolver
+### Unified Task Resolver
 
 Unified task ID resolution for workstreams, beads, and issues.
 
@@ -391,13 +458,13 @@ Unified task ID resolution for workstreams, beads, and issues.
 - @review artifact creation
 - /issue skill backend
 
-### F065: Agent Git Safety Protocol
+### Agent Git Safety Protocol
 
 - Git safety modules with structured logging
 - Branch protection
 - Safe git operations
 
-### F067: Repository Hardening
+### Repository Hardening
 
 **Quality Gates:**
 - 80% test coverage threshold in CI
@@ -451,7 +518,7 @@ Unified task ID resolution for workstreams, beads, and issues.
 
 ## [0.7.0] - 2026-01-31
 
-### F034: A+ Quality Initiative
+### A+ Quality Initiative
 
 - Split large files
 - Test coverage to 85%+
@@ -464,27 +531,27 @@ Unified task ID resolution for workstreams, beads, and issues.
 
 ## [0.5.2] - 2026-01-31
 
-### F025: pip-audit Security Scanning
+### pip-audit Security Scanning
 
 ---
 
 ## [0.5.1] - 2026-01-31
 
-### F020: Fast Feedback (Git Hooks)
+### Fast Feedback (Git Hooks)
 
 ---
 
 ## [0.4.0] - 2026-01-27
 
-### F003-F011: Core Features
+### Core Features
 
-- F003: Two-stage review
-- F004: Platform adapters
-- F005: Extension system
-- F007: Oneshot + hooks
-- F008: Contract-driven tiers
-- F010: SDP infrastructure
-- F011: PRD command
+- Two-stage review
+- Platform adapters
+- Extension system
+- Oneshot + hooks
+- Contract-driven tiers
+- SDP infrastructure
+- PRD command
 
 ---
 

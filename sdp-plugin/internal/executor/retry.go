@@ -4,24 +4,25 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"time"
+
+	"github.com/fall-out-bug/sdp/internal/config"
 )
 
 // executeWorkstreamWithRetry executes a workstream with retry logic
+//
+//nolint:gocognit // retry loop with context checks and progress output
 func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Writer, wsID string, maxRetries int) (int, error) {
 	var lastErr error
 	retries := 0
-	var attemptCount int // Track total attempts
 
-	// Use configured retry count if not specified
 	if maxRetries <= 0 {
 		maxRetries = e.config.RetryCount
 	}
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		attemptCount++
-
-		// Check context
+		// Check context cancellation in loop body (not only at start)
 		select {
 		case <-ctx.Done():
 			return retries, ctx.Err()
@@ -40,7 +41,7 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 			return retries, fmt.Errorf("write: %w", err)
 		}
 
-		err := e.executeWorkstreamMock(ctx, wsID, attemptCount)
+		err := e.runner.Run(ctx, wsID)
 		if err == nil {
 			if err := writeLine(output, e.progress.RenderSuccess(wsID, "completed successfully")); err != nil {
 				return retries, fmt.Errorf("write: %w", err)
@@ -49,31 +50,42 @@ func (e *Executor) executeWorkstreamWithRetry(ctx context.Context, output io.Wri
 		}
 
 		lastErr = err
+		slog.Debug("workstream run failed", "ws_id", wsID, "attempt", attempt, "max_retries", maxRetries, "error", err)
 
 		if attempt < maxRetries {
 			if errW := writeLine(output, e.progress.Output(wsID, progress, "retrying", fmt.Sprintf("failed: %v", err))); errW != nil {
 				return retries, fmt.Errorf("write: %w", errW)
 			}
-			time.Sleep(100 * time.Millisecond) // Small delay before retry
+			delay := e.retryDelayFromConfigCached()
+			select {
+			case <-ctx.Done():
+				return retries, ctx.Err()
+			case <-time.After(delay):
+			}
 		}
 	}
 
+	slog.Info("workstream execution failed after retries", "ws_id", wsID, "retries", retries, "error", lastErr)
 	return retries, lastErr
 }
 
-// executeWorkstreamMock is a mock executor for testing
-// In production, this would call the actual workstream execution logic
-func (e *Executor) executeWorkstreamMock(ctx context.Context, wsID string, attemptCount int) error {
-	// Mock: 00-054-02 fails on first attempt, succeeds on retry
-	if wsID == "00-054-02" {
-		if attemptCount == 1 {
-			// First attempt fails
-			return fmt.Errorf("mock execution failure for %s", wsID)
-		}
-		// Second attempt (retry) succeeds
-		return nil
-	}
+// retryDelayFromConfigCached returns retry delay from config, cached to avoid repeated config I/O per retry.
+func (e *Executor) retryDelayFromConfigCached() time.Duration {
+	e.cachedRetryDelayOnce.Do(func() {
+		e.cachedRetryDelay = retryDelayFromConfig()
+	})
+	return e.cachedRetryDelay
+}
 
-	// Other workstreams always succeed
-	return nil
+// retryDelayFromConfig returns retry delay from config (or env, or default).
+func retryDelayFromConfig() time.Duration {
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		return config.TimeoutFromEnv("SDP_TIMEOUT_RETRY_DELAY", 100*time.Millisecond)
+	}
+	cfg, err := config.Load(root)
+	if err != nil || cfg == nil {
+		return config.TimeoutFromEnv("SDP_TIMEOUT_RETRY_DELAY", 100*time.Millisecond)
+	}
+	return config.TimeoutFromConfigOrEnv(cfg.Timeouts.RetryDelay, "SDP_TIMEOUT_RETRY_DELAY", 100*time.Millisecond)
 }

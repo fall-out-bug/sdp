@@ -59,6 +59,8 @@ archive/
 .sdp/audit.log
 .sdp/memory.db
 .sdp/checkpoints/
+!.sdp/evidence/
+!.sdp/checkpoints/
 .sdp/log/events.jsonl
 sdp-plugin/.sdp/log/events.jsonl
 **/events.jsonl
@@ -91,3 +93,7 @@ sdp-plugin/.beads/*.db-wal
 
 # SDP session files in subdirs
 sdp-plugin/**/.sdp/
+
+# Demo project (created by vhs demo.tape)
+demo-beads-viz/
+demo-project/

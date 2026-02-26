@@ -2,7 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
 
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/spf13/cobra"
 )
@@ -113,10 +119,18 @@ Examples:
 			fmt.Printf("⚠️  PROTOTYPE MODE - Relaxed quality gates active\n")
 			fmt.Printf("⚠️  Tech debt will be tracked but NOT blocking\n\n")
 
-			// In real implementation, this would invoke @oneshot skill
-			fmt.Printf("⚠️  @oneshot integration not yet implemented\n")
-			fmt.Printf("   Please run: @oneshot %s --mode=prototype\n", featureID)
-			fmt.Printf("\n")
+			// Create workstream files and invoke opencode/sdp-orchestrate
+			projectRoot, err := config.FindProjectRoot()
+			if err != nil {
+				return fmt.Errorf("find project root: %w", err)
+			}
+			resolvedFeatureID := resolveFeatureID(featureID)
+			if err := createPrototypeWorkstreams(projectRoot, resolvedFeatureID, featureDesc, numWS); err != nil {
+				return fmt.Errorf("create workstreams: %w", err)
+			}
+			if err := launchOneshot(projectRoot, resolvedFeatureID); err != nil {
+				return err
+			}
 
 			// Step 4: Show what would happen
 			fmt.Printf("📋 What Happens Next:\n\n")
@@ -147,4 +161,107 @@ Examples:
 	cmd.Flags().BoolVar(&immediate, "immediate", false, "Launch @oneshot without confirmation")
 
 	return cmd
+}
+
+// resolveFeatureID converts AUTO to F099; otherwise normalizes (e.g. F060 -> F060).
+func resolveFeatureID(id string) string {
+	id = strings.ToUpper(strings.TrimSpace(id))
+	if id != "" && id != "AUTO" {
+		if !strings.HasPrefix(id, "F") {
+			id = "F" + id
+		}
+		return id
+	}
+	return "F099" // F099 for prototype mode when AUTO
+}
+
+// createPrototypeWorkstreams writes minimal workstream files for the feature.
+func createPrototypeWorkstreams(projectRoot, featureID, featureDesc string, numWS int) error {
+	backlogDir := filepath.Join(projectRoot, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+		return err
+	}
+	rawNum := strings.TrimPrefix(featureID, "F")
+	n, _ := strconv.Atoi(rawNum)
+	if n <= 0 {
+		n = 99
+	}
+	for i := 1; i <= numWS; i++ {
+		wsID := fmt.Sprintf("00-%03d-%02d", n, i)
+		content := fmt.Sprintf(`---
+ws_id: %s
+feature_id: %s
+status: pending
+scope_files: []
+---
+
+# %s: %s (Prototype)
+
+## Goal
+
+%s
+
+## Scope Files
+
+- (to be defined during build)
+
+## Acceptance Criteria
+
+- [ ] Working prototype
+`, wsID, featureID, wsID, featureDesc, featureDesc)
+		path := filepath.Join(backlogDir, wsID+".md")
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			return err
+		}
+	}
+	// Append to .beads-sdp-mapping.jsonl if it exists
+	mappingPath := filepath.Join(projectRoot, ".beads-sdp-mapping.jsonl")
+	f, err := os.OpenFile(mappingPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err == nil {
+		for i := 1; i <= numWS; i++ {
+			wsID := fmt.Sprintf("00-%03d-%02d", n, i)
+			fmt.Fprintf(f, "%s\tprototype-%s\n", wsID, wsID)
+		}
+		f.Close()
+	}
+	return nil
+}
+
+// launchOneshot invokes sdp-orchestrate --runtime opencode or opencode run '@oneshot'.
+func launchOneshot(projectRoot, featureID string) error {
+	if !strings.HasPrefix(featureID, "F") {
+		featureID = "F" + featureID
+	}
+	if os.Getenv("GLM_API_KEY") == "" {
+		fmt.Printf("⚠️  GLM_API_KEY not set — LLM execution skipped\n")
+		fmt.Printf("   Set GLM_API_KEY and run: @oneshot %s --mode=prototype\n", featureID)
+		return nil
+	}
+	// Prefer sdp-orchestrate (from sdp_dev) if on PATH
+	if _, err := exec.LookPath("sdp-orchestrate"); err == nil {
+		cmd := exec.Command("sdp-orchestrate", "--feature", featureID, "--runtime", "opencode")
+		cmd.Dir = projectRoot
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("sdp-orchestrate: %w", err)
+		}
+		return nil
+	}
+	// Fallback: opencode run '@oneshot FXXX --mode=prototype'
+	if _, err := exec.LookPath("opencode"); err == nil {
+		cmd := exec.Command("opencode", "run", fmt.Sprintf("@oneshot %s --mode=prototype", featureID), "--dir", projectRoot, "--continue")
+		cmd.Dir = projectRoot
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Env = os.Environ()
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("opencode run: %w", err)
+		}
+		return nil
+	}
+	fmt.Printf("⚠️  Neither sdp-orchestrate nor opencode on PATH\n")
+	fmt.Printf("   Install sdp-orchestrate (sdp_dev) or opencode, set GLM_API_KEY, then run:\n")
+	fmt.Printf("   @oneshot %s --mode=prototype\n", featureID)
+	return nil
 }

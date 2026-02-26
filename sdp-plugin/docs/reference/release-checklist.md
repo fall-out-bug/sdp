@@ -25,7 +25,7 @@ This checklist must be completed before any SDP release.
 - [ ] Cross-platform builds work (darwin, linux, windows)
 - [ ] Version embedded correctly
 
-## UX Quality Gates (F068+)
+## UX Quality Gates
 
 ### Onboarding Metrics
 

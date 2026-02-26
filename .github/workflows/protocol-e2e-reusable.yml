@@ -1,45 +1,34 @@
-# Reusable workflow for Protocol E2E (Docker)
-# Called from protocol-e2e.yml, go-release.yml, and sdp_dev release.yml
-name: Protocol E2E (Reusable)
+# Reusable workflow: Protocol E2E (Docker)
+# Called by protocol-e2e.yml and release workflows
+# Build context: caller's repo root (sdp or sdp_dev)
+# ci/ must exist at build context root (sdp/ci/ or sdp_dev root ci/)
+
+name: Protocol E2E Reusable
 
 on:
   workflow_call:
     inputs:
       submodules:
-        description: 'Checkout with submodules (true for sdp_dev)'
+        description: 'Checkout submodules (true for sdp_dev, false for sdp standalone)'
         required: false
         default: false
         type: boolean
-      dockerfile_path:
-        description: 'Path to Dockerfile (sdp_dev uses sdp/ci/Dockerfile.protocol-e2e)'
-        required: false
-        default: 'ci/Dockerfile.protocol-e2e'
-        type: string
-      build_args:
-        description: 'Extra docker build args (e.g. --build-arg SDP_PLUGIN_PATH=sdp/sdp-plugin)'
-        required: false
-        default: ''
-        type: string
 
 jobs:
   protocol-e2e:
     name: Protocol E2E (Docker)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: ${{ inputs.submodules }}
 
-      - name: Overlay sdp ci (for sdp_dev build)
-        if: inputs.build_args != ''
-        run: |
-          cp sdp/ci/protocol-e2e-test.sh ci/
-          cp -r sdp/ci/protocol-e2e-fixtures ci/
-
       - name: Protocol E2E (Docker)
         env:
           GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          PROTOCOL_E2E_DEBUG: "1"
         run: |
-          docker build -f ${{ inputs.dockerfile_path }} ${{ inputs.build_args }} -t sdp-protocol-e2e:latest .
-          docker run --rm -e GLM_API_KEY="${GLM_API_KEY}" sdp-protocol-e2e:latest
+          docker build -f ci/Dockerfile.protocol-e2e -t sdp-protocol-e2e:latest .
+          timeout 900 docker run --rm -e GLM_API_KEY="${GLM_API_KEY}" -e PROTOCOL_E2E_DEBUG=1 sdp-protocol-e2e:latest

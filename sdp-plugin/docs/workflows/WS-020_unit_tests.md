@@ -1,7 +1,7 @@
 # WS-020: Unit Tests for Core Components
 
 > **Workstream ID:** WS-020  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-015, WS-018
 
 ## Goal

@@ -1,6 +1,7 @@
 package evidence
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -76,14 +77,46 @@ func TestWriter_Append_Concurrent(t *testing.T) {
 	}
 	done := make(chan struct{})
 	for i := 0; i < 5; i++ {
-		go func(j int) {
+		go func() {
 			ev := Event{ID: "e", Type: "plan", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04"}
 			_ = w.Append(&ev)
 			done <- struct{}{}
-		}(i)
+		}()
 	}
 	for i := 0; i < 5; i++ {
 		<-done
+	}
+}
+
+// TestWriter_Append_Concurrent_ValidChain verifies hash chain integrity after concurrent Appends (AC: concurrent writers produce valid chain).
+func TestWriter_Append_Concurrent_ValidChain(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "events.jsonl")
+	w, err := NewWriter(path)
+	if err != nil {
+		t.Fatalf("NewWriter: %v", err)
+	}
+	const n = 20
+	done := make(chan error, n)
+	for i := 0; i < n; i++ {
+		go func(j int) {
+			ev := Event{
+				ID:        fmt.Sprintf("evt-%d", j),
+				Type:      "verification",
+				Timestamp: "2026-02-09T12:00:00Z",
+				WSID:      "00-054-04",
+			}
+			done <- w.Append(&ev)
+		}(i)
+	}
+	for i := 0; i < n; i++ {
+		if err := <-done; err != nil {
+			t.Fatalf("Append %d: %v", i, err)
+		}
+	}
+	r := NewReader(path)
+	if err := r.Verify(); err != nil {
+		t.Fatalf("chain invalid after concurrent writes: %v", err)
 	}
 }
 

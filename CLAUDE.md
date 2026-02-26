@@ -1,6 +1,8 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP CLI v0.9.7 with Claude Code.
+Quick reference for using SDP CLI v0.9.8 with Claude Code.
+
+> **Sync:** Shared with sdp_dev/AGENTS.md — placement rules, "продолжай" convention. When updating these, update both files. Sync rules: sdp_dev/docs/plans/2026-02-25-agents-claude-sync-rules.md (in parent repo).
 
 ## Quick Start
 
@@ -9,10 +11,22 @@ Quick reference for using SDP CLI v0.9.7 with Claude Code.
 @reality --quick                     # Codebase analysis
 @feature "Add user authentication"   # Plan feature
 @build 00-001-01                     # Execute workstream
-@review F01                          # Quality check
+@review <feature-id>                 # Quality check
 ```
 
 **Workstream ID Format:** `PP-FFF-SS` (e.g., `00-001-01`)
+
+---
+
+## Shared Conventions (sync with sdp_dev/AGENTS.md)
+
+**Artifact placement:** `docs/reviews/` (review artifacts), `docs/workstreams/backlog/` (WS only), `docs/drafts/idea-*` (one per feature).
+
+**Evidence and checkpoint** must be committed with the PR. When running as part of @oneshot, after `sdp-orchestrate --advance` writes `.sdp/evidence/` and `.sdp/checkpoints/`, commit them (see @build skill step 3b).
+
+**"Продолжай {feature-id}"** = `sdp-orchestrate --feature <feature-id> --next-action`. Convention: run the next action for that feature.
+
+**Status:** `sdp-orchestrate --feature <feature-id> --status` — pending WS, open beads, next action.
 
 ---
 
@@ -21,7 +35,7 @@ Quick reference for using SDP CLI v0.9.7 with Claude Code.
 The correct workflow is:
 
 ```
-@oneshot F001  →  @review F001  →  @deploy F001
+@oneshot <feature-id>  →  @review <feature-id>  →  @deploy <feature-id>
     │                 │                │
     ▼                 ▼                ▼
  Execute WS      APPROVED?         Merge PR
@@ -42,9 +56,9 @@ New project?
 +-- No --> Working on existing project?
     |-- Yes --> What's the state?
     |   |-- Don't know --> @reality --quick
-    |   +-- Know state --> @feature "add feature"
+    |   +-- Know state --> @feature "add feature" (or @discovery for pre-check only)
     +-- No --> Workstreams exist?
-        |-- Yes --> @oneshot F050
+        |-- Yes --> @oneshot <feature-id>
         +-- No --> @feature "plan feature"
 ```
 
@@ -54,7 +68,7 @@ New project?
 |-------|-------------|---------|--------|
 | **Strategic** | @vision (7 agents) | Product planning | VISION, PRD, ROADMAP |
 | **Analysis** | @reality (8 agents) | Codebase analysis | Reality report |
-| **Feature** | @feature (roadmap pre-check + @idea + @ux + @design) | Requirements + WS | Workstreams |
+| **Feature** | @feature (roadmap pre-check + @discovery + @idea + @ux + @design) | Requirements + WS | Workstreams |
 | **Execution** | @oneshot (@build) | Parallel execution | Implemented code |
 
 ### When to Use Each Level
@@ -64,6 +78,8 @@ New project?
 **@reality** — New to project, before @feature, track tech debt, quarterly review
 
 **@feature** — Feature idea but no workstreams, need interactive planning (full discovery flow)
+
+**@discovery** — Roadmap pre-check, product research, feature brief (standalone or via @feature)
 
 **@ux** — UX research for user-facing features (standalone or auto-triggered by @feature)
 
@@ -81,7 +97,8 @@ New project?
 |-------|---------|-------|
 | `@vision` | Strategic product planning (7 expert agents) | Strategic |
 | `@reality` | Codebase analysis (8 expert agents) | Analysis |
-| `@feature` | Planning orchestrator (roadmap pre-check + idea + ux + design) | Planning |
+| `@feature` | Planning orchestrator (roadmap pre-check + discovery + idea + ux + design) | Planning |
+| `@discovery` | Product discovery gate (roadmap check, research loop) | Planning |
 | `@idea` | Requirements gathering (AskUserQuestion) | Planning |
 | `@ux` | UX research (mental model elicitation) | Planning |
 | `@design` | Workstream design (EnterPlanMode) | Planning |
@@ -139,7 +156,7 @@ New project?
 @feature "User can reset password via email"
 
 # 4. Autonomous execution
-@oneshot F050
+@oneshot <feature-id>
 ```
 
 ### Quick Flow (existing project)
@@ -149,7 +166,7 @@ New project?
 @feature "Add payment processing"
 
 # 2. Execute all workstreams
-@oneshot F050
+@oneshot <feature-id>
 ```
 
 ### Manual Flow (learning or debugging)
@@ -157,8 +174,8 @@ New project?
 ```bash
 @build 00-050-01   # Execute one at a time
 @build 00-050-02
-@review F050       # Review when done
-@deploy F050       # Deploy
+@review <feature-id>       # Review when done
+@deploy <feature-id>       # Deploy
 ```
 
 ---
@@ -338,7 +355,7 @@ Config: `.sdp/config.yml` with `version`, `evidence.enabled`, `evidence.log_path
 
 ---
 
-## Long-term Memory (F051)
+## Long-term Memory
 
 Project memory system for avoiding duplicated work. Integrates with evidence.jsonl and Beads issues.
 
@@ -417,4 +434,4 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**CLI Version:** 0.9.7 | **Protocol Version:** 0.10.0
+**CLI Version:** 0.9.8 | **Protocol Version:** 0.10.0

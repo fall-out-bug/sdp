@@ -1,0 +1,1 @@
+{"id": "idea-001", "input": "Add login flow", "expected_keys": ["problem", "users", "success_criteria"], "schema": "schema/intent.schema.json"}

@@ -10,7 +10,7 @@ import (
 func TestExecutor_SetEvidenceWriter(t *testing.T) {
 	exec := NewExecutor(ExecutorConfig{
 		BacklogDir: "testdata/backlog",
-	})
+	}, newTestRunner())
 
 	var buf bytes.Buffer
 	exec.SetEvidenceWriter(&buf)
@@ -24,7 +24,7 @@ func TestExecutor_SetEvidenceWriter(t *testing.T) {
 func TestExecutor_EmitEvidenceEvent(t *testing.T) {
 	exec := NewExecutor(ExecutorConfig{
 		BacklogDir: "testdata/backlog",
-	})
+	}, newTestRunner())
 
 	var buf bytes.Buffer
 	exec.SetEvidenceWriter(&buf)

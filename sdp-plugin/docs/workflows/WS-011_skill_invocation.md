@@ -1,7 +1,7 @@
 # WS-011: @idea/@design/@oneshot Invocation
 
 > **Workstream ID:** WS-011  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-010
 
 ## Goal

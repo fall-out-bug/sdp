@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/ws-verdict/v1",
+  "title": "SDP Workstream Verdict",
+  "description": "Output schema for @build skill. Captures single workstream execution result with quality gates and acceptance criteria evidence.",
+  "type": "object",
+  "required": [
+    "ws_id",
+    "feature_id",
+    "verdict",
+    "quality_gates",
+    "existing_work_summary"
+  ],
+  "properties": {
+    "ws_id": {
+      "type": "string",
+      "pattern": "^\\d{2}-\\d{3}-\\d{2}$",
+      "description": "Workstream ID (e.g. 00-001-01)"
+    },
+    "feature_id": {
+      "type": "string",
+      "description": "Feature ID (e.g. add-auth)"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "PARTIAL"
+      ],
+      "description": "Overall workstream verdict"
+    },
+    "commit": {
+      "type": "string",
+      "description": "Git commit SHA of the completed work"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "quality_gates": {
+      "type": "object",
+      "required": [
+        "tests_pass",
+        "lint_clean"
+      ],
+      "properties": {
+        "tests_pass": {
+          "type": "boolean"
+        },
+        "lint_clean": {
+          "type": "boolean"
+        },
+        "coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Optional. Recommended when coverage measured (build target >= 80%)."
+        },
+        "coverage_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "max_file_loc": {
+          "type": "integer",
+          "description": "Largest file in LOC (should be < 200)"
+        },
+        "build_ok": {
+          "type": "boolean"
+        },
+        "vet_ok": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ac_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ac",
+          "met"
+        ],
+        "properties": {
+          "ac": {
+            "type": "string",
+            "description": "Acceptance criterion text"
+          },
+          "met": {
+            "type": "boolean"
+          },
+          "evidence": {
+            "type": "string",
+            "description": "File:line reference or test name proving this AC"
+          }
+        }
+      },
+      "description": "Evidence for each acceptance criterion"
+    },
+    "existing_work_summary": {
+      "type": "string",
+      "description": "Summary of pre-existing code/tests found before implementation"
+    },
+    "changed_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tdd_cycles": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of red-green-refactor cycles completed"
+    }
+  }
+}

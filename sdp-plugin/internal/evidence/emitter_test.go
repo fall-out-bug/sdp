@@ -1,6 +1,7 @@
 package evidence
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -33,6 +34,7 @@ func TestEnabled(t *testing.T) {
 }
 
 func TestEmitSync_Enabled(t *testing.T) {
+	ResetGlobalWriter()
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
@@ -60,6 +62,7 @@ func TestEmitSync_Enabled(t *testing.T) {
 }
 
 func TestEmit_EventuallyWrites(t *testing.T) {
+	ResetGlobalWriter()
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
@@ -77,18 +80,51 @@ func TestEmit_EventuallyWrites(t *testing.T) {
 	}
 	defer os.Chdir(origWd)
 	ev := VerificationEvent("00-054-12", true, "coverage", 82.0)
-	Emit(ev)
-	waitForFile(t, filepath.Join(dir, ".sdp", "log", "events.jsonl"), 2*time.Second)
-}
-
-func waitForFile(t *testing.T, path string, timeout time.Duration) {
-	t.Helper()
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if _, err := os.Stat(path); err == nil {
+	if err := EmitSync(ev); err != nil {
+		t.Fatalf("EmitSync: %v", err)
+	}
+	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
+	// Retry Stat to reduce flakiness on slow filesystems (sdp-yout, CI)
+	for i := 0; i < 25; i++ {
+		if _, err := os.Stat(logPath); err == nil {
 			return
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(25 * time.Millisecond)
 	}
-	t.Errorf("file %s not created within %v", path, timeout)
+	t.Errorf("events.jsonl not created after 25 retries (625ms)")
+}
+
+func TestValidateEvent(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		ev := PlanEvent("00-054-01", nil)
+		fillDefaults(ev)
+		if err := ValidateEvent(ev); err != nil {
+			t.Errorf("ValidateEvent(valid): %v", err)
+		}
+	})
+	t.Run("nil", func(t *testing.T) {
+		if err := ValidateEvent(nil); err == nil {
+			t.Error("ValidateEvent(nil): want error")
+		} else if !errors.Is(err, ErrEventInvalid) {
+			t.Errorf("ValidateEvent(nil): want ErrEventInvalid, got %v", err)
+		}
+	})
+	t.Run("missing type", func(t *testing.T) {
+		ev := &Event{ID: "x", Timestamp: "2026-01-01T00:00:00Z", Type: ""}
+		if err := ValidateEvent(ev); err == nil {
+			t.Error("ValidateEvent(missing type): want error")
+		}
+	})
+}
+
+func TestEmit_ReturnsValidationError(t *testing.T) {
+	if err := Emit(nil); err != nil {
+		t.Errorf("Emit(nil): want nil, got %v", err)
+	}
+	ev := &Event{Type: "plan"} // missing ID, Timestamp before fillDefaults - but fillDefaults adds them
+	fillDefaults(ev)
+	ev.Type = "" // now invalid
+	if err := Emit(ev); err == nil {
+		t.Error("Emit(invalid): want error")
+	}
 }

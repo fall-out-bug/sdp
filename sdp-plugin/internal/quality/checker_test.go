@@ -1,6 +1,7 @@
 package quality
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -132,7 +133,7 @@ func TestCheckCoveragePython(t *testing.T) {
 		projectType: Python,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -170,7 +171,7 @@ func TestCheckCoverageGo(t *testing.T) {
 		projectType: Go,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}
@@ -200,7 +201,7 @@ func TestCheckCoverageJava(t *testing.T) {
 		projectType: Java,
 	}
 
-	result, err := checker.CheckCoverage()
+	result, err := checker.CheckCoverage(context.Background())
 	if err != nil {
 		t.Fatalf("CheckCoverage failed: %v", err)
 	}

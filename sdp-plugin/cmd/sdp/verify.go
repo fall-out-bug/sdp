@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"regexp"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/verify"
 	"github.com/spf13/cobra"
 )
+
+var wsIDPattern = regexp.MustCompile(`^\d{2}-\d{3}-\d{2}$`)
 
 func verifyCmd() *cobra.Command {
 	var wsDir string
@@ -26,6 +30,9 @@ Usage:
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			wsID := args[0]
+			if !wsIDPattern.MatchString(wsID) {
+				return fmt.Errorf("invalid ws-id format: want 00-XXX-YY, got %q", wsID)
+			}
 
 			// Default workstream directory
 			if wsDir == "" {
@@ -35,14 +42,18 @@ Usage:
 			// Create verifier
 			verifier := verify.NewVerifier(wsDir)
 
-			// Run verification
-			result := verifier.Verify(wsID)
+			// Run verification (use command context for cancellation)
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			result := verifier.Verify(ctx, wsID)
 
 			// AC1: Emit lesson event when workstream completes (auto-extracted)
 			lesson := evidence.ExtractLesson(wsID, result)
 			evidence.EmitLesson(lesson)
 
-			// AC1/AC2: Emit one verification event per gate result with findings (F056)
+			// AC1/AC2: Emit one verification event per gate result with findings
 			if evidence.Enabled() {
 				coverage := 0.0
 				if result.CoverageActual > 0 {

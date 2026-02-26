@@ -60,4 +60,4 @@ What SDP does **not** mitigate in the initial release:
 ## Reference
 
 - [COMPLIANCE.md](COMPLIANCE.md) — Data residency, retention, access control, regulatory alignment
-- [schema/evidence.schema.json](../../schema/evidence.schema.json) — Evidence event schema (F054)
+- [schema/evidence.schema.json](../../schema/evidence.schema.json) — Evidence event schema

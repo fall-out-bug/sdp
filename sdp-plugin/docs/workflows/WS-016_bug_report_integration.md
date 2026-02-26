@@ -1,7 +1,7 @@
 # WS-016: Bug Report Flow Integration
 
 > **Workstream ID:** WS-016  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-013
 
 ## Goal

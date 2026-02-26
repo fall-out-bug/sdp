@@ -62,8 +62,8 @@ Action: Continue writing tests for other packages
 **Good (recovery):**
 ```
 Summary: "Was improving test coverage for graph package"
-Check: bd list --status=in_progress → shows F077 workstream
-Action: Resume F077 workstream, tests were just side task
+Check: bd list --status=in_progress → shows workstream
+Action: Resume workstream, tests were just side task
 ```
 
 ---

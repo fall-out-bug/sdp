@@ -1,69 +1,144 @@
+// Package evidence provides event emission for SDP workflows.
+//
+// CLI usage: Use EmitSync from CLI entry points (sdp verify, sdp quality, sdp apply)
+// so process exit does not drop evidence. Emit() is async and may lose events on exit.
 package evidence
 
 import (
+	"errors"
+	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 )
 
-// Emit appends an event to the evidence log (AC6, AC7). Non-blocking; errors are ignored.
-func Emit(ev *Event) {
-	if ev == nil {
-		return
-	}
-	ev2 := *ev
-	if ev2.ID == "" {
-		ev2.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	}
-	if ev2.Timestamp == "" {
-		ev2.Timestamp = time.Now().UTC().Format(time.RFC3339)
-	}
-	go func() {
-		if err := emitSync(&ev2); err != nil {
-			return
-		}
-	}()
+var (
+	ErrEventInvalid = errors.New("evidence event validation failed")
+)
+
+var (
+	globalWriter      *Writer
+	globalWriterErr   error
+	globalWriterPath  string
+	globalWriterMu    sync.Mutex // protects global state; ResetGlobalWriter vs getOrCreateWriter
+	globalWriterReady bool       // true after first successful load (avoids sync.Once reset race)
+)
+
+// ResetGlobalWriter clears the singleton for testing.
+func ResetGlobalWriter() {
+	globalWriterMu.Lock()
+	defer globalWriterMu.Unlock()
+	globalWriter = nil
+	globalWriterErr = nil
+	globalWriterPath = ""
+	globalWriterReady = false
 }
 
-// EmitSync writes the event immediately (use from CLI so process exit doesn't drop it).
-func EmitSync(ev *Event) error {
-	if ev == nil {
-		return nil
+func getOrCreateWriter() (*Writer, error) {
+	globalWriterMu.Lock()
+	defer globalWriterMu.Unlock()
+	if globalWriterReady {
+		return globalWriter, globalWriterErr
 	}
-	ev2 := *ev
-	if ev2.ID == "" {
-		ev2.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	}
-	if ev2.Timestamp == "" {
-		ev2.Timestamp = time.Now().UTC().Format(time.RFC3339)
-	}
-	return emitSync(&ev2)
-}
-
-// emitSync writes event to log; returns error (caller may ignore).
-func emitSync(ev *Event) error {
 	root, err := config.FindProjectRoot()
 	if err != nil {
-		return err
+		globalWriterErr = err
+		globalWriterReady = true
+		return nil, err
 	}
 	cfg, err := config.Load(root)
 	if err != nil {
-		return err
+		globalWriterErr = err
+		globalWriterReady = true
+		return nil, err
 	}
 	if cfg == nil || !cfg.Evidence.Enabled {
-		return nil
+		globalWriterReady = true
+		return nil, nil
 	}
 	logPath := cfg.Evidence.LogPath
 	if logPath == "" {
 		logPath = ".sdp/log/events.jsonl"
 	}
-	path := filepath.Join(root, logPath)
-	w, err := NewWriter(path)
+	globalWriterPath = filepath.Join(root, logPath)
+	globalWriter, globalWriterErr = NewWriter(globalWriterPath)
+	globalWriterReady = true
+	return globalWriter, globalWriterErr
+}
+
+func fillDefaults(ev *Event) {
+	if ev.ID == "" {
+		ev.ID = "evt-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	}
+	if ev.Timestamp == "" {
+		ev.Timestamp = time.Now().UTC().Format(time.RFC3339)
+	}
+}
+
+// ValidateEvent validates required Event fields (ID, Type, Timestamp).
+// Call after fillDefaults. Returns error if invalid.
+func ValidateEvent(ev *Event) error {
+	if ev == nil {
+		return fmt.Errorf("%w: event is nil", ErrEventInvalid)
+	}
+	if ev.ID == "" || ev.Type == "" || ev.Timestamp == "" {
+		return fmt.Errorf("%w: missing required fields (id=%q type=%q timestamp=%q)",
+			ErrEventInvalid, ev.ID, ev.Type, ev.Timestamp)
+	}
+	return nil
+}
+
+// Emit appends an event asynchronously in a goroutine. Validates synchronously and returns
+// validation error to caller; write errors are logged (async). Use EmitSync for CLI entry
+// points so process exit does not drop evidence.
+func Emit(ev *Event) error {
+	if ev == nil {
+		return nil
+	}
+	ev2 := *ev
+	fillDefaults(&ev2)
+	if err := ValidateEvent(&ev2); err != nil {
+		return err
+	}
+	go func() {
+		if err := emitSync(&ev2); err != nil {
+			slog.Error("evidence emission failed",
+				"event_id", ev2.ID,
+				"event_type", ev2.Type,
+				"error", err,
+			)
+		}
+	}()
+	return nil
+}
+
+// EmitSync writes the event immediately. Use from CLI entry points (verify,
+// quality, oneshot) so process exit does not drop evidence.
+func EmitSync(ev *Event) error {
+	if ev == nil {
+		return nil
+	}
+	ev2 := *ev
+	fillDefaults(&ev2)
+	return emitSync(&ev2)
+}
+
+// emitSync writes event to the singleton writer. Caller must validate via ValidateEvent first.
+func emitSync(ev *Event) error {
+	if err := ValidateEvent(ev); err != nil {
+		return err
+	}
+	w, err := getOrCreateWriter()
 	if err != nil {
 		return err
+	}
+	if w == nil {
+		return nil
 	}
 	return w.Append(ev)
 }

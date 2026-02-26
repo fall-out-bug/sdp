@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
@@ -64,8 +66,12 @@ Strict Mode (--strict):
 	cmd.AddCommand(&cobra.Command{
 		Use:   "all",
 		Short: "Run all quality checks",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runQualityAll(strict)
+		RunE: func(c *cobra.Command, args []string) error {
+			ctx := c.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			return runQualityAll(ctx, strict)
 		},
 	})
 

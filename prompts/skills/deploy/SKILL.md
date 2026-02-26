@@ -20,15 +20,15 @@ When user invokes `@deploy F{XX}`:
 
 **Pre-flight:** Check `.sdp/review_verdict.json` — verdict must be APPROVED. Verify `git branch --show-current` is feature branch. `bd list --status open` — no P0/P1. Run quality gates (AGENTS.md).
 
-**Steps:** Push feature branch. `gh pr create --base master --head feature/F{XX}-xxx --title "feat(F{XX}): ..." --body "..."`
+**Steps:** Push feature branch. Base branch: `git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|.*/||'` (or `main`). `gh pr create --base {base} --head feature/F{XX}-xxx --title "feat(F{XX}): ..." --body "..."`. Do not hardcode `master`.
 
 **Report:** PR Created: {url}. CI: Running...
 
 ### Mode 2: Release (`--release`)
 
-**Pre-flight:** On master. `git pull`. Quality gates pass.
+**Pre-flight:** On default branch (main/master). `git pull`. Quality gates pass.
 
-**Steps:** Read version from go.mod. Bump (patch/minor/major). Update CHANGELOG.md, docs/releases/v{X.Y.Z}.md. Commit. Tag v{X.Y.Z}. Push master + tag.
+**Steps:** Detect version file (go.mod, package.json, Cargo.toml, etc.). Bump (patch/minor/major). Update CHANGELOG.md, docs/releases/v{X.Y.Z}.md. Commit. Tag v{X.Y.Z}. Push default branch + tag.
 
 **Report:** Released: v{X.Y.Z}. Tag: v{X.Y.Z}.
 

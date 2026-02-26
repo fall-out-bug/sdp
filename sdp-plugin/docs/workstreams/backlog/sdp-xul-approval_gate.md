@@ -6,11 +6,11 @@
 
 ## Goal
 
-Implement ApprovalGateManager to enforce quality checkpoints as required by F024 Unified Workflow.
+Implement ApprovalGateManager to enforce quality checkpoints as required by Unified Workflow.
 
 ## Problem
 
-F024 specification claims WS-006 (ApprovalGateManager implementation) was completed, but `internal/orchestrator/approval.go` does not exist. This blocks:
+Unified Workflow specification claims WS-006 (ApprovalGateManager implementation) was completed, but `internal/orchestrator/approval.go` does not exist. This blocks:
 - Quality gate enforcement before workstream execution
 - Human-in-the-loop approval for critical changes
 - Team coordination with approval workflow

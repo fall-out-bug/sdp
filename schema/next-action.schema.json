@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/next-action/v1",
+  "title": "SDP Next Action",
+  "description": "Output of sdp orchestrate --next-action. Describes what the agent should do next.",
+  "type": "object",
+  "required": ["action"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["init", "build", "review", "pr", "ci-loop", "done"],
+      "description": "Next action to perform"
+    },
+    "ws_id": {
+      "type": "string",
+      "description": "Workstream ID (when action is build)"
+    },
+    "feature": {
+      "type": "string",
+      "description": "Feature ID (e.g. F016)"
+    },
+    "pr": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "PR number (when action is ci-loop)"
+    }
+  }
+}

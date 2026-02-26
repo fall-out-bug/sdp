@@ -263,7 +263,7 @@ go tool cover -html=coverage.out
 
 ---
 
-## F067 Repository Hardening Notes
+## Repository Hardening Notes
 
 ### Changes Applied (2026-02-14)
 

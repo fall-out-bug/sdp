@@ -1,12 +1,13 @@
 package quality
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fall-out-bug/sdp/internal/config"
 )
 
-func (c *Checker) CheckCoverage() (*CoverageResult, error) {
+func (c *Checker) CheckCoverage(ctx context.Context) (*CoverageResult, error) {
 	// Load threshold from project config first, then guard rules
 	threshold := 80.0 // default
 	projectRoot, rootErr := config.FindProjectRoot()
@@ -39,11 +40,11 @@ func (c *Checker) CheckCoverage() (*CoverageResult, error) {
 
 	switch c.projectType {
 	case Python:
-		return c.checkPythonCoverage(result)
+		return c.checkPythonCoverage(ctx, result)
 	case Go:
-		return c.checkGoCoverage(result)
+		return c.checkGoCoverage(ctx, result)
 	case Java:
-		return c.checkJavaCoverage(result)
+		return c.checkJavaCoverage(ctx, result)
 	default:
 		return result, fmt.Errorf("unsupported project type: %d", c.projectType)
 	}

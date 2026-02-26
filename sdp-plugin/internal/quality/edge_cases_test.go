@@ -1,6 +1,7 @@
 package quality
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,7 +30,7 @@ func TestCheckPythonCoverageWithInvalidJson(t *testing.T) {
 		projectType: Python,
 	}
 
-	result, err := checker.checkPythonCoverage(&CoverageResult{Threshold: 80.0})
+	result, err := checker.checkPythonCoverage(context.Background(), &CoverageResult{Threshold: 80.0})
 	if err != nil {
 		t.Fatalf("checkPythonCoverage failed: %v", err)
 	}
@@ -50,7 +51,7 @@ func TestCheckGoCoverageNoGo(t *testing.T) {
 		projectType: Go,
 	}
 
-	result, err := checker.checkGoCoverage(&CoverageResult{Threshold: 80.0})
+	result, err := checker.checkGoCoverage(context.Background(), &CoverageResult{Threshold: 80.0})
 	if err != nil {
 		t.Fatalf("checkGoCoverage failed: %v", err)
 	}
