@@ -91,10 +91,13 @@ if ! sdp-evidence inspect ci/protocol-e2e-fixtures/valid-evidence.json | grep -q
   err "sdp-evidence-inspect: should show intent section"
 fi
 
-# sdp-orchestrate --next-action (F016 exists)
+# sdp-orchestrate --next-action (F016 exists; also creates checkpoint + runs when none exist)
 if ! sdp-orchestrate --feature F016 --next-action 2>/dev/null | grep -qE '"action"|"phase"'; then
   err "sdp-orchestrate: --next-action should output JSON"
 fi
+
+# Create feature branch (advance pre-build hook expects it)
+git checkout -b feature/F016-e2e 2>/dev/null || git checkout feature/F016-e2e 2>/dev/null || true
 
 # sdp-orchestrate --hydrate
 if ! sdp-orchestrate --feature F016 --hydrate --ws 00-016-01 &>/dev/null; then
@@ -102,6 +105,11 @@ if ! sdp-orchestrate --feature F016 --hydrate --ws 00-016-01 &>/dev/null; then
 fi
 if [ ! -f .sdp/context-packet.json ]; then
   err "sdp-orchestrate: context-packet.json not created"
+fi
+
+# sdp-orchestrate --advance (init→build): creates checkpoint + runs for Phase 4
+if ! sdp-orchestrate --feature F016 --advance &>/dev/null; then
+  err "sdp-orchestrate: --advance should succeed (init→build)"
 fi
 
 # sdp-orchestrate --feature FXXX (negative)

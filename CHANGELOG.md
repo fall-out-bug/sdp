@@ -4,14 +4,14 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 ## [0.9.8] - 2026-02-26
 
-### F054: Skills Sync, Beads Integration
+### Skills Sync, Beads Integration
 
-- **@build** — Post-build `bd close` for beads in WS frontmatter; batch syntax `/build 00-053-16..25`
+- **@build** — Post-build `bd close` for beads in WS frontmatter; batch syntax `/build 00-XXX-YY..ZZ`
 - **@design** — Pre-draft check, bead verification, default-in-scope
 - **@review** — Handoff block when CHANGES_REQUESTED
 - **CLAUDE.md** — Sync with sdp_dev/AGENTS.md (placement, "продолжай" convention)
 
-### F055: Evidence + Checkpoint Commit, Guard Strict
+### Evidence + Checkpoint Commit, Guard Strict
 
 - **@build** — Step 3b: commit evidence + checkpoint after `sdp-orchestrate --advance`
 - **.gitignore** — `!.sdp/evidence/`, `!.sdp/checkpoints/` (evidence must be committed with PR)
@@ -33,9 +33,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 
 ---
 
-### F053: Coverage Context + Protocol-Only Docs Boundary
-
-**Theme:** Context propagation for cancellation, protocol-only documentation boundary.
+### Coverage Context + Protocol-Only Docs Boundary
 
 **New:**
 - **CheckCoverage(ctx)** — Coverage checker accepts `context.Context` for cancellation support.
@@ -54,7 +52,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - **Lint** — gofmt, prealloc, gocognit, errcheck nolints.
 - **TestVerifyCmd** — Replaced hanging integration test with `TestVerifyCmdConstructed` unit test.
 
-**Audit remediation (F053 beads):**
+**Audit remediation:**
 - Verifier interface abstraction (CoverageChecker, PathValidator, CommandRunner).
 - Parser frontmatter fix (Index for both `---` delimiters).
 - Configurable coverage timeouts, EmitSync docstrings, Writer hash-chain atomicity.
@@ -75,7 +73,7 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - **@design** — Workstream file format with Scope Files, beads mapping, INDEX.md update. Required sections documented.
 - **PreToolUse constraint enforcement** — `sdp-guard --check-constraints` integration. Reads `.sdp/agent-constraints.yaml` for phase-specific rules (scope, force-push, destructive git).
 
-**Phase 0 (F018, F016, F021, F020):**
+**Phase 0:**
 - Removed phantom guard CLI refs (context, branch, complete, finding)
 - Slim @oneshot skill; outer loop via sdp-orchestrate
 - Language-agnostic skills: quality gates per AGENTS.md, `master` not `dev`

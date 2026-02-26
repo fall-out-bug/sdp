@@ -7,10 +7,13 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/fall-out-bug/sdp/internal/evidence"
 )
 
 // TestPlanApplyTraceWorkflow tests the end-to-end plan → apply → trace workflow
 func TestPlanApplyTraceWorkflow(t *testing.T) {
+	evidence.ResetGlobalWriter()
 	binaryPath := skipIfBinaryNotBuilt(t)
 
 	// Create temp directory for isolated test environment
@@ -57,7 +60,7 @@ evidence:
 
 		// dry-run should succeed without MODEL_API
 		if err != nil {
-			t.Logf("Plan dry-run output: %s\nError: %v", output, err)
+			t.Logf("Plan dry-run output: %s\nPlan exit: %v", output, err)
 		}
 
 		// Check for dry-run indicators
@@ -78,7 +81,7 @@ evidence:
 		output := stdout.String()
 
 		if err != nil {
-			t.Logf("Plan JSON output: %s\nError: %v", output, err)
+			t.Logf("Plan JSON output: %s\nPlan exit: %v", output, err)
 		}
 
 		// Check for JSON structure

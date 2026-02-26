@@ -4,10 +4,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/fall-out-bug/sdp/internal/evidence"
 )
 
 // TestPrototypeCmd_GenerationEvent tests that prototype emits generation event (F056-03 AC4)
 func TestPrototypeCmd_GenerationEvent(t *testing.T) {
+	evidence.ResetGlobalWriter()
 	originalWd, _ := os.Getwd()
 	// Use manual temp dir to avoid cleanup issues with .sdp subdirectory
 	tmpDir, err := os.MkdirTemp("", "sdp-prototype-test-")
@@ -74,6 +77,7 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 
 // TestPrototypeCmd_SkipInterview tests prototype with skip-interview flag
 func TestPrototypeCmd_SkipInterview(t *testing.T) {
+	evidence.ResetGlobalWriter()
 	originalWd, _ := os.Getwd()
 	// Use manual temp dir to avoid cleanup issues with .sdp subdirectory
 	tmpDir, err := os.MkdirTemp("", "sdp-prototype-test-")
