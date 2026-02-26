@@ -23,7 +23,7 @@ Sleep 500ms
 # Step 1: Install
 Type "echo ''"
 Enter
-Type "echo '\$ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh'"
+Type "echo '$ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh'"
 Enter
 Sleep 300ms
 Type "echo '🔗 Installing SDP project assets (prompts/hooks/config)...'"
@@ -35,7 +35,7 @@ Sleep 800ms
 # Step 2: Init
 Type "echo ''"
 Enter
-Type "echo '\$ sdp init --auto'"
+Type "echo '$ sdp init --auto'"
 Enter
 Sleep 200ms
 Type "echo '✅ .sdp/config.yml created'"
@@ -47,7 +47,7 @@ Sleep 600ms
 # Step 3: Feature discovery
 Type "echo ''"
 Enter
-Type "echo '\$ @feature \"OpenCode plugin for beads visualization\"'"
+Type "echo '@feature OpenCode plugin for beads visualization'"
 Enter
 Sleep 400ms
 Type "echo ''"
@@ -70,7 +70,7 @@ Sleep 800ms
 # Step 4: Build
 Type "echo ''"
 Enter
-Type "echo '\$ @oneshot F001'"
+Type "echo '$ @oneshot F001'"
 Enter
 Sleep 300ms
 Type "echo '→ Executing workstreams...'"
@@ -86,7 +86,7 @@ Sleep 600ms
 # Step 5: Review & Deploy
 Type "echo ''"
 Enter
-Type "echo '\$ @review F001'"
+Type "echo '$ @review F001'"
 Enter
 Sleep 200ms
 Type "echo '→ QA | Security | DevOps | SRE | TechLead | Docs'"
@@ -96,7 +96,7 @@ Enter
 Sleep 400ms
 Type "echo ''"
 Enter
-Type "echo '\$ @deploy F001'"
+Type "echo '$ @deploy F001'"
 Enter
 Sleep 200ms
 Type "echo '→ PR merged to main'"
@@ -106,7 +106,7 @@ Sleep 500ms
 # Beads viz output
 Type "echo ''"
 Enter
-Type "echo '\$ bd viz'"
+Type "echo '$ bd viz'"
 Enter
 Sleep 300ms
 Type "echo ''"

@@ -8,27 +8,9 @@ SDP gives your AI agents a structured process (Discovery → Delivery → Eviden
 
 ## Demo
 
-```
-$ @feature "OpenCode plugin for beads visualization"
-→ @idea: Requirements gathered
-→ @design: Workstreams created
+![SDP Demo: OpenCode Beads Viz Plugin](docs/demo.gif)
 
-$ @oneshot F001
-→ 00-001-01 ✅  00-001-02 ✅  00-001-03 ✅
-
-$ @review F001  →  APPROVED
-$ @deploy F001  →  PR merged
-
-$ bd viz
-┌─────────────────────────────────────────┐
-│ BEADS                    ready: 3       │
-│ sdp-abc1  Add auth          P1  in_prog │
-│ sdp-def2  Fix login bug     P2  ready   │
-│ sdp-ghi3  Beads viz plugin   P1  done   │
-└─────────────────────────────────────────┘
-```
-
-*Animated GIF: `vhs demo.tape` — [install vhs](https://github.com/charmbracelet/vhs#installation)*
+*Install → @feature → @oneshot → @review → @deploy → bd viz. Regenerate: `vhs demo.tape`*
 
 ## Quick Start
 
