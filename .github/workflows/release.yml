@@ -1,6 +1,6 @@
 # Release SDP CLI on tag push (e.g. v0.1.0)
-# Runs protocol-e2e (GLM_API_KEY) then publishes sdp CLI
-# Required secrets: GLM_API_KEY, SDP_DEV_REPO_TOKEN
+# Protocol E2E + GoReleaser — all from sdp repo (no sdp_dev)
+# Required secrets: GLM_API_KEY
 name: Release
 
 on:
@@ -19,32 +19,13 @@ jobs:
     env:
       GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
     steps:
-      - name: Checkout sdp_dev (protocol-e2e needs sdp-evidence, sdp-guard, sdp-orchestrate)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          repository: fall-out-bug/sdp_private
-          token: ${{ secrets.SDP_DEV_REPO_TOKEN }}
-          path: sdp_dev
           fetch-depth: 0
-          submodules: true
-
-      - name: Pin sdp submodule to release tag
-        run: |
-          cd sdp_dev
-          git submodule update --init sdp
-          (cd sdp && git fetch origin tag ${{ github.ref_name }} --no-tags 2>/dev/null; git checkout ${{ github.ref_name }}) || true
-
-      - name: Overlay ci for build
-        run: |
-          mkdir -p sdp_dev/ci
-          cp sdp_dev/sdp/ci/protocol-e2e-test.sh sdp_dev/ci/
-          cp -r sdp_dev/sdp/ci/protocol-e2e-fixtures sdp_dev/ci/
 
       - name: Protocol E2E (Docker)
         run: |
-          docker build -f sdp_dev/sdp/ci/Dockerfile.protocol-e2e \
-            --build-arg SDP_PLUGIN_PATH=sdp/sdp-plugin \
-            -t sdp-protocol-e2e:latest sdp_dev
+          docker build -f ci/Dockerfile.protocol-e2e -t sdp-protocol-e2e:latest .
           docker run --rm -e GLM_API_KEY="${GLM_API_KEY}" sdp-protocol-e2e:latest
 
   release:
