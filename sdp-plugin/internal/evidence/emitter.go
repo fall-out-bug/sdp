@@ -22,42 +22,52 @@ var (
 )
 
 var (
-	globalWriter     *Writer
-	globalWriterOnce sync.Once
-	globalWriterErr  error
-	globalWriterPath string
+	globalWriter      *Writer
+	globalWriterErr   error
+	globalWriterPath  string
+	globalWriterMu    sync.Mutex // protects global state; ResetGlobalWriter vs getOrCreateWriter
+	globalWriterReady bool       // true after first successful load (avoids sync.Once reset race)
 )
 
 // ResetGlobalWriter clears the singleton for testing.
 func ResetGlobalWriter() {
-	globalWriterOnce = sync.Once{}
+	globalWriterMu.Lock()
+	defer globalWriterMu.Unlock()
 	globalWriter = nil
 	globalWriterErr = nil
 	globalWriterPath = ""
+	globalWriterReady = false
 }
 
 func getOrCreateWriter() (*Writer, error) {
-	globalWriterOnce.Do(func() {
-		root, err := config.FindProjectRoot()
-		if err != nil {
-			globalWriterErr = err
-			return
-		}
-		cfg, err := config.Load(root)
-		if err != nil {
-			globalWriterErr = err
-			return
-		}
-		if cfg == nil || !cfg.Evidence.Enabled {
-			return
-		}
-		logPath := cfg.Evidence.LogPath
-		if logPath == "" {
-			logPath = ".sdp/log/events.jsonl"
-		}
-		globalWriterPath = filepath.Join(root, logPath)
-		globalWriter, globalWriterErr = NewWriter(globalWriterPath)
-	})
+	globalWriterMu.Lock()
+	defer globalWriterMu.Unlock()
+	if globalWriterReady {
+		return globalWriter, globalWriterErr
+	}
+	root, err := config.FindProjectRoot()
+	if err != nil {
+		globalWriterErr = err
+		globalWriterReady = true
+		return nil, err
+	}
+	cfg, err := config.Load(root)
+	if err != nil {
+		globalWriterErr = err
+		globalWriterReady = true
+		return nil, err
+	}
+	if cfg == nil || !cfg.Evidence.Enabled {
+		globalWriterReady = true
+		return nil, nil
+	}
+	logPath := cfg.Evidence.LogPath
+	if logPath == "" {
+		logPath = ".sdp/log/events.jsonl"
+	}
+	globalWriterPath = filepath.Join(root, logPath)
+	globalWriter, globalWriterErr = NewWriter(globalWriterPath)
+	globalWriterReady = true
 	return globalWriter, globalWriterErr
 }
 
