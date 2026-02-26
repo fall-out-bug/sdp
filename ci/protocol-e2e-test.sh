@@ -60,6 +60,19 @@ if [ "$bd_sync_exit" -ne 0 ] && [ "$bd_sync_exit" -ne 1 ]; then
   echo "beads-debug: bd sync: $(bd sync 2>&1 || true)"
 fi
 
+# Phase 2b: GLOBAL INSTALL + INIT (no local prompts - must fetch or use cache)
+echo "=== Phase 2b: Global Install + Init (fresh project) ==="
+FRESH_DIR=$(mktemp -d)
+if ! (cd "$FRESH_DIR" && git init -q && sdp init --auto 2>/tmp/sdp-init-fresh.log); then
+  err "sdp-init-fresh: sdp init --auto failed in fresh project"
+  echo "sdp-init-fresh-debug: $(cat /tmp/sdp-init-fresh.log 2>/dev/null | tail -30)"
+fi
+if [ ! -d "$FRESH_DIR/.claude/skills" ] || [ -z "$(ls -A $FRESH_DIR/.claude/skills 2>/dev/null)" ]; then
+  err "sdp-init-fresh: .claude/skills not created (prompts copy failed)"
+  echo "sdp-init-fresh-debug: $(cat /tmp/sdp-init-fresh.log 2>/dev/null | tail -30)"
+fi
+rm -rf "$FRESH_DIR"
+
 # Phase 3: PROTOCOL COMMANDS (happy + negative)
 echo "=== Phase 3: Protocol Commands ==="
 
@@ -120,10 +133,10 @@ if [ -d internal/artifact ]; then
   fi
 fi
 
-# Phase 5: LLM INTEGRATION (requires GLM_API_KEY)
-echo "=== Phase 5: LLM Integration ==="
+# Phase 5: LLM INTEGRATION (requires GLM_API_KEY - opencode real code generation)
+echo "=== Phase 5: LLM Integration (opencode) ==="
 if [ -z "${GLM_API_KEY:-}" ]; then
-  echo "Phase 5 skipped: GLM_API_KEY not set (set in CI for full E2E)"
+  echo "Phase 5 SKIPPED: GLM_API_KEY not set. Add GLM_API_KEY to repo secrets for full E2E (sdp-orchestrate --runtime opencode)."
 else
   # Copy E2E fixtures
   mkdir -p docs/workstreams/backlog
