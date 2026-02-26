@@ -8,9 +8,9 @@ SDP gives your AI agents a structured process (Discovery → Delivery → Eviden
 
 ## Demo
 
-![SDP Demo: OpenCode Beads Viz Plugin](docs/demo.gif)
+![SDP Demo: OpenCode Beads Viz Plugin](demo/demo.gif)
 
-*Install → @feature → @oneshot → @review → @deploy → bd viz. Regenerate: `vhs demo.tape`*
+*Install → @feature → @oneshot → @review → @deploy → bd viz. Regenerate: `vhs demo/demo.tape`*
 
 ## Quick Start
 
@@ -222,6 +222,7 @@ We're exploring multi-persona adversarial review, self-improvement loops, cross-
 
 | File | Content |
 |------|---------|
+| [demo/README.md](demo/README.md) | Terminal demo (vhs), examples |
 | [docs/QUICKSTART.md](docs/QUICKSTART.md) | 5-minute getting started |
 | [docs/MANIFESTO.md](docs/MANIFESTO.md) | Why SDP exists, what's real, what's next |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | Full specification |

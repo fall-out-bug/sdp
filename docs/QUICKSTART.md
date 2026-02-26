@@ -17,12 +17,14 @@ Skills load from `sdp/.claude/skills/`, `sdp/.cursor/skills/`, or `sdp/.opencode
 ## 2. Initialize
 
 ```bash
-sdp init --auto    # Safe defaults
+sdp init --auto    # Safe defaults, non-interactive
 # or
 sdp init --guided  # Interactive wizard
 ```
 
 Creates `.sdp/config.yml`, guard rules, and IDE integration.
+
+*If you get "unknown flag: --auto", upgrade the CLI: `curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only`*
 
 ## 3. Create a Feature
 

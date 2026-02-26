@@ -4,7 +4,7 @@ Run `sdp --help` for the full list. Key commands:
 
 | Command | Purpose |
 |---------|---------|
-| `sdp init` | Initialize SDP in project |
+| `sdp init` | Initialize SDP in project. Use `--auto` for non-interactive, `--guided` for wizard |
 | `sdp doctor` | Health check (Git, .claude/) |
 | `sdp guard activate/deactivate` | Scope enforcement for @build |
 | `sdp drift detect <ws-id>` | Detect doc-code drift |
