@@ -64,7 +64,7 @@ fi
 echo "=== Phase 2b: Global Install + Init (fresh project) ==="
 FRESH_DIR=$(mktemp -d)
 if ! (cd "$FRESH_DIR" && git init -q && sdp init --auto 2>/tmp/sdp-init-fresh.log); then
-  err "sdp-init-fresh: sdp init --project-type agnostic failed in fresh project"
+  err "sdp-init-fresh: sdp init --auto failed in fresh project"
   echo "sdp-init-fresh-debug: $(cat /tmp/sdp-init-fresh.log 2>/dev/null | tail -30)"
 fi
 if [ ! -d "$FRESH_DIR/.claude/skills" ] || [ -z "$(ls -A $FRESH_DIR/.claude/skills 2>/dev/null)" ]; then
@@ -133,10 +133,10 @@ if [ -d internal/artifact ]; then
   fi
 fi
 
-# Phase 5: LLM INTEGRATION (requires GLM_API_KEY - opencode real code generation)
+# Phase 5: LLM INTEGRATION (required - validates protocol end-to-end)
 echo "=== Phase 5: LLM Integration (opencode) ==="
 if [ -z "${GLM_API_KEY:-}" ]; then
-  echo "Phase 5 SKIPPED: GLM_API_KEY not set. Add GLM_API_KEY to repo secrets for full E2E (sdp-orchestrate --runtime opencode)."
+  err "llm: GLM_API_KEY required for Phase 5. Add GLM_API_KEY to repo secrets for full E2E (sdp-orchestrate --runtime opencode)."
 else
   # Copy E2E fixtures
   mkdir -p docs/workstreams/backlog
