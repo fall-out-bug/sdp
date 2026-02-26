@@ -621,9 +621,9 @@ git checkout feature/F065
 
 ## Version
 
-**SDP v0.9.0** — Multi-Agent Architecture
+**SDP v0.9.8** — Multi-Agent Architecture
 
-Updated: 2026-02-09
+Updated: 2026-02-26
 
 ---
 

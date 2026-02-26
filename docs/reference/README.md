@@ -145,4 +145,4 @@ Structured errors with:
 
 ---
 
-**Version:** SDP v0.9.8 | **Updated:** 2026-02-25
+**Version:** SDP v0.9.8 | **Updated:** 2026-02-26

@@ -473,5 +473,5 @@ Orchestrator agent executes all workstreams
 
 ---
 
-**Version:** SDP v0.9.0
-**Updated:** 2026-01-29
+**Version:** SDP v0.9.8
+**Updated:** 2026-02-26

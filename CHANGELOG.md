@@ -24,12 +24,18 @@ All notable changes to the Spec-Driven Protocol (SDP).
 - **install-project.sh** — Clear retry command on CLI install failure
 - **README, QUICKSTART** — Document binary-only vs full project install modes
 
-### Release, Demo, Init
+### Release, Init
 
 - **Release workflow** — In sdp repo: protocol-e2e with GLM_API_KEY, then sdp CLI release
 - **sdp init** — Executable-relative paths for global install; `--auto` in protocol-e2e Phase 2b
 - **Phase 5** — Fail when GLM_API_KEY not set (opencode LLM required)
-- **demo/** — demo.tape, demo.gif, run-demo.sh; examples/beads-viz-demo
+
+### Git Hooks (pre-commit, pre-push)
+
+- **pre-commit** — `go build ./...`; ws-verdict schema validation when `docs/ws-verdicts/*.json` changed
+- **pre-push** — `go test -short ./...`; evidence validation for feature branches when `internal/` or `cmd/` changed
+- **install-git-hooks.sh** — Symlinks `.git/hooks/pre-commit`, `.git/hooks/pre-push` to `scripts/hooks/`
+- **Docs** — AGENTS.md, runbook for sdp_dev (Go project, evidence, ws-verdict)
 
 ---
 

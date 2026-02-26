@@ -96,3 +96,7 @@ sdp-plugin/**/.sdp/
 
 # Demo project (created by vhs demo.tape)
 demo-beads-viz/
+demo-project/
+
+# Demo GIF (not published yet — will improve later)
+demo/demo.gif

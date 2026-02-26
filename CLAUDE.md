@@ -1,6 +1,6 @@
 # Claude Code Integration Guide
 
-Quick reference for using SDP CLI v0.9.7 with Claude Code.
+Quick reference for using SDP CLI v0.9.8 with Claude Code.
 
 > **Sync:** Shared with sdp_dev/AGENTS.md — placement rules, "продолжай" convention. When updating these, update both files. Sync rules: sdp_dev/docs/plans/2026-02-25-agents-claude-sync-rules.md (in parent repo).
 
@@ -434,4 +434,4 @@ Run test coverage tool with verbose output to identify gaps
 
 ---
 
-**CLI Version:** 0.9.7 | **Protocol Version:** 0.10.0
+**CLI Version:** 0.9.8 | **Protocol Version:** 0.10.0
