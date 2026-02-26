@@ -125,7 +125,7 @@ Examples:
 - **Markdown** — Consistent formatting, no trailing whitespace
 - **Skills** — Follow `prompts/skills/` SKILL.md format
 
-## PR Checklist (F067)
+## PR Checklist
 
 Before submitting a PR, ensure:
 

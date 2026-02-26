@@ -8,7 +8,7 @@ Read CLAUDE.md "Milestone Context" section.
 
 **Current milestone:** M1 "T-shirt"
 
-**M1 Features:** F054, F063, F064, F067, F068, F070, F075, F076
+**M1 Features:** Evidence layer, guard, repository hardening, UX foundation, error recovery, self-healing doctor, guided onboarding
 
 ## 2. Check Recent Changes
 

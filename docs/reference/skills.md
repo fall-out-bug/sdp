@@ -169,7 +169,7 @@ Skills are Claude Code commands that execute specific SDP workflows. They are de
 
 **Example:**
 ```bash
-@review F001
+@review <feature-id>
 ```
 
 **Output:** Pass/fail verdict with details
@@ -191,7 +191,7 @@ Skills are Claude Code commands that execute specific SDP workflows. They are de
 
 **Example:**
 ```bash
-@deploy F001
+@deploy <feature-id>
 ```
 
 **Prerequisites:**
@@ -219,13 +219,13 @@ Skills are Claude Code commands that execute specific SDP workflows. They are de
 
 **Example:**
 ```bash
-@oneshot F001
+@oneshot <feature-id>
 
 # Background mode
-@oneshot F001 --background
+@oneshot <feature-id> --background
 
 # Resume from checkpoint
-@oneshot F001 --resume <agent-id>
+@oneshot <feature-id> --resume <agent-id>
 ```
 
 **Output:** Agent ID for resume capability

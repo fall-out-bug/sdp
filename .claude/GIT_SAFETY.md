@@ -2,7 +2,7 @@
 
 > **Purpose:** Prevent agents from committing to wrong worktrees/branches.
 > **Last Updated:** 2026-02-12
-> **Related:** F065 - Agent Git Safety Protocol
+> **Related:** Agent Git Safety Protocol
 
 ---
 
@@ -73,7 +73,7 @@ ALL feature implementation MUST happen in feature branches:
 
 ```bash
 # Create feature branch
-git checkout -b feature/F065
+git checkout -b feature/<feature-id>
 
 # Never commit to dev or main directly
 # Guard will reject commits to protected branches
@@ -83,7 +83,7 @@ git checkout -b feature/F065
 
 | Branch Type | Pattern | Example |
 |-------------|---------|---------|
-| Feature | `feature/F###` | `feature/F065` |
+| Feature | `feature/<feature-id>` | `feature/auth-login` |
 | Bugfix | `bugfix/issue-id` | `bugfix/sdp-1234` |
 | Hotfix | `hotfix/issue-id` | `hotfix/sdp-1234` |
 
@@ -129,10 +129,10 @@ Sessions are stored in `.sdp/session.json`:
 ```json
 {
   "version": "1.0",
-  "worktree_path": "/Users/user/projects/sdp-F065",
-  "feature_id": "F065",
-  "expected_branch": "feature/F065",
-  "expected_remote": "origin/feature/F065",
+  "worktree_path": "/Users/user/projects/sdp-<feature-id>",
+  "feature_id": "<feature-id>",
+  "expected_branch": "feature/<feature-id>",
+  "expected_remote": "origin/feature/<feature-id>",
   "created_at": "2026-02-12T10:00:00Z",
   "created_by": "sdp worktree create",
   "hash": "sha256:abc123..."
@@ -143,7 +143,7 @@ Sessions are stored in `.sdp/session.json`:
 
 ```bash
 # Initialize session for feature
-sdp session init --feature=F065
+sdp session init --feature=<feature-id>
 
 # Sync session with actual git state
 sdp session sync

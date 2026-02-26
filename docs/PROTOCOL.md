@@ -44,9 +44,9 @@ Skills are LLM-agnostic descriptions of workflows:
 
 ```
 @build 00-001-01    # Execute workstream with TDD
-@review F001        # Multi-agent quality review
-@oneshot F001       # Autonomous feature execution
-@deploy F001        # Create PR and merge
+@review <feature-id>        # Multi-agent quality review
+@oneshot <feature-id>       # Autonomous feature execution
+@deploy <feature-id>        # Create PR and merge
 ```
 
 Each skill describes WHAT to do. L1 adapters provide HOW to invoke (Task tool, agent panel, etc.).
@@ -81,13 +81,13 @@ go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
 @build 00-001-01
 
 # Or execute all autonomously
-@oneshot F001
+@oneshot <feature-id>
 
 # Review quality
-@review F001
+@review <feature-id>
 
 # Deploy to production
-@deploy F001
+@deploy <feature-id>
 ```
 
 ---
@@ -571,7 +571,7 @@ pytest --cov=src/ --cov-report=term-missing
 
 | Branch Type | Purpose | Example |
 |-------------|---------|---------|
-| `feature/F###` | Feature implementation | `feature/F065` |
+| `feature/<id>` | Feature implementation | `feature/auth-login` |
 | `bugfix/issue-id` | Bug fixes | `bugfix/sdp-1234` |
 | `hotfix/issue-id` | Emergency fixes | `hotfix/sdp-1234` |
 
@@ -592,10 +592,10 @@ pytest --cov=src/ --cov-report=term-missing
 
 ```bash
 # Check if current branch is valid for feature
-sdp guard branch check --feature=F065
+sdp guard branch check --feature=<feature-id>
 
 # Validate branch naming convention
-sdp guard branch validate feature/F065
+sdp guard branch validate feature/<feature-id>
 ```
 
 ### Error Recovery
@@ -604,10 +604,10 @@ If you're on `dev` or `main` when you should be on a feature branch:
 
 ```bash
 # Create feature branch
-git checkout -b feature/F065
+git checkout -b feature/<feature-id>
 
 # Or switch to existing branch
-git checkout feature/F065
+git checkout feature/<feature-id>
 ```
 
 ---

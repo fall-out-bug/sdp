@@ -4,7 +4,7 @@ description: Autonomous feature execution via sdp orchestrate outer loop
 cli: sdp-orchestrate
 version: 9.0.0
 changes:
-  - F016: Outer loop — sdp-orchestrate drives phases; LLM only for @build and @review
+  - Outer loop — sdp-orchestrate drives phases; LLM only for @build and @review
   - Slim prompt: 3 rules, positive framing
   - PR and CI handled by CLI
 ---
@@ -27,4 +27,4 @@ If context was compacted, read `.sdp/checkpoints/F{XX}.json` and `git checkout $
 
 ## Claude Code
 
-Use Task tool to spawn @build and @review subagents. Each subagent gets a fresh context window. Stop hook (F015) blocks premature exit when CI phase is incomplete.
+Use Task tool to spawn @build and @review subagents. Each subagent gets a fresh context window. Stop hook blocks premature exit when CI phase is incomplete.

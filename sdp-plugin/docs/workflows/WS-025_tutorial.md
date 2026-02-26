@@ -1,7 +1,7 @@
 # WS-025: Create 15-Minute Tutorial
 
 > **Workstream ID:** WS-025  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-024
 
 ## Goal

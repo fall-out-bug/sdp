@@ -15,7 +15,7 @@ When calling `/oneshot F{XX}` in Cursor:
 4. PR creation and CI loop are handled by the CLI — no agent involvement
 5. When done: output only `CI GREEN - @oneshot complete`
 
-**Input:** Feature ID (e.g. F016)
+**Input:** Feature ID (from @feature or ROADMAP)
 **Output:** All WS executed + CI green. No "Next steps" or handoff lists.
 
 **opencode:** Use `sdp-orchestrate --feature F{XX} --runtime opencode` as the outer loop. opencode lacks Stop hooks — the outer loop CLI replaces them.

@@ -1,7 +1,7 @@
 # WS-019: TelegramNotifier + Mock Provider
 
 > **Workstream ID:** WS-019  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-018
 
 ## Goal

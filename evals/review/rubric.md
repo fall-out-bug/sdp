@@ -6,7 +6,7 @@ Scoring criteria for review skill output validation.
 
 - **verdict**: One of PASS, FAIL, CHANGES_REQUESTED. Must be present.
 - **reviewers**: Object with exactly 7 keys: qa, security, devops, sre, techlead, docs, promptops. Missing role = fail.
-- **feature**: Feature ID (e.g. F016). Must match input.
+- **feature**: Feature ID. Must match input.
 - **round**, **timestamp**: Present for traceability.
 
 ## Severity consistency

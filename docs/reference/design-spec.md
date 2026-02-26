@@ -226,7 +226,7 @@ Does this feature integrate with external services?
 ```markdown
 ---
 ws_id: 00-001-01
-feature: F001
+feature: <feature-id>
 status: backlog
 size: MEDIUM
 project_id: 00

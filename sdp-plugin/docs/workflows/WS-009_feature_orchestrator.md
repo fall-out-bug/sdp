@@ -1,7 +1,7 @@
 # WS-009: @feature Skill Orchestrator
 
 > **Workstream ID:** WS-009  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Status:** Ready to Implement  
 > **Dependencies:** WS-008 ✅ (Checkpoint save/resume logic - COMPLETE)
 

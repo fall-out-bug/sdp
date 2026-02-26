@@ -232,7 +232,7 @@ START: How should I execute workstreams?
 - [Beads Integration](docs/workflow-decision.md#beads-integration) - Task tracking
 
 ### Feature Specifications
-- [F024: Unified Workflow](docs/F024_unified_workflow_spec.md) - Multi-workstream orchestration
+- [Unified Workflow](docs/F024_unified_workflow_spec.md) - Multi-workstream orchestration
 - [Workstream Specifications](docs/workflows/) - Detailed workstream docs
 
 ---

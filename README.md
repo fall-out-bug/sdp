@@ -26,9 +26,9 @@ Skills load from `sdp/.claude/skills/` (Claude) or `sdp/.cursor/skills/` (Cursor
 ```bash
 sdp init --auto
 @feature "Your feature"
-@oneshot F001
-@review F001
-@deploy F001
+@oneshot <feature-id>
+@review <feature-id>
+@deploy <feature-id>
 ```
 
 → [5-minute guide](docs/QUICKSTART.md)
@@ -46,9 +46,9 @@ sdp init --auto
 | Phase | Command |
 |-------|---------|
 | Planning | `@vision "AI task manager"` → `@feature "Add auth"` |
-| Execution | `@oneshot F001` or `@build 00-001-01` |
-| Review | `@review F001` |
-| Deploy | `@deploy F001` |
+| Execution | `@oneshot <feature-id>` or `@build 00-001-01` |
+| Review | `@review <feature-id>` |
+| Deploy | `@deploy <feature-id>` |
 | Debug | `@debug`, `@hotfix`, `@bugfix` |
 
 **Done = @review APPROVED + @deploy completed.**

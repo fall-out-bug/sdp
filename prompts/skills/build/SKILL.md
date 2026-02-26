@@ -5,10 +5,10 @@ cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
 version: 8.1.0
 changes:
-  - F055: Evidence + checkpoint commit step after sdp-orchestrate --advance (step 3b)
-  - F054: Post-build bd close for each bead in WS frontmatter; batch syntax /build 00-053-16..25
-  - F020: Remove auto-continue rules; @build does ONE WS then STOPS
-  - F020: Strip evidence boilerplate to orchestrator/CLI
+  - Evidence + checkpoint commit step after sdp-orchestrate --advance (step 3b)
+  - Post-build bd close for each bead in WS frontmatter; batch syntax /build 00-053-16..25
+  - Remove auto-continue rules; @build does ONE WS then STOPS
+  - Strip evidence boilerplate to orchestrator/CLI
   - Single subagent strategy (no Option A/B ambiguity)
 ---
 
@@ -71,14 +71,14 @@ sdp guard activate 00-067-01
 ```bash
 sdp guard deactivate
 git add .
-git commit -m "feat(F067): 00-067-01 - {title}"
+git commit -m "feat(<feature-id>): <ws-id> - {title}"
 # STOP. Orchestrator continues to next WS if any.
 ```
 
 3b. **Evidence and checkpoint** (after `sdp-orchestrate --advance` when running as part of @oneshot):
 ```bash
 git add .sdp/evidence/ .sdp/checkpoints/
-git commit --amend --no-edit || git commit -m "FXXX: evidence"
+git commit --amend --no-edit || git commit -m "<feature-id>: evidence"
 ```
 
 4. **Write ws-verdict** (required):
@@ -116,7 +116,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 ## Beads Integration
 
 - **Before:** `bd update {beads_id} --status in_progress`
-- **Success:** Run `bd close {beads_id} --reason "WS completed"` for each bead in WS frontmatter (e.g. `Feature: F054 (sdp_dev-hryg)` or `## Beads` list). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from WS body (`Feature: … (beads_id)`, `Bead:`, `Beads:`).
+- **Success:** Run `bd close {beads_id} --reason "WS completed"` for each bead in WS frontmatter (e.g. `Feature: <feature-id> (sdp_dev-hryg)` or `## Beads` list). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from WS body (`Feature: … (beads_id)`, `Bead:`, `Beads:`).
 - **Failure:** `bd update {beads_id} --status blocked`
 
 ---
@@ -126,8 +126,8 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 **Good ws-verdict (all gates green):**
 ```json
 {
-  "ws_id": "00-067-01",
-  "feature_id": "F067",
+  "ws_id": "<ws-id>",
+  "feature_id": "<feature-id>",
   "verdict": "PASS",
   "commit": "a1b2c3d",
   "quality_gates": {"tests_pass": true, "lint_clean": true, "coverage_pct": 85.2, "coverage_threshold": 80, "max_file_loc": 142, "build_ok": true, "vet_ok": true},
@@ -141,7 +141,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 **Bad — missing existing_work_summary:**
 ```json
-{"ws_id": "00-067-01", "feature_id": "F067", "verdict": "PASS", "ac_evidence": [...]}
+{"ws_id": "<ws-id>", "feature_id": "<feature-id>", "verdict": "PASS", "ac_evidence": [...]}
 ```
 Reason: `existing_work_summary` is required. Add one-line summary of pre-existing code/tests found before implementation.
 

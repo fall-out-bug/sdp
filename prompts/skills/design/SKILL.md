@@ -16,7 +16,7 @@ After @idea, or directly from a feature description. Creates workstream files wi
 
 **Before creating draft:** `ls docs/drafts/idea-*` — do not duplicate. If an idea draft already covers this topic, reuse or extend it instead of creating a new one.
 
-**Beads from review:** In scope by default. Mark OOS only with explicit justification (e.g. "duplicate", "superseded by F054").
+**Beads from review:** In scope by default. Mark OOS only with explicit justification (e.g. "duplicate", "superseded by prior work").
 
 ## Workflow
 

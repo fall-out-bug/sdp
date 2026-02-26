@@ -1,7 +1,7 @@
 # WS-013: SendMessage Router
 
 > **Workstream ID:** WS-013  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Dependencies:** WS-012
 
 ## Goal

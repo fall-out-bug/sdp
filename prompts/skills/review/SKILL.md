@@ -83,7 +83,7 @@ Run `@design phase4-remediation` with findings to create workstreams.
 
 `bd create --title "{AREA}: {desc}" --priority {0-3} --labels "review-finding,F{XX},round-{N},{role}" --type bug --silent`
 
-Replace `F{NNN}` with feature ID (e.g. F067), `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
+Replace `F{NNN}` with feature ID, `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
 
 After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 id3`
 
@@ -93,13 +93,13 @@ After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 
 
 **Good P0 finding (Security):**
 ```
-bd create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,F001,round-1,security" --type bug --silent
+bd create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,<feature-id>,round-1,security" --type bug --silent
 ```
 Reason: Exploitable in production; attacker can bypass auth. Include file:line.
 
 **Good P2 finding (style):**
 ```
-bd create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,F001,round-1,docs" --type bug --silent
+bd create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,<feature-id>,round-1,docs" --type bug --silent
 ```
 Reason: Maintenance debt, not blocking.
 

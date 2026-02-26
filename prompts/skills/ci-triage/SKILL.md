@@ -11,7 +11,7 @@ Use this skill when a branch or PR has failing CI and you need fast root-cause w
 ## Inputs
 
 - PR number or URL (preferred)
-- Or branch name (e.g. `feature/F063`)
+- Or branch name (e.g. `feature/<feature-id>`)
 
 ## Workflow
 

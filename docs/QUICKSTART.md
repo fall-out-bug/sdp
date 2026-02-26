@@ -52,9 +52,9 @@ This runs:
 **Delivery (implementation):**
 
 ```
-@oneshot F001      # Autonomous: build all workstreams
-@review F001       # Multi-agent quality review
-@deploy F001       # Merge to main
+@oneshot <feature-id>      # Autonomous: build all workstreams
+@review <feature-id>       # Multi-agent quality review
+@deploy <feature-id>      # Merge to main
 ```
 
 Or step-by-step:
@@ -62,8 +62,8 @@ Or step-by-step:
 ```
 @build 00-001-01   # Single workstream with TDD
 @build 00-001-02
-@review F001
-@deploy F001
+@review <feature-id>
+@deploy <feature-id>
 ```
 
 ## 4. Verify
@@ -88,7 +88,7 @@ bd close <id>          # Close task
 ## Flow Summary
 
 ```
-@feature "X"  →  @oneshot F001  →  @review F001  →  @deploy F001
+@feature "X"  →  @oneshot <feature-id>  →  @review <feature-id>  →  @deploy <feature-id>
      │                  │                │                │
      ▼                  ▼                ▼                ▼
   Workstreams      Execute WS       APPROVED?         Merge PR

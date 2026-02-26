@@ -25,7 +25,7 @@ Evaluation framework for SDP protocol prompts (skills). Test cases define input 
 Each line is a JSON object:
 
 ```json
-{"id": "review-001", "input": "F016", "expected_keys": ["feature", "verdict", "reviewers", "round", "timestamp"], "reviewer_keys": ["qa", "security", "devops", "sre", "techlead", "docs", "promptops"]}
+{"id": "review-001", "input": "feature-example", "expected_keys": ["feature", "verdict", "reviewers", "round", "timestamp"], "reviewer_keys": ["qa", "security", "devops", "sre", "techlead", "docs", "promptops"]}
 ```
 
 No trailing newline after the last line.

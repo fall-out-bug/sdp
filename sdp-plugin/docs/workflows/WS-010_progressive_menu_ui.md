@@ -1,7 +1,7 @@
 # WS-010: Progressive Menu UI
 
 > **Workstream ID:** WS-010  
-> **Feature:** F024: Unified Workflow  
+> **Feature:** Unified Workflow  
 > **Status:** Ready to Spec  
 > **Dependencies:** WS-009
 
