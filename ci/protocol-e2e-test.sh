@@ -64,7 +64,7 @@ fi
 echo "=== Phase 2b: Global Install + Init (fresh project) ==="
 FRESH_DIR=$(mktemp -d)
 if ! (cd "$FRESH_DIR" && git init -q && sdp init --auto 2>/tmp/sdp-init-fresh.log); then
-  err "sdp-init-fresh: sdp init --auto failed in fresh project"
+  err "sdp-init-fresh: sdp init --project-type agnostic failed in fresh project"
   echo "sdp-init-fresh-debug: $(cat /tmp/sdp-init-fresh.log 2>/dev/null | tail -30)"
 fi
 if [ ! -d "$FRESH_DIR/.claude/skills" ] || [ -z "$(ls -A $FRESH_DIR/.claude/skills 2>/dev/null)" ]; then
