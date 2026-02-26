@@ -22,6 +22,8 @@ Quick reference for using SDP CLI v0.9.7 with Claude Code.
 
 **Artifact placement:** `docs/reviews/` (review artifacts), `docs/workstreams/backlog/` (WS only), `docs/drafts/idea-*` (one per feature).
 
+**Evidence and checkpoint** must be committed with the PR. When running as part of @oneshot, after `sdp-orchestrate --advance` writes `.sdp/evidence/` and `.sdp/checkpoints/`, commit them (see @build skill step 3b).
+
 **"Продолжай F053"** = `sdp-orchestrate --feature F053 --next-action`. Convention: "продолжай {feature}" means run the next action for that feature.
 
 **Status:** `sdp-orchestrate --feature F053 --status` — pending WS, open beads, next action.
