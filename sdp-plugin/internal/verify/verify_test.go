@@ -490,3 +490,50 @@ func TestTruncateEdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestVerifierVerifyCoverage_CheckCoverageError(t *testing.T) {
+	mock := &mockCoverageChecker{
+		err: fmt.Errorf("coverage check failed"),
+	}
+	verifier := NewVerifierWithOptions("/tmp", WithCoverageChecker(mock))
+
+	wsData := &WorkstreamData{CoverageThreshold: 80.0}
+	result := verifier.VerifyCoverage(context.Background(), wsData)
+	if result == nil {
+		t.Fatal("expected result when CheckCoverage returns error")
+	}
+	if result.Passed {
+		t.Error("expected fail when CheckCoverage returns error")
+	}
+	if result.Message == "" {
+		t.Error("expected non-empty message")
+	}
+}
+
+func TestVerifierVerifyOutputFiles_PathValidatorFails(t *testing.T) {
+	failingValidator := &failingPathValidator{err: fmt.Errorf("path outside project")}
+	verifier := NewVerifierWithOptions("/tmp", WithPathValidator(failingValidator))
+
+	wsData := &WorkstreamData{
+		ScopeFiles: []string{"/tmp/some/file.go"},
+	}
+	checks := verifier.VerifyOutputFiles(wsData)
+
+	if len(checks) != 1 {
+		t.Fatalf("expected 1 check, got %d", len(checks))
+	}
+	if checks[0].Passed {
+		t.Error("expected fail when path validator fails")
+	}
+	if checks[0].Message == "" {
+		t.Error("expected non-empty message")
+	}
+}
+
+type failingPathValidator struct {
+	err error
+}
+
+func (f *failingPathValidator) ValidatePathInDirectory(baseDir, targetPath string) error {
+	return f.err
+}
