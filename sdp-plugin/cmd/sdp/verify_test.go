@@ -12,8 +12,8 @@ func TestVerifyCmdConstructed(t *testing.T) {
 	if cmd == nil {
 		t.Fatal("verifyCmd() returned nil")
 	}
-	if cmd.Use != "verify" {
-		t.Errorf("expected Use=verify, got %q", cmd.Use)
+	if cmd.Use != "verify <ws-id>" {
+		t.Errorf("expected Use=verify <ws-id>, got %q", cmd.Use)
 	}
 	if cmd.Args == nil {
 		t.Error("expected Args validator to be set")
