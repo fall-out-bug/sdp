@@ -53,7 +53,7 @@ Usage:
 			lesson := evidence.ExtractLesson(wsID, result)
 			evidence.EmitLesson(lesson)
 
-			// AC1/AC2: Emit one verification event per gate result with findings (F056)
+			// AC1/AC2: Emit one verification event per gate result with findings
 			if evidence.Enabled() {
 				coverage := 0.0
 				if result.CoverageActual > 0 {

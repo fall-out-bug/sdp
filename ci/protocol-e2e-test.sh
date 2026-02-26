@@ -1,19 +1,30 @@
 #!/usr/bin/env bash
 # Protocol E2E test - runs inside Docker container
 # Collects all errors and reports at end (no stop-on-first)
+# Set PROTOCOL_E2E_DEBUG=1 for per-phase timestamps and timeouts
 
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Use local prompts to avoid network fetch in Phase 2b (CI can hang on GitHub download)
+if [ -d "$ROOT/sdp/prompts" ]; then
+  export SDP_PROMPTS_SOURCE_DIR="$ROOT/sdp/prompts"
+elif [ -d "$ROOT/prompts" ]; then
+  export SDP_PROMPTS_SOURCE_DIR="$ROOT/prompts"
+fi
+
 ERRORS=()
+_ts() { date -u +%H:%M:%S 2>/dev/null || date +%H:%M:%S; }
+_trace() { [ -n "${PROTOCOL_E2E_DEBUG:-}" ] && echo "[$(_ts)] $*" || true; }
 
 err() {
   ERRORS+=("$1")
 }
 
 # Phase 1: SELF-CONSISTENCY
+_trace "Phase 1 start"
 echo "=== Phase 1: Self-Consistency ==="
 MAPPING_COUNT=$(wc -l < .beads-sdp-mapping.jsonl 2>/dev/null || echo 0)
 WS_COUNT=$(ls docs/workstreams/backlog/*.md 2>/dev/null | wc -l)
@@ -22,6 +33,7 @@ if [ "$MAPPING_COUNT" != "$WS_COUNT" ]; then
 fi
 
 # Phase 2: CLI VERIFICATION
+_trace "Phase 2 start"
 echo "=== Phase 2: CLI Verification ==="
 # sdp-evidence has no --help (exits 2); verify it runs and prints usage (ignore exit for pipefail)
 if ! (sdp-evidence 2>&1 || true) | grep -q "Usage"; then
@@ -61,9 +73,10 @@ if [ "$bd_sync_exit" -ne 0 ] && [ "$bd_sync_exit" -ne 1 ]; then
 fi
 
 # Phase 2b: GLOBAL INSTALL + INIT (no local prompts - must fetch or use cache)
+_trace "Phase 2b start"
 echo "=== Phase 2b: Global Install + Init (fresh project) ==="
 FRESH_DIR=$(mktemp -d)
-if ! (cd "$FRESH_DIR" && git init -q && sdp init --auto 2>/tmp/sdp-init-fresh.log); then
+if ! (cd "$FRESH_DIR" && git init -q && timeout 90 sdp init --auto 2>/tmp/sdp-init-fresh.log); then
   err "sdp-init-fresh: sdp init --auto failed in fresh project"
   echo "sdp-init-fresh-debug: $(cat /tmp/sdp-init-fresh.log 2>/dev/null | tail -30)"
 fi
@@ -74,6 +87,7 @@ fi
 rm -rf "$FRESH_DIR"
 
 # Phase 3: PROTOCOL COMMANDS (happy + negative)
+_trace "Phase 3 start"
 echo "=== Phase 3: Protocol Commands ==="
 
 # sdp-evidence validate (happy)
@@ -92,7 +106,8 @@ if ! sdp-evidence inspect ci/protocol-e2e-fixtures/valid-evidence.json | grep -q
 fi
 
 # sdp-orchestrate --next-action (F016 exists; also creates checkpoint + runs when none exist)
-if ! sdp-orchestrate --feature F016 --next-action 2>/dev/null | grep -qE '"action"|"phase"'; then
+_trace "sdp-orchestrate --next-action"
+if ! timeout 60 sdp-orchestrate --feature F016 --next-action 2>/dev/null | grep -qE '"action"|"phase"'; then
   err "sdp-orchestrate: --next-action should output JSON"
 fi
 
@@ -100,7 +115,8 @@ fi
 git checkout -b feature/F016-e2e 2>/dev/null || git checkout feature/F016-e2e 2>/dev/null || true
 
 # sdp-orchestrate --hydrate
-if ! sdp-orchestrate --feature F016 --hydrate --ws 00-016-01 &>/dev/null; then
+_trace "sdp-orchestrate --hydrate"
+if ! timeout 120 sdp-orchestrate --feature F016 --hydrate --ws 00-016-01 &>/dev/null; then
   err "sdp-orchestrate: --hydrate should succeed"
 fi
 if [ ! -f .sdp/context-packet.json ]; then
@@ -108,12 +124,13 @@ if [ ! -f .sdp/context-packet.json ]; then
 fi
 
 # sdp-orchestrate --advance (init→build): creates checkpoint + runs for Phase 4
-if ! sdp-orchestrate --feature F016 --advance &>/dev/null; then
+_trace "sdp-orchestrate --advance"
+if ! timeout 180 sdp-orchestrate --feature F016 --advance &>/dev/null; then
   err "sdp-orchestrate: --advance should succeed (init→build)"
 fi
 
 # sdp-orchestrate --feature FXXX (negative)
-if sdp-orchestrate --feature FXXX --next-action &>/dev/null; then
+if timeout 10 sdp-orchestrate --feature FXXX --next-action &>/dev/null; then
   err "sdp-orchestrate: non-existent feature should fail"
 fi
 
@@ -125,6 +142,7 @@ if [ "${guard_exit}" -ne 0 ] && [ "${guard_exit}" -ne 1 ]; then
 fi
 
 # Phase 4: TRACING VERIFICATION
+_trace "Phase 4 start"
 echo "=== Phase 4: Tracing ==="
 if [ ! -f .sdp/checkpoints/F016.json ]; then
   err "tracing: .sdp/checkpoints/F016.json not created"
@@ -142,6 +160,7 @@ if [ -d internal/artifact ]; then
 fi
 
 # Phase 5: LLM INTEGRATION (optional - skip if no GLM_API_KEY)
+_trace "Phase 5 start"
 echo "=== Phase 5: LLM Integration (opencode) ==="
 if [ -z "${GLM_API_KEY:-}" ]; then
   echo "⊘ Phase 5 skipped (GLM_API_KEY not set). Add to repo secrets for full E2E."
@@ -157,9 +176,9 @@ else
   git add docs/workstreams/backlog/00-999-*.md .beads-sdp-mapping.jsonl 2>/dev/null || true
   git commit -m "E2E: add F999 fixtures" 2>/dev/null || true
 
-  # Run orchestrate with timeout (15 min; LLM can be slow in CI — API latency, retries)
-  # Phase 5 is best-effort: flaky in CI (context canceled, API latency). Warn but don't fail.
-  if timeout 900 sdp-orchestrate --feature F999 --runtime opencode &>/tmp/e2e-llm.log; then
+  # Run orchestrate with timeout (10 min; LLM can be slow — avoid "forever" hang)
+  # Phase 5 is best-effort: flaky in CI. Warn but don't fail.
+  if timeout 600 sdp-orchestrate --feature F999 --runtime opencode &>/tmp/e2e-llm.log; then
     if [ ! -f .sdp/checkpoints/F999.json ]; then
       err "llm: checkpoint F999.json not created"
     fi

@@ -28,6 +28,7 @@ jobs:
       - name: Protocol E2E (Docker)
         env:
           GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          PROTOCOL_E2E_DEBUG: "1"
         run: |
           docker build -f ci/Dockerfile.protocol-e2e -t sdp-protocol-e2e:latest .
-          docker run --rm -e GLM_API_KEY="${GLM_API_KEY}" sdp-protocol-e2e:latest
+          timeout 900 docker run --rm -e GLM_API_KEY="${GLM_API_KEY}" -e PROTOCOL_E2E_DEBUG=1 sdp-protocol-e2e:latest

@@ -1,6 +1,6 @@
 # Release SDP CLI on tag push (e.g. v0.1.0)
 # Runs protocol-e2e (GLM_API_KEY) then publishes sdp CLI
-# Required secrets: GLM_API_KEY, SDP_DEV_REPO_TOKEN (PAT with repo read for fall-out-bug/sdp_private)
+# Required secrets: GLM_API_KEY, SDP_DEV_REPO_TOKEN
 name: Release
 
 on:

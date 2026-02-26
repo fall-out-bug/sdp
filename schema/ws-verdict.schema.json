@@ -19,7 +19,7 @@
     },
     "feature_id": {
       "type": "string",
-      "description": "Feature ID (e.g. F001)"
+      "description": "Feature ID (e.g. add-auth)"
     },
     "verdict": {
       "type": "string",

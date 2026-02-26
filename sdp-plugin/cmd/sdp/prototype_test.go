@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
 )
@@ -52,9 +53,8 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 	// Run the command - it will show warnings about @oneshot not being integrated
 	_ = cmd.RunE(cmd, []string{"Test feature"})
 
-	// Wait for async emit
-	// The event is emitted via Emit() which is non-blocking
-	// Check the log file after a short wait
+	// Wait for async emit (Emit() is non-blocking)
+	time.Sleep(100 * time.Millisecond)
 	logPath := filepath.Join(tmpDir, ".sdp", "log", "events.jsonl")
 	data, err := os.ReadFile(logPath)
 	if err != nil {
@@ -78,6 +78,7 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 // TestPrototypeCmd_SkipInterview tests prototype with skip-interview flag
 func TestPrototypeCmd_SkipInterview(t *testing.T) {
 	evidence.ResetGlobalWriter()
+
 	originalWd, _ := os.Getwd()
 	// Use manual temp dir to avoid cleanup issues with .sdp subdirectory
 	tmpDir, err := os.MkdirTemp("", "sdp-prototype-test-")
