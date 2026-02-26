@@ -115,8 +115,9 @@ if [ -z "$BINARY_PATH" ]; then
     exit 1
 fi
 
-# Install
+# Install (remove old binary first to ensure update works)
 mkdir -p "${INSTALL_DIR}"
+rm -f "${INSTALL_DIR}/${BINARY_NAME}"
 chmod +x "${BINARY_PATH}"
 mv "${BINARY_PATH}" "${INSTALL_DIR}/${BINARY_NAME}"
 
