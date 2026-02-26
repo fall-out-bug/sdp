@@ -2,7 +2,36 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
-## [0.9.8] - 2026-02-25
+## [0.9.8] - 2026-02-26
+
+### F054: Skills Sync, Beads Integration
+
+- **@build** — Post-build `bd close` for beads in WS frontmatter; batch syntax `/build 00-053-16..25`
+- **@design** — Pre-draft check, bead verification, default-in-scope
+- **@review** — Handoff block when CHANGES_REQUESTED
+- **CLAUDE.md** — Sync with sdp_dev/AGENTS.md (placement, "продолжай" convention)
+
+### F055: Evidence + Checkpoint Commit, Guard Strict
+
+- **@build** — Step 3b: commit evidence + checkpoint after `sdp-orchestrate --advance`
+- **.gitignore** — `!.sdp/evidence/`, `!.sdp/checkpoints/` (evidence must be committed with PR)
+- **sdp guard** — `deactivate` without `|| true`; `activate` in pre-build without `|| true` (blocking)
+- **go-ci** — `sdp contract validate` without `|| true` (blocking)
+
+### Installer
+
+- **install.sh** — Fail when no sha256 tool (security); do not skip checksum verification
+- **install-project.sh** — Clear retry command on CLI install failure
+- **README, QUICKSTART** — Document binary-only vs full project install modes
+
+### Release, Demo, Init
+
+- **Release workflow** — In sdp repo: protocol-e2e with GLM_API_KEY, then sdp CLI release
+- **sdp init** — Executable-relative paths for global install; `--auto` in protocol-e2e Phase 2b
+- **Phase 5** — Fail when GLM_API_KEY not set (opencode LLM required)
+- **demo/** — demo.tape, demo.gif, run-demo.sh; examples/beads-viz-demo
+
+---
 
 ### F053: Coverage Context + Protocol-Only Docs Boundary
 
