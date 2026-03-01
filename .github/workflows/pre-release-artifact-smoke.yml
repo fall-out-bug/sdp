@@ -46,7 +46,7 @@ jobs:
           cache-dependency-path: sdp-plugin/go.sum
 
       - name: Build snapshot artifacts with GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: latest
