@@ -69,13 +69,13 @@ jobs:
           path: ./sdp-plugin
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.spdx.json
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: sdp-plugin/dist/*
