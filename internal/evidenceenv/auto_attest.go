@@ -369,7 +369,8 @@ func collectDeclaredScopePrefixes(repoRoot string) []string {
 
 func matchesAnyPrefix(file string, prefixes []string) bool {
 	for _, p := range prefixes {
-		if strings.HasPrefix(file, p) || file == p {
+		trimmed := strings.TrimSuffix(p, "/")
+		if strings.HasPrefix(file, p) || file == p || file == trimmed {
 			return true
 		}
 	}
