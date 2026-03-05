@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fall-out-bug/sdp/internal/orchestrate"
@@ -67,7 +68,7 @@ func TestRunHooks_PreBuildHalt(t *testing.T) {
 hooks:
   - phase: build
     when: pre
-    command: "exit 1"
+    command: "false"
     on_fail: halt
 `
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
@@ -92,7 +93,7 @@ func TestRunHooks_PostBuildWarn(t *testing.T) {
 hooks:
   - phase: build
     when: post
-    command: "exit 1"
+    command: "false"
     on_fail: warn
 `
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
@@ -117,7 +118,7 @@ func TestRunHooks_Ignore(t *testing.T) {
 hooks:
   - phase: ci
     when: post
-    command: "exit 42"
+    command: "false"
     on_fail: ignore
 `
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
@@ -136,5 +137,59 @@ func TestRunHooks_MissingConfig(t *testing.T) {
 	err := orchestrate.RunHooks(ctx, dir, "build", "pre", orchestrate.HookEnv{}, nil)
 	if err != nil {
 		t.Errorf("missing config should not fail: %v", err)
+	}
+}
+
+func TestRunHooks_RejectsShellMetacharacters(t *testing.T) {
+	dir := t.TempDir()
+	sdp := filepath.Join(dir, ".sdp")
+	if err := os.MkdirAll(sdp, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(sdp, "pipeline-hooks.yaml")
+	content := `
+hooks:
+  - phase: build
+    when: pre
+    command: "echo ok; rm -rf /"
+    on_fail: halt
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := orchestrate.RunHooks(context.Background(), dir, "build", "pre", orchestrate.HookEnv{}, nil)
+	if err == nil {
+		t.Fatal("expected rejection error for metacharacters")
+	}
+	if !strings.Contains(err.Error(), "disallowed") {
+		t.Fatalf("expected disallowed error, got: %v", err)
+	}
+}
+
+func TestRunHooks_RejectsShellInterpreter(t *testing.T) {
+	dir := t.TempDir()
+	sdp := filepath.Join(dir, ".sdp")
+	if err := os.MkdirAll(sdp, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(sdp, "pipeline-hooks.yaml")
+	content := `
+hooks:
+  - phase: build
+    when: pre
+    command: "sh -c echo-safe"
+    on_fail: halt
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := orchestrate.RunHooks(context.Background(), dir, "build", "pre", orchestrate.HookEnv{}, nil)
+	if err == nil {
+		t.Fatal("expected rejection error for disallowed command")
+	}
+	if !strings.Contains(err.Error(), "allowlist") {
+		t.Fatalf("expected allowlist error, got: %v", err)
 	}
 }

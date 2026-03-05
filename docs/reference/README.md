@@ -11,6 +11,7 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 - [Commands](#commands)
 - [Quality Gates](#quality-gates)
 - [Configuration](#configuration)
+- [Pipeline Hooks Security](#pipeline-hooks-security)
 - [Error Handling](#error-handling)
 - [Skills](#skills)
 
@@ -79,6 +80,18 @@ strict_mode = true
 
 ---
 
+## Pipeline Hooks Security
+
+Pipeline hooks run executable commands in build/review/ci phases and are validated in fail-closed mode.
+
+- shell metacharacters are rejected
+- executables must be allowlisted or repository-local scripts
+- `on_fail` policy controls halt/warn/ignore behavior
+
+**See:** [pipeline-hooks-security.md](pipeline-hooks-security.md) — secure hook execution rules
+
+---
+
 ## Error Handling
 
 ### SDP Error Framework
@@ -139,6 +152,7 @@ Structured errors with:
 |------|-----|
 | Command syntax | [../CLI_REFERENCE.md](../CLI_REFERENCE.md) |
 | Quality standards | [build-spec.md](build-spec.md) |
+| Hook security rules | [pipeline-hooks-security.md](pipeline-hooks-security.md) |
 | Skill details | [skills.md](skills.md) |
 | Design workflow | [design-spec.md](design-spec.md) |
 | Review workflow | [review-spec.md](review-spec.md) |
