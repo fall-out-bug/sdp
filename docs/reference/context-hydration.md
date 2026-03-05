@@ -21,3 +21,12 @@
 
 - Production path: `DefaultLLMInvoker`.
 - Tests: fake invokers can simulate output and exit codes without spawning subprocesses.
+
+## Verification Map
+
+| Behavior | Evidence |
+|---|---|
+| Missing quality-gate source fails fast | `TestHydrate_FailsWhenQualityGateSourceMissing` |
+| Non-git workspace does not hard-fail hydration; drift error is surfaced | `TestHydrate_RecordsDriftStatusError` |
+| Dependency lookup failures are retained per dependency | `TestHydrate_RecordsDependencyLookupError` |
+| Build phase logic is testable without subprocess execution | `TestRunBuildPhase_WithFakeInvoker`, `TestRunBuildPhase_WithFakeInvoker_NonZeroExit` |
