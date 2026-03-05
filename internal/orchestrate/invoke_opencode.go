@@ -121,9 +121,11 @@ func InvokeOpenCode(ctx context.Context, dir, agent, prompt string) (string, int
 	return string(out), 0, nil
 }
 
-// RunBuildPhase invokes opencode to execute a single @build workstream.
 // Computes prompt_hash and context_sources before LLM invocation (F026 prompt provenance).
-func RunBuildPhase(ctx context.Context, projectRoot, featureID, wsID string) (commit string, err error) {
+func RunBuildPhase(ctx context.Context, projectRoot, featureID, wsID string, invoker LLMInvoker) (commit string, err error) {
+	if invoker == nil {
+		invoker = DefaultLLMInvoker
+	}
 	prompt := buildPromptWithContext(projectRoot, fmt.Sprintf("Execute @build %s. Output only code and commit message. After commit, output the commit hash.", wsID))
 	promptHash := ComputePromptHash(prompt)
 	var scopeFiles []string
@@ -132,7 +134,7 @@ func RunBuildPhase(ctx context.Context, projectRoot, featureID, wsID string) (co
 	}
 	sources := BuildContextSources(projectRoot, featureID, wsID, scopeFiles)
 	_ = WritePromptProvenance(projectRoot, promptHash, sources)
-	out, code, err := InvokeOpenCode(ctx, projectRoot, "implementer", prompt)
+	out, code, err := invoker.Invoke(ctx, projectRoot, "implementer", prompt)
 	if err != nil {
 		return "", err
 	}
@@ -150,10 +152,12 @@ func RunBuildPhase(ctx context.Context, projectRoot, featureID, wsID string) (co
 	return "", nil
 }
 
-// RunReviewPhase invokes opencode to execute @review for a feature.
-func RunReviewPhase(ctx context.Context, dir, featureID string) (approved bool, err error) {
+func RunReviewPhase(ctx context.Context, dir, featureID string, invoker LLMInvoker) (approved bool, err error) {
+	if invoker == nil {
+		invoker = DefaultLLMInvoker
+	}
 	prompt := buildPromptWithContext(dir, fmt.Sprintf("Execute @review %s. Fix P0/P1 findings. Output APPROVED when done.", featureID))
-	out, code, err := InvokeOpenCode(ctx, dir, "reviewer", prompt)
+	out, code, err := invoker.Invoke(ctx, dir, "reviewer", prompt)
 	if err != nil {
 		return false, err
 	}

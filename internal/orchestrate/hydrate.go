@@ -21,7 +21,7 @@ type ContextPacket struct {
 	Workstream         string            `json:"workstream"`
 	AcceptanceCriteria []string          `json:"acceptance_criteria"`
 	ScopeFiles         []string          `json:"scope_files"`
-	Checkpoint         *Checkpoint        `json:"checkpoint,omitempty"`
+	Checkpoint         *Checkpoint       `json:"checkpoint,omitempty"`
 	Dependencies       map[string]string `json:"dependencies,omitempty"`
 	QualityGates       string            `json:"quality_gates"`
 	DriftStatus        string            `json:"drift_status"`
@@ -50,16 +50,26 @@ func Hydrate(projectRoot, featureID, wsID string, cp *Checkpoint) (*ContextPacke
 		for _, dep := range deps {
 			beadsID := wsIDToBeadsID(projectRoot, dep)
 			if beadsID != "" {
-				out, _ := bdShow(projectRoot, beadsID)
+				out, err := bdShow(projectRoot, beadsID)
+				if err != nil {
+					pkt.Dependencies[dep] = fmt.Sprintf("ERROR: read dependency %s (%s): %v", dep, beadsID, err)
+					continue
+				}
 				pkt.Dependencies[dep] = out
 			}
 		}
 	}
 
 	agentsPath := filepath.Join(projectRoot, "AGENTS.md")
-	agentsContent, _ := os.ReadFile(agentsPath)
+	agentsContent, err := os.ReadFile(agentsPath)
+	if err != nil {
+		return nil, fmt.Errorf("read quality gates source %s: %w", agentsPath, err)
+	}
 	pkt.QualityGates = parseQualityGates(string(agentsContent))
-	pkt.DriftStatus, _ = gitStatusPorcelain(projectRoot)
+	pkt.DriftStatus, err = gitStatusPorcelain(projectRoot)
+	if err != nil {
+		pkt.DriftStatus = fmt.Sprintf("ERROR: collect drift status: %v", err)
+	}
 
 	if err := pkt.Validate(); err != nil {
 		return nil, fmt.Errorf("context packet validation: %w", err)
