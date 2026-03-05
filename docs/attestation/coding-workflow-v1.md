@@ -43,6 +43,17 @@ sdp-evidence validate .sdp/evidence/run-123.json
 sdp-evidence inspect .sdp/evidence/run-123.json
 ```
 
+### Boundary Scope Matching Rules
+
+`boundary.declared.allowed_path_prefixes` accepts both file paths and directory-style prefixes.
+To keep CI auto-attestation deterministic and avoid false violations, scope matching uses these rules:
+
+- `internal/orchestrate/hooks.go` matches only that file.
+- `internal/orchestrate/` matches files under that directory.
+- Directory tokens are normalized so `internal/` and `internal` are treated as equivalent when comparing exact path entries.
+
+This normalization prevents false `out_of_boundary_paths` when a workstream declares a directory with a trailing slash.
+
 ## Signing
 
 Attestations can be signed with Sigstore (keyless) for tamper-evidence:
