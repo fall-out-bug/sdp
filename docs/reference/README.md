@@ -12,6 +12,7 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 - [Quality Gates](#quality-gates)
 - [Configuration](#configuration)
 - [Error Handling](#error-handling)
+- [Hydration](#hydration)
 - [Skills](#skills)
 
 ---
@@ -102,6 +103,19 @@ Structured errors with:
 - `ArtifactValidationError` - Artifact invalid
 
 **See:** [skills.md](skills.md) — Skill contracts and error handling
+
+---
+
+## Hydration
+
+### Context Packet Reliability
+
+- Deterministic pre-build/pre-review context packet generation
+- Fail-fast read of required quality-gate source (`AGENTS.md`)
+- Explicit `ERROR:` capture for dependency and drift collection failures
+- Injectable invoker seams for deterministic unit tests
+
+**See:** [context-hydration.md](context-hydration.md) — hydration guarantees and testability contract
 
 ---
 

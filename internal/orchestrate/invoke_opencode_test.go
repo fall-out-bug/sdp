@@ -1,10 +1,76 @@
 package orchestrate
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 )
+
+func TestRunBuildPhase_WithFakeInvoker(t *testing.T) {
+	dir := t.TempDir()
+	sdpDir := filepath.Join(dir, ".sdp", "checkpoints")
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cpPath := filepath.Join(sdpDir, "F053.json")
+	if err := os.WriteFile(cpPath, []byte("{}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	wsDir := filepath.Join(dir, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(wsDir, "00-053-34.md"), []byte("# test"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	fake := &fakeLLMInvoker{
+		output:   "abc123def4567890123456789012345678901234",
+		exitCode: 0,
+	}
+	commit, err := RunBuildPhase(context.Background(), dir, "F053", "00-053-34", fake)
+	if err != nil {
+		t.Fatalf("RunBuildPhase: %v", err)
+	}
+	if commit != "abc123def4567890123456789012345678901234" {
+		t.Errorf("commit = %q, want %q", commit, "abc123def4567890123456789012345678901234")
+	}
+	if !fake.invoked {
+		t.Error("fake invoker was not invoked")
+	}
+}
+
+func TestRunBuildPhase_WithFakeInvoker_NonZeroExit(t *testing.T) {
+	dir := t.TempDir()
+	sdpDir := filepath.Join(dir, ".sdp", "checkpoints")
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_ = os.WriteFile(filepath.Join(sdpDir, "F053.json"), []byte("{}"), 0o644)
+	wsDir := filepath.Join(dir, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_ = os.WriteFile(filepath.Join(wsDir, "00-053-34.md"), []byte("# test"), 0o644)
+
+	fake := &fakeLLMInvoker{output: "build failed", exitCode: 1}
+	_, err := RunBuildPhase(context.Background(), dir, "F053", "00-053-34", fake)
+	if err == nil {
+		t.Fatal("expected error from non-zero exit")
+	}
+}
+
+type fakeLLMInvoker struct {
+	output   string
+	exitCode int
+	invoked  bool
+}
+
+func (f *fakeLLMInvoker) Invoke(ctx context.Context, dir, agent, prompt string) (string, int, error) {
+	f.invoked = true
+	return f.output, f.exitCode, nil
+}
 
 func TestComputePromptHash(t *testing.T) {
 	// Empty string has known SHA-256
