@@ -176,7 +176,7 @@ jobs:
 
       # golangci-lint v2.9.0+ supports Go 1.26
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.9.0
           args: --timeout=5m
