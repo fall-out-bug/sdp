@@ -24,6 +24,7 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 | [reference/design-spec.md](reference/design-spec.md) | @design contract |
 | [reference/review-spec.md](reference/review-spec.md) | @review contract |
 | [reference/skills.md](reference/skills.md) | Skill catalog |
+| [reference/pipeline-hooks-security.md](reference/pipeline-hooks-security.md) | Hook execution hardening |
 
 ## Schemas & Attestation
 

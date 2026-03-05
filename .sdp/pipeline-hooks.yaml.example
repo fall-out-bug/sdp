@@ -1,0 +1,19 @@
+# Pipeline hooks example. Copy to pipeline-hooks.yaml and customize.
+# Env: WS_ID, FEATURE_ID, PHASE, CHECKPOINT_PATH
+# phase: build | review | ci
+# when: pre | post
+# on_fail: halt | warn | ignore
+# timeout: seconds (0 = default 60)
+
+hooks:
+  - phase: build
+    when: pre
+    command: hooks/pre-build.sh
+    on_fail: warn
+    timeout: 30
+
+  - phase: build
+    when: post
+    command: hooks/post-build.sh
+    on_fail: warn
+    timeout: 30
