@@ -64,7 +64,7 @@ jobs:
           echo "args=release --clean --release-notes ../docs/releases/${{ github.ref_name }}.md" >> $GITHUB_OUTPUT
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           version: 'v2.5.0'
