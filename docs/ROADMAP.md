@@ -23,6 +23,9 @@ SDP is a **protocol + evidence layer** for AI coding agents. It structures work 
 |----------|--------|
 | Protocol (prompts, skills) | Published, used daily |
 | Evidence JSON Schema | Published (`schema/evidence-envelope.schema.json`) |
+| Runtime contracts | Published (`schema/contracts/*.schema.json`) |
+| Findings schemas | Published (`schema/findings/*.schema.json`) |
+| Agent handoff schemas | Published (`schema/handoff-*.schema.json`) |
 | in-toto predicate spec | Published (`https://sdp.dev/attestation/coding-workflow/v1`) |
 | `sdp` CLI | Published (init, build, verify, guard, etc.) |
 | `sdp-evidence` CLI | Working, not yet standalone release |

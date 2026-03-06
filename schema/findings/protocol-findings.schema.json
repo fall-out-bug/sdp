@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/findings/protocol-findings/v1",
+  "title": "ProtocolFindings",
+  "description": "Schema for GitHub CI protocol violation findings that can be ingested by local agents",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "findings_id",
+    "timestamp",
+    "source",
+    "findings"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$",
+      "description": "Schema version for compatibility tracking",
+      "examples": ["v1.0", "v1.1"]
+    },
+    "findings_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this findings report"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when findings were generated"
+    },
+    "source": {
+      "type": "object",
+      "required": ["check_name", "workflow", "run_id"],
+      "properties": {
+        "check_name": {
+          "type": "string",
+          "description": "Name of the CI check that generated findings",
+          "examples": ["sdp-protocol-check", "sdp-doc-sync"]
+        },
+        "workflow": {
+          "type": "string",
+          "description": "GitHub Actions workflow name",
+          "examples": ["CI", "Protocol Validation"]
+        },
+        "run_id": {
+          "type": "integer",
+          "description": "GitHub Actions run ID"
+        },
+        "run_number": {
+          "type": "integer",
+          "description": "GitHub Actions run number"
+        },
+        "repository": {
+          "type": "string",
+          "description": "Repository in owner/repo format",
+          "examples": ["fall-out-bug/sdp_lab"]
+        },
+        "branch": {
+          "type": "string",
+          "description": "Branch name",
+          "examples": ["feature/F077-findings-schema"]
+        },
+        "commit_sha": {
+          "type": "string",
+          "description": "Git commit SHA"
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "strict_beads": {
+          "type": "boolean",
+          "description": "Whether strict Beads mode was enabled"
+        },
+        "strict_all": {
+          "type": "boolean",
+          "description": "Whether strict mode was enabled for all checks"
+        },
+        "legacy_features": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of legacy features to skip"
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "description": "List of protocol violations found",
+      "items": {
+        "type": "object",
+        "required": ["finding_key", "severity", "category", "file", "message"],
+        "properties": {
+          "finding_key": {
+            "type": "string",
+            "description": "Unique key for deduplication - hash of file+category+line+code",
+            "pattern": "^[a-f0-9]{16}$",
+            "examples": ["a1b2c3d4e5f67890"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warning", "info", "hint"],
+            "description": "Finding severity level"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "frontmatter",
+              "beads",
+              "acceptance_criteria",
+              "feature_consistency",
+              "workstream_structure",
+              "roadmap",
+              "index",
+              "documentation"
+            ],
+            "description": "Category of protocol violation"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "examples": ["MISSING_BEADS", "INVALID_WS_ID", "PLACEHOLDER_ID"]
+          },
+          "file": {
+            "type": "string",
+            "description": "Relative path to the file with the issue",
+            "examples": ["docs/workstreams/backlog/00-077-01.md"]
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Line number where the issue was found (1-indexed)"
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Column number where the issue was found (1-indexed)"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the issue",
+            "examples": ["section '## Beads' must contain at least one bullet item"]
+          },
+          "remediation": {
+            "type": "object",
+            "description": "Remediation hints for fixing the issue",
+            "properties": {
+              "hint": {
+                "type": "string",
+                "description": "Brief hint on how to fix the issue",
+                "examples": ["Add a bullet item with sdplab-<id> reference"]
+              },
+              "action": {
+                "type": "string",
+                "enum": ["add", "update", "remove", "rename", "fix"],
+                "description": "Suggested action type"
+              },
+              "template": {
+                "type": "string",
+                "description": "Template or example of correct format"
+              },
+              "doc_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Link to relevant documentation"
+              }
+            }
+          },
+          "context": {
+            "type": "object",
+            "description": "Additional context about the finding",
+            "properties": {
+              "feature_id": {
+                "type": "string",
+                "pattern": "^F\\d{3}$",
+                "description": "Feature ID if applicable"
+              },
+              "ws_id": {
+                "type": "string",
+                "pattern": "^00-\\d{3}-\\d{2}$",
+                "description": "Workstream ID if applicable"
+              },
+              "beads_id": {
+                "type": "string",
+                "pattern": "^sdplab-[a-z0-9]+$",
+                "description": "Beads issue ID if applicable"
+              },
+              "related_files": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Other files related to this finding"
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "description": "Summary statistics",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of findings"
+        },
+        "by_severity": {
+          "type": "object",
+          "properties": {
+            "error": {"type": "integer", "minimum": 0},
+            "warning": {"type": "integer", "minimum": 0},
+            "info": {"type": "integer", "minimum": 0},
+            "hint": {"type": "integer", "minimum": 0}
+          }
+        },
+        "by_category": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0},
+          "description": "Count of findings by category"
+        }
+      }
+    }
+  }
+}

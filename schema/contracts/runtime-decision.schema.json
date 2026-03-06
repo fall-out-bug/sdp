@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/runtime-decision/v1",
+  "title": "RuntimeDecision",
+  "description": "Protocol contract for runtime governance decisions with allow/ask/deny semantics",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "decision_id",
+    "timestamp",
+    "decision_type",
+    "decision",
+    "reason",
+    "context"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$",
+      "description": "Schema version for compatibility tracking",
+      "examples": ["v1.0", "v1.1"]
+    },
+    "decision_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this decision instance"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the decision was made"
+    },
+    "decision_type": {
+      "type": "string",
+      "enum": [
+        "scope.boundary",
+        "test.coverage",
+        "security.approval",
+        "review.status",
+        "evidence.validity",
+        "quality.gate",
+        "resource.limit",
+        "model.selection"
+      ],
+      "description": "Type of governance decision being made"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["allow", "ask", "deny"],
+      "description": "Decision outcome: allow (proceed), ask (require approval), deny (block)"
+    },
+    "reason": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Machine-readable reason code",
+          "examples": ["SCOPE_VALID", "TESTS_PASSING", "REVIEW_APPROVED", "SECURITY_VIOLATION"]
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable explanation of the decision"
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional structured details about the decision",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "required": ["request"],
+      "properties": {
+        "request": {
+          "type": "object",
+          "description": "The original request that triggered this decision",
+          "properties": {
+            "action": {
+              "type": "string",
+              "description": "The action being requested"
+            },
+            "resource": {
+              "type": "string",
+              "description": "The resource affected by the action"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": true,
+              "description": "Request parameters"
+            }
+          }
+        },
+        "actor": {
+          "type": "object",
+          "description": "Information about who/what initiated the request",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["agent", "user", "system"],
+              "description": "Type of actor"
+            },
+            "id": {
+              "type": "string",
+              "description": "Actor identifier (agent name, user ID, system name)"
+            },
+            "roles": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Roles assigned to the actor"
+            }
+          }
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["oss", "enterprise", "development", "production"],
+          "description": "Execution environment"
+        },
+        "workstream_id": {
+          "type": "string",
+          "pattern": "^00-\\d{3}-\\d{2}$"
+        },
+        "feature_id": {
+          "type": "string",
+          "pattern": "^F\\d{3}$"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_reference": {
+      "type": "object",
+      "description": "Reference to the policy that informed this decision",
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "description": "ID of the policy that was evaluated"
+        },
+        "policy_version": {
+          "type": "string",
+          "description": "Version of the policy"
+        },
+        "rule_name": {
+          "type": "string",
+          "description": "Specific rule within the policy that triggered"
+        },
+        "opa_decision_id": {
+          "type": "string",
+          "description": "OPA decision ID for audit trail"
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Evidence supporting this decision",
+      "items": {
+        "type": "object",
+        "required": ["type", "reference"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["test_result", "review_approval", "security_scan", "coverage_report", "attestation"]
+          },
+          "reference": {
+            "type": "string",
+            "description": "URI or path to the evidence"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Brief summary of the evidence"
+          }
+        }
+      }
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Override information if decision was manually overridden",
+      "properties": {
+        "overridden": {
+          "type": "boolean",
+          "default": false
+        },
+        "overridden_by": {
+          "type": "string",
+          "description": "Who approved the override"
+        },
+        "override_reason": {
+          "type": "string",
+          "description": "Justification for the override"
+        },
+        "override_expires": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the override expires"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

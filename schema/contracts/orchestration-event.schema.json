@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/orchestration-event/v1",
+  "title": "OrchestrationEvent",
+  "description": "Protocol contract for orchestration events shared by OSS and enterprise surfaces",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "event_id",
+    "timestamp",
+    "source",
+    "event_type",
+    "payload"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$",
+      "description": "Schema version (e.g., v1.0). Must follow semver format for compatibility tracking",
+      "examples": ["v1.0", "v1.1", "v2.0"]
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event instance"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the event occurred"
+    },
+    "source": {
+      "type": "object",
+      "required": ["system", "component"],
+      "properties": {
+        "system": {
+          "type": "string",
+          "enum": ["omo", "gas-town", "sdp-lab", "beads"],
+          "description": "Source system identifier"
+        },
+        "component": {
+          "type": "string",
+          "description": "Component within the system that generated the event",
+          "examples": ["analyst-agent", "coder-agent", "reviewer-agent", "ci-loop"]
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the source component"
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "task.started",
+        "task.completed",
+        "task.failed",
+        "phase.transition",
+        "handoff.initiated",
+        "handoff.completed",
+        "decision.made",
+        "evidence.generated",
+        "quality.gate.passed",
+        "quality.gate.failed"
+      ],
+      "description": "Type of orchestration event"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Event-specific payload data",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "correlation_id": {
+          "type": "string",
+          "description": "ID for correlating related events across the workflow"
+        },
+        "causation_id": {
+          "type": "string",
+          "description": "ID of the event that caused this event"
+        },
+        "trace_context": {
+          "type": "object",
+          "description": "Distributed tracing context (W3C Trace Context)",
+          "properties": {
+            "traceparent": {"type": "string"},
+            "tracestate": {"type": "string"}
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {"type": "string"},
+          "description": "Arbitrary key-value labels for filtering and routing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "description": "Execution context information",
+      "properties": {
+        "workstream_id": {
+          "type": "string",
+          "pattern": "^00-\\d{3}-\\d{2}$",
+          "description": "SDP workstream ID if applicable"
+        },
+        "feature_id": {
+          "type": "string",
+          "pattern": "^F\\d{3}$",
+          "description": "SDP feature ID if applicable"
+        },
+        "beads_id": {
+          "type": "string",
+          "description": "Beads issue ID if applicable"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "OpenCode session ID"
+        },
+        "git_context": {
+          "type": "object",
+          "properties": {
+            "branch": {"type": "string"},
+            "commit_sha": {"type": "string"},
+            "repo_url": {"type": "string", "format": "uri"}
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

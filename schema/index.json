@@ -10,6 +10,13 @@
     { "id": "coding-workflow-statement", "path": "coding-workflow-statement.schema.json", "title": "SDP Coding Workflow in-toto Statement (v1 envelope)" },
     { "id": "review-verdict", "path": "review-verdict.schema.json", "title": "SDP Review Verdict" },
     { "id": "ws-verdict", "path": "ws-verdict.schema.json", "title": "SDP Workstream Verdict" },
-    { "id": "next-action", "path": "next-action.schema.json", "title": "SDP Next Action" }
+    { "id": "next-action", "path": "next-action.schema.json", "title": "SDP Next Action" },
+    { "id": "orchestration-event", "path": "contracts/orchestration-event.schema.json", "title": "Orchestration Event Contract" },
+    { "id": "runtime-decision", "path": "contracts/runtime-decision.schema.json", "title": "Runtime Governance Decision Contract" },
+    { "id": "protocol-findings", "path": "findings/protocol-findings.schema.json", "title": "Protocol Findings Report" },
+    { "id": "docs-findings", "path": "findings/docs-findings.schema.json", "title": "Documentation Findings Report" },
+    { "id": "handoff-analyst", "path": "handoff-analyst.schema.json", "title": "Analyst Handoff" },
+    { "id": "handoff-coder", "path": "handoff-coder.schema.json", "title": "Coder Handoff" },
+    { "id": "handoff-reviewer", "path": "handoff-reviewer.schema.json", "title": "Reviewer Handoff" }
   ]
 }
