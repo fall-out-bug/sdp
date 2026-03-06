@@ -22,6 +22,10 @@ SDP publishes machine-readable schemas in `schema/`. This document maps each sch
 | `schema/findings/protocol-findings.schema.json` | Structured output for protocol findings from CI checks |
 | `schema/findings/docs-findings.schema.json` | Structured output for documentation findings from CI checks |
 
+Examples for contract consumers:
+- `schema/findings/examples/protocol-findings-example.json`
+- `schema/findings/examples/docs-findings-example.json`
+
 ## Agent Handoff Contracts
 
 | Schema | Purpose |
