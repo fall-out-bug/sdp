@@ -90,6 +90,39 @@ func TestSchemaValidationMatchesEvidenceValidate(t *testing.T) {
 			wantStrict: true,
 		},
 		{
+			name: "valid_with_prompt_provenance",
+			payload: mustMerge(t, validEvidenceFixture, map[string]any{
+				"provenance": map[string]any{
+					"run_id":           "run-1",
+					"orchestrator":     "test",
+					"runtime":          "local",
+					"model":            "test",
+					"gate_results":     []any{},
+					"phase":            "execute",
+					"role":             "coder",
+					"captured_at":      "2026-01-01T00:00:00Z",
+					"source_issue_id":  "sdp_dev-abc",
+					"artifact_id":      "art-1",
+					"contract_version": "artifact-provenance/v1",
+					"hash_algorithm":   "sha256",
+					"sequence":         0,
+					"payload_digest":   "",
+					"hash":             "",
+					"hash_prev":        "",
+					"prompt_hash":      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"context_sources": []any{
+						map[string]any{
+							"type": "workstream_spec",
+							"path": "docs/workstreams/backlog/00-026-01.md",
+							"hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						},
+					},
+				},
+			}),
+			requirePR:  false,
+			wantStrict: true,
+		},
+		{
 			name:       "missing_sections",
 			payload:    []byte(`{"intent":{}}`),
 			requirePR:  false,
@@ -99,8 +132,8 @@ func TestSchemaValidationMatchesEvidenceValidate(t *testing.T) {
 			name: "invalid_boundary_missing_declared",
 			payload: mustMerge(t, validEvidenceFixture, map[string]any{
 				"boundary": map[string]any{
-					"declared":  map[string]any{},
-					"observed": map[string]any{"touched_paths": []any{}, "out_of_boundary_paths": []any{}},
+					"declared":   map[string]any{},
+					"observed":   map[string]any{"touched_paths": []any{}, "out_of_boundary_paths": []any{}},
 					"compliance": map[string]any{"ok": true, "reason": ""},
 				},
 			}),

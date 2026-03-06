@@ -146,7 +146,25 @@
         "sequence": { "type": "number", "minimum": 0 },
         "payload_digest": { "type": "string" },
         "hash": { "type": "string" },
-        "hash_prev": { "type": "string" }
+        "hash_prev": { "type": "string" },
+        "prompt_hash": {
+          "type": "string",
+          "description": "SHA-256 hex (64 chars) of the fully rendered prompt sent to the LLM. Empty string allowed for backward compatibility.",
+          "pattern": "^$|^[a-f0-9]{64}$"
+        },
+        "context_sources": {
+          "type": "array",
+          "description": "List of inputs that entered the agent's context",
+          "items": {
+            "type": "object",
+            "required": ["type", "path", "hash"],
+            "properties": {
+              "type": { "type": "string", "enum": ["workstream_spec", "checkpoint", "scope_file", "agents_md", "skill", "context_packet"] },
+              "path": { "type": "string" },
+              "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        }
       }
     },
     "trace": {
