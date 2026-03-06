@@ -66,7 +66,7 @@ cmd := exec.CommandContext(ctx, command, args...)
 ### Safe Command Creation
 
 ```go
-import "github.com/ai-masters/sdp/internal/security"
+import "github.com/fall-out-bug/sdp/internal/security"
 
 ctx := context.Background()
 cmd, err := security.SafeCommand(ctx, "pytest", []string{"tests/"}...)
@@ -118,7 +118,7 @@ sdp doctor
 All YAML parsing uses secure decoder with limits:
 
 ```go
-import "github.com/ai-masters/sdp/internal/parser"
+import "github.com/fall-out-bug/sdp/internal/parser"
 
 // Safe YAML unmarshaling with limits
 content, _ := os.ReadFile("workstream.md")
@@ -145,7 +145,7 @@ if err := SafeYAMLUnmarshal(content, &fm); err != nil {
 All user-provided file paths are validated:
 
 ```go
-import "github.com/ai-masters/sdp/internal/security"
+import "github.com/fall-out-bug/sdp/internal/security"
 
 // Sanitize user input
 cleanPath, err := security.SanitizePath(userPath)

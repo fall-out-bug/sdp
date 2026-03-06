@@ -8,7 +8,7 @@ Get started with SDP development in under 15 minutes.
 
 | Tool | Version | How to Check |
 |------|---------|--------------|
-| **Go** | 1.24+ | `go version` (see `.go-version`) |
+| **Go** | 1.26+ | `go version` (see `.go-version`) |
 | **Git** | 2.30+ | `git --version` |
 | **golangci-lint** | latest | `golangci-lint version` (optional) |
 | **Beads CLI** | latest | `bd --version` (for task tracking) |
@@ -161,7 +161,7 @@ Recommended `settings.json`:
 ### GoLand
 
 1. Open `sdp-plugin/` as Go module
-2. Set Go SDK to 1.24
+2. Set Go SDK to 1.26
 3. Enable golangci-lint in Settings → Go → Linter
 
 ---

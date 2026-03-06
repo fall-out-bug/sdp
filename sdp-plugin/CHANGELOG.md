@@ -185,9 +185,9 @@ Inspired by:
 ### Support
 
 - **Documentation:** [docs/](docs/)
-- **Issues:** [GitHub Issues](https://github.com/ai-masters/sdp/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/ai-masters/sdp/discussions)
-- **Homepage:** https://github.com/ai-masters/sdp
+- **Issues:** [GitHub Issues](https://github.com/fall-out-bug/sdp/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/fall-out-bug/sdp/discussions)
+- **Homepage:** https://github.com/fall-out-bug/sdp
 
 ---
 
