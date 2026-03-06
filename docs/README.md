@@ -25,6 +25,7 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 | [reference/review-spec.md](reference/review-spec.md) | @review contract |
 | [reference/context-hydration.md](reference/context-hydration.md) | Context packet reliability and invoker seams |
 | [reference/schema-registry.md](reference/schema-registry.md) | Schema families: contracts, findings, handoffs |
+| [reference/integration-contracts.md](reference/integration-contracts.md) | How to apply contracts, findings, handoffs, provenance in integrations |
 | [reference/skills.md](reference/skills.md) | Skill catalog |
 | [reference/pipeline-hooks-security.md](reference/pipeline-hooks-security.md) | Hook execution hardening |
 
