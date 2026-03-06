@@ -78,6 +78,69 @@ Use these fields to:
 - correlate behavior changes with prompt/context drift
 - support compliance and incident postmortems
 
+## Quickstart Snippets
+
+### Validate a findings payload against schema (Python)
+
+```bash
+python3 - <<'PY'
+import json
+from jsonschema import validate
+
+schema = json.load(open("schema/findings/protocol-findings.schema.json", "r", encoding="utf-8"))
+doc = json.load(open("schema/findings/examples/protocol-findings-example.json", "r", encoding="utf-8"))
+
+validate(instance=doc, schema=schema)
+print("protocol findings payload is valid")
+PY
+```
+
+### Minimal runtime decision payload
+
+```json
+{
+  "spec_version": "v1.0",
+  "decision_id": "2dfd1087-7b77-4df4-9ec5-6ea6a6d6f4b5",
+  "timestamp": "2026-03-06T12:00:00Z",
+  "decision_type": "quality.gate",
+  "decision": "allow",
+  "reason": {
+    "code": "QUALITY_GATES_PASSED",
+    "message": "all required quality gates passed"
+  },
+  "context": {
+    "request": {
+      "action": "merge",
+      "resource": "pull_request"
+    },
+    "workstream_id": "00-077-01",
+    "feature_id": "F077",
+    "session_id": "run-20260306-120000"
+  }
+}
+```
+
+Validate against `schema/contracts/runtime-decision.schema.json` before publish.
+
+### Minimal provenance extension inside evidence envelope
+
+```json
+{
+  "provenance": {
+    "prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "context_sources": [
+      {
+        "type": "workstream_spec",
+        "path": "docs/workstreams/backlog/00-077-01.md",
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+}
+```
+
+Keep these fields as hashes/metadata only; do not store raw prompts in evidence.
+
 ## Producer/Consumer Checklist
 
 Producer side:
