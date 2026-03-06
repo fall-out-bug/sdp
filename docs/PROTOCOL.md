@@ -630,3 +630,5 @@ Updated: 2026-02-26
 **See Also:**
 - Agent Roles: `.claude/agents/README.md`
 - Reference: `docs/reference/`
+- Schema Registry: `docs/reference/schema-registry.md`
+- Integration Contracts Guide: `docs/reference/integration-contracts.md`

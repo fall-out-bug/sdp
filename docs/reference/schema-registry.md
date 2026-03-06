@@ -2,6 +2,8 @@
 
 SDP publishes machine-readable schemas in `schema/`. This document maps each schema family to its purpose.
 
+For implementation patterns and rollout guidance, see `docs/reference/integration-contracts.md`.
+
 ## Registry Index
 
 - Canonical index: `schema/index.json`

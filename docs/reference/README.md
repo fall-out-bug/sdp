@@ -15,6 +15,7 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 - [Error Handling](#error-handling)
 - [Hydration](#hydration)
 - [Schema Registry](#schema-registry)
+- [Integration Contracts](#integration-contracts)
 - [Skills](#skills)
 
 ---
@@ -145,6 +146,19 @@ Structured errors with:
 
 ---
 
+## Integration Contracts
+
+### End-to-End Usage
+
+- Runtime events and decisions: `schema/contracts/*.schema.json`
+- CI findings and examples: `schema/findings/*.schema.json`, `schema/findings/examples/*.json`
+- Cross-agent handoffs: `schema/handoff-*.schema.json`
+- Evidence provenance (`prompt_hash`, `context_sources`): `schema/evidence-envelope.schema.json`
+
+**See:** [integration-contracts.md](integration-contracts.md) — integration playbook and rollout checklist
+
+---
+
 ## Skills
 
 ### Available Skills
@@ -181,6 +195,7 @@ Structured errors with:
 | Quality standards | [build-spec.md](build-spec.md) |
 | Hook security rules | [pipeline-hooks-security.md](pipeline-hooks-security.md) |
 | Schema map | [schema-registry.md](schema-registry.md) |
+| Contracts usage guide | [integration-contracts.md](integration-contracts.md) |
 | Skill details | [skills.md](skills.md) |
 | Design workflow | [design-spec.md](design-spec.md) |
 | Review workflow | [review-spec.md](review-spec.md) |
