@@ -1176,7 +1176,7 @@ Fix: Replace string concatenation with parameterized query"
 4. Expand your role library
 
 **Resources:**
-- [Example Roles Library](https://github.com/ai-masters/sdp-roles)
+- [Example Roles Library](https://github.com/fall-out-bug/sdp/tree/main/prompts/agents)
 - [Role Design Patterns](docs/role-patterns.md)
 - [Beads Role Management](beads-roles.md)
 

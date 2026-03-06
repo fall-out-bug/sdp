@@ -8,7 +8,7 @@ Learn how to use the Spec-Driven Protocol (SDP) Claude Plugin with your project,
 
 ```bash
 # Clone or download SDP plugin
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 
 # Copy prompts to your project
 cp -r ~/.claude/sdp/prompts/* .claude/
@@ -477,11 +477,11 @@ jobs:
 1. **Install plugin:** `cp -r sdp-plugin/prompts/* .claude/`
 2. **Read examples:** `sdp-plugin/docs/examples/*/QUICKSTART.md`
 3. **Start building:** `@feature "Your first feature"`
-4. **Join community:** https://github.com/ai-masters/sdp/discussions
+4. **Join community:** https://github.com/fall-out-bug/sdp/discussions
 
 ## Support
 
 - **Documentation:** `sdp-plugin/docs/`
 - **Examples:** `sdp-plugin/docs/examples/`
-- **Issues:** https://github.com/ai-masters/sdp/issues
-- **Discussions:** https://github.com/ai-masters/sdp/discussions
+- **Issues:** https://github.com/fall-out-bug/sdp/issues
+- **Discussions:** https://github.com/fall-out-bug/sdp/discussions

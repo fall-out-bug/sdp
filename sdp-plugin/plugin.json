@@ -1,12 +1,12 @@
 {
   "name": "sdp",
-  "version": "0.8.0",
+  "version": "0.9.8",
   "displayName": "Spec-Driven Protocol (SDP)",
   "description": "Workstream-driven development with TDD, clean architecture, and quality gates for AI agents. Language-agnostic support for Python, Java, Go projects.",
   "author": "MSU AI Masters",
   "license": "MIT",
-  "homepage": "https://github.com/ai-masters/sdp",
-  "repository": "https://github.com/ai-masters/sdp-plugin",
+  "homepage": "https://github.com/fall-out-bug/sdp",
+  "repository": "https://github.com/fall-out-bug/sdp",
   "categories": ["development", "testing", "documentation", "workflow"],
   "keywords": ["tdd", "clean-architecture", "workstream", "quality-gates", "ai-agents", "claude", "python", "java", "go"],
   "permissions": [
@@ -27,8 +27,8 @@
     "optional": true,
     "name": "sdp",
     "description": "Optional Go binary for init, doctor, hooks commands",
-    "url": "https://github.com/ai-masters/sdp/releases/latest/download/sdp-{platform}-{arch}",
-    "checksums": "https://github.com/ai-masters/sdp/releases/latest/download/sdp-checksums.txt",
+    "url": "https://github.com/fall-out-bug/sdp/releases/latest/download/sdp-{platform}-{arch}",
+    "checksums": "https://github.com/fall-out-bug/sdp/releases/latest/download/sdp-checksums.txt",
     "platforms": ["darwin-arm64", "darwin-amd64", "linux-amd64", "windows-amd64"]
   },
   "documentation": {

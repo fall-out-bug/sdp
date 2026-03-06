@@ -93,7 +93,7 @@ Legacy format still supported!
 
 ```bash
 # Clone plugin repository
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 
 # Copy prompts to your project
 cp -r ~/.claude/sdp/prompts/* .claude/
@@ -145,7 +145,7 @@ ls docs/workstreams/backlog/*.md
 
 ```bash
 # Download Go binary (macOS arm64 example)
-curl -L https://github.com/ai-masters/sdp/releases/latest/download/sdp-darwin-arm64 -o sdp
+curl -L https://github.com/fall-out-bug/sdp/releases/latest/download/sdp-darwin-arm64 -o sdp
 chmod +x sdp
 
 # Run familiar commands
@@ -262,7 +262,7 @@ sdp deploy WS-001-01
 
 ```bash
 # Installation (no pip)
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 cp -r ~/.claude/sdp/prompts/* .claude/
 
 # Create workstream (interactive)
@@ -305,8 +305,8 @@ cp -r ~/.claude/sdp/prompts/* .claude/
 - **Documentation:** [docs/](docs/)
 - **Tutorial:** [docs/TUTORIAL.md](docs/TUTORIAL.md)
 - **Examples:** [docs/examples/](docs/examples/)
-- **Issues:** [GitHub Issues](https://github.com/ai-masters/sdp/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/ai-masters/sdp/discussions)
+- **Issues:** [GitHub Issues](https://github.com/fall-out-bug/sdp/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/fall-out-bug/sdp/discussions)
 
 ## Timeline
 
