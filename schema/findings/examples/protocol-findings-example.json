@@ -1,0 +1,93 @@
+{
+  "spec_version": "v1.0",
+  "findings_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "source": {
+    "check_name": "sdp-protocol-check",
+    "workflow": "CI",
+    "run_id": 1234567890,
+    "run_number": 42,
+    "repository": "fall-out-bug/sdp_lab",
+    "branch": "feature/F077-findings-schema",
+    "commit_sha": "abc123def456789012345678901234abcd"
+  },
+  "configuration": {
+    "strict_beads": true,
+    "strict_all": false,
+    "legacy_features": ["F001", "F002", "F003"]
+  },
+  "findings": [
+    {
+      "finding_key": "a1b2c3d4e5f67890",
+      "severity": "error",
+      "category": "beads",
+      "code": "PLACEHOLDER_ID",
+      "file": "docs/workstreams/backlog/00-077-01.md",
+      "line": 20,
+      "message": "Beads entry must reference concrete issue id (sdplab-<id>) in strict mode - placeholder detected",
+      "remediation": {
+        "hint": "Replace sdplab-XX with actual Beads issue ID",
+        "action": "update",
+        "template": "- sdplab-abc123: F077-01 findings-schema",
+        "doc_url": "https://sdp.dev/docs/beads-section"
+      },
+      "context": {
+        "feature_id": "F077",
+        "ws_id": "00-077-01"
+      }
+    },
+    {
+      "finding_key": "b2c3d4e5f6789012",
+      "severity": "warning",
+      "category": "acceptance_criteria",
+      "code": "MISSING_AC",
+      "file": "docs/workstreams/backlog/00-078-01.md",
+      "line": 35,
+      "message": "Acceptance Criteria section must contain at least one checkbox item",
+      "remediation": {
+        "hint": "Add checkbox items for each acceptance criterion",
+        "action": "add",
+        "template": "- [ ] Criterion description"
+      }
+    },
+    {
+      "finding_key": "c3d4e5f678901234",
+      "severity": "warning",
+      "category": "frontmatter",
+      "code": "INVALID_WS_ID",
+      "file": "docs/workstreams/backlog/00-079-01.md",
+      "line": 3,
+      "message": "ws_id must match pattern 00-\\d{3}-\\d{2}",
+      "remediation": {
+        "hint": "Fix ws_id format to match 00-XXX-YY pattern",
+        "action": "fix"
+      },
+      "context": {
+        "ws_id": "00-079-01"
+      }
+    },
+    {
+      "finding_key": "d4e5f67890123456",
+      "severity": "info",
+      "category": "feature_consistency",
+      "code": "LEGACY_FEATURE",
+      "file": "docs/workstreams/backlog/00-010-01.md",
+      "message": "Feature F010 is marked as legacy and not tracked in ROADMAP.md"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "by_severity": {
+      "error": 1,
+      "warning": 2,
+      "info": 1,
+      "hint": 0
+    },
+    "by_category": {
+      "beads": 1,
+      "acceptance_criteria": 1,
+      "frontmatter": 1,
+      "feature_consistency": 1
+    }
+  }
+}
