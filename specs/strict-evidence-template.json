@@ -1,0 +1,77 @@
+{
+  "intent": {
+    "issue_id": "",
+    "trigger": "user|agent",
+    "acceptance": [],
+    "risk_class": "low|medium|high|critical"
+  },
+  "plan": {
+    "workstreams": [],
+    "ordering_rationale": ""
+  },
+  "execution": {
+    "claimed_issue_ids": [],
+    "branch": "",
+    "changed_files": []
+  },
+  "verification": {
+    "tests": [],
+    "lint": [],
+    "contracts": [],
+    "coverage": {
+      "value": 0,
+      "threshold": 80
+    }
+  },
+  "review": {
+    "self_review": [],
+    "adversarial_review": []
+  },
+  "risk_notes": {
+    "residual_risks": [],
+    "out_of_scope": []
+  },
+  "boundary": {
+    "declared": {
+      "allowed_path_prefixes": [],
+      "control_path_prefixes": [],
+      "forbidden_path_prefixes": [],
+      "role": "",
+      "lane": ""
+    },
+    "observed": {
+      "touched_paths": [],
+      "out_of_boundary_paths": []
+    },
+    "compliance": {
+      "ok": false,
+      "reason": ""
+    }
+  },
+  "provenance": {
+    "run_id": "",
+    "orchestrator": "",
+    "runtime": "",
+    "model": "",
+    "gate_results": [],
+    "phase": "",
+    "role": "",
+    "captured_at": "",
+    "source_issue_id": "",
+    "artifact_id": "",
+    "contract_version": "artifact-provenance/v1",
+    "hash_algorithm": "sha256",
+    "sequence": 0,
+    "payload_digest": "",
+    "hash": "",
+    "hash_prev": "",
+    "prompt_hash": "",
+    "context_sources": []
+  },
+  "trace": {
+    "beads_ids": [],
+    "branch": "",
+    "commits": [],
+    "pr_url": ""
+  }
+}
