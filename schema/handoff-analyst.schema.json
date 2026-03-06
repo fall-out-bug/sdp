@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/handoff-analyst/v1",
+  "title": "Analyst Handoff",
+  "description": "Structured handoff from analyst to coder. Risk analysis, decomposed steps, and recommended approach.",
+  "type": "object",
+  "required": [
+    "risk_class",
+    "decomposed_steps",
+    "recommended_approach",
+    "estimated_complexity",
+    "scope_files"
+  ],
+  "properties": {
+    "risk_class": {
+      "type": "string",
+      "description": "Risk classification: low, medium, high",
+      "enum": ["low", "medium", "high"]
+    },
+    "decomposed_steps": {
+      "type": "array",
+      "description": "Ordered steps for implementation",
+      "items": { "type": "string" }
+    },
+    "recommended_approach": {
+      "type": "string",
+      "description": "Analyst's recommended implementation approach"
+    },
+    "estimated_complexity": {
+      "type": "string",
+      "description": "Complexity estimate: S, M, L, XL",
+      "enum": ["S", "M", "L", "XL"]
+    },
+    "scope_files": {
+      "type": "array",
+      "description": "Files in scope for this workstream",
+      "items": { "type": "string" }
+    }
+  }
+}

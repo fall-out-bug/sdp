@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/handoff-coder/v1",
+  "title": "Coder Handoff",
+  "description": "Structured handoff from coder to reviewer. Changed files, test results, and implementation notes.",
+  "type": "object",
+  "required": [
+    "changed_files",
+    "test_results",
+    "implementation_notes",
+    "branch",
+    "commits"
+  ],
+  "properties": {
+    "changed_files": {
+      "type": "array",
+      "description": "Paths of files modified or created",
+      "items": { "type": "string" }
+    },
+    "test_results": {
+      "type": "object",
+      "description": "Test execution results",
+      "required": ["passed", "failed", "coverage"],
+      "properties": {
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "coverage": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "implementation_notes": {
+      "type": "string",
+      "description": "Notes on implementation decisions"
+    },
+    "branch": {
+      "type": "string",
+      "description": "Git branch used for changes"
+    },
+    "commits": {
+      "type": "array",
+      "description": "Commit SHAs or messages",
+      "items": { "type": "string" }
+    }
+  }
+}

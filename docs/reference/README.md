@@ -14,6 +14,7 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 - [Pipeline Hooks Security](#pipeline-hooks-security)
 - [Error Handling](#error-handling)
 - [Hydration](#hydration)
+- [Schema Registry](#schema-registry)
 - [Skills](#skills)
 
 ---
@@ -53,7 +54,7 @@ Every workstream must pass:
 5. **File Size <200 LOC** - Keep code focused
 6. **No Bare Exceptions** - Explicit error handling
 
-**See:** [quality-gates.md](quality-gates.md) - Complete quality standards
+**See:** [build-spec.md](build-spec.md) - Complete quality standards
 
 ---
 
@@ -132,6 +133,18 @@ Structured errors with:
 
 ---
 
+## Schema Registry
+
+### Contracts and Findings
+
+- Protocol contracts: `schema/contracts/*.schema.json`
+- CI findings contracts: `schema/findings/*.schema.json`
+- Agent handoff contracts: `schema/handoff-*.schema.json`
+
+**See:** [schema-registry.md](schema-registry.md) — schema families and usage map
+
+---
+
 ## Skills
 
 ### Available Skills
@@ -167,6 +180,7 @@ Structured errors with:
 | Command syntax | [../CLI_REFERENCE.md](../CLI_REFERENCE.md) |
 | Quality standards | [build-spec.md](build-spec.md) |
 | Hook security rules | [pipeline-hooks-security.md](pipeline-hooks-security.md) |
+| Schema map | [schema-registry.md](schema-registry.md) |
 | Skill details | [skills.md](skills.md) |
 | Design workflow | [design-spec.md](design-spec.md) |
 | Review workflow | [review-spec.md](review-spec.md) |
