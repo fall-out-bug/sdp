@@ -10,9 +10,12 @@ _sdp_completion() {
 	local cur prev words cword
 	_init_completion || return
 
-	local commands="init doctor hooks parse beads tdd drift quality watch telemetry checkpoint orchestrate"
+	local commands="init doctor status next demo hooks plan apply build verify log guard parse beads tdd drift quality watch telemetry checkpoint orchestrate contract health diagnose memory decisions"
 	local checkpoint_commands="create resume list clean"
 	local orchestrate_commands="start status stop"
+	local log_commands="show export stats trace"
+	local guard_commands="activate check status deactivate context branch finding"
+	local contract_commands="synthesize generate lock validate verify"
 
 	case ${prev} in
 		checkpoint)
@@ -27,8 +30,20 @@ _sdp_completion() {
 			COMPREPLY=($(compgen -W "ready show update sync" -- "${cur}"))
 			return
 			;;
+		log)
+			COMPREPLY=($(compgen -W "${log_commands}" -- "${cur}"))
+			return
+			;;
+		guard)
+			COMPREPLY=($(compgen -W "${guard_commands}" -- "${cur}"))
+			return
+			;;
+		contract)
+			COMPREPLY=($(compgen -W "${contract_commands}" -- "${cur}"))
+			return
+			;;
 		quality)
-			COMPREPLY=($(compgen -W "check gate scan report" -- "${cur}"))
+			COMPREPLY=($(compgen -W "coverage complexity size types all" -- "${cur}"))
 			return
 			;;
 		checkpoint)

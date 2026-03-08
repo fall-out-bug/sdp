@@ -71,7 +71,14 @@ Or step-by-step:
 ```bash
 sdp verify 00-001-01   # Check workstream completion
 sdp status             # Project state
+sdp next               # Recommended next action
 sdp log show           # Evidence log
+```
+
+For a guided dry run of this flow:
+
+```bash
+sdp demo
 ```
 
 ## 5. Optional: Beads

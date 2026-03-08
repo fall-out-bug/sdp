@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/fall-out-bug/sdp/internal/nextstep"
 	"github.com/fall-out-bug/sdp/internal/ui"
@@ -38,32 +37,16 @@ Output includes:
   # Show all alternatives
   sdp next --alternatives`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get project root
-			projectRoot, err := os.Getwd()
+			data, err := collectControlTowerData()
 			if err != nil {
-				return fmt.Errorf("failed to get working directory: %w", err)
+				return err
 			}
 
-			// Collect state
-			collector := nextstep.NewStateCollector(projectRoot)
-			state, err := collector.Collect()
-			if err != nil {
-				return fmt.Errorf("failed to collect project state: %w", err)
-			}
-
-			// Get recommendation
-			resolver := nextstep.NewResolver()
-			rec, err := resolver.Recommend(state)
-			if err != nil {
-				return fmt.Errorf("failed to generate recommendation: %w", err)
-			}
-
-			// Output
 			if outputJSON {
-				return outputRecommendationJSON(rec)
+				return outputRecommendationJSON(data.NextStep)
 			}
 
-			return outputRecommendationHuman(rec, showAlternatives)
+			return outputRecommendationHuman(data.NextStep, showAlternatives)
 		},
 	}
 

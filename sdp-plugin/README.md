@@ -14,7 +14,9 @@ CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 ```bash
 sdp doctor                    # Health check (hooks, config, deps)
 sdp status                    # Show project state
+sdp next                      # Recommended next action
 sdp init                      # Initialize SDP in a new project
+sdp demo                      # Guided first-success walkthrough
 sdp guard activate 00-001-01  # Enforce edit scope
 sdp guard check <file>        # Verify file is in scope
 sdp parse <ws-file>           # Parse workstream file

@@ -67,7 +67,7 @@ sdp init --auto
 
 ## Optional
 
-**CLI:** `sdp doctor`, `sdp status`, `sdp guard activate`, `sdp log show`
+**CLI:** `sdp doctor`, `sdp status`, `sdp next`, `sdp guard activate`, `sdp log show`, `sdp demo`
 
 **Beads:** `brew tap beads-dev/tap && brew install beads` — task tracking for multi-session work.
 

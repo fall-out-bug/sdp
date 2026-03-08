@@ -27,7 +27,7 @@ func (r *failedWorkstreamRule) Evaluate(state ProjectState) *Recommendation {
 	for _, ws := range state.Workstreams {
 		if ws.Status == StatusFailed {
 			return &Recommendation{
-				Command:    fmt.Sprintf("sdp debug --ws %s", ws.ID),
+				Command:    fmt.Sprintf("sdp diagnose --ws %s", ws.ID),
 				Reason:     fmt.Sprintf("Workstream %s failed: %s", ws.ID, truncateError(ws.LastError)),
 				Confidence: 0.9,
 				Category:   CategoryRecovery,

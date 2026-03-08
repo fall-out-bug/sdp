@@ -107,6 +107,9 @@ func TestNextCommandJSON(t *testing.T) {
 	if rec.Command == "" {
 		t.Error("Expected non-empty command in JSON output")
 	}
+	if rec.ActionID == "" {
+		t.Error("Expected non-empty action_id in JSON output")
+	}
 }
 
 // TestNextCommandWithWorkstreams tests with workstream files.
@@ -178,6 +181,9 @@ Test goal.
 	}
 	if rec.Category != nextstep.CategoryExecution {
 		t.Errorf("Expected execution category, got %s", rec.Category)
+	}
+	if rec.ActionID == "" {
+		t.Error("Expected non-empty action_id for ready workstream recommendation")
 	}
 }
 

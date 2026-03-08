@@ -1,11 +1,15 @@
 package nextstep
 
 import (
+	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
+	gitwrap "github.com/fall-out-bug/sdp/internal/git"
 	"github.com/fall-out-bug/sdp/internal/parser"
+	"github.com/fall-out-bug/sdp/internal/session"
 )
 
 // StateCollector gathers project state from various sources.
@@ -26,13 +30,17 @@ func (c *StateCollector) Collect() (ProjectState, error) {
 		Config:      c.collectConfig(),
 		Mode:        ModeDrive, // Default mode
 	}
+	state.Session = c.collectSession()
+	if state.Session != nil {
+		state.ActiveWorkstream = state.Session.WorkstreamID
+	}
 
 	return state, nil
 }
 
 // collectWorkstreams gathers workstream status from docs/workstreams/.
 func (c *StateCollector) collectWorkstreams() []WorkstreamStatus {
-	workstreams := []WorkstreamStatus{}
+	parsed := []*parser.Workstream{}
 
 	// Search for workstream files
 	patterns := []string{
@@ -59,18 +67,27 @@ func (c *StateCollector) collectWorkstreams() []WorkstreamStatus {
 				continue
 			}
 			seen[ws.ID] = true
-
-			status := WorkstreamStatus{
-				ID:        ws.ID,
-				Feature:   ws.Feature,
-				Status:    mapStatus(ws.Status),
-				Priority:  0, // Default priority
-				Size:      ws.Size,
-				BlockedBy: extractBlockers(ws),
-			}
-
-			workstreams = append(workstreams, status)
+			parsed = append(parsed, ws)
 		}
+	}
+
+	statuses := make(map[string]WorkstreamState, len(parsed))
+	for _, ws := range parsed {
+		statuses[ws.ID] = mapStatus(ws.Status)
+	}
+	workstreams := make([]WorkstreamStatus, 0, len(parsed))
+
+	for _, ws := range parsed {
+		status := WorkstreamStatus{
+			ID:        ws.ID,
+			Feature:   ws.Feature,
+			Status:    mapStatus(ws.Status),
+			Priority:  ws.Priority,
+			Size:      ws.Size,
+			BlockedBy: extractUnmetBlockers(ws, statuses),
+		}
+
+		workstreams = append(workstreams, status)
 	}
 
 	return workstreams
@@ -96,11 +113,23 @@ func mapStatus(status string) WorkstreamState {
 	}
 }
 
-// extractBlockers extracts blocking dependencies from a workstream.
-func extractBlockers(ws *parser.Workstream) []string {
-	// Parse depends_on from frontmatter if available
-	// For now, return empty - will be enhanced when frontmatter supports deps
-	return nil
+func extractUnmetBlockers(ws *parser.Workstream, statuses map[string]WorkstreamState) []string {
+	if len(ws.DependsOn) == 0 {
+		return nil
+	}
+
+	blockers := make([]string, 0, len(ws.DependsOn))
+	for _, dep := range ws.DependsOn {
+		status, ok := statuses[dep]
+		if !ok || status == StatusCompleted {
+			continue
+		}
+		blockers = append(blockers, dep)
+	}
+	if len(blockers) == 0 {
+		return nil
+	}
+	return blockers
 }
 
 // collectGitStatus gathers git repository status.
@@ -115,14 +144,90 @@ func (c *StateCollector) collectGitStatus() GitStatusInfo {
 		info.IsRepo = true
 	}
 
-	// Check for uncommitted changes
 	if info.IsRepo {
-		// Simple check: if git status --porcelain returns anything, there are changes
-		// This is a simplified implementation; the real one would use git package
-		info.Uncommitted = false // Will be populated by git package integration
+		if branch, err := gitwrap.GetCurrentBranch(c.projectRoot); err == nil {
+			info.Branch = branch
+		}
+
+		if out, err := c.runGit("status", "--porcelain"); err == nil {
+			info.Uncommitted = strings.TrimSpace(string(out)) != ""
+		}
+
+		if _, err := c.runGit("rev-parse", "--verify", "master"); err == nil {
+			info.MainBranch = "master"
+		}
+
+		if out, err := c.runGit("rev-list", "--left-right", "--count", "HEAD...@{u}"); err == nil {
+			parts := strings.Fields(strings.TrimSpace(string(out)))
+			if len(parts) == 2 {
+				info.UpstreamDiverg = parts[0] != "0" && parts[1] != "0"
+			}
+		}
 	}
 
 	return info
+}
+
+func (c *StateCollector) collectSession() *SessionState {
+	if session.Exists(c.projectRoot) {
+		if current, err := session.Load(c.projectRoot); err == nil {
+			return &SessionState{
+				FeatureID:      current.FeatureID,
+				WorktreePath:   current.WorktreePath,
+				ExpectedBranch: current.ExpectedBranch,
+				ExpectedRemote: current.ExpectedRemote,
+				Source:         "session",
+			}
+		}
+	}
+
+	return c.collectLegacySession()
+}
+
+func (c *StateCollector) collectLegacySession() *SessionState {
+	path := filepath.Join(c.projectRoot, ".sdp", "session.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return nil
+	}
+
+	state := &SessionState{
+		WorkstreamID:   stringFromMap(payload, "workstream_id"),
+		FeatureID:      stringFromMap(payload, "feature_id"),
+		WorktreePath:   stringFromMap(payload, "worktree_path"),
+		ExpectedBranch: stringFromMap(payload, "branch"),
+		ExpectedRemote: stringFromMap(payload, "expected_remote"),
+		Source:         "legacy",
+	}
+
+	if state.WorkstreamID == "" && state.FeatureID == "" && state.WorktreePath == "" && state.ExpectedBranch == "" {
+		return nil
+	}
+
+	return state
+}
+
+func stringFromMap(payload map[string]any, key string) string {
+	value, ok := payload[key]
+	if !ok {
+		return ""
+	}
+	text, ok := value.(string)
+	if !ok {
+		return ""
+	}
+	return text
+}
+
+func (c *StateCollector) runGit(args ...string) ([]byte, error) {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = c.projectRoot
+	return cmd.Output()
 }
 
 // collectConfig gathers SDP configuration.

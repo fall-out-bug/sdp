@@ -10,6 +10,8 @@
     { "id": "coding-workflow-statement", "path": "coding-workflow-statement.schema.json", "title": "SDP Coding Workflow in-toto Statement (v1 envelope)" },
     { "id": "review-verdict", "path": "review-verdict.schema.json", "title": "SDP Review Verdict" },
     { "id": "ws-verdict", "path": "ws-verdict.schema.json", "title": "SDP Workstream Verdict" },
-    { "id": "next-action", "path": "next-action.schema.json", "title": "SDP Next Action" }
+    { "id": "next-action", "path": "next-action.schema.json", "title": "SDP Next Action" },
+    { "id": "instructions", "path": "contracts/instructions.schema.json", "title": "Instruction Payload Contract" },
+    { "id": "status-view", "path": "contracts/status-view.schema.json", "title": "Status View Contract" }
   ]
 }
