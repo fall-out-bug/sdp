@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -166,22 +167,7 @@ func RenderTemplate(template string, vars map[string]string) string {
 	// Simple variable substitution
 	result := template
 	for k, v := range vars {
-		result = replaceAll(result, "{"+k+"}", v)
-	}
-	return result
-}
-
-func replaceAll(s, old, new string) string {
-	// Simple implementation
-	result := ""
-	for i := 0; i < len(s); {
-		if i+len(old) <= len(s) && s[i:i+len(old)] == old {
-			result += new
-			i += len(old)
-		} else {
-			result += string(s[i])
-			i++
-		}
+		result = strings.ReplaceAll(result, "{"+k+"}", v)
 	}
 	return result
 }
