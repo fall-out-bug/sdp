@@ -58,14 +58,13 @@ func parseDependsOn(content string) []string {
 }
 
 func parseQualityGates(agentsContent string) string {
-	idx := strings.Index(agentsContent, "## Quality Gates")
-	if idx < 0 {
+	_, rest, ok := strings.Cut(agentsContent, "## Quality Gates")
+	if !ok {
 		return ""
 	}
-	rest := agentsContent[idx:]
-	end := strings.Index(rest, "\n## ")
-	if end > 0 {
-		rest = rest[:end]
+	section := "## Quality Gates" + rest
+	if before, _, ok := strings.Cut(section, "\n## "); ok {
+		section = before
 	}
-	return strings.TrimSpace(rest)
+	return strings.TrimSpace(section)
 }

@@ -135,8 +135,8 @@ func (g *GhLogFetcher) FailedLogs(prNumber int) (string, error) {
 	if id == "" {
 		return "", fmt.Errorf("no failed run found for PR #%d", prNumber)
 	}
-	if nl := strings.Index(id, "\n"); nl > 0 {
-		id = id[:nl]
+	if before, _, ok := strings.Cut(id, "\n"); ok && before != "" {
+		id = before
 	}
 	logOut, err := g.Runner.Run("gh", "run", "view", id, "--log-failed")
 	if err != nil {
