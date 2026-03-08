@@ -25,7 +25,7 @@ func TestLogger_Rotate_FileSizeExceedsLimit(t *testing.T) {
 	// Write a large JSON object to exceed the limit
 	largeData := strings.Repeat("x", MaxFileSize+1000)
 
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to open file: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestLogger_Rotate_FileSizeUnderLimit(t *testing.T) {
 	// Write a small file (under 10MB)
 	smallData := strings.Repeat("x", 1000)
 
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to open file: %v", err)
 	}
@@ -142,7 +142,7 @@ func TestLogger_Rotate_MultipleRotations(t *testing.T) {
 	// Function to fill file
 	fillFile := func() {
 		largeData := strings.Repeat("x", MaxFileSize+1000)
-		file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 		if err != nil {
 			t.Fatalf("Failed to open file: %v", err)
 		}

@@ -19,15 +19,15 @@ func TestLogger_NewLogger_ReadOnlyParent(t *testing.T) {
 
 	// Create a directory and make it read-only
 	readOnlyDir := filepath.Join(tmpDir, "readonly")
-	if err := os.MkdirAll(readOnlyDir, 0755); err != nil {
+	if err := os.MkdirAll(readOnlyDir, 0o755); err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
 	}
 
 	// Make it read-only
-	if err := os.Chmod(readOnlyDir, 0555); err != nil {
+	if err := os.Chmod(readOnlyDir, 0o555); err != nil {
 		t.Fatalf("Failed to chmod: %v", err)
 	}
-	defer os.Chmod(readOnlyDir, 0755) // Restore for cleanup
+	defer os.Chmod(readOnlyDir, 0o755) // Restore for cleanup
 
 	// Try to create logger in read-only directory
 	targetPath := filepath.Join(readOnlyDir, "subdir")
@@ -45,7 +45,7 @@ func TestLogger_NewLogger_ExistingDirectory(t *testing.T) {
 
 	// Pre-create the decisions directory
 	decisionsDir := filepath.Join(tmpDir, "docs", "decisions")
-	if err := os.MkdirAll(decisionsDir, 0755); err != nil {
+	if err := os.MkdirAll(decisionsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
 	}
 
@@ -77,23 +77,23 @@ func TestLogger_Log_RotationWarning(t *testing.T) {
 	filePath := filepath.Join(decisionsDir, "decisions.jsonl")
 
 	// Write some initial content
-	if err := os.WriteFile(filePath, []byte(`{"question":"Q1","decision":"D1"}`+"\n"), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(`{"question":"Q1","decision":"D1"}`+"\n"), 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
 	// Make the directory read-only to cause rotation to fail
-	if err := os.Chmod(decisionsDir, 0555); err != nil {
+	if err := os.Chmod(decisionsDir, 0o555); err != nil {
 		t.Fatalf("Failed to chmod: %v", err)
 	}
-	defer os.Chmod(decisionsDir, 0755) // Restore for cleanup
+	defer os.Chmod(decisionsDir, 0o755) // Restore for cleanup
 
 	// Make the file large enough to trigger rotation (need to work around read-only)
-	os.Chmod(decisionsDir, 0755)
+	os.Chmod(decisionsDir, 0o755)
 	largeData := make([]byte, 11*1024*1024) // 11MB
-	if err := os.WriteFile(filePath, largeData, 0644); err != nil {
+	if err := os.WriteFile(filePath, largeData, 0o644); err != nil {
 		t.Fatalf("Failed to write large file: %v", err)
 	}
-	os.Chmod(decisionsDir, 0555)
+	os.Chmod(decisionsDir, 0o555)
 
 	// Log should still succeed even if rotation fails
 	d := decision.Decision{

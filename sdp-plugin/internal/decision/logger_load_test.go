@@ -195,7 +195,7 @@ func TestLogger_Load_CorruptedFile(t *testing.T) {
 	// Append corrupted data
 	decisionsDir := filepath.Join(tmpDir, "docs", "decisions")
 	filePath := filepath.Join(decisionsDir, "decisions.jsonl")
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to open file: %v", err)
 	}
