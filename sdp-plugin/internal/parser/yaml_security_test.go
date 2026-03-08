@@ -43,7 +43,7 @@ func TestWorkstreamFileSizeLimit(t *testing.T) {
 			// Create test file with specified size
 			wsPath := filepath.Join(tmpDir, tt.name+".md")
 			content := createTestWorkstream(tt.fileSize)
-			if err := os.WriteFile(wsPath, content, 0644); err != nil {
+			if err := os.WriteFile(wsPath, content, 0o644); err != nil {
 				t.Fatalf("Failed to create test file: %v", err)
 			}
 
@@ -115,7 +115,7 @@ func TestYAMLFieldLengthLimit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			wsPath := filepath.Join(tmpDir, tt.name+".md")
 			content := createWorkstreamWithLongField(tt.fieldName, tt.fieldLength)
-			if err := os.WriteFile(wsPath, content, 0644); err != nil {
+			if err := os.WriteFile(wsPath, content, 0o644); err != nil {
 				t.Fatalf("Failed to create test file: %v", err)
 			}
 
@@ -150,7 +150,7 @@ size: "MEDIUM"
 Test recursive anchor protection
 `)
 
-	if err := os.WriteFile(wsPath, content, 0644); err != nil {
+	if err := os.WriteFile(wsPath, content, 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -210,7 +210,7 @@ feature: "F01"
 		t.Run(tt.name, func(t *testing.T) {
 			wsPath := filepath.Join(tmpDir, tt.name+".md")
 			content := []byte(tt.yamlContent + "\n# Goal\nTest\n")
-			if err := os.WriteFile(wsPath, content, 0644); err != nil {
+			if err := os.WriteFile(wsPath, content, 0o644); err != nil {
 				t.Fatalf("Failed to create test file: %v", err)
 			}
 

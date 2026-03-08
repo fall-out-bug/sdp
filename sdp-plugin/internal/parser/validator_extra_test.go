@@ -24,7 +24,7 @@ status: backlog
 ### Goal
 Test goal
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	_, err := ValidateFile(wsPath)
 	if err == nil {
@@ -51,7 +51,7 @@ feature: F050
 ### Goal
 Test goal
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	issues, err := ValidateFile(wsPath)
 	if err != nil {
@@ -88,7 +88,7 @@ status: backlog
 ### Acceptance Criteria
 - [ ] AC1
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	issues, err := ValidateFile(wsPath)
 	if err != nil {
@@ -125,7 +125,7 @@ status: backlog
 ### Goal
 Test goal
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	issues, err := ValidateFile(wsPath)
 	if err != nil {
@@ -174,12 +174,12 @@ Test goal
 **Tests:**
 - ` + "`tests/missing_test.go`" + `
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	// Create one existing file
 	existingFile := filepath.Join(tmpDir, "src/existing.go")
-	os.MkdirAll(filepath.Dir(existingFile), 0755)
-	os.WriteFile(existingFile, []byte("package main"), 0644)
+	os.MkdirAll(filepath.Dir(existingFile), 0o755)
+	os.WriteFile(existingFile, []byte("package main"), 0o644)
 
 	issues, err := ValidateFile(wsPath)
 	if err != nil {
@@ -218,7 +218,7 @@ func TestFileExists(t *testing.T) {
 
 	// Test existing file
 	existingFile := filepath.Join(tmpDir, "existing.txt")
-	os.WriteFile(existingFile, []byte("content"), 0644)
+	os.WriteFile(existingFile, []byte("content"), 0o644)
 	if !fileExists("existing.txt") {
 		t.Error("fileExists should return true for existing file")
 	}
@@ -282,7 +282,7 @@ ws_id: [invalid
 feature: F050
 ---
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	_, err := ValidateFile(wsPath)
 	if err == nil {
@@ -307,10 +307,10 @@ func TestValidateFileWithValidScopeFiles(t *testing.T) {
 	// Create scope files
 	implFile := filepath.Join(tmpDir, "src/impl.go")
 	testFile := filepath.Join(tmpDir, "tests/impl_test.go")
-	os.MkdirAll(filepath.Dir(implFile), 0755)
-	os.MkdirAll(filepath.Dir(testFile), 0755)
-	os.WriteFile(implFile, []byte("package main"), 0644)
-	os.WriteFile(testFile, []byte("package main"), 0644)
+	os.MkdirAll(filepath.Dir(implFile), 0o755)
+	os.MkdirAll(filepath.Dir(testFile), 0o755)
+	os.WriteFile(implFile, []byte("package main"), 0o644)
+	os.WriteFile(testFile, []byte("package main"), 0o644)
 
 	content := `---
 ws_id: 00-050-01
@@ -334,7 +334,7 @@ Test goal
 **Tests:**
 - ` + "`tests/impl_test.go`" + `
 `
-	os.WriteFile(wsPath, []byte(content), 0644)
+	os.WriteFile(wsPath, []byte(content), 0o644)
 
 	issues, err := ValidateFile(wsPath)
 	if err != nil {
