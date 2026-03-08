@@ -16,6 +16,7 @@ func TestNextStepRecommendationSchema(t *testing.T) {
 			{Command: "sdp status", Reason: "View current project state"},
 		},
 	}
+	rec.enrich()
 
 	// Test JSON marshaling (AC5: machine-readable output)
 	data, err := json.Marshal(rec)
@@ -149,6 +150,7 @@ func TestConsumerSurfaceParsing(t *testing.T) {
 			"feature_id":    "F069",
 		},
 	}
+	rec.enrich()
 
 	// Test JSON output for scripting/UI
 	jsonData, err := json.Marshal(rec)
@@ -163,7 +165,7 @@ func TestConsumerSurfaceParsing(t *testing.T) {
 	}
 
 	// Verify required fields exist
-	requiredFields := []string{"command", "reason", "confidence", "category", "version"}
+	requiredFields := []string{"action_id", "command", "reason", "confidence", "category", "version"}
 	for _, field := range requiredFields {
 		if _, ok := parsed[field]; !ok {
 			t.Errorf("Missing required field in JSON output: %s", field)

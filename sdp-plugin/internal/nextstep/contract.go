@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // ContractVersion is the current version of the recommendation contract.
@@ -39,6 +40,7 @@ const (
 // Recommendation represents a next-step recommendation output.
 // This is the primary contract for all consumer surfaces (CLI, agents, docs).
 type Recommendation struct {
+	ActionID string `json:"action_id,omitempty"`
 	// Command is the recommended SDP command to execute.
 	Command string `json:"command"`
 	// Reason explains why this command is recommended.
@@ -50,10 +52,16 @@ type Recommendation struct {
 	// Version is the contract version for this recommendation.
 	Version string `json:"version"`
 	// Alternatives provides fallback options if the primary is not suitable.
-	Alternatives []Alternative `json:"alternatives,omitempty"`
+	Alternatives         []Alternative  `json:"alternatives,omitempty"`
+	RequiredContext      map[string]any `json:"required_context,omitempty"`
+	OptionalContext      map[string]any `json:"optional_context,omitempty"`
+	PolicyExpectations   []string       `json:"policy_expectations,omitempty"`
+	EvidenceExpectations []string       `json:"evidence_expectations,omitempty"`
 	// Metadata contains additional context-specific information.
 	Metadata map[string]any `json:"metadata,omitempty"`
 }
+
+type InstructionPayload = Recommendation
 
 // Alternative represents a secondary recommendation option.
 type Alternative struct {
@@ -84,16 +92,118 @@ func (r *Recommendation) String() string {
 		r.Category, r.Command, r.Confidence*100, r.Reason)
 }
 
-// ToJSON serializes a recommendation to JSON.
 func (r *Recommendation) ToJSON() ([]byte, error) {
+	r.enrich()
 	return json.Marshal(r)
 }
 
-// FromJSON deserializes a recommendation from JSON.
 func FromJSON(data []byte) (*Recommendation, error) {
 	var rec Recommendation
 	if err := json.Unmarshal(data, &rec); err != nil {
 		return nil, err
 	}
 	return &rec, nil
+}
+
+func (r *Recommendation) enrich() {
+	if r.ActionID == "" {
+		r.ActionID = actionIDFromCommand(r.Command)
+	}
+	if len(r.RequiredContext) == 0 {
+		r.RequiredContext = inferRequiredContext(r.Command, r.Metadata)
+	}
+	if len(r.OptionalContext) == 0 {
+		r.OptionalContext = inferOptionalContext(r.Metadata, r.RequiredContext)
+	}
+	if len(r.PolicyExpectations) == 0 {
+		r.PolicyExpectations = inferPolicyExpectations(r.Command, r.Category)
+	}
+	if len(r.EvidenceExpectations) == 0 {
+		r.EvidenceExpectations = inferEvidenceExpectations(r.Command, r.Category)
+	}
+}
+
+func actionIDFromCommand(command string) string {
+	parts := strings.Fields(command)
+	if len(parts) == 0 {
+		return ""
+	}
+	if strings.HasPrefix(parts[0], "@") {
+		return "skill." + strings.TrimPrefix(parts[0], "@")
+	}
+	if len(parts) > 1 {
+		return parts[0] + "." + parts[1]
+	}
+	return parts[0]
+}
+
+func inferRequiredContext(command string, metadata map[string]any) map[string]any {
+	if len(metadata) == 0 {
+		return nil
+	}
+
+	required := map[string]any{}
+	if strings.Contains(command, "--ws") {
+		for _, key := range []string{"workstream_id", "failed_workstream", "active_workstream", "blocker"} {
+			if value, ok := metadata[key]; ok {
+				required[key] = value
+			}
+		}
+	}
+	if strings.Contains(command, "sdp review") || strings.Contains(command, "sdp deploy") {
+		if value, ok := metadata["feature_id"]; ok {
+			required["feature_id"] = value
+		}
+	}
+	if len(required) == 0 {
+		return nil
+	}
+	return required
+}
+
+func inferOptionalContext(metadata map[string]any, required map[string]any) map[string]any {
+	if len(metadata) == 0 {
+		return nil
+	}
+	optional := map[string]any{}
+	for key, value := range metadata {
+		if _, ok := required[key]; ok {
+			continue
+		}
+		optional[key] = value
+	}
+	if len(optional) == 0 {
+		return nil
+	}
+	return optional
+}
+
+func inferPolicyExpectations(command string, category RecommendationCategory) []string {
+	switch {
+	case strings.HasPrefix(command, "sdp apply"), strings.HasPrefix(command, "sdp build"):
+		return []string{"respect scope and workstream boundaries"}
+	case strings.HasPrefix(command, "sdp review"):
+		return []string{"review must pass before deployment"}
+	case strings.HasPrefix(command, "sdp deploy"):
+		return []string{"deploy only after explicit review approval"}
+	case category == CategoryRecovery:
+		return []string{"confirm failure context before retrying"}
+	default:
+		return nil
+	}
+}
+
+func inferEvidenceExpectations(command string, category RecommendationCategory) []string {
+	switch {
+	case strings.HasPrefix(command, "sdp apply"), strings.HasPrefix(command, "sdp build"):
+		return []string{"record execution evidence for the targeted workstream"}
+	case strings.HasPrefix(command, "sdp review"):
+		return []string{"record review verdict before deployment"}
+	case strings.HasPrefix(command, "sdp deploy"):
+		return []string{"record deployment approval in the evidence log"}
+	case category == CategoryRecovery:
+		return []string{"capture failure context before resuming execution"}
+	default:
+		return nil
+	}
 }
