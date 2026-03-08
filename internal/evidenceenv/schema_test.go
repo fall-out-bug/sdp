@@ -3,6 +3,7 @@ package evidenceenv
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -179,9 +180,7 @@ func mustMerge(t *testing.T, base []byte, overrides map[string]any) []byte {
 	if err := json.Unmarshal(base, &m); err != nil {
 		t.Fatal(err)
 	}
-	for k, v := range overrides {
-		m[k] = v
-	}
+	maps.Copy(m, overrides)
 	out, err := json.Marshal(m)
 	if err != nil {
 		t.Fatal(err)

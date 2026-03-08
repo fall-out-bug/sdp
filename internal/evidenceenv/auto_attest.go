@@ -186,7 +186,7 @@ func collectTestResults(repoRoot string) ([]GateResult, float64) {
 	totalCoverage := 0.0
 	coverageCount := 0
 
-	for _, line := range strings.Split(string(out), "\n") {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
@@ -378,7 +378,7 @@ func matchesAnyPrefix(file string, prefixes []string) bool {
 
 func countNonEmptyLines(s string) int {
 	count := 0
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		if strings.TrimSpace(line) != "" {
 			count++
 		}
