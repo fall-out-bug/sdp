@@ -5,12 +5,18 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/fall-out-bug/sdp/internal/controltower"
 )
+
+const refreshInterval = 2 * time.Second
 
 // App represents the TUI dashboard application
 type App struct {
-	state DashboardState
-	quit  bool
+	state              DashboardState
+	quit               bool
+	controlTowerData   *controltower.Data
+	controlTowerLoaded time.Time
 }
 
 // New creates a new dashboard app
@@ -29,28 +35,29 @@ func New() *App {
 
 // Init initializes the application
 func (a *App) Init() tea.Cmd {
-	// Start ticker for auto-refresh (every 500ms - faster!)
 	return tea.Batch(
 		a.tickCmd(),
 		a.refreshCmd(),
 	)
 }
 
-// tickCmd returns a command that ticks every 500ms
 func (a *App) tickCmd() tea.Cmd {
-	return tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
+	return tea.Tick(refreshInterval, func(t time.Time) tea.Msg {
 		return TickMsg(t)
 	})
 }
 
-// refreshCmd returns a command that refreshes data
 func (a *App) refreshCmd() tea.Cmd {
+	return a.refreshCmdWithForce(false)
+}
+
+func (a *App) refreshCmdWithForce(force bool) tea.Cmd {
 	return func() tea.Msg {
-		// Fetch real data
-		a.state.Workstreams = a.fetchWorkstreams()
+		data := a.fetchControlTower(force)
+		a.state.Workstreams = a.workstreamsFromControlTower(data)
 		a.state.Ideas = a.fetchIdeas()
 		a.state.TestResults = a.fetchTestResults()
-		a.state.NextStep = a.fetchNextStep()
+		a.state.NextStep = a.nextStepFromControlTower(data)
 
 		return RefreshMsg{}
 	}
@@ -63,17 +70,14 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a.handleKeyPress(msg)
 
 	case TickMsg:
-		// Auto-refresh tick
 		return a, tea.Batch(a.tickCmd(), a.refreshCmd())
 
 	case RefreshMsg:
-		// Data refreshed
 		a.state.Loading = false
 		a.state.LastUpdate = time.Now()
 		return a, nil
 
 	case TabSelectMsg:
-		// Tab changed
 		a.state.ActiveTab = int(msg)
 		return a, nil
 	}
