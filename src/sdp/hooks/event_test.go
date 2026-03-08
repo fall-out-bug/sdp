@@ -248,23 +248,19 @@ func TestHookRegistry_ConcurrentAccess(t *testing.T) {
 
 	// Concurrent subscriptions
 	for range 10 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			registry.Subscribe("test", func(event HookEvent) error {
 				return nil
 			}, 0)
-		}()
+		})
 	}
 
 	// Concurrent publishes
 	for range 10 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			event := NewEvent("test", nil)
 			registry.Publish(event)
-		}()
+		})
 	}
 
 	wg.Wait()
