@@ -24,7 +24,7 @@ func NewLogger(baseDir string) (*Logger, error) {
 	decisionsDir := filepath.Join(baseDir, "docs", "decisions")
 
 	// Create directory if doesn't exist
-	if err := os.MkdirAll(decisionsDir, 0755); err != nil {
+	if err := os.MkdirAll(decisionsDir, 0o755); err != nil {
 		log.Printf("[decision] ERROR: failed to create decisions directory: %v", err)
 		return nil, fmt.Errorf("failed to create decisions directory: %w", err)
 	}
@@ -60,7 +60,7 @@ func (l *Logger) Log(decision Decision) error {
 		decision.Question, decision.Type, decision.FeatureID, decision.WorkstreamID)
 
 	// Open file in append mode
-	file, err := os.OpenFile(l.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(l.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		log.Printf("[decision] ERROR: failed to open file: path=%s error=%v", l.filePath, err)
 		l.metrics.RecordLog(time.Since(start), false)
@@ -103,7 +103,7 @@ func (l *Logger) LogBatch(decisions []Decision) error {
 	log.Printf("[decision] LogBatch: start, count=%d path=%s", len(decisions), l.filePath)
 
 	// Open file in append mode
-	file, err := os.OpenFile(l.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(l.filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		log.Printf("[decision] ERROR: failed to open file: path=%s error=%v", l.filePath, err)
 		return fmt.Errorf("failed to open decisions file: %w", err)
