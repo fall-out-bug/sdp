@@ -23,12 +23,12 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 	// Create .sdp/config.yml to enable evidence
 	cfgDir := filepath.Join(tmpDir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	cfgContent := "version: 1\nevidence:\n  enabled: true\n  log_path: \".sdp/log/events.jsonl\"\n"
-	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 

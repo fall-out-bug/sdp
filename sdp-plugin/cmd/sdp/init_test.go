@@ -46,7 +46,7 @@ func TestDetectProjectType(t *testing.T) {
 			// Create test file if specified
 			if tt.createFile != "" {
 				filePath := tmpDir + "/" + tt.createFile
-				if err := os.WriteFile(filePath, []byte("test"), 0644); err != nil {
+				if err := os.WriteFile(filePath, []byte("test"), 0o644); err != nil {
 					t.Fatalf("Failed to create test file: %v", err)
 				}
 			}
@@ -81,10 +81,10 @@ func TestInitCmd(t *testing.T) {
 	}
 
 	// Create prompts directory (init command requires it)
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -126,10 +126,10 @@ func TestInitCmdWithSkipBeads(t *testing.T) {
 	}
 
 	// Create prompts directory (init command requires it)
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -168,10 +168,10 @@ func TestInitCmdWithAuto(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -201,10 +201,10 @@ func TestInitCmdWithHeadless(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -262,10 +262,10 @@ func TestInitCmdWithDryRun(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -299,18 +299,18 @@ func TestInitCmdWithForce(t *testing.T) {
 	}
 
 	// Create existing .claude/settings.json
-	if err := os.MkdirAll(".claude", 0755); err != nil {
+	if err := os.MkdirAll(".claude", 0o755); err != nil {
 		t.Fatalf("Failed to create .claude dir: %v", err)
 	}
-	if err := os.WriteFile(".claude/settings.json", []byte(`{"old": true}`), 0644); err != nil {
+	if err := os.WriteFile(".claude/settings.json", []byte(`{"old": true}`), 0o644); err != nil {
 		t.Fatalf("Failed to create existing settings: %v", err)
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -339,10 +339,10 @@ func TestInitCmdWithNoEvidence(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -381,10 +381,10 @@ func TestInitCmdWithSkills(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 
@@ -422,10 +422,10 @@ func TestInitCmdWithGuidedAlias(t *testing.T) {
 		t.Fatalf("Failed to chdir: %v", err)
 	}
 
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("Failed to create prompts dir: %v", err)
 	}
-	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0644); err != nil {
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
 		t.Fatalf("Failed to create test prompt: %v", err)
 	}
 

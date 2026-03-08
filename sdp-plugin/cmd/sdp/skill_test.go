@@ -12,7 +12,7 @@ func TestSkillValidateCmd(t *testing.T) {
 	// Create temp directory with skill file
 	tmpDir := t.TempDir()
 	skillsDir := filepath.Join(tmpDir, ".claude", "skills")
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create skills dir: %v", err)
 	}
 
@@ -45,7 +45,7 @@ Use this skill for testing.
 
 - Other skill
 `
-	if err := os.WriteFile(validSkill, []byte(skillContent), 0644); err != nil {
+	if err := os.WriteFile(validSkill, []byte(skillContent), 0o644); err != nil {
 		t.Fatalf("Failed to create skill file: %v", err)
 	}
 
@@ -106,7 +106,7 @@ func TestSkillValidateWithStrictFlag(t *testing.T) {
 	// Create temp directory with skill file that has warnings
 	tmpDir := t.TempDir()
 	skillsDir := filepath.Join(tmpDir, ".claude", "skills")
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create skills dir: %v", err)
 	}
 
@@ -119,7 +119,7 @@ func TestSkillValidateWithStrictFlag(t *testing.T) {
 		lines = append(lines, "Line "+string(rune('0'+i%10)))
 	}
 	skillContent := strings.Join(lines, "\n")
-	if err := os.WriteFile(longSkill, []byte(skillContent), 0644); err != nil {
+	if err := os.WriteFile(longSkill, []byte(skillContent), 0o644); err != nil {
 		t.Fatalf("Failed to create skill file: %v", err)
 	}
 
@@ -147,7 +147,7 @@ func TestSkillCheckAllCmd(t *testing.T) {
 	// Create temp directory with skills
 	tmpDir := t.TempDir()
 	skillsDir := filepath.Join(tmpDir, ".claude", "skills")
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create skills dir: %v", err)
 	}
 
@@ -155,7 +155,7 @@ func TestSkillCheckAllCmd(t *testing.T) {
 	for _, name := range []string{"test1.md", "test2.md"} {
 		skillPath := filepath.Join(skillsDir, name)
 		content := "# Test Skill\n\nThis is a test skill."
-		if err := os.WriteFile(skillPath, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(skillPath, []byte(content), 0o644); err != nil {
 			t.Fatalf("Failed to create skill file: %v", err)
 		}
 	}

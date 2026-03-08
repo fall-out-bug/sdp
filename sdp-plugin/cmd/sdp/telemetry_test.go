@@ -19,7 +19,7 @@ func TestTelemetryStatusCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -75,7 +75,7 @@ func TestTelemetryExportCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -171,7 +171,7 @@ func TestTelemetryAnalyzeCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -239,7 +239,7 @@ func TestTelemetryUploadCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 

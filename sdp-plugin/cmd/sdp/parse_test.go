@@ -108,7 +108,7 @@ func TestFindWorkstreamFile(t *testing.T) {
 	// Create temp directory structure
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -122,7 +122,7 @@ status: completed
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -154,7 +154,7 @@ func TestParseRun(t *testing.T) {
 	// Create temp directory with workstream file
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -171,7 +171,7 @@ acceptance_criteria:
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -259,7 +259,7 @@ status: completed
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 

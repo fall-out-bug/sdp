@@ -17,7 +17,7 @@ func TestWatchCmd(t *testing.T) {
 	}
 
 	// Create a simple go file to watch
-	if err := os.WriteFile("test.go", []byte("package main\n\nfunc main() {}"), 0644); err != nil {
+	if err := os.WriteFile("test.go", []byte("package main\n\nfunc main() {}"), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 

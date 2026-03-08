@@ -181,7 +181,7 @@ func TestFindDriftProjectRoot(t *testing.T) {
 			name: "project root with docs",
 			setup: func() string {
 				tmpDir := t.TempDir()
-				os.MkdirAll(filepath.Join(tmpDir, "docs"), 0755)
+				os.MkdirAll(filepath.Join(tmpDir, "docs"), 0o755)
 				originalWd, _ := os.Getwd()
 				os.Chdir(tmpDir)
 				return originalWd
@@ -195,7 +195,7 @@ func TestFindDriftProjectRoot(t *testing.T) {
 			name: "project root with .beads",
 			setup: func() string {
 				tmpDir := t.TempDir()
-				os.MkdirAll(filepath.Join(tmpDir, ".beads"), 0755)
+				os.MkdirAll(filepath.Join(tmpDir, ".beads"), 0o755)
 				originalWd, _ := os.Getwd()
 				os.Chdir(tmpDir)
 				return originalWd
@@ -232,7 +232,7 @@ func TestFindDriftWorkstreamFile(t *testing.T) {
 	// Create temp directory with workstream file
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -245,7 +245,7 @@ status: completed
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -324,10 +324,10 @@ func TestWarnContractViolations(t *testing.T) {
 	implDir := filepath.Join(tmpDir, "internal")
 
 	// Create directories
-	if err := os.MkdirAll(contractsDir, 0755); err != nil {
+	if err := os.MkdirAll(contractsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create contracts dir: %v", err)
 	}
-	if err := os.MkdirAll(implDir, 0755); err != nil {
+	if err := os.MkdirAll(implDir, 0o755); err != nil {
 		t.Fatalf("Failed to create impl dir: %v", err)
 	}
 
@@ -340,7 +340,7 @@ requiredBy:
   - F054
 status: locked
 `
-	if err := os.WriteFile(filepath.Join(contractsDir, "User.yaml"), []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(contractsDir, "User.yaml"), []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
@@ -351,7 +351,7 @@ type User struct {
 	Email string
 }
 `
-	if err := os.WriteFile(filepath.Join(implDir, "User.go"), []byte(implContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(implDir, "User.go"), []byte(implContent), 0o644); err != nil {
 		t.Fatalf("Failed to create impl: %v", err)
 	}
 
@@ -361,7 +361,7 @@ type User struct {
 	defer os.Chdir(originalWd)
 
 	// Create .sdp-root marker (needed by FindProjectRoot)
-	if err := os.WriteFile(".sdp-root", []byte("sdp"), 0644); err != nil {
+	if err := os.WriteFile(".sdp-root", []byte("sdp"), 0o644); err != nil {
 		t.Fatalf("Failed to create .sdp-root: %v", err)
 	}
 

@@ -14,7 +14,7 @@ func TestDriftDetectCmd(t *testing.T) {
 	// Create temp directory with workstream file
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -36,18 +36,18 @@ status: completed
 **Tests:**
 - internal/file1_test.go
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
 	// Create the implementation files to avoid drift errors
 	for _, file := range []string{"internal/file1.go", "internal/file2.go", "internal/file1_test.go"} {
 		fullPath := filepath.Join(tmpDir, file)
-		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
 			t.Fatalf("Failed to create directory: %v", err)
 		}
 		content := []byte("package main\n\nfunc TestFunction() {}\n")
-		if err := os.WriteFile(fullPath, content, 0644); err != nil {
+		if err := os.WriteFile(fullPath, content, 0o644); err != nil {
 			t.Fatalf("Failed to create file: %v", err)
 		}
 	}
@@ -118,7 +118,7 @@ func TestDriftDetectWithMissingFiles(t *testing.T) {
 	// Create temp directory with workstream file that references non-existent files
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -139,7 +139,7 @@ status: completed
 **Tests:**
 - internal/missing_test.go
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
