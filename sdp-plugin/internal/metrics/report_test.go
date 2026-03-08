@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -63,16 +64,16 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 	}
 
 	for _, section := range expectedSections {
-		if !contains(report, section) {
+		if !strings.Contains(report, section) {
 			t.Errorf("Expected report to contain section '%s'", section)
 		}
 	}
 
 	// Verify taxonomy data is reflected in report
-	if !contains(report, "wrong_logic") {
+	if !strings.Contains(report, "wrong_logic") {
 		t.Error("Expected report to contain 'wrong_logic' failure type")
 	}
-	if !contains(report, "type_error") {
+	if !strings.Contains(report, "type_error") {
 		t.Error("Expected report to contain 'type_error' failure type")
 	}
 }
@@ -183,13 +184,13 @@ func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
 	}
 
 	// The section is called "Trends Over Time" (plural), not "Trend Over Time"
-	if !contains(report, "Trends Over Time") {
+	if !strings.Contains(report, "Trends Over Time") {
 		t.Error("Expected report to contain 'Trends Over Time' section")
 	}
-	if !contains(report, "2025-Q4") {
+	if !strings.Contains(report, "2025-Q4") {
 		t.Error("Expected report to contain historical data for 2025-Q4")
 	}
-	if !contains(report, "2026-Q1") {
+	if !strings.Contains(report, "2026-Q1") {
 		t.Error("Expected report to contain historical data for 2026-Q1")
 	}
 }
@@ -211,10 +212,10 @@ func TestReport_GenerateToDefaultPath_CreatesInCorrectLocation(t *testing.T) {
 	outputPath := reporter.GetDefaultOutputPath()
 
 	// Assert
-	if !contains(outputPath, "benchmark") {
+	if !strings.Contains(outputPath, "benchmark") {
 		t.Errorf("Expected output path to contain 'benchmark', got %s", outputPath)
 	}
-	if !contains(outputPath, "benchmark") {
+	if !strings.Contains(outputPath, "benchmark") {
 		t.Errorf("Expected output path to contain 'benchmark', got %s", outputPath)
 	}
 }
@@ -242,23 +243,9 @@ func TestReport_GenerateQuarterlyReport_UsesCorrectQuarter(t *testing.T) {
 	}
 	// Year should be current year
 	currentYear := time.Now().Year()
-	if !contains(quarter, fmt.Sprintf("%d", currentYear)) {
+	if !strings.Contains(quarter, fmt.Sprintf("%d", currentYear)) {
 		t.Errorf("Expected quarter to contain current year %d, got %s", currentYear, quarter)
 	}
-}
-
-// contains checks if substring exists in string
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && indexOf(s, substr) >= 0)
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
 }
 
 func TestReporter_LoadMetrics_ParsesCorrectly(t *testing.T) {
@@ -314,7 +301,7 @@ func TestReporter_GenerateTrendWithoutHistorical_ReturnsPlaceholder(t *testing.T
 	report, _ := reporter.GenerateMarkdown()
 
 	// Assert - should contain placeholder message when no historical data
-	if !contains(report, "Historical data not available") {
+	if !strings.Contains(report, "Historical data not available") {
 		t.Error("Expected report to contain historical data placeholder")
 	}
 }
@@ -375,7 +362,7 @@ func TestReporter_Save_CreatesReportInDefaultLocation(t *testing.T) {
 	if len(content) == 0 {
 		t.Error("Expected report file to have content")
 	}
-	if !contains(string(content), "# AI Code Quality Benchmark") {
+	if !strings.Contains(string(content), "# AI Code Quality Benchmark") {
 		t.Error("Expected report to contain benchmark header")
 	}
 }
@@ -495,7 +482,7 @@ func TestReport_SetHistoricalPath_UpdatesPath(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if !contains(report, "2025-Q4") {
+	if !strings.Contains(report, "2025-Q4") {
 		t.Error("Expected historical data to be included after SetHistoricalPath")
 	}
 }
@@ -525,7 +512,7 @@ func TestReport_EstimateVerificationsForModel_ReturnsPlaceholderValue(t *testing
 		t.Fatalf("Expected no error, got %v", err)
 	}
 	// The placeholder value is 10, which should appear in the model comparison table
-	if !contains(report, "10") {
+	if !strings.Contains(report, "10") {
 		t.Error("Expected model comparison to include verification estimate")
 	}
 }
@@ -561,7 +548,7 @@ func TestReport_GenerateTaxonomySection_WithNoFailures_ReturnsNoFailuresMessage(
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if !contains(report, "No failures recorded") {
+	if !strings.Contains(report, "No failures recorded") {
 		t.Error("Expected 'No failures recorded' message when taxonomy is empty")
 	}
 }
@@ -599,7 +586,7 @@ func TestReport_GenerateTaxonomySection_WithUnknownFailureType_ReturnsUncategori
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if !contains(report, "Uncategorized failure") {
+	if !strings.Contains(report, "Uncategorized failure") {
 		t.Error("Expected 'Uncategorized failure' description for unknown failure type")
 	}
 }
@@ -643,11 +630,11 @@ func TestReport_GenerateTaxonomySection_SeverityDistribution_AllLevels(t *testin
 	// Verify all severity levels are shown
 	expectedSeverities := []string{"CRITICAL", "HIGH", "MEDIUM", "LOW"}
 	for _, severity := range expectedSeverities {
-		if !contains(report, severity) {
+		if !strings.Contains(report, severity) {
 			t.Errorf("Expected report to contain severity level '%s'", severity)
 		}
 	}
-	if !contains(report, "Severity Distribution") {
+	if !strings.Contains(report, "Severity Distribution") {
 		t.Error("Expected 'Severity Distribution' section")
 	}
 }
@@ -688,7 +675,7 @@ func TestReport_GenerateTrendSection_TrendAnalysis(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if !contains(report, "Trend:") {
+	if !strings.Contains(report, "Trend:") {
 		t.Error("Expected trend analysis to be present")
 	}
 }
@@ -728,7 +715,7 @@ func TestReport_GenerateTrendSection_StableTrend(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if !contains(report, "Stable") {
+	if !strings.Contains(report, "Stable") {
 		t.Error("Expected 'Stable' trend when catch rate is unchanged")
 	}
 }
