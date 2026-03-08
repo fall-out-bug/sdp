@@ -51,7 +51,7 @@ func TestQualityWatcher_AllQualityChecks(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestQualityWatcher_AllQualityChecks(t *testing.T) {
 	}
 	largeContent.WriteString("}\n")
 
-	err = os.WriteFile(largeFile, []byte(largeContent.String()), 0644)
+	err = os.WriteFile(largeFile, []byte(largeContent.String()), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write large file: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -153,7 +153,7 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 
 	for _, fname := range files {
 		fpath := filepath.Join(tmpDir, fname)
-		err = os.WriteFile(fpath, []byte("package test\n"), 0644)
+		err = os.WriteFile(fpath, []byte("package test\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to write %s: %v", fname, err)
 		}
@@ -216,7 +216,7 @@ func TestQualityWatcher_ConcurrentAccess(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
