@@ -46,7 +46,7 @@ func TestCompactor_CompactEvents(t *testing.T) {
 
 	now := time.Now()
 	events := []evidence.Event{}
-	for i := 0; i < 25; i++ {
+	for i := range 25 {
 		events = append(events, evidence.Event{
 			ID:        string(rune(i)),
 			Timestamp: now.Add(-time.Duration(i) * time.Hour).Format(time.RFC3339),

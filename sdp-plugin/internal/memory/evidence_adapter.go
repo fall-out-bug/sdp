@@ -2,6 +2,7 @@ package memory
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -107,13 +108,9 @@ func joinFiles(files []string) string {
 		return ""
 	}
 	if len(files) > 3 {
-		return files[0] + "," + files[1] + " and " + string(rune(len(files)-2)) + " more"
+		return files[0] + "," + files[1] + " and " + strconv.Itoa(len(files)-2) + " more"
 	}
-	result := files[0]
-	for i := 1; i < len(files); i++ {
-		result += "," + files[i]
-	}
-	return result
+	return strings.Join(files, ",")
 }
 
 // extractFeatureFromWSID extracts feature ID from workstream ID (PP-FFF-SS -> FFF)

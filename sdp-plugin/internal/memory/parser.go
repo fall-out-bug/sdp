@@ -29,7 +29,7 @@ func (i *Indexer) ParseFile(content, filename string) (*Artifact, error) {
 		if wsID, ok := fm["ws_id"].(string); ok {
 			artifact.WorkstreamID = wsID
 		}
-		if tags, ok := fm["tags"].([]interface{}); ok {
+		if tags, ok := fm["tags"].([]any); ok {
 			for _, t := range tags {
 				if tag, ok := t.(string); ok {
 					artifact.Tags = append(artifact.Tags, tag)
@@ -62,20 +62,18 @@ func (i *Indexer) ParseFile(content, filename string) (*Artifact, error) {
 }
 
 // extractFrontmatter extracts YAML frontmatter from content
-func extractFrontmatter(content string) (map[string]interface{}, string) {
+func extractFrontmatter(content string) (map[string]any, string) {
 	if !strings.HasPrefix(content, "---\n") {
 		return nil, content
 	}
 
-	endIndex := strings.Index(content[4:], "\n---\n")
-	if endIndex == -1 {
+	fmContent, mainContent, ok := strings.Cut(content[4:], "\n---\n")
+	if !ok {
 		return nil, content
 	}
+	mainContent = strings.TrimSpace(mainContent)
 
-	fmContent := content[4 : endIndex+4]
-	mainContent := strings.TrimSpace(content[endIndex+9:])
-
-	var fm map[string]interface{}
+	var fm map[string]any
 	if err := yaml.Unmarshal([]byte(fmContent), &fm); err != nil {
 		return nil, content
 	}
@@ -85,14 +83,13 @@ func extractFrontmatter(content string) (map[string]interface{}, string) {
 
 // extractFirstHeading extracts the first heading from markdown content
 func extractFirstHeading(content string) string {
-	lines := strings.Split(content, "\n")
-	for _, line := range lines {
+	for line := range strings.SplitSeq(content, "\n") {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "# ") {
-			return strings.TrimPrefix(line, "# ")
+		if heading, ok := strings.CutPrefix(line, "# "); ok {
+			return heading
 		}
-		if strings.HasPrefix(line, "## ") {
-			return strings.TrimPrefix(line, "## ")
+		if heading, ok := strings.CutPrefix(line, "## "); ok {
+			return heading
 		}
 	}
 	return ""
