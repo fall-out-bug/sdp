@@ -11,7 +11,7 @@ func TestChecker_SetStrictMode(t *testing.T) {
 
 	// Create a go.mod file for detection
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
@@ -44,7 +44,7 @@ func TestChecker_IsStrictMode(t *testing.T) {
 
 	// Create a go.mod file for detection
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestNewChecker_ProjectPath(t *testing.T) {
 
 	// Create a go.mod file for detection
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestDetectProjectType_Python_pyproject(t *testing.T) {
 
 	// Create pyproject.toml
 	pyprojectPath := filepath.Join(tmpDir, "pyproject.toml")
-	err := os.WriteFile(pyprojectPath, []byte("[tool.poetry]\n"), 0644)
+	err := os.WriteFile(pyprojectPath, []byte("[tool.poetry]\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create pyproject.toml: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestDetectProjectType_Python_setup(t *testing.T) {
 
 	// Create setup.py
 	setupPath := filepath.Join(tmpDir, "setup.py")
-	err := os.WriteFile(setupPath, []byte("from setuptools import setup\n"), 0644)
+	err := os.WriteFile(setupPath, []byte("from setuptools import setup\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create setup.py: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestDetectProjectType_Python_requirements(t *testing.T) {
 
 	// Create requirements.txt
 	reqPath := filepath.Join(tmpDir, "requirements.txt")
-	err := os.WriteFile(reqPath, []byte("requests==2.28.0\n"), 0644)
+	err := os.WriteFile(reqPath, []byte("requests==2.28.0\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create requirements.txt: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestDetectProjectType_Go(t *testing.T) {
 
 	// Create go.mod
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
@@ -189,7 +189,7 @@ func TestDetectProjectType_Java(t *testing.T) {
 
 	// Create pom.xml
 	pomPath := filepath.Join(tmpDir, "pom.xml")
-	err := os.WriteFile(pomPath, []byte("<project></project>\n"), 0644)
+	err := os.WriteFile(pomPath, []byte("<project></project>\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create pom.xml: %v", err)
 	}
@@ -211,7 +211,7 @@ func TestDetectProjectType_ByExtension_Python(t *testing.T) {
 	// Create Python files
 	for i := 0; i < 3; i++ {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py")
-		err := os.WriteFile(filename, []byte("print('hello')\n"), 0644)
+		err := os.WriteFile(filename, []byte("print('hello')\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create %s: %v", filename, err)
 		}
@@ -234,7 +234,7 @@ func TestDetectProjectType_ByExtension_Go(t *testing.T) {
 	// Create Go files
 	for i := 0; i < 3; i++ {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go")
-		err := os.WriteFile(filename, []byte("package main\n"), 0644)
+		err := os.WriteFile(filename, []byte("package main\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create %s: %v", filename, err)
 		}
@@ -257,7 +257,7 @@ func TestDetectProjectType_ByExtension_Java(t *testing.T) {
 	// Create Java files
 	for i := 0; i < 3; i++ {
 		filename := filepath.Join(tmpDir, "Test"+string(rune('0'+i))+".java")
-		err := os.WriteFile(filename, []byte("public class Test {}\n"), 0644)
+		err := os.WriteFile(filename, []byte("public class Test {}\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create %s: %v", filename, err)
 		}
@@ -280,7 +280,7 @@ func TestDetectProjectType_MixedExtensions(t *testing.T) {
 	// Create more Python files than others
 	for i := 0; i < 5; i++ {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py")
-		err := os.WriteFile(filename, []byte("print('hello')\n"), 0644)
+		err := os.WriteFile(filename, []byte("print('hello')\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create %s: %v", filename, err)
 		}
@@ -289,7 +289,7 @@ func TestDetectProjectType_MixedExtensions(t *testing.T) {
 	// Create fewer Go files
 	for i := 0; i < 2; i++ {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go")
-		err := os.WriteFile(filename, []byte("package main\n"), 0644)
+		err := os.WriteFile(filename, []byte("package main\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create %s: %v", filename, err)
 		}

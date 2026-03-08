@@ -17,7 +17,7 @@ func simple() int {
 	return 1
 }
 `
-	if err := os.WriteFile(goFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -51,7 +51,7 @@ func TestCheckGoComplexity_LargeFile(t *testing.T) {
 	for i := 0; i < 150; i++ {
 		content += "func func" + string(rune('A'+i%26)) + "() int { return 1 }\n"
 	}
-	if err := os.WriteFile(goFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -115,7 +115,7 @@ func simple() int {
 	return 1
 }
 `
-		if err := os.WriteFile(goFile, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(goFile, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -148,7 +148,7 @@ func TestCheckPythonComplexity_Basic(t *testing.T) {
 	content := `def simple():
     return 1
 `
-	if err := os.WriteFile(pyFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(pyFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -208,7 +208,7 @@ func TestBasicPythonComplexity_SkipsTestFiles(t *testing.T) {
 	content := `def test_something():
     assert True
 `
-	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

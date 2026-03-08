@@ -16,12 +16,12 @@ func TestCheckPythonCoverageWithInvalidJson(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// Create .coverage file
-	if err := os.WriteFile(filepath.Join(tmpDir, ".coverage"), []byte("!coverage\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, ".coverage"), []byte("!coverage\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create invalid coverage.json
-	if err := os.WriteFile(filepath.Join(tmpDir, "coverage.json"), []byte("invalid json"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "coverage.json"), []byte("invalid json"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -73,7 +73,7 @@ x: int = "string"  # type error
 def foo() -> str:
     return 123  # type error
 `
-	if err := os.WriteFile(filepath.Join(tmpDir, "test.py"), []byte(pyContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "test.py"), []byte(pyContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -101,10 +101,10 @@ func TestDetectProjectTypeMultipleMarkers(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create both pyproject.toml and go.mod - should detect Python first
-	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -128,7 +128,7 @@ func TestCheckFileSizeWithTestFiles(t *testing.T) {
 	// Create test file (should be skipped)
 	lines := make([]string, 300)
 	content := strings.Join(lines, "\n")
-	if err := os.WriteFile(filepath.Join(tmpDir, "test_file.py"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "test_file.py"), []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -162,7 +162,7 @@ func TestCheckFileSizeWithGoTestFiles(t *testing.T) {
 	// Create Go test file (should be skipped)
 	lines := make([]string, 300)
 	content := strings.Join(lines, "\n")
-	if err := os.WriteFile(filepath.Join(tmpDir, "file_test.go"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "file_test.go"), []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -232,7 +232,7 @@ func TestCheckPythonTypesParseMypyErrors(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// Create a Python file
-	if err := os.WriteFile(filepath.Join(tmpDir, "module.py"), []byte("x = 1"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "module.py"), []byte("x = 1"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -258,12 +258,12 @@ func TestCheckGoTypesParseVetErrors(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// Initialize go module
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a Go file
-	if err := os.WriteFile(filepath.Join(tmpDir, "module.go"), []byte("package test\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "module.go"), []byte("package test\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -289,7 +289,7 @@ func TestCheckJavaTypesParseMvnErrors(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// Create pom.xml
-	if err := os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte("<project></project>"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte("<project></project>"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
