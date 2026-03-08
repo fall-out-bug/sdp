@@ -26,7 +26,7 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 		"acceptance_catch_rate": 0.15,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write metrics file: %v", err)
 	}
 
@@ -36,7 +36,7 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 		{"event_id": "evt2", "ws_id": "00-001-02", "model_id": "claude-opus-4", "language": "go", "failure_type": "type_error", "severity": "MEDIUM"},
 	}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
-	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0644); err != nil {
+	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write taxonomy file: %v", err)
 	}
 
@@ -87,7 +87,7 @@ func TestReport_GenerateHTML_HasValidStructure(t *testing.T) {
 	// Create minimal metrics
 	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write metrics file: %v", err)
 	}
 
@@ -113,7 +113,7 @@ func TestReport_GenerateJSON_ValidFormat(t *testing.T) {
 	// Create minimal metrics
 	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write metrics file: %v", err)
 	}
 
@@ -155,7 +155,7 @@ func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
 		},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
-	if err := os.WriteFile(historicalPath, historicalJSON, 0644); err != nil {
+	if err := os.WriteFile(historicalPath, historicalJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write historical file: %v", err)
 	}
 
@@ -169,7 +169,7 @@ func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
 		"acceptance_catch_rate": 0.10,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -203,7 +203,7 @@ func TestReport_GenerateToDefaultPath_CreatesInCorrectLocation(t *testing.T) {
 
 	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -228,7 +228,7 @@ func TestReport_GenerateQuarterlyReport_UsesCorrectQuarter(t *testing.T) {
 
 	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -264,7 +264,7 @@ func TestReporter_LoadMetrics_ParsesCorrectly(t *testing.T) {
 		"acceptance_catch_rate": 0.15,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -292,7 +292,7 @@ func TestReporter_GenerateTrendWithoutHistorical_ReturnsPlaceholder(t *testing.T
 
 	metricsData := map[string]interface{}{"catch_rate": 0.25}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -321,7 +321,7 @@ func TestReporter_Save_CreatesReportInDefaultLocation(t *testing.T) {
 		"acceptance_catch_rate": 0.15,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -378,7 +378,7 @@ func TestReporter_Save_WithNestedDirectory_CreatesDirectory(t *testing.T) {
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write metrics file: %v", err)
 	}
 
@@ -465,7 +465,7 @@ func TestReport_SetHistoricalPath_UpdatesPath(t *testing.T) {
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -473,7 +473,7 @@ func TestReport_SetHistoricalPath_UpdatesPath(t *testing.T) {
 		{"period": "2025-Q4", "catch_rate": 0.30, "total_workstreams": 50},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
-	if err := os.WriteFile(customPath, historicalJSON, 0644); err != nil {
+	if err := os.WriteFile(customPath, historicalJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -499,7 +499,7 @@ func TestReport_EstimateVerificationsForModel_ReturnsPlaceholderValue(t *testing
 		"model_pass_rate":     map[string]float64{"claude-sonnet-4": 0.85},
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -526,7 +526,7 @@ func TestReport_GenerateTaxonomySection_WithNoFailures_ReturnsNoFailuresMessage(
 	// Create taxonomy with zero classifications
 	taxonomyData := []map[string]interface{}{}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
-	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0644); err != nil {
+	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -535,7 +535,7 @@ func TestReport_GenerateTaxonomySection_WithNoFailures_ReturnsNoFailuresMessage(
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -564,7 +564,7 @@ func TestReport_GenerateTaxonomySection_WithUnknownFailureType_ReturnsUncategori
 		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "unknown_weird_type", "severity": "MEDIUM"},
 	}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
-	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0644); err != nil {
+	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -573,7 +573,7 @@ func TestReport_GenerateTaxonomySection_WithUnknownFailureType_ReturnsUncategori
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -605,7 +605,7 @@ func TestReport_GenerateTaxonomySection_SeverityDistribution_AllLevels(t *testin
 		{"event_id": "evt4", "ws_id": "00-001-04", "model_id": "claude-opus-4", "language": "go", "failure_type": "import_error", "severity": "LOW"},
 	}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
-	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0644); err != nil {
+	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -614,7 +614,7 @@ func TestReport_GenerateTaxonomySection_SeverityDistribution_AllLevels(t *testin
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -651,7 +651,7 @@ func TestReport_GenerateTrendSection_TrendAnalysis(t *testing.T) {
 		{"period": "2025-Q4", "catch_rate": 0.40, "total_workstreams": 50},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
-	if err := os.WriteFile(historicalPath, historicalJSON, 0644); err != nil {
+	if err := os.WriteFile(historicalPath, historicalJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write historical file: %v", err)
 	}
 
@@ -661,7 +661,7 @@ func TestReport_GenerateTrendSection_TrendAnalysis(t *testing.T) {
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
@@ -692,7 +692,7 @@ func TestReport_GenerateTrendSection_StableTrend(t *testing.T) {
 		{"period": "2025-Q4", "catch_rate": 0.25, "total_workstreams": 50},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
-	if err := os.WriteFile(historicalPath, historicalJSON, 0644); err != nil {
+	if err := os.WriteFile(historicalPath, historicalJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write historical file: %v", err)
 	}
 
@@ -701,7 +701,7 @@ func TestReport_GenerateTrendSection_StableTrend(t *testing.T) {
 		"total_verifications": 100,
 	}
 	metricsJSON, _ := json.Marshal(metricsData)
-	if err := os.WriteFile(metricsPath, metricsJSON, 0644); err != nil {
+	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 

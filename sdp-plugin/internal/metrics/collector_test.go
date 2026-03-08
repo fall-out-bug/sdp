@@ -45,7 +45,7 @@ func TestCollector_CollectMetrics_WithEvents_ComputesCatchRate(t *testing.T) {
 		`{"id":"evt-3","type":"verification","timestamp":"2026-02-11T10:02:00Z","ws_id":"00-001-02","data":{"passed":false}}`,
 		`{"id":"evt-4","type":"verification","timestamp":"2026-02-11T10:03:00Z","ws_id":"00-001-02","data":{"passed":true}}`,
 	}
-	if err := os.WriteFile(logPath, []byte(string(events[0])+"\n"+string(events[1])+"\n"+string(events[2])+"\n"+string(events[3])+"\n"), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(string(events[0])+"\n"+string(events[1])+"\n"+string(events[2])+"\n"+string(events[3])+"\n"), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -84,7 +84,7 @@ func TestCollector_CollectMetrics_ComputesIterationCount(t *testing.T) {
 		`{"id":"evt-4","type":"verification","timestamp":"2026-02-11T10:03:00Z","ws_id":"00-001-01","data":{"passed":true}}`,
 	}
 	eventsData := string(events[0]) + "\n" + string(events[1]) + "\n" + string(events[2]) + "\n" + string(events[3]) + "\n"
-	if err := os.WriteFile(logPath, []byte(eventsData), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(eventsData), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -121,7 +121,7 @@ func TestCollector_CollectMetrics_ComputesModelPassRate(t *testing.T) {
 		`{"id":"evt-4","type":"verification","timestamp":"2026-02-11T10:03:00Z","ws_id":"00-001-02","data":{"passed":false}}`,
 	}
 	eventsData := string(events[0]) + "\n" + string(events[1]) + "\n" + string(events[2]) + "\n" + string(events[3]) + "\n"
-	if err := os.WriteFile(logPath, []byte(eventsData), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(eventsData), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -168,7 +168,7 @@ func TestCollector_CollectMetrics_ComputesAcceptanceCatchRate(t *testing.T) {
 		`{"id":"evt-3","type":"approval","timestamp":"2026-02-11T10:02:00Z","ws_id":"00-001-03","data":{"approved":true}}`,
 	}
 	eventsData := string(events[0]) + "\n" + string(events[1]) + "\n" + string(events[2]) + "\n"
-	if err := os.WriteFile(logPath, []byte(eventsData), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(eventsData), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -202,7 +202,7 @@ func TestCollector_CollectMetrics_WritesJSONOutput(t *testing.T) {
 
 	// Create minimal test data
 	events := `{"id":"evt-1","type":"verification","timestamp":"2026-02-11T10:00:00Z","ws_id":"00-001-01","data":{"passed":true}}`
-	if err := os.WriteFile(logPath, []byte(events+"\n"), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(events+"\n"), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -242,7 +242,7 @@ func TestCollector_CollectMetrics_IncrementalOnlyProcessesSinceWatermark(t *test
 
 	// Create initial events
 	events := `{"id":"evt-1","type":"verification","timestamp":"2026-02-11T10:00:00Z","ws_id":"00-001-01","data":{"passed":true}}`
-	if err := os.WriteFile(logPath, []byte(events+"\n"), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(events+"\n"), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -262,7 +262,7 @@ func TestCollector_CollectMetrics_IncrementalOnlyProcessesSinceWatermark(t *test
 
 	// Add more events
 	moreEvents := `{"id":"evt-2","type":"verification","timestamp":"2026-02-11T10:01:00Z","ws_id":"00-001-02","data":{"passed":false}}`
-	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to open log file: %v", err)
 	}
@@ -307,7 +307,7 @@ func TestGetLatestWatermark_WithFile_ReturnsLastID(t *testing.T) {
 	watermarkPath := filepath.Join(tempDir, "watermark.json")
 	ids := []string{"evt-1", "evt-2", "evt-3"}
 	data, _ := json.Marshal(ids)
-	if err := os.WriteFile(watermarkPath, data, 0644); err != nil {
+	if err := os.WriteFile(watermarkPath, data, 0o644); err != nil {
 		t.Fatalf("Failed to write watermark: %v", err)
 	}
 
@@ -328,7 +328,7 @@ func TestGetLatestWatermark_EmptyFile_ReturnsEmpty(t *testing.T) {
 	tempDir := t.TempDir()
 	watermarkPath := filepath.Join(tempDir, "watermark.json")
 	data, _ := json.Marshal([]string{})
-	if err := os.WriteFile(watermarkPath, data, 0644); err != nil {
+	if err := os.WriteFile(watermarkPath, data, 0o644); err != nil {
 		t.Fatalf("Failed to write watermark: %v", err)
 	}
 
@@ -383,7 +383,7 @@ func TestCollector_CollectMetrics_WithMultipleIterations_TracksCorrectly(t *test
 	for _, e := range events {
 		eventsData += e + "\n"
 	}
-	if err := os.WriteFile(logPath, []byte(eventsData), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(eventsData), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
@@ -417,7 +417,7 @@ func TestCollector_CollectMetrics_InvalidEvents_SkippedGracefully(t *testing.T) 
 this is not valid json
 {"id":"evt-2","type":"verification","timestamp":"2026-02-11T10:01:00Z","ws_id":"00-001-02","data":{"passed":false}}
 `
-	if err := os.WriteFile(logPath, []byte(events), 0644); err != nil {
+	if err := os.WriteFile(logPath, []byte(events), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
