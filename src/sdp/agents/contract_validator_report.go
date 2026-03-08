@@ -3,7 +3,7 @@ package agents
 import (
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 )
@@ -19,11 +19,16 @@ func (cv *ContractValidator) GenerateReportWithOptions(mismatches []*ContractMis
 
 	sb.WriteString("# Contract Validation Report\n\n")
 
-	sort.Slice(mismatches, func(i, j int) bool {
-		if mismatches[i].Severity != mismatches[j].Severity {
-			return mismatches[i].Severity > mismatches[j].Severity
+	slices.SortFunc(mismatches, func(a, b *ContractMismatch) int {
+		if a.Severity != b.Severity {
+			switch {
+			case a.Severity > b.Severity:
+				return -1
+			case a.Severity < b.Severity:
+				return 1
+			}
 		}
-		return mismatches[i].Type < mismatches[j].Type
+		return strings.Compare(a.Type, b.Type)
 	})
 
 	errorCount := 0
