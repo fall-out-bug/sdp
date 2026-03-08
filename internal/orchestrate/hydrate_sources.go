@@ -55,10 +55,9 @@ func wsIDToBeadsID(projectRoot, wsID string) string {
 			continue
 		}
 		if strings.Contains(line, `"sdp_id":"`+wsID+`"`) {
-			if idx := strings.Index(line, `"beads_id":"`); idx >= 0 {
-				rest := line[idx+12:]
-				if end := strings.Index(rest, `"`); end >= 0 {
-					return rest[:end]
+			if _, rest, ok := strings.Cut(line, `"beads_id":"`); ok {
+				if beadsID, _, ok := strings.Cut(rest, `"`); ok {
+					return beadsID
 				}
 			}
 		}
