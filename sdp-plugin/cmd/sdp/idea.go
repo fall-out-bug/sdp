@@ -33,13 +33,11 @@ func ideaCmd() *cobra.Command {
 			}
 			var pairs []evidence.QAPair
 			for _, s := range qaPairs {
-				parts := strings.SplitN(s, "|", 2)
-				q, a := "", ""
-				if len(parts) >= 1 {
-					q = strings.TrimSpace(parts[0])
-				}
-				if len(parts) >= 2 {
-					a = strings.TrimSpace(parts[1])
+				q := strings.TrimSpace(s)
+				a := ""
+				if before, after, ok := strings.Cut(s, "|"); ok {
+					q = strings.TrimSpace(before)
+					a = strings.TrimSpace(after)
 				}
 				pairs = append(pairs, evidence.QAPair{Q: q, A: a})
 			}

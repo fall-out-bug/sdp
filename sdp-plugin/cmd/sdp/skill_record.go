@@ -23,11 +23,11 @@ func skillRecord() *cobra.Command {
 			if wsID == "" {
 				wsID = "00-000-00"
 			}
-			data := make(map[string]interface{})
+			data := make(map[string]any)
 			for _, p := range dataPairs {
-				kv := strings.SplitN(p, "=", 2)
-				if len(kv) == 2 {
-					data[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+				key, value, ok := strings.Cut(p, "=")
+				if ok {
+					data[strings.TrimSpace(key)] = strings.TrimSpace(value)
 				}
 			}
 			if err := evidence.EmitSync(evidence.SkillEvent(skillName, eventType, wsID, data)); err != nil {
