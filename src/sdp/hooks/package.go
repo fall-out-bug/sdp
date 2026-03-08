@@ -59,14 +59,17 @@ func (p HookPack) CheckEligibility(installed []HookPack) error {
 func checkDependency(pack HookPack, dep string) bool {
 	// Simple check: "name>=version" format
 	if strings.Contains(dep, ">=") {
-		parts := strings.SplitN(dep, ">=", 2)
-		name := strings.TrimSpace(parts[0])
+		name, version, ok := strings.Cut(dep, ">=")
+		if !ok {
+			return false
+		}
+		name = strings.TrimSpace(name)
 		if pack.Name != name {
 			return false
 		}
 		// For simplicity, just check exact version match
 		// Full semver comparison would require additional library
-		return pack.Version >= strings.TrimSpace(parts[1])
+		return pack.Version >= strings.TrimSpace(version)
 	}
 	return pack.Name == dep
 }

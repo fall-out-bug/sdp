@@ -79,16 +79,16 @@ func (c *Creator) parseWorktreeList(output string) ([]WorktreeInfo, error) {
 			current = &WorktreeInfo{}
 		}
 
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) < 2 {
+		key, value, ok := strings.Cut(line, " ")
+		if !ok {
 			continue
 		}
 
-		switch parts[0] {
+		switch key {
 		case "worktree":
-			current.Path = parts[1]
+			current.Path = value
 		case "branch":
-			current.Branch = strings.TrimPrefix(parts[1], "refs/heads/")
+			current.Branch = strings.TrimPrefix(value, "refs/heads/")
 		}
 	}
 

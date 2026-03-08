@@ -86,13 +86,13 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 		// Parse key-value pairs
 		if strings.Contains(line, ":") && !strings.HasPrefix(line, "-") {
 			inList = false
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) != 2 {
+			key, value, ok := strings.Cut(line, ":")
+			if !ok {
 				continue
 			}
 
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(strings.Trim(parts[1], `"'`))
+			key = strings.TrimSpace(key)
+			value = strings.TrimSpace(strings.Trim(value, `"'`))
 
 			switch key {
 			case "ws_id":
