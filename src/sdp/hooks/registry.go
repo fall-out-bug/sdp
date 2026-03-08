@@ -2,7 +2,7 @@ package hooks
 
 import (
 	"context"
-	"sort"
+	"slices"
 	"sync"
 
 	"github.com/google/uuid"
@@ -37,8 +37,15 @@ func (r *HookRegistry) Subscribe(eventType string, handler HookHandler, priority
 	r.handlers[eventType] = append(r.handlers[eventType], entry)
 
 	// Sort by priority (ascending - lower values first)
-	sort.Slice(r.handlers[eventType], func(i, j int) bool {
-		return r.handlers[eventType][i].priority < r.handlers[eventType][j].priority
+	slices.SortFunc(r.handlers[eventType], func(a, b handlerEntry) int {
+		switch {
+		case a.priority < b.priority:
+			return -1
+		case a.priority > b.priority:
+			return 1
+		default:
+			return 0
+		}
 	})
 
 	return id
