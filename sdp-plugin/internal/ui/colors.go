@@ -105,22 +105,22 @@ func InfoSymbol() string {
 }
 
 // SuccessLine prints a success message with checkmark
-func SuccessLine(format string, args ...interface{}) {
+func SuccessLine(format string, args ...any) {
 	fmt.Printf("%s %s\n", Checkmark(), fmt.Sprintf(format, args...))
 }
 
 // ErrorLine prints an error message with X mark
-func ErrorLine(format string, args ...interface{}) {
+func ErrorLine(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, "%s %s\n", XMark(), fmt.Sprintf(format, args...))
 }
 
 // WarningLine prints a warning message with warning symbol
-func WarningLine(format string, args ...interface{}) {
+func WarningLine(format string, args ...any) {
 	fmt.Printf("%s %s\n", WarningSymbol(), fmt.Sprintf(format, args...))
 }
 
 // InfoLine prints an info message with info symbol
-func InfoLine(format string, args ...interface{}) {
+func InfoLine(format string, args ...any) {
 	fmt.Printf("%s %s\n", InfoSymbol(), fmt.Sprintf(format, args...))
 }
 
