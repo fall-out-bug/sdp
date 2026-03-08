@@ -16,7 +16,7 @@ func TestQualityWatcher_PrintViolationNonQuiet(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}

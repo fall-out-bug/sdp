@@ -145,7 +145,7 @@ func TestAddWatch_File(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	filePath := filepath.Join(tmpDir, "single.go")
-	if err := os.WriteFile(filePath, []byte("package p\n"), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte("package p\n"), 0o644); err != nil {
 		t.Fatalf("Failed to create file: %v", err)
 	}
 
@@ -163,7 +163,7 @@ func TestAddWatch_File(t *testing.T) {
 	defer w.Stop()
 	time.Sleep(150 * time.Millisecond)
 
-	if err := os.WriteFile(filePath, []byte("package p\n\nfunc F() {}\n"), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte("package p\n\nfunc F() {}\n"), 0o644); err != nil {
 		t.Fatalf("Write file: %v", err)
 	}
 
@@ -245,7 +245,7 @@ func TestWatcher_FileChange(t *testing.T) {
 
 	// Create a file
 	testFile := filepath.Join(tmpDir, "test.go")
-	err = os.WriteFile(testFile, []byte("package test\n"), 0644)
+	err = os.WriteFile(testFile, []byte("package test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
@@ -295,14 +295,14 @@ func TestWatcher_ExcludePatterns(t *testing.T) {
 
 	// Create excluded file
 	testFile := filepath.Join(tmpDir, "test_test.go")
-	err = os.WriteFile(testFile, []byte("package test\n"), 0644)
+	err = os.WriteFile(testFile, []byte("package test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
 	// Create included file
 	srcFile := filepath.Join(tmpDir, "src.go")
-	err = os.WriteFile(srcFile, []byte("package test\n"), 0644)
+	err = os.WriteFile(srcFile, []byte("package test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write src file: %v", err)
 	}
@@ -346,7 +346,7 @@ func TestWatcher_MultipleChanges(t *testing.T) {
 	files := []string{"file1.go", "file2.go", "file3.go"}
 	for _, fname := range files {
 		fpath := filepath.Join(tmpDir, fname)
-		err = os.WriteFile(fpath, []byte("package test\n"), 0644)
+		err = os.WriteFile(fpath, []byte("package test\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to write %s: %v", fname, err)
 		}
@@ -405,7 +405,7 @@ func TestWatcher_Debounce(t *testing.T) {
 	// Write to same file multiple times rapidly
 	testFile := filepath.Join(tmpDir, "test.go")
 	for i := 0; i < 5; i++ {
-		err = os.WriteFile(testFile, []byte("package test\n"), 0644)
+		err = os.WriteFile(testFile, []byte("package test\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to write test file: %v", err)
 		}

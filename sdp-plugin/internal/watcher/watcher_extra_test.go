@@ -195,7 +195,7 @@ func TestWatcher_HandleEvent_Directory(t *testing.T) {
 
 	// Create a subdirectory
 	subDir := filepath.Join(tmpDir, "subdir")
-	err = os.Mkdir(subDir, 0755)
+	err = os.Mkdir(subDir, 0o755)
 	if err != nil {
 		t.Fatalf("Failed to create subdirectory: %v", err)
 	}
@@ -253,7 +253,7 @@ func TestQualityWatcher_PrintViolation(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}

@@ -19,7 +19,7 @@ func TestQualityWatcher_DebounceBehavior(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestQualityWatcher_DebounceBehavior(t *testing.T) {
 
 	// Create file
 	testFile := filepath.Join(tmpDir, "test.go")
-	err = os.WriteFile(testFile, []byte("package test\n"), 0644)
+	err = os.WriteFile(testFile, []byte("package test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestQualityWatcher_ViolationStates(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
