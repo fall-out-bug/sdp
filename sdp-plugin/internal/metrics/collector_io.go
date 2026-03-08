@@ -46,7 +46,7 @@ func (c *Collector) readEvents() ([]evidenceEvent, error) {
 func (c *Collector) writeOutput(metrics *Metrics) error {
 	// Ensure output directory exists
 	dir := filepath.Dir(c.outputPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create output dir: %w", err)
 	}
 
@@ -55,7 +55,7 @@ func (c *Collector) writeOutput(metrics *Metrics) error {
 		return fmt.Errorf("marshal metrics: %w", err)
 	}
 
-	return os.WriteFile(c.outputPath, data, 0644)
+	return os.WriteFile(c.outputPath, data, 0o644)
 }
 
 func (c *Collector) loadWatermark() map[string]bool {
@@ -89,9 +89,9 @@ func (c *Collector) saveWatermark(processedIDs map[string]bool) error {
 
 	// Ensure watermark directory exists
 	dir := filepath.Dir(c.watermarkPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create watermark dir: %w", err)
 	}
 
-	return os.WriteFile(c.watermarkPath, data, 0644)
+	return os.WriteFile(c.watermarkPath, data, 0o644)
 }
