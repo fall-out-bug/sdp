@@ -11,9 +11,9 @@ import (
 
 // WorkstreamInfo holds parsed workstream metadata.
 type WorkstreamInfo struct {
-	ID         string
-	FeatureID  string
-	DependsOn  []string
+	ID        string
+	FeatureID string
+	DependsOn []string
 }
 
 // DiscoverWorkstreams finds workstream files for a feature and returns IDs in dependency order.
@@ -54,9 +54,9 @@ func DiscoverWorkstreams(projectRoot, featureID string) ([]string, error) {
 }
 
 var (
-	reWSID     = regexp.MustCompile(`(?m)^ws_id:\s*(\S+)`)
-	reFeature  = regexp.MustCompile(`(?m)^feature_id:\s*(\S+)`)
-	reDepends  = regexp.MustCompile(`(?m)^depends_on:\s*\[(.*?)\]`)
+	reWSID    = regexp.MustCompile(`(?m)^ws_id:\s*(\S+)`)
+	reFeature = regexp.MustCompile(`(?m)^feature_id:\s*(\S+)`)
+	reDepends = regexp.MustCompile(`(?m)^depends_on:\s*\[(.*?)\]`)
 )
 
 func parseWorkstreamFrontmatter(path string) (WorkstreamInfo, error) {
@@ -74,7 +74,7 @@ func parseWorkstreamFrontmatter(path string) (WorkstreamInfo, error) {
 	}
 	if m := reDepends.FindStringSubmatch(content); len(m) > 1 {
 		inner := m[1]
-		for _, s := range strings.Split(inner, ",") {
+		for s := range strings.SplitSeq(inner, ",") {
 			id := strings.Trim(strings.TrimSpace(s), `"`)
 			if id != "" {
 				info.DependsOn = append(info.DependsOn, id)

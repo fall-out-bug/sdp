@@ -6,9 +6,9 @@ import (
 )
 
 var (
-	reScopeFile   = regexp.MustCompile(`^-\s+` + "`" + `([^` + "`" + `]+)` + "`")
-	reAcceptance  = regexp.MustCompile(`^-\s+\[[ x]\]\s+(.+)`)
-	reDependsOn   = regexp.MustCompile(`(?m)^depends_on:\s*\[(.*?)\]`)
+	reScopeFile  = regexp.MustCompile(`^-\s+` + "`" + `([^` + "`" + `]+)` + "`")
+	reAcceptance = regexp.MustCompile(`^-\s+\[[ x]\]\s+(.+)`)
+	reDependsOn  = regexp.MustCompile(`(?m)^depends_on:\s*\[(.*?)\]`)
 )
 
 func parseWorkstreamSections(content string) (acceptance []string, scopeFiles []string) {
@@ -47,7 +47,7 @@ func parseWorkstreamSections(content string) (acceptance []string, scopeFiles []
 func parseDependsOn(content string) []string {
 	var deps []string
 	if m := reDependsOn.FindStringSubmatch(content); len(m) > 1 {
-		for _, s := range strings.Split(m[1], ",") {
+		for s := range strings.SplitSeq(m[1], ",") {
 			id := strings.Trim(strings.Trim(s, `"`), " ")
 			if id != "" {
 				deps = append(deps, id)

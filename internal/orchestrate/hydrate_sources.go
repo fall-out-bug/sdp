@@ -15,7 +15,7 @@ func gitLSFiles(projectRoot string) (map[string]bool, error) {
 		return nil, err
 	}
 	m := make(map[string]bool)
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(string(out)), "\n") {
 		if line != "" {
 			m[line] = true
 		}
@@ -49,7 +49,7 @@ func wsIDToBeadsID(projectRoot, wsID string) string {
 	if err != nil {
 		return ""
 	}
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
