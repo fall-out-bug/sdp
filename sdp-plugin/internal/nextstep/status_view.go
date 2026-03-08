@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 )
 
 type StatusView struct {
@@ -120,7 +120,7 @@ func fileExists(path string) bool {
 }
 
 func sortWorkstreams(items []WorkstreamStatus) {
-	sort.Slice(items, func(i, j int) bool {
-		return ComparePriority(items[i], items[j]) < 0
+	slices.SortFunc(items, func(a, b WorkstreamStatus) int {
+		return ComparePriority(a, b)
 	})
 }
