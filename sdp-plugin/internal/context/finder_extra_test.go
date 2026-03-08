@@ -34,12 +34,12 @@ func TestFindWorktree_WithSession(t *testing.T) {
 
 	// Create worktrees directory
 	worktreesDir := filepath.Join(tmpDir, "worktrees")
-	os.MkdirAll(worktreesDir, 0755)
+	os.MkdirAll(worktreesDir, 0o755)
 
 	// Create sdp-F067 directory with session
 	featureDir := filepath.Join(worktreesDir, "sdp-F067")
 	sdpDir := filepath.Join(featureDir, ".sdp")
-	os.MkdirAll(sdpDir, 0755)
+	os.MkdirAll(sdpDir, 0o755)
 
 	// Create session
 	s, err := session.Init("F067", featureDir, "test")
@@ -93,7 +93,7 @@ func TestRecovery_Check_WithValidSession(t *testing.T) {
 
 	// Create .sdp directory
 	sdpDir := filepath.Join(realTmpDir, ".sdp")
-	os.MkdirAll(sdpDir, 0755)
+	os.MkdirAll(sdpDir, 0o755)
 
 	// Create valid session
 	s, err := session.Init("F067", realTmpDir, "test")
@@ -156,7 +156,7 @@ func TestRecovery_Check_BranchMismatch(t *testing.T) {
 
 	// Create .sdp directory
 	sdpDir := filepath.Join(realTmpDir, ".sdp")
-	os.MkdirAll(sdpDir, 0755)
+	os.MkdirAll(sdpDir, 0o755)
 
 	// Create session expecting different branch
 	s, err := session.Init("F067", realTmpDir, "test")
@@ -210,12 +210,12 @@ func TestRecovery_Check_CorruptedSession(t *testing.T) {
 
 	// Create .sdp directory with corrupted session
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	os.MkdirAll(sdpDir, 0755)
+	os.MkdirAll(sdpDir, 0o755)
 
 	// Create corrupted session file
 	sessionContent := `{"feature_id":"F067","worktree_path":"/path","hash":"invalid"}`
 	sessionPath := filepath.Join(sdpDir, "session.json")
-	os.WriteFile(sessionPath, []byte(sessionContent), 0644)
+	os.WriteFile(sessionPath, []byte(sessionContent), 0o644)
 
 	// Change to temp directory
 	oldWd, _ := os.Getwd()
@@ -299,12 +299,12 @@ func TestRecovery_Clean_WithStaleSession(t *testing.T) {
 
 	// Create .sdp directory with corrupted (stale) session
 	sdpDir := filepath.Join(realTmpDir, ".sdp")
-	os.MkdirAll(sdpDir, 0755)
+	os.MkdirAll(sdpDir, 0o755)
 
 	// Create corrupted session file (will be detected as stale)
 	sessionContent := `{"feature_id":"F067","worktree_path":"/different/path","hash":"invalid"}`
 	sessionPath := filepath.Join(sdpDir, "session.json")
-	os.WriteFile(sessionPath, []byte(sessionContent), 0644)
+	os.WriteFile(sessionPath, []byte(sessionContent), 0o644)
 
 	r := NewRecovery(realTmpDir)
 	cleaned, err := r.Clean()
