@@ -55,11 +55,10 @@ func (r *Recovery) listWorktrees() ([]string, error) {
 	}
 
 	var worktrees []string
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
+	for line := range strings.SplitSeq(string(output), "\n") {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "worktree ") {
-			worktrees = append(worktrees, strings.TrimPrefix(line, "worktree "))
+		if worktree, ok := strings.CutPrefix(line, "worktree "); ok {
+			worktrees = append(worktrees, worktree)
 		}
 	}
 
@@ -68,14 +67,14 @@ func (r *Recovery) listWorktrees() ([]string, error) {
 
 // extractFeatureID extracts feature ID from branch name.
 func extractFeatureID(branch string) string {
-	if strings.HasPrefix(branch, "feature/") {
-		return strings.TrimPrefix(branch, "feature/")
+	if featureID, ok := strings.CutPrefix(branch, "feature/"); ok {
+		return featureID
 	}
-	if strings.HasPrefix(branch, "bugfix/") {
-		return strings.TrimPrefix(branch, "bugfix/")
+	if featureID, ok := strings.CutPrefix(branch, "bugfix/"); ok {
+		return featureID
 	}
-	if strings.HasPrefix(branch, "hotfix/") {
-		return strings.TrimPrefix(branch, "hotfix/")
+	if featureID, ok := strings.CutPrefix(branch, "hotfix/"); ok {
+		return featureID
 	}
 	return ""
 }

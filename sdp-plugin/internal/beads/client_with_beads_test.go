@@ -519,7 +519,7 @@ fi
 	}
 
 	// Multiple updates should all succeed
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		err = client.Update(fmt.Sprintf("sdp-%d", i), "in_progress")
 		if err != nil {
 			t.Errorf("Update %d failed: %v", i, err)
