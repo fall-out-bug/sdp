@@ -40,7 +40,7 @@ func (r *UnanimousRule) CanApply(proposals []*Proposal) bool {
 	}
 
 	// Get first solution as reference
-	var firstSolution interface{}
+	var firstSolution any
 	for _, p := range proposals {
 		firstSolution = p.Solution
 		break
@@ -59,7 +59,7 @@ func (r *UnanimousRule) CanApply(proposals []*Proposal) bool {
 // Apply returns the unanimous solution
 func (r *UnanimousRule) Apply(proposals []*Proposal) (*SynthesisResult, error) {
 	// Get first solution
-	var firstSolution interface{}
+	var firstSolution any
 	for _, p := range proposals {
 		firstSolution = p.Solution
 		break

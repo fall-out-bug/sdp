@@ -189,7 +189,7 @@ func TestSynthesizer_DetectConflict_NoProposals(t *testing.T) {
 // TestSolutionsEqual verifies solution equality
 func TestSolutionsEqual(t *testing.T) {
 	tests := []struct {
-		a, b     interface{}
+		a, b     any
 		expected bool
 	}{
 		{"same", "same", true},

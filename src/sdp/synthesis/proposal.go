@@ -7,15 +7,15 @@ import (
 
 // Proposal represents a solution proposed by an agent
 type Proposal struct {
-	AgentID    string      `json:"agent_id"`
-	Solution   interface{} `json:"solution"`
-	Confidence float64     `json:"confidence"`
-	Reasoning  string      `json:"reasoning"`
-	Timestamp  time.Time   `json:"timestamp"`
+	AgentID    string    `json:"agent_id"`
+	Solution   any       `json:"solution"`
+	Confidence float64   `json:"confidence"`
+	Reasoning  string    `json:"reasoning"`
+	Timestamp  time.Time `json:"timestamp"`
 }
 
 // NewProposal creates a new proposal with current timestamp
-func NewProposal(agentID string, solution interface{}, confidence float64, reasoning string) *Proposal {
+func NewProposal(agentID string, solution any, confidence float64, reasoning string) *Proposal {
 	return &Proposal{
 		AgentID:    agentID,
 		Solution:   solution,

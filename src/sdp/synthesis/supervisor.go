@@ -23,12 +23,12 @@ type Agent interface {
 }
 
 // Task represents a task to be solved by agents
-type Task interface{}
+type Task any
 
 // Decision represents the result of supervisor's decision making
 type Decision struct {
 	Status    string      // "approved" or "escalated"
-	Solution  interface{} // The chosen solution
+	Solution  any         // The chosen solution
 	Rule      string      // The synthesis rule that was applied
 	Proposals []*Proposal // All proposals received
 	Reason    string      // Reason for escalation (if applicable)
