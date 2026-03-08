@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -67,10 +68,10 @@ func TestPrototypeCmd_GenerationEvent(t *testing.T) {
 		t.Skip("evidence log is empty (async emit may not have completed)")
 	}
 	// Verify generation event was emitted
-	if !contains(content, `"type":"generation"`) {
+	if !strings.Contains(content, `"type":"generation"`) {
 		t.Errorf("generation event not found in: %s", content)
 	}
-	if !contains(content, `"skill":"prototype"`) {
+	if !strings.Contains(content, `"skill":"prototype"`) {
 		t.Errorf("skill=prototype not found in: %s", content)
 	}
 }

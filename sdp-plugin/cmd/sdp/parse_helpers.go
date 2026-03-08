@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/fall-out-bug/sdp/internal/parser"
 	"github.com/spf13/cobra"
@@ -118,22 +119,9 @@ func containsPathTraversal(path string) bool {
 		"~/.",
 	}
 	for _, pattern := range traversalPatterns {
-		if contains(path, pattern) {
+		if strings.Contains(path, pattern) {
 			return true
 		}
 	}
 	return false
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && findSubstring(s, substr) >= 0
-}
-
-func findSubstring(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
 }

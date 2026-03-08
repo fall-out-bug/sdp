@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -137,7 +138,7 @@ func TestDeployCmd_EvidenceDisabled(t *testing.T) {
 // containsAll checks if s contains all substrings
 func containsAll(s string, subs ...string) bool {
 	for _, sub := range subs {
-		if !contains(s, sub) {
+		if !strings.Contains(s, sub) {
 			return false
 		}
 	}
