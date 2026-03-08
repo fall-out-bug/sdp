@@ -402,7 +402,7 @@ func TestSchemaRegistryLoads(t *testing.T) {
 			t.Errorf("schema file %s: %v", s.Path, err)
 			continue
 		}
-		var js map[string]interface{}
+		var js map[string]any
 		if err := json.Unmarshal(body, &js); err != nil {
 			t.Errorf("schema %s invalid JSON: %v", s.Path, err)
 		}

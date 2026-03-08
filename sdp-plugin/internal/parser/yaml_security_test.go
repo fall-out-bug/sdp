@@ -246,10 +246,7 @@ size: "MEDIUM"
 `)
 
 	// Calculate padding needed
-	padding := size - yamlSize - 50 // Reserve space for markdown headers
-	if padding < 0 {
-		padding = 0
-	}
+	padding := max(size-yamlSize-50, 0) // Reserve space for markdown headers
 
 	sb.WriteString(strings.Repeat("X", padding))
 	sb.WriteString("\n")

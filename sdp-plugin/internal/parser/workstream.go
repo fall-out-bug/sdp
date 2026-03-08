@@ -104,8 +104,8 @@ func extractSection(content, sectionName string) string {
 		// No next heading, return rest of content
 		section := content[start:]
 		// Skip first line (the heading itself)
-		if idx := strings.Index(section, "\n"); idx != -1 {
-			section = section[idx+1:]
+		if _, after, ok := strings.Cut(section, "\n"); ok {
+			section = after
 		}
 		return strings.TrimSpace(section)
 	}
@@ -115,8 +115,8 @@ func extractSection(content, sectionName string) string {
 	section := content[start:end]
 
 	// Skip first line (the heading itself)
-	if idx := strings.Index(section, "\n"); idx != -1 {
-		section = section[idx+1:]
+	if _, after, ok := strings.Cut(section, "\n"); ok {
+		section = after
 	}
 
 	return strings.TrimSpace(section)
@@ -174,8 +174,7 @@ func extractScopeFiles(content string) Scope {
 		}
 
 		// Extract file paths (marked with -)
-		if strings.HasPrefix(line, "-") {
-			filePath := strings.TrimPrefix(line, "-")
+		if filePath, ok := strings.CutPrefix(line, "-"); ok {
 			filePath = strings.TrimSpace(filePath)
 			filePath = strings.TrimPrefix(filePath, "`")
 			filePath = strings.TrimSuffix(filePath, "`")

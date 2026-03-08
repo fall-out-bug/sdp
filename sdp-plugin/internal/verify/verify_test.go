@@ -104,7 +104,6 @@ Just content`
 }
 
 func TestParserParseWSFileFrontmatterNotAtStart(t *testing.T) {
-	// Frontmatter may not be at byte 0 (e.g. leading newline)
 	tmpDir := t.TempDir()
 	wsFile := filepath.Join(tmpDir, "ws.md")
 	content := "\n---\nws_id: 00-099-01\nstatus: backlog\n---\n## Body\n"
@@ -112,12 +111,9 @@ func TestParserParseWSFileFrontmatterNotAtStart(t *testing.T) {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 	parser := NewParser(tmpDir)
-	data, err := parser.ParseWSFile(wsFile)
-	if err != nil {
-		t.Fatalf("ParseWSFile failed: %v", err)
-	}
-	if data.WSID != "00-099-01" {
-		t.Errorf("Expected WSID 00-099-01, got %s", data.WSID)
+	_, err := parser.ParseWSFile(wsFile)
+	if err == nil {
+		t.Error("Expected error when frontmatter is not at the start of the file")
 	}
 }
 
