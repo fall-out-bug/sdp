@@ -107,6 +107,26 @@ func TestResolverBlockedWorkstream(t *testing.T) {
 	}
 }
 
+func TestResolverCompletedDependencyDoesNotBlockReadyWorkstream(t *testing.T) {
+	resolver := NewResolver()
+	state := ProjectState{
+		Workstreams: []WorkstreamStatus{
+			{ID: "00-069-01", Status: StatusCompleted, Priority: 0, Feature: "F069"},
+			{ID: "00-069-02", Status: StatusReady, Priority: 1, Feature: "F069", BlockedBy: nil},
+		},
+		Mode:      ModeDrive,
+		GitStatus: GitStatusInfo{IsRepo: true},
+	}
+
+	rec, err := resolver.Recommend(state)
+	if err != nil {
+		t.Fatalf("Recommend() error: %v", err)
+	}
+	if rec.Command != "sdp apply --ws 00-069-02" {
+		t.Fatalf("Command = %q, want sdp apply --ws 00-069-02", rec.Command)
+	}
+}
+
 // TestResolverFailedWorkstream tests AC2: Failed WS state.
 func TestResolverFailedWorkstream(t *testing.T) {
 	resolver := NewResolver()

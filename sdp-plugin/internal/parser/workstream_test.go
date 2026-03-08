@@ -408,3 +408,71 @@ func TestSchemaRegistryLoads(t *testing.T) {
 		}
 	}
 }
+
+func TestParseWorkstreamPriorityAndDependencies(t *testing.T) {
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "00-068-04.md")
+	content := `---
+ws_id: 00-068-04
+feature_id: F068
+status: ready
+priority: 2
+size: M
+depends_on: ["00-068-02", "00-068-03"]
+---
+
+## Goal
+
+Test parsing.
+
+## Acceptance Criteria
+
+- [ ] AC1: Parse priority and dependencies
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatalf("write workstream: %v", err)
+	}
+
+	ws, err := ParseWorkstream(path)
+	if err != nil {
+		t.Fatalf("ParseWorkstream() error: %v", err)
+	}
+	if ws.Priority != 2 {
+		t.Fatalf("Priority = %d, want 2", ws.Priority)
+	}
+	if len(ws.DependsOn) != 2 {
+		t.Fatalf("DependsOn len = %d, want 2", len(ws.DependsOn))
+	}
+	if ws.DependsOn[0] != "00-068-02" || ws.DependsOn[1] != "00-068-03" {
+		t.Fatalf("DependsOn = %#v, want [00-068-02 00-068-03]", ws.DependsOn)
+	}
+}
+
+func TestParseWorkstreamRejectsNegativePriority(t *testing.T) {
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "00-068-04.md")
+	content := `---
+ws_id: 00-068-04
+feature_id: F068
+status: ready
+priority: -1
+size: M
+depends_on: []
+---
+
+## Goal
+
+Reject invalid priority.
+
+## Acceptance Criteria
+
+- [ ] AC1: Fail fast on invalid priority
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatalf("write workstream: %v", err)
+	}
+
+	if _, err := ParseWorkstream(path); err == nil {
+		t.Fatal("expected ParseWorkstream to reject negative priority")
+	}
+}

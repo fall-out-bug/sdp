@@ -46,6 +46,9 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 	if feature == "" {
 		return nil, fmt.Errorf("missing required field: feature or feature_id")
 	}
+	if fm.Priority < 0 {
+		return nil, fmt.Errorf("invalid priority: %d (must be >= 0)", fm.Priority)
+	}
 
 	// Extract main content
 	mainContent := string(parts[2])
@@ -69,6 +72,8 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 		Parent:     fm.Parent,
 		Feature:    fm.getFeature(),
 		Status:     fm.Status,
+		Priority:   fm.Priority,
+		DependsOn:  fm.DependsOn,
 		Size:       fm.Size,
 		ProjectID:  fm.ProjectID,
 		Goal:       goal,

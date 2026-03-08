@@ -29,6 +29,7 @@ title: "Test Workstream"
 status: ready
 priority: 0
 size: SMALL
+depends_on: []
 ---
 
 ## Goal
@@ -58,6 +59,9 @@ Test goal.
 			}
 			if ws.Feature != "F069" {
 				t.Errorf("Expected feature F069, got %s", ws.Feature)
+			}
+			if ws.Priority != 0 {
+				t.Errorf("Expected priority 0, got %d", ws.Priority)
 			}
 			break
 		}
@@ -181,4 +185,93 @@ func TestCollect(t *testing.T) {
 	if state.Mode == "" {
 		t.Error("Expected non-empty default mode")
 	}
+}
+
+func TestCollectSessionLegacyFormat(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".sdp"), 0o755); err != nil {
+		t.Fatalf("mkdir .sdp: %v", err)
+	}
+	content := `{"workstream_id":"00-069-01","feature_id":"F069","branch":"feature/F069"}`
+	if err := os.WriteFile(filepath.Join(tmpDir, ".sdp", "session.json"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write session: %v", err)
+	}
+
+	collector := NewStateCollector(tmpDir)
+	state, err := collector.Collect()
+	if err != nil {
+		t.Fatalf("Collect() error: %v", err)
+	}
+	if state.Session == nil {
+		t.Fatal("expected session to be collected")
+	}
+	if state.Session.WorkstreamID != "00-069-01" {
+		t.Fatalf("WorkstreamID = %q, want 00-069-01", state.Session.WorkstreamID)
+	}
+	if state.ActiveWorkstream != "00-069-01" {
+		t.Fatalf("ActiveWorkstream = %q, want 00-069-01", state.ActiveWorkstream)
+	}
+}
+
+func TestCollectWorkstreamsIgnoresCompletedDependencies(t *testing.T) {
+	tmpDir := t.TempDir()
+	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
+		t.Fatalf("mkdir workstreams: %v", err)
+	}
+
+	completed := `---
+ws_id: 00-069-01
+feature_id: F069
+status: completed
+priority: 0
+size: S
+depends_on: []
+---
+
+## Goal
+
+Complete blocker.
+
+## Acceptance Criteria
+
+- [x] Done
+`
+	ready := `---
+ws_id: 00-069-02
+feature_id: F069
+status: ready
+priority: 1
+size: M
+depends_on: ["00-069-01"]
+---
+
+## Goal
+
+Ready after dependency completes.
+
+## Acceptance Criteria
+
+- [ ] Execute
+`
+	if err := os.WriteFile(filepath.Join(wsDir, "00-069-01.md"), []byte(completed), 0o644); err != nil {
+		t.Fatalf("write completed workstream: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(wsDir, "00-069-02.md"), []byte(ready), 0o644); err != nil {
+		t.Fatalf("write ready workstream: %v", err)
+	}
+
+	collector := NewStateCollector(tmpDir)
+	workstreams := collector.collectWorkstreams()
+
+	for _, ws := range workstreams {
+		if ws.ID != "00-069-02" {
+			continue
+		}
+		if len(ws.BlockedBy) != 0 {
+			t.Fatalf("BlockedBy = %#v, want no unmet blockers", ws.BlockedBy)
+		}
+		return
+	}
+	t.Fatal("expected to find workstream 00-069-02")
 }
