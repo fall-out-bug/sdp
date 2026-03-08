@@ -125,6 +125,19 @@ Examples:
 - **Markdown** — Consistent formatting, no trailing whitespace
 - **Skills** — Follow `prompts/skills/` SKILL.md format
 
+### Go Style
+
+Use modern stdlib idioms that are supported by the repo's Go version.
+
+- Prefer `slices.SortFunc` over `sort.Slice`
+- Prefer `strings.Cut` over `strings.SplitN(..., 2)` or manual `strings.Index` slicing
+- Prefer `strings.CutPrefix` or `strings.CutSuffix` over prefix or suffix checks plus trim
+- Prefer `slices.Contains`, `maps.Copy`, and `maps.Clone` over handwritten helper loops
+- Prefer `any` over `interface{}` when behavior and public contracts stay the same
+- Use `golangci-lint` or `staticcheck` instead of `golint`
+
+For agent-driven Go work, load `@go-modern` before making style or cleanup changes.
+
 ## PR Checklist
 
 Before submitting a PR, ensure:
