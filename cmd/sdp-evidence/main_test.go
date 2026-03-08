@@ -8,15 +8,57 @@ import (
 	"testing"
 )
 
+var validEvidenceFixture = []byte(`{
+	"intent": {"issue_id": "sdp_dev-abc", "trigger": "user", "acceptance": [], "risk_class": "low"},
+	"plan": {"workstreams": [], "ordering_rationale": ""},
+	"execution": {"claimed_issue_ids": [], "branch": "main", "changed_files": []},
+	"verification": {"tests": [], "lint": [], "contracts": [], "coverage": {"value": 80, "threshold": 80}},
+	"review": {"self_review": [], "adversarial_review": []},
+	"risk_notes": {"residual_risks": [], "out_of_scope": []},
+	"boundary": {
+		"declared": {"allowed_path_prefixes": [], "control_path_prefixes": [], "forbidden_path_prefixes": [], "role": "", "lane": ""},
+		"observed": {"touched_paths": [], "out_of_boundary_paths": []},
+		"compliance": {"ok": true, "reason": ""}
+	},
+	"provenance": {
+		"run_id": "run-1",
+		"orchestrator": "test",
+		"runtime": "local",
+		"model": "test",
+		"gate_results": [],
+		"phase": "execute",
+		"role": "coder",
+		"captured_at": "2026-01-01T00:00:00Z",
+		"source_issue_id": "sdp_dev-abc",
+		"artifact_id": "art-1",
+		"contract_version": "artifact-provenance/v1",
+		"hash_algorithm": "sha256",
+		"sequence": 0,
+		"payload_digest": "",
+		"hash": "",
+		"hash_prev": ""
+	},
+	"trace": {"beads_ids": [], "branch": "main", "commits": [], "pr_url": "https://github.com/org/repo/pull/1"}
+}`)
+
+func writeValidEvidenceFixture(t *testing.T) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "strict-evidence-template.json")
+	if err := os.WriteFile(path, validEvidenceFixture, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
 func TestValidateValid(t *testing.T) {
-	// Build and run: sdp-evidence validate --evidence specs/strict-evidence-template.json --require-pr-url=false
 	bin := filepath.Join(t.TempDir(), "sdp-evidence")
 	if err := exec.Command("go", "build", "-o", bin, ".").Run(); err != nil {
 		t.Fatalf("build: %v", err)
 	}
+	evidencePath := writeValidEvidenceFixture(t)
 	wd, _ := os.Getwd()
 	root := filepath.Dir(filepath.Dir(wd))
-	cmd := exec.Command(bin, "validate", "--evidence", "specs/strict-evidence-template.json", "--require-pr-url=false")
+	cmd := exec.Command(bin, "validate", "--evidence", evidencePath, "--require-pr-url=false")
 	cmd.Dir = root
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -66,9 +108,10 @@ func TestInspectValid(t *testing.T) {
 	if err := exec.Command("go", "build", "-o", bin, ".").Run(); err != nil {
 		t.Fatalf("build: %v", err)
 	}
+	evidencePath := writeValidEvidenceFixture(t)
 	wd, _ := os.Getwd()
 	root := filepath.Dir(filepath.Dir(wd))
-	cmd := exec.Command(bin, "inspect", "--evidence", "specs/strict-evidence-template.json", "--require-pr-url=false")
+	cmd := exec.Command(bin, "inspect", "--evidence", evidencePath, "--require-pr-url=false")
 	cmd.Dir = root
 	out, err := cmd.CombinedOutput()
 	if err != nil {

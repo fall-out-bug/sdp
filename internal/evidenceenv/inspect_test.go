@@ -8,10 +8,7 @@ import (
 )
 
 func TestInspectValid(t *testing.T) {
-	// Use template with requirePRURL=false (specs at repo root)
-	wd, _ := os.Getwd()
-	repoRoot := filepath.Dir(filepath.Dir(wd)) // internal/evidence -> repo
-	template := filepath.Join(repoRoot, "specs", "strict-evidence-template.json")
+	template := writeValidEvidenceFixture(t)
 	summary, res, err := Inspect(template, false)
 	if err != nil {
 		t.Fatalf("Inspect: %v", err)

@@ -99,8 +99,8 @@ func TestSchemaValidationMatchesEvidenceValidate(t *testing.T) {
 			name: "invalid_boundary_missing_declared",
 			payload: mustMerge(t, validEvidenceFixture, map[string]any{
 				"boundary": map[string]any{
-					"declared":  map[string]any{},
-					"observed": map[string]any{"touched_paths": []any{}, "out_of_boundary_paths": []any{}},
+					"declared":   map[string]any{},
+					"observed":   map[string]any{"touched_paths": []any{}, "out_of_boundary_paths": []any{}},
 					"compliance": map[string]any{"ok": true, "reason": ""},
 				},
 			}),
@@ -143,8 +143,7 @@ func TestSchemaValidationMatchesEvidenceValidate(t *testing.T) {
 
 func TestSchemaValidatesTemplate(t *testing.T) {
 	root := moduleRoot(t)
-	templatePath := filepath.Join(root, "specs", "strict-evidence-template.json")
-	b := mustReadFile(t, templatePath)
+	b := mustReadFile(t, writeValidEvidenceFixture(t))
 	var doc any
 	if err := json.Unmarshal(b, &doc); err != nil {
 		t.Fatalf("unmarshal template: %v", err)
