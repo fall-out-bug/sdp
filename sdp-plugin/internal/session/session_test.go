@@ -49,7 +49,7 @@ func TestSessionFormat(t *testing.T) {
 				t.Fatalf("failed to marshal session: %v", err)
 			}
 
-			var result map[string]interface{}
+			var result map[string]any
 			if err := json.Unmarshal(data, &result); err != nil {
 				t.Fatalf("failed to unmarshal result: %v", err)
 			}

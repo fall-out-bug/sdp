@@ -3,6 +3,7 @@ package sdpinit
 import (
 	"encoding/json"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -102,14 +103,7 @@ func TestHeadlessRunner_TrackCreatedFiles(t *testing.T) {
 	// Check expected files
 	expectedFiles := []string{".claude/", ".claude/settings.json"}
 	for _, expected := range expectedFiles {
-		found := false
-		for _, created := range runner.output.Created {
-			if created == expected {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(runner.output.Created, expected) {
 			t.Errorf("Expected created file: %s", expected)
 		}
 	}

@@ -93,7 +93,7 @@ func AutoAttest(opts AutoAttestOptions) (CodingWorkflowStatement, error) {
 		},
 		Boundary: boundary,
 		Provenance: Provenance{
-			RunID:        fmt.Sprintf("ci-auto-%s-%s", opts.PRNumber, headSHA[:minLen(len(headSHA), 8)]),
+			RunID:        fmt.Sprintf("ci-auto-%s-%s", opts.PRNumber, headSHA[:min(len(headSHA), 8)]),
 			Orchestrator: "github-actions",
 			Runtime:      "ci",
 			CapturedAt:   time.Now().UTC().Format(time.RFC3339),
@@ -413,13 +413,6 @@ func firstOrEmpty(s []string) string {
 		return s[0]
 	}
 	return ""
-}
-
-func minLen(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // WriteAutoAttestationReport writes a human-readable summary JSON alongside the attestation.

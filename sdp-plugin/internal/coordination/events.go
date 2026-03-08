@@ -10,7 +10,7 @@ import (
 // ComputeHash computes SHA256 hash of the event (excluding Hash field)
 func (e *AgentEvent) ComputeHash() string {
 	// Create a copy without the Hash field for hashing
-	data := map[string]interface{}{
+	data := map[string]any{
 		"id":        e.ID,
 		"type":      e.Type,
 		"agent_id":  e.AgentID,
@@ -42,7 +42,7 @@ func NewAgentEvent(eventType, agentID, role string) *AgentEvent {
 		AgentID:   agentID,
 		Role:      role,
 		Timestamp: time.Now(),
-		Payload:   make(map[string]interface{}),
+		Payload:   make(map[string]any),
 	}
 }
 

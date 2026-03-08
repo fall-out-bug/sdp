@@ -3,6 +3,7 @@ package sdpinit
 import (
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 // PreflightResult contains preflight check results
@@ -114,10 +115,8 @@ func hasFilesWithExt(exts ...string) bool {
 		if entry.IsDir() {
 			continue
 		}
-		for _, ext := range exts {
-			if filepath.Ext(entry.Name()) == ext {
-				return true
-			}
+		if slices.Contains(exts, filepath.Ext(entry.Name())) {
+			return true
 		}
 	}
 	return false

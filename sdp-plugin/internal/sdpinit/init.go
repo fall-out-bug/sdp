@@ -252,14 +252,15 @@ func formatStringsAsJSON(items []string) string {
 	if len(items) == 0 {
 		return "[]"
 	}
-	result := "[\n"
+	var result strings.Builder
+	result.WriteString("[\n")
 	for i, item := range items {
-		result += fmt.Sprintf("    \"%s\"", item)
+		result.WriteString(fmt.Sprintf("    \"%s\"", item))
 		if i < len(items)-1 {
-			result += ","
+			result.WriteString(",")
 		}
-		result += "\n"
+		result.WriteString("\n")
 	}
-	result += "  ]"
-	return result
+	result.WriteString("  ]")
+	return result.String()
 }

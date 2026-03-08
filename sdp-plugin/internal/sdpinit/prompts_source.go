@@ -142,11 +142,11 @@ func unzipPrompts(zipPath, destRoot string) error {
 }
 
 func promptsArchiveRelPath(entryName string) (string, bool) {
-	idx := strings.Index(entryName, "/prompts/")
-	if idx < 0 {
+	_, rel, ok := strings.Cut(entryName, "/prompts/")
+	if !ok {
 		return "", false
 	}
-	rel := strings.TrimPrefix(entryName[idx+len("/prompts/"):], "/")
+	rel = strings.TrimPrefix(rel, "/")
 	if rel == "" {
 		return "", false
 	}
