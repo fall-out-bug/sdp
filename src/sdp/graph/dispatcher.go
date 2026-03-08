@@ -78,9 +78,7 @@ func (d *Dispatcher) Execute(executeFn ExecuteFunc) []ExecuteResult {
 
 		// Execute ready nodes in parallel
 		batchSize := len(readyToRun)
-		if batchSize > d.concurrency {
-			batchSize = d.concurrency
-		}
+		batchSize = min(batchSize, d.concurrency)
 
 		// Process batch
 		var wg sync.WaitGroup
@@ -151,4 +149,3 @@ func (d *Dispatcher) Execute(executeFn ExecuteFunc) []ExecuteResult {
 
 	return results
 }
-
