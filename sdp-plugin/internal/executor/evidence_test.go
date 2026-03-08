@@ -33,7 +33,7 @@ func TestExecutor_EmitEvidenceEvent(t *testing.T) {
 		Type:      "test",
 		WSID:      "00-054-01",
 		Timestamp: "2026-02-10T10:00:00Z",
-		Data:      map[string]interface{}{"key": "value"},
+		Data:      map[string]any{"key": "value"},
 	}
 
 	err := exec.emitEvidenceEvent(event)

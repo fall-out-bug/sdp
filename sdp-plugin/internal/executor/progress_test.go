@@ -100,7 +100,7 @@ func TestProgressRenderer_RenderEvidenceEvent(t *testing.T) {
 		Type:      "plan",
 		WSID:      "00-054-01",
 		Timestamp: "2026-02-10T10:00:00Z",
-		Data:      map[string]interface{}{"action": "test"},
+		Data:      map[string]any{"action": "test"},
 	}
 
 	output := renderer.RenderEvidenceEvent(event)
@@ -109,7 +109,7 @@ func TestProgressRenderer_RenderEvidenceEvent(t *testing.T) {
 		t.Error("Expected non-empty output")
 	}
 
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	if err := json.Unmarshal([]byte(output), &parsed); err != nil {
 		t.Errorf("Failed to parse JSON: %v", err)
 	}
