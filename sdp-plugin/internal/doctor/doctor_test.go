@@ -3,6 +3,7 @@ package doctor
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -28,7 +29,7 @@ func TestCheckClaudeDir(t *testing.T) {
 	if result.Status != "ok" {
 		t.Errorf("Expected status ok, got %s", result.Status)
 	}
-	if !contains(result.Message, "SDP prompts installed") {
+	if !strings.Contains(result.Message, "SDP prompts installed") {
 		t.Errorf("Wrong message: %s", result.Message)
 	}
 }
@@ -48,7 +49,7 @@ func TestCheckClaudeDir_NotFound(t *testing.T) {
 	if result.Status != "error" {
 		t.Errorf("Expected status error, got %s", result.Status)
 	}
-	if !contains(result.Message, "Not found") {
+	if !strings.Contains(result.Message, "Not found") {
 		t.Errorf("Wrong message: %s", result.Message)
 	}
 }
@@ -324,22 +325,6 @@ func TestFindRecentWorkstreamsForDrift_EmptyDirectories(t *testing.T) {
 	}
 }
 
-// Helper function
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
-		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			indexOf(s, substr) >= 0))
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
-}
-
 func TestCheckFilePermissions_Insecure(t *testing.T) {
 	// Create a temp .beads directory with insecure file
 	tmpDir := t.TempDir()
@@ -440,7 +425,7 @@ func TestCheckFilePermissions_InsecureFilesInDirectory(t *testing.T) {
 	if result.Status != "warning" {
 		t.Errorf("Expected warning for insecure directory files, got %s: %s", result.Status, result.Message)
 	}
-	if !contains(result.Message, "insecure permissions") {
+	if !strings.Contains(result.Message, "insecure permissions") {
 		t.Errorf("Expected insecure permissions message, got: %s", result.Message)
 	}
 }
@@ -471,7 +456,7 @@ func TestCheckDrift_NoWorkstreamsFound(t *testing.T) {
 	if result.Status != "ok" {
 		t.Errorf("Expected ok status when no workstreams, got %s: %s", result.Status, result.Message)
 	}
-	if !contains(result.Message, "No recent workstreams") {
+	if !strings.Contains(result.Message, "No recent workstreams") {
 		t.Errorf("Expected 'No recent workstreams' message, got: %s", result.Message)
 	}
 }
@@ -511,7 +496,7 @@ func TestCheckDrift_CouldNotCheckAny(t *testing.T) {
 	if result.Status != "warning" {
 		t.Errorf("Expected warning status when can't check workstreams, got %s: %s", result.Status, result.Message)
 	}
-	if !contains(result.Message, "Could not check") {
+	if !strings.Contains(result.Message, "Could not check") {
 		t.Errorf("Expected 'Could not check' message, got: %s", result.Message)
 	}
 }
