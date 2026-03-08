@@ -446,7 +446,7 @@ func TestSaveCheckpoint_InvalidJSON(t *testing.T) {
 
 	// Create invalid JSON file
 	filename := filepath.Join(tmpDir, "invalid.json")
-	if err := os.WriteFile(filename, []byte("invalid json"), 0644); err != nil {
+	if err := os.WriteFile(filename, []byte("invalid json"), 0o644); err != nil {
 		t.Fatalf("Failed to create invalid file: %v", err)
 	}
 
@@ -551,12 +551,12 @@ func TestListCheckpoints_SkipsInvalidFiles(t *testing.T) {
 	}
 
 	// Create non-JSON file
-	if err := os.WriteFile(filepath.Join(tmpDir, "readme.txt"), []byte("text"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "readme.txt"), []byte("text"), 0o644); err != nil {
 		t.Fatalf("Failed to create readme: %v", err)
 	}
 
 	// Create invalid JSON file
-	if err := os.WriteFile(filepath.Join(tmpDir, "invalid.json"), []byte("{bad json}"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "invalid.json"), []byte("{bad json}"), 0o644); err != nil {
 		t.Fatalf("Failed to create invalid json: %v", err)
 	}
 
