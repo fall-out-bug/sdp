@@ -376,7 +376,7 @@ func TestCheckpointDirectory(t *testing.T) {
 
 	// Create .sdp/checkpoints subdirectory
 	checkpointDir := filepath.Join(tmpDir, ".sdp", "checkpoints")
-	if err := os.MkdirAll(checkpointDir, 0755); err != nil {
+	if err := os.MkdirAll(checkpointDir, 0o755); err != nil {
 		t.Fatalf("Failed to create checkpoint directory: %v", err)
 	}
 
