@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"time"
 )
 
@@ -56,7 +56,7 @@ func NewManager(dir string) *Manager {
 // Save saves a checkpoint to disk
 func (m *Manager) Save(cp Checkpoint) error {
 	// Ensure directory exists
-	if err := os.MkdirAll(m.dir, 0755); err != nil {
+	if err := os.MkdirAll(m.dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create checkpoint directory: %w", err)
 	}
 
@@ -68,7 +68,7 @@ func (m *Manager) Save(cp Checkpoint) error {
 
 	// Write to file with secure permissions (owner read/write only)
 	filename := filepath.Join(m.dir, fmt.Sprintf("%s.json", cp.ID))
-	if err := os.WriteFile(filename, data, 0600); err != nil {
+	if err := os.WriteFile(filename, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write checkpoint file: %w", err)
 	}
 
@@ -140,8 +140,15 @@ func (m *Manager) List() ([]Checkpoint, error) {
 	}
 
 	// Sort by created_at (newest first)
-	sort.Slice(checkpoints, func(i, j int) bool {
-		return checkpoints[i].CreatedAt.After(checkpoints[j].CreatedAt)
+	slices.SortFunc(checkpoints, func(a, b Checkpoint) int {
+		switch {
+		case a.CreatedAt.After(b.CreatedAt):
+			return -1
+		case a.CreatedAt.Before(b.CreatedAt):
+			return 1
+		default:
+			return 0
+		}
 	})
 
 	return checkpoints, nil
