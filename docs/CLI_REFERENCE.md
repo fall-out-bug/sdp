@@ -11,8 +11,10 @@ Run `sdp --help` for the full list. Key commands:
 | `sdp build <ws-id>` | Execute single workstream |
 | `sdp apply` | Execute ready workstreams |
 | `sdp plan` | Generate workstreams |
+| `sdp next` | Recommended next action |
 | `sdp log show` | Evidence log |
 | `sdp status` | Project state |
+| `sdp demo` | Guided first-success walkthrough |
 | `sdp checkpoint` | Long-running feature checkpoints |
 | `sdp completion` | Shell completion |
 
