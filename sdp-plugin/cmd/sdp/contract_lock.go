@@ -134,7 +134,7 @@ func runContractLockInternal(featureName, gitSHA, contractPath, lockPath string,
 	}
 
 	// Write lock file
-	if err := os.WriteFile(lockPath, lockData, 0644); err != nil {
+	if err := os.WriteFile(lockPath, lockData, 0o644); err != nil {
 		return fmt.Errorf("failed to write lock file: %w", err)
 	}
 

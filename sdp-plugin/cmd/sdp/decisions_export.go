@@ -58,7 +58,7 @@ func decisionsExportCmd() *cobra.Command {
 
 			// Create output directory if needed
 			outputDir := filepath.Dir(outputPath)
-			if err := os.MkdirAll(outputDir, 0755); err != nil {
+			if err := os.MkdirAll(outputDir, 0o755); err != nil {
 				return fmt.Errorf("failed to create output directory: %w", err)
 			}
 
@@ -102,7 +102,7 @@ func decisionsExportCmd() *cobra.Command {
 			}
 
 			// Write to file
-			if err := os.WriteFile(outputPath, []byte(md), 0644); err != nil {
+			if err := os.WriteFile(outputPath, []byte(md), 0o644); err != nil {
 				return err
 			}
 

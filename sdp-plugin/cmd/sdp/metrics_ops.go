@@ -62,7 +62,7 @@ func readEventsJSONL(path string) ([]evidenceEvent, error) {
 // initMetricsDir ensures metrics directory exists
 func initMetricsDir() {
 	metricsDir := filepath.Join(".sdp", "metrics")
-	if err := os.MkdirAll(metricsDir, 0755); err != nil {
+	if err := os.MkdirAll(metricsDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "warning: failed to create metrics directory: %v\n", err)
 	}
 }
