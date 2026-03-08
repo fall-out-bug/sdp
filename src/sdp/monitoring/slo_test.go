@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -171,7 +172,7 @@ func TestSLOReportString(t *testing.T) {
 	}
 
 	for _, required := range requiredStrings {
-		if !contains(output, required) {
+		if !strings.Contains(output, required) {
 			t.Errorf("Expected report to contain %q", required)
 		}
 	}
@@ -203,7 +204,7 @@ func TestHealthCheck_NoMetrics(t *testing.T) {
 		t.Error("Expected health check to fail when no metrics available")
 	}
 
-	if !contains(err.Error(), "no validation metrics") {
+	if !strings.Contains(err.Error(), "no validation metrics") {
 		t.Errorf("Expected 'no validation metrics' error, got: %v", err)
 	}
 }
@@ -225,7 +226,7 @@ func TestHealthCheck_LowSuccessRate(t *testing.T) {
 		t.Error("Expected health check to fail with low success rate")
 	}
 
-	if !contains(err.Error(), "success rate below minimum") {
+	if !strings.Contains(err.Error(), "success rate below minimum") {
 		t.Errorf("Expected 'success rate below minimum' error, got: %v", err)
 	}
 }
