@@ -40,7 +40,6 @@ func (c *StateCollector) Collect() (ProjectState, error) {
 
 // collectWorkstreams gathers workstream status from docs/workstreams/.
 func (c *StateCollector) collectWorkstreams() []WorkstreamStatus {
-	workstreams := []WorkstreamStatus{}
 	parsed := []*parser.Workstream{}
 
 	// Search for workstream files
@@ -76,6 +75,7 @@ func (c *StateCollector) collectWorkstreams() []WorkstreamStatus {
 	for _, ws := range parsed {
 		statuses[ws.ID] = mapStatus(ws.Status)
 	}
+	workstreams := make([]WorkstreamStatus, 0, len(parsed))
 
 	for _, ws := range parsed {
 		status := WorkstreamStatus{
