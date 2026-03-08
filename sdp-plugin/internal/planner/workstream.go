@@ -17,7 +17,7 @@ func (p *Planner) CreateWorkstreamFiles(result *DecompositionResult) error {
 	}
 
 	// Ensure backlog directory exists
-	if err := os.MkdirAll(p.BacklogDir, 0755); err != nil {
+	if err := os.MkdirAll(p.BacklogDir, 0o755); err != nil {
 		return fmt.Errorf("create backlog dir: %w", err)
 	}
 
@@ -35,7 +35,7 @@ func (p *Planner) CreateWorkstreamFiles(result *DecompositionResult) error {
 		content := p.generateWorkstreamContent(ws, result)
 
 		// Write file
-		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return fmt.Errorf("write workstream file %s: %w", path, err)
 		}
 	}

@@ -29,9 +29,9 @@ func (p *Planner) EmitPlanEvent(result *DecompositionResult) error {
 
 	// Add additional metadata about the decomposition
 	if ev.Data == nil {
-		ev.Data = make(map[string]interface{})
+		ev.Data = make(map[string]any)
 	}
-	if dataMap, ok := ev.Data.(map[string]interface{}); ok {
+	if dataMap, ok := ev.Data.(map[string]any); ok {
 		dataMap["workstream_count"] = len(result.Workstreams)
 		dataMap["dependency_count"] = len(result.Dependencies)
 		dataMap["description"] = p.Description
