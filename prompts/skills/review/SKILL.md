@@ -2,8 +2,9 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 14.2.0
+version: 14.3.0
 changes:
+  - "14.3.0: Add @go-modern checks for Go review surfaces"
   - "14.2.0: Handoff block when CHANGES_REQUESTED"
   - "14.1.0: Language-agnostic (platform-agnostic spawn, agents/ path)"
   - "14.0.0: Compress to ~150 lines (P2 remediation)"
@@ -35,6 +36,8 @@ When user invokes `@review F{XX}`:
 3. **EVIDENCE:** For each risk area, what did you find? (file:line, test name, config entry)
 4. **SEVERITY:** Classify each finding. P0 = exploitable in production. P1 = breaks on edge case. P2 = maintenance debt. P3 = style.
 5. **VERDICT:** PASS if max severity ≤ P2. FAIL if any P0/P1.
+
+For Go files, also check whether the change keeps or improves modern stdlib usage (`slices`, `maps`, `strings.Cut`, `strings.CutPrefix`, `any`) instead of preserving avoidable legacy patterns.
 
 For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
 
@@ -128,3 +131,4 @@ PASS
 
 - `@oneshot` — review-fix loop
 - `@deploy` — requires APPROVED verdict
+- `@go-modern` — Go modernization checklist

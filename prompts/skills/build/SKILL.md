@@ -3,8 +3,9 @@ name: build
 description: Execute ONE workstream with TDD, guard enforcement, and ws-verdict output
 cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
-version: 8.1.0
+version: 8.2.0
 changes:
+  - 8.2.0: Add @go-modern guidance for Go implementation and review
   - Evidence + checkpoint commit step after sdp-orchestrate --advance (step 3b)
   - Post-build bd close for each bead in WS frontmatter; batch syntax /build 00-053-16..25
   - Remove auto-continue rules; @build does ONE WS then STOPS
@@ -29,6 +30,7 @@ Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orc
 2. **ONE WORKSTREAM** — Execute this workstream only. After commit, STOP. Do not start the next WS.
 3. **USE SPAWN OR DO IT YOURSELF** — If spawn available, use it. If not, implement manually.
 4. **POST-COMPACTION RECOVERY** — After context compaction, run `bd ready` to find your task. Never drift to side tasks.
+5. **MODERN GO FOR GO CODE** — When touched files are Go, load `@go-modern` and prefer safe stdlib modernizations before inventing helpers.
 
 ---
 
@@ -98,7 +100,7 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 **Spec Reviewer:** Verify code matches spec. Output ac_evidence per [ws-verdict.schema.json](../../schema/ws-verdict.schema.json): `{"ac":"AC text","met": true|false,"evidence":"file:line or test name"}`.
 
-**Quality Reviewer:** Coverage >= 80%, LOC <= 200, lint. Output verdict.
+**Quality Reviewer:** Coverage >= 80%, LOC <= 200, lint. For Go code, also check modern stdlib usage via `@go-modern`. Output verdict.
 
 ---
 
@@ -170,3 +172,4 @@ When user invokes `/build 00-053-16..25` (or multiple WS IDs):
 
 - `@oneshot` — Orchestrator that invokes @build per WS
 - `@tdd` — TDD pattern
+- `@go-modern` — Modern Go style and cleanup rules
