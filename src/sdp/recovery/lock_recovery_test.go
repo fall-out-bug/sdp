@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -39,7 +40,7 @@ func TestCreateBackup(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Create backup
 	backup, err := manager.CreateBackup(lockPath, "test")
@@ -78,7 +79,7 @@ func TestRestoreFromBackup(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	backup, _ := manager.CreateBackup(lockPath, "test")
 
@@ -126,7 +127,7 @@ func TestListBackups(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Create multiple backups with longer delays
 	_, _ = manager.CreateBackup(lockPath, "backup1")
@@ -163,7 +164,7 @@ func TestValidateLock_ValidLock(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Validate
 	err := manager.ValidateLock(lockPath)
@@ -179,7 +180,7 @@ func TestValidateLock_InvalidJSON(t *testing.T) {
 
 	// Create corrupted lock file
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
-	os.WriteFile(lockPath, []byte("{invalid json"), 0644)
+	os.WriteFile(lockPath, []byte("{invalid json"), 0o644)
 
 	// Validate
 	err := manager.ValidateLock(lockPath)
@@ -187,7 +188,7 @@ func TestValidateLock_InvalidJSON(t *testing.T) {
 		t.Error("Expected validation error for corrupted JSON")
 	}
 
-	if !contains(err.Error(), "corrupted lock file") {
+	if !strings.Contains(err.Error(), "corrupted lock file") {
 		t.Errorf("Expected 'corrupted lock file' error, got: %v", err)
 	}
 }
@@ -206,7 +207,7 @@ func TestValidateLock_MissingFields(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Validate
 	err := manager.ValidateLock(lockPath)
@@ -214,7 +215,7 @@ func TestValidateLock_MissingFields(t *testing.T) {
 		t.Error("Expected validation error for missing fields")
 	}
 
-	if !contains(err.Error(), "missing feature_name") {
+	if !strings.Contains(err.Error(), "missing feature_name") {
 		t.Errorf("Expected 'missing feature_name' error, got: %v", err)
 	}
 }
@@ -236,12 +237,12 @@ func TestRecoverLock_Success(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	manager.CreateBackup(lockPath, "test")
 
 	// Corrupt lock file
-	os.WriteFile(lockPath, []byte("{corrupted"), 0644)
+	os.WriteFile(lockPath, []byte("{corrupted"), 0o644)
 
 	// Recover
 	result, err := manager.RecoverLock(lockPath)
@@ -270,7 +271,7 @@ func TestRecoverLock_NoBackups(t *testing.T) {
 
 	// Create corrupted lock file without backup
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
-	os.WriteFile(lockPath, []byte("{corrupted"), 0644)
+	os.WriteFile(lockPath, []byte("{corrupted"), 0o644)
 
 	// Attempt recovery
 	result, err := manager.RecoverLock(lockPath)
@@ -282,7 +283,7 @@ func TestRecoverLock_NoBackups(t *testing.T) {
 		t.Error("Expected failed recovery result")
 	}
 
-	if !contains(result.ErrorMessage, "no backups") {
+	if !strings.Contains(result.ErrorMessage, "no backups") {
 		t.Errorf("Expected 'no backups' error, got: %s", result.ErrorMessage)
 	}
 }
@@ -294,7 +295,7 @@ func TestCalculateContractHash(t *testing.T) {
 	// Create test contract file
 	contractPath := filepath.Join(tmpDir, "contract.yaml")
 	contractContent := "openapi: 3.0.0\ninfo:\n  title: Test API"
-	os.WriteFile(contractPath, []byte(contractContent), 0644)
+	os.WriteFile(contractPath, []byte(contractContent), 0o644)
 
 	// Calculate hash
 	hash, err := CalculateContractHash(contractPath)
@@ -334,7 +335,7 @@ func TestCleanOldBackups(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Create 3 backups
 	manager.CreateBackup(lockPath, "backup1")
@@ -357,7 +358,7 @@ func TestValidateLock_ContractHashMismatch(t *testing.T) {
 
 	// Create contract file
 	contractPath := filepath.Join(tmpDir, "contract.yaml")
-	os.WriteFile(contractPath, []byte("original content"), 0644)
+	os.WriteFile(contractPath, []byte("original content"), 0o644)
 
 	// Calculate hash
 	hash, _ := CalculateContractHash(contractPath)
@@ -374,10 +375,10 @@ func TestValidateLock_ContractHashMismatch(t *testing.T) {
 
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Modify contract file
-	os.WriteFile(contractPath, []byte("modified content"), 0644)
+	os.WriteFile(contractPath, []byte("modified content"), 0o644)
 
 	// Validate - should detect hash mismatch
 	err := manager.ValidateLock(lockPath)
@@ -385,23 +386,9 @@ func TestValidateLock_ContractHashMismatch(t *testing.T) {
 		t.Error("Expected validation error for hash mismatch")
 	}
 
-	if !contains(err.Error(), "hash mismatch") {
+	if !strings.Contains(err.Error(), "hash mismatch") {
 		t.Errorf("Expected 'hash mismatch' error, got: %v", err)
 	}
-}
-
-// Helper function
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && indexOfStr(s, substr) >= 0
-}
-
-func indexOfStr(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
 }
 
 // TestCreateBackup_ReadError verifies error handling for missing file
@@ -413,7 +400,7 @@ func TestCreateBackup_ReadError(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for nonexistent file")
 	}
-	if !contains(err.Error(), "failed to read lock file") {
+	if !strings.Contains(err.Error(), "failed to read lock file") {
 		t.Errorf("expected read error, got: %v", err)
 	}
 }
@@ -425,13 +412,13 @@ func TestCreateBackup_ParseError(t *testing.T) {
 
 	// Create invalid JSON file
 	lockPath := filepath.Join(tmpDir, "invalid.lock")
-	os.WriteFile(lockPath, []byte("not valid json"), 0644)
+	os.WriteFile(lockPath, []byte("not valid json"), 0o644)
 
 	_, err := manager.CreateBackup(lockPath, "test")
 	if err == nil {
 		t.Error("expected error for invalid JSON")
 	}
-	if !contains(err.Error(), "failed to parse lock file") {
+	if !strings.Contains(err.Error(), "failed to parse lock file") {
 		t.Errorf("expected parse error, got: %v", err)
 	}
 }
@@ -448,7 +435,7 @@ func TestRestoreFromBackup_ReadError(t *testing.T) {
 	if result.Success {
 		t.Error("expected failure result")
 	}
-	if !contains(result.ErrorMessage, "failed to read backup") {
+	if !strings.Contains(result.ErrorMessage, "failed to read backup") {
 		t.Errorf("expected read error, got: %s", result.ErrorMessage)
 	}
 }
@@ -460,7 +447,7 @@ func TestRestoreFromBackup_ParseError(t *testing.T) {
 
 	// Create corrupt backup
 	backupPath := filepath.Join(tmpDir, "corrupt.backup")
-	os.WriteFile(backupPath, []byte("not valid json"), 0644)
+	os.WriteFile(backupPath, []byte("not valid json"), 0o644)
 
 	result, err := manager.RestoreFromBackup(filepath.Join(tmpDir, "lock.json"), backupPath)
 	if err == nil {
@@ -469,7 +456,7 @@ func TestRestoreFromBackup_ParseError(t *testing.T) {
 	if result.Success {
 		t.Error("expected failure result")
 	}
-	if !contains(result.ErrorMessage, "failed to parse backup") {
+	if !strings.Contains(result.ErrorMessage, "failed to parse backup") {
 		t.Errorf("expected parse error, got: %s", result.ErrorMessage)
 	}
 }
@@ -507,7 +494,7 @@ func TestListBackups_SkipsDirectories(t *testing.T) {
 	manager := NewLockRecoveryManager(tmpDir, 5)
 
 	// Create a directory that matches the prefix
-	os.Mkdir(filepath.Join(tmpDir, "telemetry-subdir"), 0755)
+	os.Mkdir(filepath.Join(tmpDir, "telemetry-subdir"), 0o755)
 
 	backups, err := manager.ListBackups("telemetry")
 	if err != nil {
@@ -525,7 +512,7 @@ func TestListBackups_SkipsUnreadableFiles(t *testing.T) {
 
 	// Create unreadable backup (corrupt JSON)
 	backupPath := filepath.Join(tmpDir, "telemetry-123.backup")
-	os.WriteFile(backupPath, []byte("corrupt"), 0644)
+	os.WriteFile(backupPath, []byte("corrupt"), 0o644)
 
 	backups, err := manager.ListBackups("telemetry")
 	if err != nil {
@@ -553,7 +540,7 @@ func TestCleanOldBackups_SortingOrder(t *testing.T) {
 	}
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Create backups with delays to ensure different timestamps
 	manager.CreateBackup(lockPath, "backup1")
@@ -575,14 +562,14 @@ func TestCleanOldBackups_NoCleanupNeeded(t *testing.T) {
 	manager := NewLockRecoveryManager(tmpDir, 5)
 
 	lock := ContractLock{
-		FeatureName:    "telemetry",
-		ContractSHA:    "abc123",
-		LockedAt:       time.Now(),
-		LockedBy:       "test",
+		FeatureName: "telemetry",
+		ContractSHA: "abc123",
+		LockedAt:    time.Now(),
+		LockedBy:    "test",
 	}
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	backup, _ := manager.CreateBackup(lockPath, "backup1")
 
@@ -599,14 +586,14 @@ func TestCleanOldBackups_RemovesMultiple(t *testing.T) {
 	manager := NewLockRecoveryManager(tmpDir, 2) // Keep only 2
 
 	lock := ContractLock{
-		FeatureName:    "telemetry",
-		ContractSHA:    "abc123",
-		LockedAt:       time.Now(),
-		LockedBy:       "test",
+		FeatureName: "telemetry",
+		ContractSHA: "abc123",
+		LockedAt:    time.Now(),
+		LockedBy:    "test",
 	}
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	// Create 5 backups
 	for i := 0; i < 5; i++ {
@@ -637,12 +624,12 @@ func TestRecoverLock_WithBackups(t *testing.T) {
 	}
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	manager.CreateBackup(lockPath, "pre-corruption")
 
 	// Corrupt the lock
-	os.WriteFile(lockPath, []byte("{corrupted"), 0644)
+	os.WriteFile(lockPath, []byte("{corrupted"), 0o644)
 
 	// Recover
 	result, err := manager.RecoverLock(lockPath)
@@ -662,24 +649,24 @@ func TestRecoverLock_AllBackupsCorrupt(t *testing.T) {
 
 	// Create valid lock
 	lock := ContractLock{
-		FeatureName:    "telemetry",
-		ContractSHA:    "abc123",
-		LockedAt:       time.Now(),
-		LockedBy:       "test",
+		FeatureName: "telemetry",
+		ContractSHA: "abc123",
+		LockedAt:    time.Now(),
+		LockedBy:    "test",
 	}
 	lockPath := filepath.Join(tmpDir, "telemetry.lock")
 	lockData, _ := json.MarshalIndent(lock, "", "  ")
-	os.WriteFile(lockPath, lockData, 0644)
+	os.WriteFile(lockPath, lockData, 0o644)
 
 	manager.CreateBackup(lockPath, "test")
 
 	// Corrupt both lock and backup
-	os.WriteFile(lockPath, []byte("{corrupted"), 0644)
+	os.WriteFile(lockPath, []byte("{corrupted"), 0o644)
 	// Find and corrupt backup
 	entries, _ := os.ReadDir(tmpDir)
 	for _, e := range entries {
 		if filepath.Ext(e.Name()) == ".backup" {
-			os.WriteFile(filepath.Join(tmpDir, e.Name()), []byte("{corrupted"), 0644)
+			os.WriteFile(filepath.Join(tmpDir, e.Name()), []byte("{corrupted"), 0o644)
 		}
 	}
 
