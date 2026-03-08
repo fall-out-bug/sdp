@@ -21,7 +21,7 @@ func TestRunGuided_AllStepsPass(t *testing.T) {
 	}
 
 	// Create .git directory to simulate git repo
-	if err := os.MkdirAll(".git", 0755); err != nil {
+	if err := os.MkdirAll(".git", 0o755); err != nil {
 		t.Fatalf("create .git: %v", err)
 	}
 
@@ -97,7 +97,7 @@ func TestRunGuided_UnknownProjectType(t *testing.T) {
 	}
 
 	// Create .git but no project files
-	if err := os.MkdirAll(".git", 0755); err != nil {
+	if err := os.MkdirAll(".git", 0o755); err != nil {
 		t.Fatalf("create .git: %v", err)
 	}
 
@@ -177,7 +177,7 @@ func TestCheckGitRepoStep(t *testing.T) {
 	}
 
 	// Test with .git
-	if err := os.MkdirAll(".git", 0755); err != nil {
+	if err := os.MkdirAll(".git", 0o755); err != nil {
 		t.Fatalf("create .git: %v", err)
 	}
 

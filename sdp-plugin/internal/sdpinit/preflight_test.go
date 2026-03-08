@@ -182,7 +182,7 @@ func TestDirExists(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.Mkdir("testdir", 0755)
+	os.Mkdir("testdir", 0o755)
 	os.WriteFile("testfile", []byte{}, 0644)
 
 	if !dirExists("testdir") {
@@ -209,7 +209,7 @@ func TestCheckConflicts(t *testing.T) {
 	}
 
 	// Create conflict
-	os.MkdirAll(".claude", 0755)
+	os.MkdirAll(".claude", 0o755)
 	os.WriteFile(".claude/settings.json", []byte{}, 0644)
 
 	conflicts = checkConflicts()
@@ -229,7 +229,7 @@ func TestPreflightResult_HasSDP(t *testing.T) {
 		t.Error("Should not have .sdp")
 	}
 
-	os.Mkdir(".sdp", 0755)
+	os.Mkdir(".sdp", 0o755)
 	result = RunPreflight()
 	if !result.HasSDP {
 		t.Error("Should have .sdp")
@@ -247,7 +247,7 @@ func TestPreflightResult_HasGit(t *testing.T) {
 		t.Error("Should not have .git")
 	}
 
-	os.Mkdir(".git", 0755)
+	os.Mkdir(".git", 0o755)
 	result = RunPreflight()
 	if !result.HasGit {
 		t.Error("Should have .git")
@@ -267,7 +267,7 @@ func TestPreflightResult_Warnings(t *testing.T) {
 	}
 
 	// With git = no warning
-	os.Mkdir(".git", 0755)
+	os.Mkdir(".git", 0o755)
 	result = RunPreflight()
 	hasGitWarning := false
 	for _, w := range result.Warnings {

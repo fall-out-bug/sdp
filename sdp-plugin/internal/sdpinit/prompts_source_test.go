@@ -95,7 +95,7 @@ func TestDownloadPromptsToCache_UsesExistingCache(t *testing.T) {
 	}
 
 	promptsDir := filepath.Join(cacheHome, "sdp", "prompts", "skills")
-	if err := os.MkdirAll(promptsDir, 0755); err != nil {
+	if err := os.MkdirAll(promptsDir, 0o755); err != nil {
 		t.Fatalf("mkdir prompts cache: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(promptsDir, "cached.md"), []byte("# cached"), 0644); err != nil {
