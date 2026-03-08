@@ -251,7 +251,7 @@ func TestCheckFileSizeSkipsDirectories(t *testing.T) {
 	// Create subdirectories that should be skipped
 	dirs := []string{"vendor", "node_modules", ".git", "__pycache__"}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(filepath.Join(tmpDir, dir), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(tmpDir, dir), 0o755); err != nil {
 			t.Fatal(err)
 		}
 		// Create file in skipped directory
