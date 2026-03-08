@@ -104,7 +104,7 @@ func TestRepairFilePermissions(t *testing.T) {
 
 	// Create file with insecure permissions
 	testFile := "test_insecure.txt"
-	os.WriteFile(testFile, []byte("test"), 0644)
+	os.WriteFile(testFile, []byte("test"), 0o644)
 
 	action := repairFilePermissions()
 
@@ -122,7 +122,7 @@ func TestRepairFilePermissions_WithBeadsDB(t *testing.T) {
 
 	// Create .beads directory with insecure db
 	os.MkdirAll(".beads", 0755)
-	os.WriteFile(".beads/beads.db", []byte("test"), 0644)
+	os.WriteFile(".beads/beads.db", []byte("test"), 0o644)
 
 	action := repairFilePermissions()
 
@@ -133,7 +133,7 @@ func TestRepairFilePermissions_WithBeadsDB(t *testing.T) {
 
 	// Verify permissions were fixed
 	info, _ := os.Stat(".beads/beads.db")
-	if info.Mode().Perm() != 0600 {
+	if info.Mode().Perm() != 0o600 {
 		t.Errorf("Expected 0600, got %o", info.Mode().Perm())
 	}
 }
@@ -146,7 +146,7 @@ func TestRepairFilePermissions_AlreadySecure(t *testing.T) {
 
 	// Create .beads directory with already secure db
 	os.MkdirAll(".beads", 0755)
-	os.WriteFile(".beads/beads.db", []byte("test"), 0600)
+	os.WriteFile(".beads/beads.db", []byte("test"), 0o600)
 
 	action := repairFilePermissions()
 
@@ -164,8 +164,8 @@ func TestRepairFilePermissions_DirectoryContent(t *testing.T) {
 
 	// Create .beads directory with multiple files
 	os.MkdirAll(".beads", 0755)
-	os.WriteFile(".beads/beads.db", []byte("test"), 0644)
-	os.WriteFile(".beads/other.txt", []byte("other"), 0644)
+	os.WriteFile(".beads/beads.db", []byte("test"), 0o644)
+	os.WriteFile(".beads/other.txt", []byte("other"), 0o644)
 
 	action := repairFilePermissions()
 
@@ -183,7 +183,7 @@ func TestRepairFilePermissions_PartialFail(t *testing.T) {
 
 	// Create .beads with a file we can fix
 	os.MkdirAll(".beads", 0755)
-	os.WriteFile(".beads/beads.db", []byte("test"), 0644)
+	os.WriteFile(".beads/beads.db", []byte("test"), 0o644)
 
 	action := repairFilePermissions()
 
@@ -196,7 +196,7 @@ func TestRepairFilePermissions_PartialFail(t *testing.T) {
 func TestFixFilePermissionsTracked_AlreadySecure(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "secure.txt")
-	os.WriteFile(testFile, []byte("test"), 0600)
+	os.WriteFile(testFile, []byte("test"), 0o600)
 
 	wasFixed, err := fixFilePermissionsTracked(testFile)
 	if err != nil {
@@ -210,7 +210,7 @@ func TestFixFilePermissionsTracked_AlreadySecure(t *testing.T) {
 func TestFixFilePermissionsTracked_Fixed(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "insecure.txt")
-	os.WriteFile(testFile, []byte("test"), 0644)
+	os.WriteFile(testFile, []byte("test"), 0o644)
 
 	wasFixed, err := fixFilePermissionsTracked(testFile)
 	if err != nil {
@@ -222,7 +222,7 @@ func TestFixFilePermissionsTracked_Fixed(t *testing.T) {
 
 	// Verify permissions
 	info, _ := os.Stat(testFile)
-	if info.Mode().Perm() != 0600 {
+	if info.Mode().Perm() != 0o600 {
 		t.Errorf("Expected 0600, got %o", info.Mode().Perm())
 	}
 }
@@ -242,7 +242,7 @@ func TestFixFilePermissions(t *testing.T) {
 
 	// Create file with insecure permissions
 	testFile := filepath.Join(tmpDir, "test.txt")
-	os.WriteFile(testFile, []byte("test"), 0644)
+	os.WriteFile(testFile, []byte("test"), 0o644)
 
 	// Fix permissions
 	err := fixFilePermissions(testFile)
@@ -252,7 +252,7 @@ func TestFixFilePermissions(t *testing.T) {
 
 	// Verify permissions
 	info, _ := os.Stat(testFile)
-	if info.Mode().Perm() != 0600 {
+	if info.Mode().Perm() != 0o600 {
 		t.Errorf("Expected 0600, got %o", info.Mode().Perm())
 	}
 
@@ -345,7 +345,7 @@ func TestRepairClaudeDirs_Failed(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// Create .claude as a file instead of directory
-	os.WriteFile(".claude", []byte("not a directory"), 0644)
+	os.WriteFile(".claude", []byte("not a directory"), 0o644)
 
 	action := repairClaudeDirs()
 	if action.Status != "failed" {
@@ -369,7 +369,7 @@ func TestRepairFilePermissions_HomeTelemetry(t *testing.T) {
 
 	// Create telemetry file with insecure permissions
 	os.MkdirAll(filepath.Join(tmpDir, ".sdp"), 0755)
-	os.WriteFile(filepath.Join(tmpDir, ".sdp", "telemetry.jsonl"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(tmpDir, ".sdp", "telemetry.jsonl"), []byte("test"), 0o644)
 
 	action := repairFilePermissions()
 
@@ -395,7 +395,7 @@ func TestRepairFilePermissions_DirectoryAsFile(t *testing.T) {
 
 	// Create .sdp as directory with telemetry inside
 	os.MkdirAll(filepath.Join(tmpDir, ".sdp"), 0755)
-	os.WriteFile(filepath.Join(tmpDir, ".sdp", "telemetry.jsonl"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(tmpDir, ".sdp", "telemetry.jsonl"), []byte("test"), 0o644)
 
 	action := repairFilePermissions()
 

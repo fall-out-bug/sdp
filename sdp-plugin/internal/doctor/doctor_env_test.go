@@ -20,7 +20,7 @@ func TestCheckGit_CommandFails(t *testing.T) {
 echo "broken" >&2
 exit 1
 `
-	if err := os.WriteFile(fakeBin, []byte(script), 0755); err != nil {
+	if err := os.WriteFile(fakeBin, []byte(script), 0o755); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -49,7 +49,7 @@ func TestCheckClaudeCode_CommandFails(t *testing.T) {
 	script := `#!/bin/bash
 exit 1
 `
-	if err := os.WriteFile(fakeBin, []byte(script), 0755); err != nil {
+	if err := os.WriteFile(fakeBin, []byte(script), 0o755); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -76,7 +76,7 @@ func TestCheckGo_CommandFails(t *testing.T) {
 	script := `#!/bin/bash
 exit 1
 `
-	if err := os.WriteFile(fakeBin, []byte(script), 0755); err != nil {
+	if err := os.WriteFile(fakeBin, []byte(script), 0o755); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
