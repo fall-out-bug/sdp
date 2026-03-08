@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"sort"
+	"slices"
 	"time"
 )
 
@@ -45,8 +45,15 @@ func (s *Searcher) Search(query string, opts SearchOptions) (*SearchResult, erro
 	}
 
 	// Sort by score descending
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Score > results[j].Score
+	slices.SortFunc(results, func(a, b ScoredArtifact) int {
+		switch {
+		case a.Score > b.Score:
+			return -1
+		case a.Score < b.Score:
+			return 1
+		default:
+			return 0
+		}
 	})
 
 	// Apply limit
