@@ -16,10 +16,10 @@ func TestRun(t *testing.T) {
 	agentsDir := filepath.Join(promptsDir, "agents")
 
 	// Create test prompts structure
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+	if err := os.MkdirAll(agentsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -139,7 +139,7 @@ func TestRun_PromptsInSdpSubdirectory(t *testing.T) {
 	promptsDir := filepath.Join(tmpDir, "sdp", "prompts")
 	skillsDir := filepath.Join(promptsDir, "skills")
 
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -175,10 +175,10 @@ func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
 	skillsDir := filepath.Join(promptsDir, "skills")
 	agentsDir := filepath.Join(promptsDir, "agents")
 
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir skills: %v", err)
 	}
-	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+	if err := os.MkdirAll(agentsDir, 0o755); err != nil {
 		t.Fatalf("mkdir agents: %v", err)
 	}
 
@@ -190,7 +190,7 @@ func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
 	}
 
 	claudeDir := filepath.Join(tmpDir, ".claude")
-	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
 		t.Fatalf("mkdir .claude: %v", err)
 	}
 
@@ -215,7 +215,7 @@ func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
 func TestResolvePromptsDir_FromEnvSourceDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	sourcePrompts := filepath.Join(tmpDir, "external-prompts")
-	if err := os.MkdirAll(filepath.Join(sourcePrompts, "skills"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(sourcePrompts, "skills"), 0o755); err != nil {
 		t.Fatalf("mkdir skills: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(sourcePrompts, "skills", "test.md"), []byte("# env source"), 0o644); err != nil {
@@ -247,7 +247,7 @@ func TestResolvePromptsDir_FromEnvSourceDir(t *testing.T) {
 func TestResolvePromptsDir_EnvSourceDirMissingSkills(t *testing.T) {
 	tmpDir := t.TempDir()
 	badSource := filepath.Join(tmpDir, "bad-prompts")
-	if err := os.MkdirAll(badSource, 0755); err != nil {
+	if err := os.MkdirAll(badSource, 0o755); err != nil {
 		t.Fatalf("mkdir bad source: %v", err)
 	}
 

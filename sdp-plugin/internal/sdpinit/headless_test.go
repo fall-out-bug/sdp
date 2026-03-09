@@ -313,7 +313,7 @@ func TestHeadlessRunner_WithConflict(t *testing.T) {
 	if err := os.MkdirAll(".claude", 0o755); err != nil {
 		t.Fatalf("mkdir .claude: %v", err)
 	}
-	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
 		t.Fatalf("write settings: %v", err)
 	}
 
@@ -350,7 +350,7 @@ func TestHeadlessRunner_ForceWithConflict(t *testing.T) {
 	if err := os.MkdirAll(".claude", 0o755); err != nil {
 		t.Fatalf("mkdir .claude: %v", err)
 	}
-	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
 		t.Fatalf("write settings: %v", err)
 	}
 
@@ -389,7 +389,7 @@ func TestHeadlessRunner_DetectProjectType(t *testing.T) {
 	}
 
 	// Create go.mod to detect go project
-	if err := os.WriteFile("go.mod", []byte("module test"), 0644); err != nil {
+	if err := os.WriteFile("go.mod", []byte("module test"), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
 

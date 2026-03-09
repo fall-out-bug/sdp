@@ -98,7 +98,7 @@ func TestDownloadPromptsToCache_UsesExistingCache(t *testing.T) {
 	if err := os.MkdirAll(promptsDir, 0o755); err != nil {
 		t.Fatalf("mkdir prompts cache: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(promptsDir, "cached.md"), []byte("# cached"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(promptsDir, "cached.md"), []byte("# cached"), 0o644); err != nil {
 		t.Fatalf("write cached prompt: %v", err)
 	}
 

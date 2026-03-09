@@ -41,7 +41,7 @@ func TestDetectProjectType_Go(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.WriteFile("go.mod", []byte("module test"), 0644)
+	os.WriteFile("go.mod", []byte("module test"), 0o644)
 
 	pt := DetectProjectType()
 	if pt != "go" {
@@ -55,7 +55,7 @@ func TestDetectProjectType_Node(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.WriteFile("package.json", []byte("{}"), 0644)
+	os.WriteFile("package.json", []byte("{}"), 0o644)
 
 	pt := DetectProjectType()
 	if pt != "node" {
@@ -69,7 +69,7 @@ func TestDetectProjectType_Python(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.WriteFile("setup.py", []byte("# setup"), 0644)
+	os.WriteFile("setup.py", []byte("# setup"), 0o644)
 
 	pt := DetectProjectType()
 	if pt != "python" {
@@ -83,8 +83,8 @@ func TestDetectProjectType_Mixed(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.WriteFile("go.mod", []byte("module test"), 0644)
-	os.WriteFile("package.json", []byte("{}"), 0644)
+	os.WriteFile("go.mod", []byte("module test"), 0o644)
+	os.WriteFile("package.json", []byte("{}"), 0o644)
 
 	pt := DetectProjectType()
 	if pt != "mixed" {
@@ -99,8 +99,8 @@ func TestIsGoProject(t *testing.T) {
 		expected bool
 	}{
 		{"no files", func(d string) {}, false},
-		{"go.mod", func(d string) { os.WriteFile("go.mod", []byte{}, 0644) }, true},
-		{"go file", func(d string) { os.WriteFile("main.go", []byte{}, 0644) }, true},
+		{"go.mod", func(d string) { os.WriteFile("go.mod", []byte{}, 0o644) }, true},
+		{"go file", func(d string) { os.WriteFile("main.go", []byte{}, 0o644) }, true},
 	}
 
 	for _, tt := range tests {
@@ -126,9 +126,9 @@ func TestIsNodeProject(t *testing.T) {
 		expected bool
 	}{
 		{"no files", func() {}, false},
-		{"package.json", func() { os.WriteFile("package.json", []byte{}, 0644) }, true},
-		{"ts file", func() { os.WriteFile("index.ts", []byte{}, 0644) }, true},
-		{"js file", func() { os.WriteFile("index.js", []byte{}, 0644) }, true},
+		{"package.json", func() { os.WriteFile("package.json", []byte{}, 0o644) }, true},
+		{"ts file", func() { os.WriteFile("index.ts", []byte{}, 0o644) }, true},
+		{"js file", func() { os.WriteFile("index.js", []byte{}, 0o644) }, true},
 	}
 
 	for _, tt := range tests {
@@ -154,10 +154,10 @@ func TestIsPythonProject(t *testing.T) {
 		expected bool
 	}{
 		{"no files", func() {}, false},
-		{"setup.py", func() { os.WriteFile("setup.py", []byte{}, 0644) }, true},
-		{"pyproject.toml", func() { os.WriteFile("pyproject.toml", []byte{}, 0644) }, true},
-		{"requirements.txt", func() { os.WriteFile("requirements.txt", []byte{}, 0644) }, true},
-		{"py file", func() { os.WriteFile("main.py", []byte{}, 0644) }, true},
+		{"setup.py", func() { os.WriteFile("setup.py", []byte{}, 0o644) }, true},
+		{"pyproject.toml", func() { os.WriteFile("pyproject.toml", []byte{}, 0o644) }, true},
+		{"requirements.txt", func() { os.WriteFile("requirements.txt", []byte{}, 0o644) }, true},
+		{"py file", func() { os.WriteFile("main.py", []byte{}, 0o644) }, true},
 	}
 
 	for _, tt := range tests {
@@ -183,7 +183,7 @@ func TestDirExists(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	os.Mkdir("testdir", 0o755)
-	os.WriteFile("testfile", []byte{}, 0644)
+	os.WriteFile("testfile", []byte{}, 0o644)
 
 	if !dirExists("testdir") {
 		t.Error("testdir should exist")
@@ -210,7 +210,7 @@ func TestCheckConflicts(t *testing.T) {
 
 	// Create conflict
 	os.MkdirAll(".claude", 0o755)
-	os.WriteFile(".claude/settings.json", []byte{}, 0644)
+	os.WriteFile(".claude/settings.json", []byte{}, 0o644)
 
 	conflicts = checkConflicts()
 	if len(conflicts) != 1 {
