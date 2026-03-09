@@ -35,7 +35,7 @@ func (c *Collector) readEvents() ([]evidenceEvent, error) {
 		}
 		// Convert data to map[string]interface{} for easier access
 		if ev.Data == nil {
-			ev.Data = make(map[string]interface{})
+			ev.Data = make(map[string]any)
 		}
 		events = append(events, ev)
 	}

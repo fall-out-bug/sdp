@@ -17,7 +17,7 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create sample metrics
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":            0.25,
 		"total_verifications":   100,
 		"failed_verifications":  25,
@@ -31,7 +31,7 @@ func TestReport_GenerateMarkdown_AllSectionsPresent(t *testing.T) {
 	}
 
 	// Create sample taxonomy - Taxonomy.Load() expects JSON array directly
-	taxonomyData := []map[string]interface{}{
+	taxonomyData := []map[string]any{
 		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "wrong_logic", "severity": "MEDIUM"},
 		{"event_id": "evt2", "ws_id": "00-001-02", "model_id": "claude-opus-4", "language": "go", "failure_type": "type_error", "severity": "MEDIUM"},
 	}
@@ -85,7 +85,7 @@ func TestReport_GenerateHTML_HasValidStructure(t *testing.T) {
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create minimal metrics
-	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
+	metricsData := map[string]any{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
 	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write metrics file: %v", err)
@@ -111,7 +111,7 @@ func TestReport_GenerateJSON_ValidFormat(t *testing.T) {
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create minimal metrics
-	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
+	metricsData := map[string]any{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
 	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write metrics file: %v", err)
@@ -142,7 +142,7 @@ func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
 	historicalPath := filepath.Join(tempDir, "historical.json")
 
 	// Create historical data - matches HistoricalEntry struct
-	historicalData := []map[string]interface{}{
+	historicalData := []map[string]any{
 		{
 			"period":            "2025-Q4",
 			"catch_rate":        0.30,
@@ -160,7 +160,7 @@ func TestReport_GenerateWithTrend_IncludesHistoricalData(t *testing.T) {
 	}
 
 	// Create current metrics
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":            0.20,
 		"total_verifications":   100,
 		"failed_verifications":  20,
@@ -201,7 +201,7 @@ func TestReport_GenerateToDefaultPath_CreatesInCorrectLocation(t *testing.T) {
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
-	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
+	metricsData := map[string]any{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
 	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
@@ -226,7 +226,7 @@ func TestReport_GenerateQuarterlyReport_UsesCorrectQuarter(t *testing.T) {
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
-	metricsData := map[string]interface{}{"catch_rate": 0.25, "total_verifications": 100}
+	metricsData := map[string]any{"catch_rate": 0.25, "total_verifications": 100}
 	metricsJSON, _ := json.Marshal(metricsData)
 	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
@@ -255,7 +255,7 @@ func TestReporter_LoadMetrics_ParsesCorrectly(t *testing.T) {
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create sample metrics
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":            0.25,
 		"total_verifications":   100,
 		"failed_verifications":  25,
@@ -290,7 +290,7 @@ func TestReporter_GenerateTrendWithoutHistorical_ReturnsPlaceholder(t *testing.T
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
-	metricsData := map[string]interface{}{"catch_rate": 0.25}
+	metricsData := map[string]any{"catch_rate": 0.25}
 	metricsJSON, _ := json.Marshal(metricsData)
 	if err := os.WriteFile(metricsPath, metricsJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
@@ -312,7 +312,7 @@ func TestReporter_Save_CreatesReportInDefaultLocation(t *testing.T) {
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":            0.25,
 		"total_verifications":   100,
 		"failed_verifications":  25,
@@ -373,7 +373,7 @@ func TestReporter_Save_WithNestedDirectory_CreatesDirectory(t *testing.T) {
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.25,
 		"total_verifications": 100,
 	}
@@ -460,7 +460,7 @@ func TestReport_SetHistoricalPath_UpdatesPath(t *testing.T) {
 
 	// Assert - SetHistoricalPath just sets the field
 	// The effect is verified through GenerateMarkdown with historical data
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.20,
 		"total_verifications": 100,
 	}
@@ -469,7 +469,7 @@ func TestReport_SetHistoricalPath_UpdatesPath(t *testing.T) {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
-	historicalData := []map[string]interface{}{
+	historicalData := []map[string]any{
 		{"period": "2025-Q4", "catch_rate": 0.30, "total_workstreams": 50},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
@@ -493,7 +493,7 @@ func TestReport_EstimateVerificationsForModel_ReturnsPlaceholderValue(t *testing
 	metricsPath := filepath.Join(tempDir, "metrics.json")
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.25,
 		"total_verifications": 100,
 		"model_pass_rate":     map[string]float64{"claude-sonnet-4": 0.85},
@@ -524,13 +524,13 @@ func TestReport_GenerateTaxonomySection_WithNoFailures_ReturnsNoFailuresMessage(
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create taxonomy with zero classifications
-	taxonomyData := []map[string]interface{}{}
+	taxonomyData := []map[string]any{}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
 	if err := os.WriteFile(taxonomyPath, taxonomyJSON, 0o644); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.25,
 		"total_verifications": 100,
 	}
@@ -560,7 +560,7 @@ func TestReport_GenerateTaxonomySection_WithUnknownFailureType_ReturnsUncategori
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create taxonomy with unknown failure type
-	taxonomyData := []map[string]interface{}{
+	taxonomyData := []map[string]any{
 		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "unknown_weird_type", "severity": "MEDIUM"},
 	}
 	taxonomyJSON, _ := json.Marshal(taxonomyData)
@@ -568,7 +568,7 @@ func TestReport_GenerateTaxonomySection_WithUnknownFailureType_ReturnsUncategori
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.25,
 		"total_verifications": 100,
 	}
@@ -598,7 +598,7 @@ func TestReport_GenerateTaxonomySection_SeverityDistribution_AllLevels(t *testin
 	taxonomyPath := filepath.Join(tempDir, "taxonomy.json")
 
 	// Create taxonomy with all severity levels
-	taxonomyData := []map[string]interface{}{
+	taxonomyData := []map[string]any{
 		{"event_id": "evt1", "ws_id": "00-001-01", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "wrong_logic", "severity": "CRITICAL"},
 		{"event_id": "evt2", "ws_id": "00-001-02", "model_id": "claude-opus-4", "language": "go", "failure_type": "type_error", "severity": "HIGH"},
 		{"event_id": "evt3", "ws_id": "00-001-03", "model_id": "claude-sonnet-4", "language": "go", "failure_type": "hallucinated_api", "severity": "MEDIUM"},
@@ -609,7 +609,7 @@ func TestReport_GenerateTaxonomySection_SeverityDistribution_AllLevels(t *testin
 		t.Fatalf("Failed to write file: %v", err)
 	}
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.25,
 		"total_verifications": 100,
 	}
@@ -647,7 +647,7 @@ func TestReport_GenerateTrendSection_TrendAnalysis(t *testing.T) {
 	historicalPath := filepath.Join(tempDir, "historical.json")
 
 	// Historical with higher catch rate (worse) than current (improving)
-	historicalData := []map[string]interface{}{
+	historicalData := []map[string]any{
 		{"period": "2025-Q4", "catch_rate": 0.40, "total_workstreams": 50},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
@@ -656,7 +656,7 @@ func TestReport_GenerateTrendSection_TrendAnalysis(t *testing.T) {
 	}
 
 	// Current with lower catch rate (better) than historical
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.20,
 		"total_verifications": 100,
 	}
@@ -688,7 +688,7 @@ func TestReport_GenerateTrendSection_StableTrend(t *testing.T) {
 	historicalPath := filepath.Join(tempDir, "historical.json")
 
 	// Historical with same catch rate as current (stable)
-	historicalData := []map[string]interface{}{
+	historicalData := []map[string]any{
 		{"period": "2025-Q4", "catch_rate": 0.25, "total_workstreams": 50},
 	}
 	historicalJSON, _ := json.Marshal(historicalData)
@@ -696,7 +696,7 @@ func TestReport_GenerateTrendSection_StableTrend(t *testing.T) {
 		t.Fatalf("Failed to write historical file: %v", err)
 	}
 
-	metricsData := map[string]interface{}{
+	metricsData := map[string]any{
 		"catch_rate":          0.25,
 		"total_verifications": 100,
 	}

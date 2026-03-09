@@ -31,5 +31,5 @@ type evidenceEvent struct {
 	Type      string                 `json:"type"`
 	Timestamp string                 `json:"timestamp"`
 	WSID      string                 `json:"ws_id"`
-	Data      map[string]interface{} `json:"data"`
+	Data      map[string]any `json:"data"`
 }

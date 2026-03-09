@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -379,11 +380,12 @@ func TestCollector_CollectMetrics_WithMultipleIterations_TracksCorrectly(t *test
 		`{"id":"evt-5","type":"generation","timestamp":"2026-02-11T10:04:00Z","ws_id":"00-001-01","data":{"model_id":"claude-sonnet-4"}}`,
 		`{"id":"evt-6","type":"verification","timestamp":"2026-02-11T10:05:00Z","ws_id":"00-001-01","data":{"passed":true}}`,
 	}
-	eventsData := ""
+	var eventsData strings.Builder
 	for _, e := range events {
-		eventsData += e + "\n"
+		eventsData.WriteString(e)
+		eventsData.WriteString("\n")
 	}
-	if err := os.WriteFile(logPath, []byte(eventsData), 0o644); err != nil {
+	if err := os.WriteFile(logPath, []byte(eventsData.String()), 0o644); err != nil {
 		t.Fatalf("Failed to write test events: %v", err)
 	}
 
