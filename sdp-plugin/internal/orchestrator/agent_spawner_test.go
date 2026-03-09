@@ -245,7 +245,7 @@ func TestAgentSpawner_SpawnMultipleAgents(t *testing.T) {
 	spawner := NewAgentSpawner(tool)
 
 	// Spawn multiple agents
-	agentIDs := []string{}
+	agentIDs := make([]string, 0, 3)
 	for i := range 3 {
 		agentID, err := spawner.Spawn("builder", "Execute WS-00"+string(rune('1'+i)))
 		if err != nil {
