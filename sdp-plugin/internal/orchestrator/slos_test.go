@@ -146,7 +146,7 @@ func TestCalculateSuccessRate(t *testing.T) {
 	tracker := NewSLOTracker(nil)
 
 	// 9 successes, 1 failure = 90% success rate
-	for i := 0; i < 9; i++ {
+	for range 9 {
 		tracker.RecordRecovery(true)
 	}
 	tracker.RecordRecovery(false)
@@ -283,7 +283,7 @@ func TestSLOStatusRecoverySuccess(t *testing.T) {
 	tracker := NewSLOTracker(nil)
 
 	// 999 successes, 1 failure = 99.9% success rate (meets target)
-	for i := 0; i < 999; i++ {
+	for range 999 {
 		tracker.RecordRecovery(true)
 	}
 	tracker.RecordRecovery(false)
@@ -300,10 +300,10 @@ func TestSLOStatusRecoverySuccessBreached(t *testing.T) {
 	tracker := NewSLOTracker(nil)
 
 	// 95 successes, 5 failures = 95% success rate (below 99.9% target)
-	for i := 0; i < 95; i++ {
+	for range 95 {
 		tracker.RecordRecovery(true)
 	}
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		tracker.RecordRecovery(false)
 	}
 
@@ -352,9 +352,9 @@ func TestConcurrentSLOAccess(t *testing.T) {
 	done := make(chan bool)
 
 	// Start multiple goroutines recording metrics
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
-			for j := 0; j < 100; j++ {
+			for range 100 {
 				tracker.RecordCheckpointSave(50 * time.Millisecond)
 				tracker.RecordWSExecution("00-001-01", 20*time.Minute)
 				tracker.RecordGraphBuild(100, 2*time.Second)
@@ -366,7 +366,7 @@ func TestConcurrentSLOAccess(t *testing.T) {
 	}
 
 	// Wait for all goroutines to complete
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 
