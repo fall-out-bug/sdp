@@ -377,7 +377,7 @@ func TestBasicGoComplexityFallback(t *testing.T) {
 
 	// Create a Go file that will exceed threshold (>100 LOC)
 	complexFile := filepath.Join(tmpDir, "complex.go")
-	var lines []string
+	lines := make([]string, 0, 452)
 	lines = append(lines, "package main")
 	lines = append(lines, "")
 	for i := range 150 {
@@ -426,7 +426,7 @@ func TestBasicPythonComplexityFallback(t *testing.T) {
 
 	// Create a Python file that will exceed threshold (>100 LOC)
 	complexFile := filepath.Join(tmpDir, "complex.py")
-	var lines []string
+	lines := make([]string, 0, 300)
 	for i := range 150 {
 		lines = append(lines, "def function"+string(rune('0'+i%10))+"():")
 		lines = append(lines, "    pass")
