@@ -279,7 +279,7 @@ func TestQualityWatcher_OnFileChange_Complexity(t *testing.T) {
 	}
 	// Large file so basicGoComplexity estimates high complexity (loc/10 > threshold when threshold is 10)
 	complexFile := filepath.Join(tmpDir, "complex.go")
-	var b []byte
+	b := make([]byte, 0, 2633)
 	b = append(b, "package test\n\nfunc Complex() {\n"...)
 	for range 200 {
 		b = append(b, "\tif true { }\n"...)
