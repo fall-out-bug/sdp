@@ -16,7 +16,7 @@ func TestExport_CSV(t *testing.T) {
 			Type:      "generation",
 			Timestamp: now.Format(time.RFC3339),
 			WSID:      "00-054-03",
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"model_id": "claude-sonnet-4",
 				"action":   "implemented feature",
 			},
@@ -26,7 +26,7 @@ func TestExport_CSV(t *testing.T) {
 			Type:      "decision",
 			Timestamp: now.Add(time.Minute).Format(time.RFC3339),
 			WSID:      "00-054-03",
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"choice":    "use Postgres",
 				"rationale": "better for complex queries",
 			},
@@ -83,7 +83,7 @@ func TestExport_JSON(t *testing.T) {
 			Type:      "generation",
 			Timestamp: now.Format(time.RFC3339),
 			WSID:      "00-054-03",
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"model_id": "claude-sonnet-4",
 			},
 		},
@@ -117,11 +117,11 @@ func TestExport_JSON(t *testing.T) {
 func TestStats_Summary(t *testing.T) {
 	now := time.Now()
 	events := []Event{
-		{Type: "generation", Timestamp: now.Format(time.RFC3339), Data: map[string]interface{}{"model_id": "claude-sonnet-4"}},
-		{Type: "generation", Timestamp: now.Add(time.Minute).Format(time.RFC3339), Data: map[string]interface{}{"model_id": "claude-opus-4"}},
+		{Type: "generation", Timestamp: now.Format(time.RFC3339), Data: map[string]any{"model_id": "claude-sonnet-4"}},
+		{Type: "generation", Timestamp: now.Add(time.Minute).Format(time.RFC3339), Data: map[string]any{"model_id": "claude-opus-4"}},
 		{Type: "verification", Timestamp: now.Add(2 * time.Minute).Format(time.RFC3339)},
 		{Type: "decision", Timestamp: now.Add(3 * time.Minute).Format(time.RFC3339)},
-		{Type: "generation", Timestamp: now.Add(4 * time.Minute).Format(time.RFC3339), Data: map[string]interface{}{"model_id": "claude-sonnet-4"}},
+		{Type: "generation", Timestamp: now.Add(4 * time.Minute).Format(time.RFC3339), Data: map[string]any{"model_id": "claude-sonnet-4"}},
 	}
 
 	exporter := NewExporter()

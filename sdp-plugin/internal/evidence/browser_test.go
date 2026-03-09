@@ -9,7 +9,7 @@ func TestBrowser_Pagination(t *testing.T) {
 	// Setup: Create 45 events
 	events := make([]Event, 45)
 	now := time.Now()
-	for i := 0; i < 45; i++ {
+	for i := range 45 {
 		events[i] = Event{
 			ID:        string(rune('a' + i)),
 			Type:      "generation",
@@ -84,17 +84,17 @@ func TestBrowser_FilterByModel(t *testing.T) {
 		{
 			Type: "generation",
 			WSID: "00-054-01",
-			Data: map[string]interface{}{"model_id": "claude-sonnet-4"},
+			Data: map[string]any{"model_id": "claude-sonnet-4"},
 		},
 		{
 			Type: "generation",
 			WSID: "00-054-02",
-			Data: map[string]interface{}{"model_id": "claude-opus-4"},
+			Data: map[string]any{"model_id": "claude-opus-4"},
 		},
 		{
 			Type: "decision",
 			WSID: "00-054-03",
-			Data: map[string]interface{}{"choice": "use Go"},
+			Data: map[string]any{"choice": "use Go"},
 		},
 	}
 
