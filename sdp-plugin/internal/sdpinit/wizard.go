@@ -196,11 +196,8 @@ func (w *Wizard) promptProjectType() (string, error) {
 
 	// Use detected type as default
 	if w.preflight != nil {
-		for i, opt := range options {
-			if opt == w.preflight.ProjectType {
-				defaultIdx = i
-				break
-			}
+		if idx := slices.Index(options, w.preflight.ProjectType); idx >= 0 {
+			defaultIdx = idx
 		}
 	}
 
