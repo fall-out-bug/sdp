@@ -76,14 +76,14 @@ func TestWriter_Append_Concurrent(t *testing.T) {
 		t.Fatalf("NewWriter: %v", err)
 	}
 	done := make(chan struct{})
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			ev := Event{ID: "e", Type: "plan", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04"}
 			_ = w.Append(&ev)
 			done <- struct{}{}
 		}()
 	}
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		<-done
 	}
 }
@@ -98,7 +98,7 @@ func TestWriter_Append_Concurrent_ValidChain(t *testing.T) {
 	}
 	const n = 20
 	done := make(chan error, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		go func(j int) {
 			ev := Event{
 				ID:        fmt.Sprintf("evt-%d", j),
@@ -109,7 +109,7 @@ func TestWriter_Append_Concurrent_ValidChain(t *testing.T) {
 			done <- w.Append(&ev)
 		}(i)
 	}
-	for i := 0; i < n; i++ {
+	for i := range n {
 		if err := <-done; err != nil {
 			t.Fatalf("Append %d: %v", i, err)
 		}

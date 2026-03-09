@@ -13,7 +13,7 @@ func TestReader_Verify_ValidChain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewWriter: %v", err)
 	}
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		ev := Event{ID: "e", Type: "plan", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04"}
 		if err := w.Append(&ev); err != nil {
 			t.Fatalf("Append: %v", err)
