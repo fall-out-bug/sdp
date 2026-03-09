@@ -61,7 +61,7 @@ func (c *Creator) parseWorktreeList(output string) ([]WorktreeInfo, error) {
 	var worktrees []WorktreeInfo
 	var current *WorktreeInfo
 
-	for _, line := range strings.Split(output, "\n") {
+	for line := range strings.SplitSeq(output, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			if current != nil && current.Path != "" {
