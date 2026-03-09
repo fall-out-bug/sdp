@@ -55,9 +55,7 @@ func (st *SLOTracker) calculatePercentile(metric *Metric, p float64) float64 {
 
 	// Calculate percentile index
 	index := int(math.Ceil((p/100.0)*float64(len(values)))) - 1
-	if index < 0 {
-		index = 0
-	}
+	index = max(index, 0)
 	if index >= len(values) {
 		index = len(values) - 1
 	}
