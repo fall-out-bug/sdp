@@ -42,7 +42,7 @@ func packAsJSON(events []Event, outputPath string) (*UploadResult, error) {
 	// Create upload structure
 	uploadData := struct {
 		Metadata map[string]any `json:"metadata"`
-		Events   []Event                `json:"events"`
+		Events   []Event        `json:"events"`
 	}{
 		Metadata: map[string]any{
 			"version":      "1.0",

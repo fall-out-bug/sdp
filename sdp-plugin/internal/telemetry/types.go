@@ -28,8 +28,8 @@ func (et EventType) IsValid() bool {
 
 // Event represents a telemetry event
 type Event struct {
-	Type      EventType              `json:"type"`
-	Timestamp time.Time              `json:"timestamp"`
+	Type      EventType      `json:"type"`
+	Timestamp time.Time      `json:"timestamp"`
 	Data      map[string]any `json:"data"`
 }
 
