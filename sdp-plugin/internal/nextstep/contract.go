@@ -128,8 +128,8 @@ func actionIDFromCommand(command string) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	if strings.HasPrefix(parts[0], "@") {
-		return "skill." + strings.TrimPrefix(parts[0], "@")
+	if suffix, ok := strings.CutPrefix(parts[0], "@"); ok {
+		return "skill." + suffix
 	}
 	if len(parts) > 1 {
 		return parts[0] + "." + parts[1]

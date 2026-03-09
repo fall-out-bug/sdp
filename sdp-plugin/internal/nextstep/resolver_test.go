@@ -172,7 +172,7 @@ func TestResolverDeterministic(t *testing.T) {
 
 	// Run multiple times - should always get the same recommendation
 	var lastCmd string
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		rec, err := resolver.Recommend(state)
 		if err != nil {
 			t.Fatalf("Recommend() error: %v", err)
