@@ -170,7 +170,7 @@ func TestConsentConfigStructure(t *testing.T) {
 	}
 
 	// Verify it's valid JSON (unmarshal to check)
-	var config map[string]interface{}
+	var config map[string]any
 	if err := json.Unmarshal(data, &config); err != nil {
 		t.Errorf("Config is not valid JSON: %v", err)
 	}
