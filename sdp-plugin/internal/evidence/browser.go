@@ -27,10 +27,7 @@ func (b *Browser) Page(n, pageSize int) ([]Event, int) {
 		return []Event{}, total
 	}
 
-	end := start + pageSize
-	if end > total {
-		end = total
-	}
+	end := min(start+pageSize, total)
 
 	return b.events[start:end], total
 }
@@ -59,7 +56,7 @@ func (b *Browser) FilterByModel(modelID string) []Event {
 		if e.Data == nil {
 			continue
 		}
-		m, ok := e.Data.(map[string]interface{})
+		m, ok := e.Data.(map[string]any)
 		if !ok {
 			continue
 		}
