@@ -110,11 +110,13 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 				inList = true
 				currentList = &data.VerificationCommands
 			}
-		} else if inList && strings.HasPrefix(line, "-") {
+		} else if inList {
 			// Parse list items
-			value := strings.TrimSpace(strings.TrimPrefix(line, "-"))
-			value = strings.Trim(value, `"'`)
-			*currentList = append(*currentList, value)
+			if value, ok := strings.CutPrefix(line, "-"); ok {
+				value = strings.TrimSpace(value)
+				value = strings.Trim(value, `"'`)
+				*currentList = append(*currentList, value)
+			}
 		}
 	}
 
