@@ -513,7 +513,7 @@ func TestApplyGuardRulesSkipsCoverageAndComplexity(t *testing.T) {
 
 // Helper function to generate a file with a specific number of lines
 func generateLines(n int) string {
-	var lines []string
+	lines := make([]string, 0, n)
 	for i := range n {
 		lines = append(lines, "// Line "+string(rune('A'+(i%26))))
 	}
