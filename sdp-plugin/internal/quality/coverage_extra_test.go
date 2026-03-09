@@ -708,7 +708,7 @@ func TestDetectProjectTypeGoExtension(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create .go files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go"), []byte("package main\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -734,7 +734,7 @@ func TestDetectProjectTypeJavaExtension(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create .java files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if err := os.WriteFile(filepath.Join(tmpDir, "Test"+string(rune('0'+i))+".java"), []byte("public class Test {}"), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -917,13 +917,16 @@ func TestCheckComplexity_GoFiles(t *testing.T) {
 	}
 
 	// Create Go files with various complexity
-	for i := 0; i < 3; i++ {
-		content := "package main\n\nfunc test" + string(rune('A'+i)) + "() {\n"
-		for j := 0; j < 10; j++ {
-			content += "\tprintln(\"line\")\n"
+	for i := range 3 {
+		var content strings.Builder
+		content.WriteString("package main\n\nfunc test")
+		content.WriteString(string(rune('A' + i)))
+		content.WriteString("() {\n")
+		for range 10 {
+			content.WriteString("\tprintln(\"line\")\n")
 		}
-		content += "}\n"
-		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go"), []byte(content), 0o644); err != nil {
+		content.WriteString("}\n")
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go"), []byte(content.String()), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -950,12 +953,15 @@ func TestCheckComplexity_PythonFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create Python files
-	for i := 0; i < 3; i++ {
-		content := "def test_" + string(rune('a'+i)) + "():\n"
-		for j := 0; j < 10; j++ {
-			content += "    print('line')\n"
+	for i := range 3 {
+		var content strings.Builder
+		content.WriteString("def test_")
+		content.WriteString(string(rune('a' + i)))
+		content.WriteString("():\n")
+		for range 10 {
+			content.WriteString("    print('line')\n")
 		}
-		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('a'+i))+".py"), []byte(content), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('a'+i))+".py"), []byte(content.String()), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
