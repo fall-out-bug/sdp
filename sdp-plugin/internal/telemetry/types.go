@@ -30,7 +30,7 @@ func (et EventType) IsValid() bool {
 type Event struct {
 	Type      EventType              `json:"type"`
 	Timestamp time.Time              `json:"timestamp"`
-	Data      map[string]interface{} `json:"data"`
+	Data      map[string]any `json:"data"`
 }
 
 // Status represents the current status of telemetry
