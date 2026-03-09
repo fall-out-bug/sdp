@@ -8,7 +8,7 @@ type Event struct {
 	WSID      string      `json:"ws_id"`
 	CommitSHA string      `json:"commit_sha,omitempty"`
 	PrevHash  string      `json:"prev_hash,omitempty"`
-	Data      interface{} `json:"data,omitempty"`
+	Data      any `json:"data,omitempty"`
 }
 
 // GenerationData is provenance for generation events (AC3).
