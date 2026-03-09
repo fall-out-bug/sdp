@@ -99,7 +99,7 @@ func (p *Planner) generateWorkstreamContent(ws Workstream, result *Decomposition
 
 	// Dependencies section
 	sb.WriteString("## Dependencies\n\n")
-	deps := []string{}
+	deps := make([]string, 0, len(result.Dependencies))
 	for _, dep := range result.Dependencies {
 		if dep.From == ws.ID {
 			deps = append(deps, fmt.Sprintf("- **%s**: %s", dep.To, dep.Reason))

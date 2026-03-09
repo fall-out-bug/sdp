@@ -52,7 +52,7 @@ func DetectProjectType() string {
 		{isPythonProject, "python"},
 	}
 
-	detected := []string{}
+	detected := make([]string, 0, len(detectors))
 	for _, d := range detectors {
 		if d.check() {
 			detected = append(detected, d.typ)

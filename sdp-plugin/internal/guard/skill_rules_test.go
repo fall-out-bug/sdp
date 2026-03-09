@@ -446,7 +446,7 @@ func TestApplyGuardRules(t *testing.T) {
 			skill := NewSkill(configDir)
 
 			// Create test files and build absolute paths list
-			absFiles := []string{}
+			absFiles := make([]string, 0, len(tt.files))
 			for _, fileName := range tt.files {
 				var content string
 				switch fileName {

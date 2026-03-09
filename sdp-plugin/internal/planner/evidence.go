@@ -15,7 +15,7 @@ func (p *Planner) EmitPlanEvent(result *DecompositionResult) error {
 	}
 
 	// Build scope files list (all workstream files that would be created)
-	scopeFiles := []string{}
+	scopeFiles := make([]string, 0, len(result.Workstreams))
 	for _, ws := range result.Workstreams {
 		scopeFiles = append(scopeFiles, filepath.Join(p.BacklogDir, ws.Filename()))
 	}
