@@ -98,7 +98,7 @@ Examples:
 				if outputJSON {
 					encoder := json.NewEncoder(os.Stdout)
 					encoder.SetIndent("", "  ")
-					return encoder.Encode(map[string]interface{}{
+					return encoder.Encode(map[string]any{
 						"type":     "issue",
 						"issue_id": issue.IssueID,
 						"path":     issue.Path,
@@ -119,7 +119,7 @@ Examples:
 			if outputJSON {
 				encoder := json.NewEncoder(os.Stdout)
 				encoder.SetIndent("", "  ")
-				return encoder.Encode(map[string]interface{}{
+				return encoder.Encode(map[string]any{
 					"type":       "workstream",
 					"ws_id":      ws.WSID,
 					"feature_id": ws.FeatureID,

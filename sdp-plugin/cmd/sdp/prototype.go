@@ -90,7 +90,7 @@ Examples:
 				fmt.Printf("   - %s: WS-%s\n", wsID, wsID)
 			}
 			// F056-03: emit generation event (non-blocking)
-			evidence.Emit(evidence.SkillEvent("prototype", "generation", "00-000-00", map[string]interface{}{
+			evidence.Emit(evidence.SkillEvent("prototype", "generation", "00-000-00", map[string]any{
 				"workstream_count": numWS,
 				"feature_id":       featureID,
 			}))

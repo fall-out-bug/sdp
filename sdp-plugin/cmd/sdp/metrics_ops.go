@@ -26,7 +26,7 @@ type evidenceEvent struct {
 	ID   string                 `json:"id"`
 	Type string                 `json:"type"`
 	WSID string                 `json:"ws_id"`
-	Data map[string]interface{} `json:"data"`
+	Data map[string]any `json:"data"`
 }
 
 // readEventsJSONL reads events from JSONL file.
@@ -51,7 +51,7 @@ func readEventsJSONL(path string) ([]evidenceEvent, error) {
 			continue // Skip invalid lines
 		}
 		if ev.Data == nil {
-			ev.Data = make(map[string]interface{})
+			ev.Data = make(map[string]any)
 		}
 		events = append(events, ev)
 	}

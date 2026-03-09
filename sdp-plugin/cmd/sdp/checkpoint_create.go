@@ -41,7 +41,7 @@ var checkpointCreateCmd = &cobra.Command{
 			Status:               checkpoint.StatusPending,
 			CurrentWorkstream:    "",
 			CompletedWorkstreams: []string{},
-			Metadata:             map[string]interface{}{},
+			Metadata:             map[string]any{},
 		}
 
 		if err := manager.Save(cp); err != nil {

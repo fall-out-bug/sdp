@@ -72,14 +72,14 @@ Example:
 		fmt.Printf("   Max retries: %d\n\n", maxRetries)
 
 		// F056-03: plan event (non-blocking)
-		evidence.Emit(evidence.SkillEvent("oneshot", "plan", "00-000-00", map[string]interface{}{"feature_id": featureID}))
+		evidence.Emit(evidence.SkillEvent("oneshot", "plan", "00-000-00", map[string]any{"feature_id": featureID}))
 
 		err = orch.Run(featureID)
 		if err != nil {
 			return fmt.Errorf("orchestration failed: %w", err)
 		}
 
-		if err := evidence.EmitSync(evidence.SkillEvent("oneshot", "approval", "00-000-00", map[string]interface{}{"feature_id": featureID})); err != nil {
+		if err := evidence.EmitSync(evidence.SkillEvent("oneshot", "approval", "00-000-00", map[string]any{"feature_id": featureID})); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
 		}
 

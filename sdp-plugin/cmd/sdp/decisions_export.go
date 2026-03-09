@@ -63,46 +63,51 @@ func decisionsExportCmd() *cobra.Command {
 			}
 
 			// Create markdown
-			var md string
-			md += "# Architectural Decisions\n\n"
-			md += fmt.Sprintf("**Generated:** %s\n\n", time.Now().Format("2006-01-02"))
-			md += fmt.Sprintf("**Total:** %d decisions\n\n", len(decisions))
+			var md strings.Builder
+			md.WriteString("# Architectural Decisions\n\n")
+			md.WriteString(fmt.Sprintf("**Generated:** %s\n\n", time.Now().Format("2006-01-02")))
+			md.WriteString(fmt.Sprintf("**Total:** %d decisions\n\n", len(decisions)))
 
 			for i, d := range decisions {
-				md += fmt.Sprintf("## %d. %s\n\n", i+1, d.Decision)
-				md += fmt.Sprintf("**Date:** %s\n", d.Timestamp.Format("2006-01-02 15:04:05"))
-				md += fmt.Sprintf("**Type:** %s\n", d.Type)
-				md += fmt.Sprintf("**Maker:** %s\n", d.DecisionMaker)
+				md.WriteString(fmt.Sprintf("## %d. %s\n\n", i+1, d.Decision))
+				md.WriteString(fmt.Sprintf("**Date:** %s\n", d.Timestamp.Format("2006-01-02 15:04:05")))
+				md.WriteString(fmt.Sprintf("**Type:** %s\n", d.Type))
+				md.WriteString(fmt.Sprintf("**Maker:** %s\n", d.DecisionMaker))
 
 				if d.FeatureID != "" {
-					md += fmt.Sprintf("**Feature:** %s\n", d.FeatureID)
+					md.WriteString(fmt.Sprintf("**Feature:** %s\n", d.FeatureID))
 				}
 				if d.WorkstreamID != "" {
-					md += fmt.Sprintf("**Workstream:** %s\n", d.WorkstreamID)
+					md.WriteString(fmt.Sprintf("**Workstream:** %s\n", d.WorkstreamID))
 				}
 
-				md += "\n### Question\n\n"
-				md += d.Question + "\n\n"
+				md.WriteString("\n### Question\n\n")
+				md.WriteString(d.Question)
+				md.WriteString("\n\n")
 
-				md += "### Decision\n\n"
-				md += d.Decision + "\n\n"
+				md.WriteString("### Decision\n\n")
+				md.WriteString(d.Decision)
+				md.WriteString("\n\n")
 
-				md += "### Rationale\n\n"
-				md += d.Rationale + "\n\n"
+				md.WriteString("### Rationale\n\n")
+				md.WriteString(d.Rationale)
+				md.WriteString("\n\n")
 
 				if len(d.Alternatives) > 0 {
-					md += "### Alternatives Considered\n\n"
+					md.WriteString("### Alternatives Considered\n\n")
 					for _, alt := range d.Alternatives {
-						md += "- " + alt + "\n"
+						md.WriteString("- ")
+						md.WriteString(alt)
+						md.WriteString("\n")
 					}
-					md += "\n"
+					md.WriteString("\n")
 				}
 
-				md += "---\n\n"
+				md.WriteString("---\n\n")
 			}
 
 			// Write to file
-			if err := os.WriteFile(outputPath, []byte(md), 0o644); err != nil {
+			if err := os.WriteFile(outputPath, []byte(md.String()), 0o644); err != nil {
 				return err
 			}
 
