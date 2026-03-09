@@ -209,7 +209,7 @@ func TestDetectProjectType_ByExtension_Python(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create Python files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py")
 		err := os.WriteFile(filename, []byte("print('hello')\n"), 0o644)
 		if err != nil {
@@ -232,7 +232,7 @@ func TestDetectProjectType_ByExtension_Go(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create Go files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go")
 		err := os.WriteFile(filename, []byte("package main\n"), 0o644)
 		if err != nil {
@@ -255,7 +255,7 @@ func TestDetectProjectType_ByExtension_Java(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create Java files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		filename := filepath.Join(tmpDir, "Test"+string(rune('0'+i))+".java")
 		err := os.WriteFile(filename, []byte("public class Test {}\n"), 0o644)
 		if err != nil {
@@ -278,7 +278,7 @@ func TestDetectProjectType_MixedExtensions(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create more Python files than others
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py")
 		err := os.WriteFile(filename, []byte("print('hello')\n"), 0o644)
 		if err != nil {
@@ -287,7 +287,7 @@ func TestDetectProjectType_MixedExtensions(t *testing.T) {
 	}
 
 	// Create fewer Go files
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		filename := filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go")
 		err := os.WriteFile(filename, []byte("package main\n"), 0o644)
 		if err != nil {

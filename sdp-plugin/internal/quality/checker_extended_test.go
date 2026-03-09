@@ -17,13 +17,13 @@ func TestCheckPythonCoverageWithFile(t *testing.T) {
 
 	// Create .coverage file
 	covContent := "!coverage.py\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, ".coverage"), []byte(covContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, ".coverage"), []byte(covContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create coverage.json with proper format
 	jsonContent := `{"percent_covered": 85.5}`
-	if err := os.WriteFile(filepath.Join(tmpDir, "coverage.json"), []byte(jsonContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "coverage.json"), []byte(jsonContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -88,7 +88,7 @@ func TestCheckGoCoverageWithData(t *testing.T) {
 
 	// Initialize go module
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -99,7 +99,7 @@ func Add(a, b int) int {
 	return a + b
 }
 `
-	if err := os.WriteFile(filepath.Join(tmpDir, "test.go"), []byte(goContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "test.go"), []byte(goContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -114,7 +114,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 `
-	if err := os.WriteFile(filepath.Join(tmpDir, "test_test.go"), []byte(testContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "test_test.go"), []byte(testContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -147,7 +147,7 @@ func TestBasicPythonComplexity(t *testing.T) {
 	}
 	content := strings.Join(lines, "\n")
 
-	if err := os.WriteFile(filepath.Join(tmpDir, "module.py"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "module.py"), []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -180,7 +180,7 @@ func TestBasicGoComplexity(t *testing.T) {
 	}
 	content := strings.Join(lines, "\n")
 
-	if err := os.WriteFile(filepath.Join(tmpDir, "complex.go"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "complex.go"), []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -207,13 +207,13 @@ func TestCheckFileSizeWithMultipleFiles(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// Create multiple files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		lines := make([]string, 50)
 		for j := range lines {
 			lines[j] = "line content"
 		}
 		content := strings.Join(lines, "\n")
-		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('0'+i))+".py"), []byte(content), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('0'+i))+".py"), []byte(content), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -257,7 +257,7 @@ func TestCheckFileSizeSkipsDirectories(t *testing.T) {
 		// Create file in skipped directory
 		lines := make([]string, 300)
 		content := strings.Join(lines, "\n")
-		if err := os.WriteFile(filepath.Join(tmpDir, dir, "file.py"), []byte(content), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, dir, "file.py"), []byte(content), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -286,7 +286,7 @@ func TestCheckPythonTypesWithErrors(t *testing.T) {
 
 	// Create mypy.ini
 	iniContent := "[mypy]\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "mypy.ini"), []byte(iniContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "mypy.ini"), []byte(iniContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -314,7 +314,7 @@ func TestCheckGoTypesWithErrors(t *testing.T) {
 
 	// Initialize go module
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -380,13 +380,13 @@ func TestBasicGoComplexityFallback(t *testing.T) {
 	var lines []string
 	lines = append(lines, "package main")
 	lines = append(lines, "")
-	for i := 0; i < 150; i++ {
+	for i := range 150 {
 		lines = append(lines, "func function"+string(rune('0'+i%10))+"() {")
 		lines = append(lines, "\tfmt.Println(\"line\")")
 		lines = append(lines, "}")
 	}
 	content := strings.Join(lines, "\n")
-	if err := os.WriteFile(complexFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(complexFile, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -427,12 +427,12 @@ func TestBasicPythonComplexityFallback(t *testing.T) {
 	// Create a Python file that will exceed threshold (>100 LOC)
 	complexFile := filepath.Join(tmpDir, "complex.py")
 	var lines []string
-	for i := 0; i < 150; i++ {
+	for i := range 150 {
 		lines = append(lines, "def function"+string(rune('0'+i%10))+"():")
 		lines = append(lines, "    pass")
 	}
 	content := strings.Join(lines, "\n")
-	if err := os.WriteFile(complexFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(complexFile, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -492,7 +492,7 @@ func TestCheckPythonCoverageNoCoverageFile(t *testing.T) {
 
 	// Create pyproject.toml
 	pyproject := filepath.Join(tmpDir, "pyproject.toml")
-	if err := os.WriteFile(pyproject, []byte("[tool.pytest]\n"), 0644); err != nil {
+	if err := os.WriteFile(pyproject, []byte("[tool.pytest]\n"), 0o644); err != nil {
 		t.Fatalf("Failed to create pyproject.toml: %v", err)
 	}
 

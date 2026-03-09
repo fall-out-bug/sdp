@@ -871,7 +871,7 @@ func TestCheckJavaCoverage_WithJacocoCsv(t *testing.T) {
 
 	// Create target directory with jacoco.csv
 	targetDir := filepath.Join(tmpDir, "target", "site", "jacoco")
-	if err := os.MkdirAll(targetDir, 0755); err != nil {
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

@@ -48,7 +48,7 @@ func TestCheckGoComplexity_LargeFile(t *testing.T) {
 	goFile := filepath.Join(tmpDir, "complex.go")
 	var content string
 	content = "package main\n\n"
-	for i := 0; i < 150; i++ {
+	for i := range 150 {
 		content += "func func" + string(rune('A'+i%26)) + "() int { return 1 }\n"
 	}
 	if err := os.WriteFile(goFile, []byte(content), 0o644); err != nil {
@@ -107,7 +107,7 @@ func TestBasicGoComplexity_WithFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create Go files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		goFile := filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go")
 		content := `package main
 

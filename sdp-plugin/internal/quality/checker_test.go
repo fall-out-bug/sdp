@@ -432,7 +432,7 @@ func TestDetectProjectTypeByExtensions(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create .py files
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py"), []byte("print('hello')"), 0o644); err != nil {
 			t.Fatal(err)
 		}
