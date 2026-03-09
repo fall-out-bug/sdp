@@ -36,7 +36,7 @@ func TestNewCreator(t *testing.T) {
 func TestCreator_CreateWorkstream(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -142,10 +142,10 @@ func TestCreator_CreateIssue(t *testing.T) {
 	issuesDir := filepath.Join(tmpDir, "docs", "issues")
 	indexFile := filepath.Join(tmpDir, ".sdp", "issues-index.jsonl")
 
-	if err := os.MkdirAll(issuesDir, 0755); err != nil {
+	if err := os.MkdirAll(issuesDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Dir(indexFile), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(indexFile), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -235,7 +235,7 @@ func TestCreator_GenerateWSID(t *testing.T) {
 func TestCreator_NextSequence(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -247,7 +247,7 @@ func TestCreator_NextSequence(t *testing.T) {
 	}
 	for _, f := range existingFiles {
 		path := filepath.Join(wsDir, f)
-		if err := os.WriteFile(path, []byte("---\nws_id: test\n---"), 0644); err != nil {
+		if err := os.WriteFile(path, []byte("---\nws_id: test\n---"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
