@@ -23,9 +23,9 @@ func getValidTypes() []string {
 
 // evidenceEvent represents a simplified evidence event for classification.
 type evidenceEvent struct {
-	ID   string                 `json:"id"`
-	Type string                 `json:"type"`
-	WSID string                 `json:"ws_id"`
+	ID   string         `json:"id"`
+	Type string         `json:"type"`
+	WSID string         `json:"ws_id"`
 	Data map[string]any `json:"data"`
 }
 
