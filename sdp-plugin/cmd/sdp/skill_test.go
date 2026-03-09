@@ -112,10 +112,10 @@ func TestSkillValidateWithStrictFlag(t *testing.T) {
 
 	// Create a skill file with long content (>100 lines to trigger warning)
 	longSkill := filepath.Join(skillsDir, "long.md")
-	var lines []string
+	lines := make([]string, 0, 112)
 	lines = append(lines, "# Long Skill")
 	lines = append(lines, "")
-	for i := 0; i < 110; i++ {
+	for i := range 110 {
 		lines = append(lines, "Line "+string(rune('0'+i%10)))
 	}
 	skillContent := strings.Join(lines, "\n")

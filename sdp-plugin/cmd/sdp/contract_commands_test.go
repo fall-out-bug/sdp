@@ -739,7 +739,7 @@ func TestGenerate_FeatureParsing(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			var result []string
 			if tt.input != "" {
-				for _, f := range strings.Split(tt.input, ",") {
+				for f := range strings.SplitSeq(tt.input, ",") {
 					result = append(result, strings.TrimSpace(f))
 				}
 			}

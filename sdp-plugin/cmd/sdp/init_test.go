@@ -245,7 +245,7 @@ func TestInitCmdWithHeadless(t *testing.T) {
 	}
 
 	// Verify it's valid JSON
-	var result map[string]interface{}
+	var result map[string]any
 	if err := json.Unmarshal([]byte(output), &result); err != nil {
 		t.Errorf("Output is not valid JSON: %v\nOutput was: %s", err, output)
 	}
