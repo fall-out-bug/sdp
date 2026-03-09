@@ -121,7 +121,7 @@ func TestLogger_Log_ConcurrentSafe(t *testing.T) {
 	done := make(chan bool)
 
 	// Log from multiple goroutines
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		go func(id int) {
 			d := decision.Decision{
 				Question: "Concurrent question",
@@ -133,7 +133,7 @@ func TestLogger_Log_ConcurrentSafe(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 

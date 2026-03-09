@@ -151,7 +151,7 @@ func TestLogger_Log_MultipleDecisions(t *testing.T) {
 	}
 
 	// Log multiple decisions
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		d := decision.Decision{
 			Type:     decision.DecisionTypeTechnical,
 			Question: "Question",

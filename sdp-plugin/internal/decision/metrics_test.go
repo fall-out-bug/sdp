@@ -52,9 +52,9 @@ func TestMetricsRecorder_ConcurrentAccess(t *testing.T) {
 	done := make(chan bool)
 
 	// Start multiple goroutines
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
-			for j := 0; j < 100; j++ {
+			for j := range 100 {
 				mr.RecordLog(time.Duration(j)*time.Millisecond, j%2 == 0)
 				mr.RecordBatchLog(time.Duration(j)*time.Millisecond, j%2 == 0, j)
 				mr.RecordLoad(time.Duration(j)*time.Millisecond, j%2 == 0, j%3)
@@ -64,7 +64,7 @@ func TestMetricsRecorder_ConcurrentAccess(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 
