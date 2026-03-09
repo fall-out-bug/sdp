@@ -100,7 +100,7 @@ func TestFindRecentWorkstreamsForDrift_Limit(t *testing.T) {
 	}
 
 	// Create 10 workstreams
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wsFile := filepath.Join(wsDir, "00-050-"+string(rune('0'+i/10))+string(rune('0'+i%10))+".md")
 		if err := os.WriteFile(wsFile, []byte("# Test\n"), 0644); err != nil {
 			t.Fatalf("WriteFile: %v", err)
