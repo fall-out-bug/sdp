@@ -91,13 +91,14 @@ func TestQualityWatcher_FileSizeViolation(t *testing.T) {
 
 	// Create a large file (>200 LOC)
 	largeFile := filepath.Join(tmpDir, "large.go")
-	content := "package test\n\nfunc Large() {\n"
-	for i := 0; i < 250; i++ {
-		content += "    var x int\n"
+	var content strings.Builder
+	content.WriteString("package test\n\nfunc Large() {\n")
+	for range 250 {
+		content.WriteString("    var x int\n")
 	}
-	content += "}\n"
+	content.WriteString("}\n")
 
-	err = os.WriteFile(largeFile, []byte(content), 0o644)
+	err = os.WriteFile(largeFile, []byte(content.String()), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write large file: %v", err)
 	}
@@ -280,7 +281,7 @@ func TestQualityWatcher_OnFileChange_Complexity(t *testing.T) {
 	complexFile := filepath.Join(tmpDir, "complex.go")
 	var b []byte
 	b = append(b, "package test\n\nfunc Complex() {\n"...)
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		b = append(b, "\tif true { }\n"...)
 	}
 	b = append(b, "}\n"...)

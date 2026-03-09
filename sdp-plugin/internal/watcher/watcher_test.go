@@ -356,7 +356,7 @@ func TestWatcher_MultipleChanges(t *testing.T) {
 	// Collect changes
 	changes := make(map[string]bool)
 	timeout := time.After(2 * time.Second)
-	for i := 0; i < len(files); i++ {
+	for range len(files) {
 		select {
 		case path := <-changeChan:
 			changes[path] = true
@@ -404,7 +404,7 @@ func TestWatcher_Debounce(t *testing.T) {
 
 	// Write to same file multiple times rapidly
 	testFile := filepath.Join(tmpDir, "test.go")
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		err = os.WriteFile(testFile, []byte("package test\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to write test file: %v", err)

@@ -136,7 +136,7 @@ func TestQualityWatcher_ViolationManagement(t *testing.T) {
 	defer qw.Close()
 
 	// Add multiple violations for same file
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		qw.addViolation(Violation{
 			File:     "test.go",
 			Check:    "test",

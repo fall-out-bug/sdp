@@ -132,7 +132,7 @@ func TestQualityWatcher_ViolationStates(t *testing.T) {
 	}
 
 	// Add multiple violations for different files
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		qw.addViolation(Violation{
 			File:     fmt.Sprintf("file%d.go", i),
 			Check:    "test",
