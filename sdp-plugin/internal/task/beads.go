@@ -49,7 +49,7 @@ func (b *BeadsIntegration) LinkWorkstreamToBeads(wsPath, beadsID string) error {
 		contentStr = insertBeadsID(contentStr, beadsID)
 	}
 
-	if err := os.WriteFile(wsPath, []byte(contentStr), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(contentStr), 0o644); err != nil {
 		return fmt.Errorf("failed to write workstream: %w", err)
 	}
 	return nil

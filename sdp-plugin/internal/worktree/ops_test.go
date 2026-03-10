@@ -47,13 +47,13 @@ func TestParseWorktreeList_WithSession(t *testing.T) {
 	// Create a temp directory with session
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
 	// Create session file with valid format
 	sessionContent := `{"feature_id":"F067","worktree_path":"` + tmpDir + `","expected_branch":"feature/F067","hash":"test-hash"}`
-	if err := os.WriteFile(filepath.Join(sdpDir, "session.json"), []byte(sessionContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sdpDir, "session.json"), []byte(sessionContent), 0o644); err != nil {
 		t.Fatalf("failed to write session: %v", err)
 	}
 

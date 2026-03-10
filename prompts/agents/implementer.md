@@ -32,6 +32,8 @@ Before any git: `pwd`, `git branch --show-current`. Work in feature branches onl
 **Refactor:** Improve, run — still PASS
 **Commit** after each AC if passing.
 
+For Go refactors, load `@go-modern` and prefer safe stdlib modernizations over custom helpers.
+
 ## Self-Report Format
 
 ```markdown
@@ -46,6 +48,8 @@ Before any git: `pwd`, `git branch --show-current`. Work in feature branches onl
 ## Quality Gates (Before Commit)
 
 Run quality gates per AGENTS.md (project-specific toolchain). Typically: tests pass, coverage ≥80%, lint clean, file size <200 LOC.
+
+For Go code, also verify that new code uses modern stdlib helpers where they make the code shorter without changing behavior.
 
 ## Integration
 

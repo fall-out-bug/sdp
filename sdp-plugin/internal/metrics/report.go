@@ -51,9 +51,9 @@ func (r *Reporter) Save() error {
 
 	outputPath := r.GetDefaultOutputPath()
 	dir := filepath.Dir(outputPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create output dir: %w", err)
 	}
 
-	return os.WriteFile(outputPath, []byte(report), 0644)
+	return os.WriteFile(outputPath, []byte(report), 0o644)
 }

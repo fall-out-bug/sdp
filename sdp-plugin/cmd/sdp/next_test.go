@@ -27,12 +27,12 @@ func TestNextCommandBasic(t *testing.T) {
 	defer os.Chdir(oldDir)
 
 	// Create git directory
-	if err := os.Mkdir(".git", 0755); err != nil {
+	if err := os.Mkdir(".git", 0o755); err != nil {
 		t.Fatalf("Failed to create .git: %v", err)
 	}
 
 	// Create .sdp directory
-	if err := os.MkdirAll(".sdp", 0755); err != nil {
+	if err := os.MkdirAll(".sdp", 0o755); err != nil {
 		t.Fatalf("Failed to create .sdp: %v", err)
 	}
 
@@ -75,7 +75,7 @@ func TestNextCommandJSON(t *testing.T) {
 	}
 	defer os.Chdir(oldDir)
 
-	if err := os.Mkdir(".git", 0755); err != nil {
+	if err := os.Mkdir(".git", 0o755); err != nil {
 		t.Fatalf("Failed to create .git: %v", err)
 	}
 
@@ -107,6 +107,9 @@ func TestNextCommandJSON(t *testing.T) {
 	if rec.Command == "" {
 		t.Error("Expected non-empty command in JSON output")
 	}
+	if rec.ActionID == "" {
+		t.Error("Expected non-empty action_id in JSON output")
+	}
 }
 
 // TestNextCommandWithWorkstreams tests with workstream files.
@@ -124,13 +127,13 @@ func TestNextCommandWithWorkstreams(t *testing.T) {
 	defer os.Chdir(oldDir)
 
 	// Create git directory
-	if err := os.Mkdir(".git", 0755); err != nil {
+	if err := os.Mkdir(".git", 0o755); err != nil {
 		t.Fatalf("Failed to create .git: %v", err)
 	}
 
 	// Create workstream file
 	wsDir := filepath.Join("docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("Failed to create workstream dir: %v", err)
 	}
 
@@ -147,7 +150,7 @@ size: SMALL
 Test goal.
 `
 	wsFile := filepath.Join(wsDir, "00-069-01.md")
-	if err := os.WriteFile(wsFile, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsFile, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to write workstream: %v", err)
 	}
 
@@ -179,6 +182,9 @@ Test goal.
 	if rec.Category != nextstep.CategoryExecution {
 		t.Errorf("Expected execution category, got %s", rec.Category)
 	}
+	if rec.ActionID == "" {
+		t.Error("Expected non-empty action_id for ready workstream recommendation")
+	}
 }
 
 // TestNextCommandAlternatives tests showing alternatives.
@@ -195,7 +201,7 @@ func TestNextCommandAlternatives(t *testing.T) {
 	}
 	defer os.Chdir(oldDir)
 
-	if err := os.Mkdir(".git", 0755); err != nil {
+	if err := os.Mkdir(".git", 0o755); err != nil {
 		t.Fatalf("Failed to create .git: %v", err)
 	}
 

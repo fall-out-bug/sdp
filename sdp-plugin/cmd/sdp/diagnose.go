@@ -214,7 +214,7 @@ func diagnoseErrorCode(codeStr string) error {
 	if diagnoseOutput != "" {
 		data := fmt.Sprintf("# %s [%s]\n\n", pb.Title, pb.Severity)
 		data += recovery.FormatPlaybook(pb)
-		return os.WriteFile(diagnoseOutput, []byte(data), 0644)
+		return os.WriteFile(diagnoseOutput, []byte(data), 0o644)
 	}
 
 	return nil

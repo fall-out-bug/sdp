@@ -151,9 +151,9 @@ func TestCooldownManager_Concurrent(t *testing.T) {
 	done := make(chan bool)
 
 	// Launch concurrent operations
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
-			for j := 0; j < 10; j++ {
+			for range 10 {
 				cm.WaitForCooldown(context.Background(), "test-model")
 				cm.RecordCall("test-model")
 			}
@@ -162,7 +162,7 @@ func TestCooldownManager_Concurrent(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		<-done
 	}
 }

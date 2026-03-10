@@ -2,7 +2,7 @@ package nextstep
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 )
 
 // RecommendationRule defines a rule for generating recommendations.
@@ -39,8 +39,8 @@ func (r *readyWorkstreamRule) Evaluate(state ProjectState) *Recommendation {
 		return nil
 	}
 
-	sort.Slice(ready, func(i, j int) bool {
-		return ComparePriority(ready[i], ready[j]) < 0
+	slices.SortFunc(ready, func(a, b WorkstreamStatus) int {
+		return ComparePriority(a, b)
 	})
 
 	ws := ready[0]

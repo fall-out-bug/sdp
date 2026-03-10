@@ -49,7 +49,7 @@ project_id: sdp
 Test
 `
 	wsPath := filepath.Join(tmpDir, "00-064-01.md")
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -75,7 +75,7 @@ Test
 func TestBeadsIntegration_LinkWorkstream_Disabled(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsPath := filepath.Join(tmpDir, "00-064-01.md")
-	if err := os.WriteFile(wsPath, []byte("---\nws_id: test\n---"), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte("---\nws_id: test\n---"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -95,7 +95,7 @@ func TestReadBeadsMapping(t *testing.T) {
 		content := `{"sdp_id":"00-064-01","beads_id":"sdp-abc","updated_at":"2026-02-12"}
 {"sdp_id":"00-064-02","beads_id":"sdp-xyz","updated_at":"2026-02-12"}
 `
-		if err := os.WriteFile(mappingPath, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(mappingPath, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -126,7 +126,7 @@ func TestReadBeadsMapping(t *testing.T) {
 func TestCreator_CreateWorkstreamWithBeads(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

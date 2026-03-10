@@ -85,7 +85,7 @@ func TestEmit_EventuallyWrites(t *testing.T) {
 	}
 	logPath := filepath.Join(dir, ".sdp", "log", "events.jsonl")
 	// Retry Stat to reduce flakiness on slow filesystems (sdp-yout, CI)
-	for i := 0; i < 25; i++ {
+	for range 25 {
 		if _, err := os.Stat(logPath); err == nil {
 			return
 		}

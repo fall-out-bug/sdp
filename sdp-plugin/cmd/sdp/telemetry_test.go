@@ -19,7 +19,7 @@ func TestTelemetryStatusCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -33,7 +33,7 @@ func TestTelemetryStatusCmd(t *testing.T) {
 	collector.Record(telemetry.Event{
 		Type:      "command_start",
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{"command": "test"},
+		Data:      map[string]any{"command": "test"},
 	})
 
 	// Capture output
@@ -75,7 +75,7 @@ func TestTelemetryExportCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -171,7 +171,7 @@ func TestTelemetryAnalyzeCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -186,12 +186,12 @@ func TestTelemetryAnalyzeCmd(t *testing.T) {
 		{
 			Type:      "command_complete",
 			Timestamp: time.Now(),
-			Data:      map[string]interface{}{"command": "parse", "success": true},
+			Data:      map[string]any{"command": "parse", "success": true},
 		},
 		{
 			Type:      "command_complete",
 			Timestamp: time.Now(),
-			Data:      map[string]interface{}{"command": "parse", "success": false, "error": "test error"},
+			Data:      map[string]any{"command": "parse", "success": false, "error": "test error"},
 		},
 	}
 
@@ -239,7 +239,7 @@ func TestTelemetryUploadCmd(t *testing.T) {
 	telemetryFile := filepath.Join(configDir, "telemetry.jsonl")
 
 	// Create directory
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("Failed to create config dir: %v", err)
 	}
 
@@ -252,7 +252,7 @@ func TestTelemetryUploadCmd(t *testing.T) {
 	if err := collector.Record(telemetry.Event{
 		Type:      telemetry.EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"command": "test",
 		},
 	}); err != nil {

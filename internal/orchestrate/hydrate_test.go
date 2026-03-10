@@ -9,8 +9,7 @@ import (
 )
 
 func TestHydrate(t *testing.T) {
-	root := t.TempDir()
-	writeHydrateFixture(t, root, "00-022-01", false)
+	root := writeHydrateProjectRoot(t)
 	cp := &Checkpoint{
 		Schema:      "1.0",
 		FeatureID:   "F022",
@@ -40,15 +39,13 @@ func TestHydrate(t *testing.T) {
 	if pkt.QualityGates == "" {
 		t.Error("quality_gates should not be empty")
 	}
-	// Validate required fields
 	if err := pkt.Validate(); err != nil {
 		t.Errorf("Validate: %v", err)
 	}
 }
 
 func TestHydrate_WritesFile(t *testing.T) {
-	root := t.TempDir()
-	writeHydrateFixture(t, root, "00-022-01", false)
+	root := writeHydrateProjectRoot(t)
 	cp := &Checkpoint{FeatureID: "F022", Phase: PhaseBuild}
 	pkt, err := Hydrate(root, "F022", "00-022-01", cp)
 	if err != nil {
@@ -123,11 +120,10 @@ func TestHydrate_RecordsDependencyLookupError(t *testing.T) {
 }
 
 func TestParseWorkstreamSections(t *testing.T) {
-	bt := "`" // backtick for path wrapping in markdown
 	content := "---\nws_id: 00-022-01\ndepends_on: [\"00-016-04\"]\n---\n\n" +
 		"## Scope Files\n\n" +
-		"- " + bt + "internal/orchestrate/hydrate.go" + bt + " — new\n" +
-		"- " + bt + "internal/orchestrate/state_machine.go" + bt + " — wire\n\n" +
+		"- `internal/orchestrate/hydrate.go` — new\n" +
+		"- `internal/orchestrate/state_machine.go` — wire\n\n" +
 		"## Acceptance Criteria\n\n" +
 		"- [ ] First criterion\n" +
 		"- [x] Second criterion\n"
@@ -190,4 +186,29 @@ func findProjectRoot(t *testing.T) string {
 	}
 	t.Fatal("project root not found")
 	return ""
+}
+
+func writeHydrateProjectRoot(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	wsDir := filepath.Join(root, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	workstream := "---\nws_id: 00-022-01\nfeature_id: F022\ndepends_on: []\n---\n\n" +
+		"# 00-022-01: Test hydrate fixture\n\n" +
+		"## Acceptance Criteria\n\n" +
+		"- [ ] First criterion\n" +
+		"- [x] Second criterion\n\n" +
+		"## Scope Files\n\n" +
+		"- `internal/orchestrate/hydrate.go`\n" +
+		"- `internal/orchestrate/state_machine.go`\n"
+	if err := os.WriteFile(filepath.Join(wsDir, "00-022-01.md"), []byte(workstream), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	agents := "# Agent Instructions\n\n## Quality Gates\n\nBefore pushing:\n\n```bash\ngo build ./...\n```\n"
+	if err := os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte(agents), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return root
 }

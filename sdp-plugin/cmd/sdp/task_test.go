@@ -10,7 +10,7 @@ import (
 func TestTaskCreateCmd_Workstream(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -36,7 +36,7 @@ func TestTaskCreateCmd_Workstream(t *testing.T) {
 func TestTaskCreateCmd_Issue(t *testing.T) {
 	tmpDir := t.TempDir()
 	issuesDir := filepath.Join(tmpDir, "docs", "issues")
-	if err := os.MkdirAll(issuesDir, 0755); err != nil {
+	if err := os.MkdirAll(issuesDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -61,7 +61,7 @@ func TestTaskCreateCmd_Issue(t *testing.T) {
 func TestTaskCreateCmd_JSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

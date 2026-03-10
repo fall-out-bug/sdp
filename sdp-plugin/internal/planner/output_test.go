@@ -12,7 +12,7 @@ import (
 func TestPlanExecution_AC6(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:   backlogDir,
@@ -36,7 +36,7 @@ func TestPlanExecution_AC6(t *testing.T) {
 	}
 
 	// Verify valid JSON
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	if err := json.Unmarshal([]byte(output), &parsed); err != nil {
 		t.Errorf("Output is not valid JSON: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestPlanExecution_AC6(t *testing.T) {
 func TestFormatHumanOutput(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:   backlogDir,
@@ -87,7 +87,7 @@ func TestFormatHumanOutput(t *testing.T) {
 func TestFormatOutput_UnsupportedFormat(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:   backlogDir,
@@ -104,7 +104,7 @@ func TestFormatOutput_UnsupportedFormat(t *testing.T) {
 		t.Error("Expected error for unsupported format")
 	}
 
-	if !containsString(err.Error(), "unsupported") {
+	if !strings.Contains(err.Error(), "unsupported") {
 		t.Errorf("Error should mention unsupported format, got: %v", err)
 	}
 }

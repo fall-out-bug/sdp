@@ -16,7 +16,7 @@ func TestQualityWatcher_StartStop(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestQualityWatcher_GetViolations(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -116,7 +116,7 @@ func TestQualityWatcher_DefaultConfig(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -146,7 +146,7 @@ func TestQualityWatcher_CheckFileIntegration(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -161,7 +161,7 @@ func TestQualityWatcher_CheckFileIntegration(t *testing.T) {
 
 	// Create a valid Go file
 	validFile := filepath.Join(tmpDir, "valid.go")
-	err = os.WriteFile(validFile, []byte("package test\n\nfunc Valid() {}\n"), 0644)
+	err = os.WriteFile(validFile, []byte("package test\n\nfunc Valid() {}\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write valid file: %v", err)
 	}

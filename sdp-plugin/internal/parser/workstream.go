@@ -46,6 +46,9 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 	if feature == "" {
 		return nil, fmt.Errorf("missing required field: feature or feature_id")
 	}
+	if fm.Priority < 0 {
+		return nil, fmt.Errorf("invalid priority: %d (must be >= 0)", fm.Priority)
+	}
 
 	// Extract main content
 	mainContent := string(parts[2])
@@ -69,6 +72,8 @@ func ParseWorkstream(wsPath string) (*Workstream, error) {
 		Parent:     fm.Parent,
 		Feature:    fm.getFeature(),
 		Status:     fm.Status,
+		Priority:   fm.Priority,
+		DependsOn:  fm.DependsOn,
 		Size:       fm.Size,
 		ProjectID:  fm.ProjectID,
 		Goal:       goal,
@@ -99,8 +104,8 @@ func extractSection(content, sectionName string) string {
 		// No next heading, return rest of content
 		section := content[start:]
 		// Skip first line (the heading itself)
-		if idx := strings.Index(section, "\n"); idx != -1 {
-			section = section[idx+1:]
+		if _, after, ok := strings.Cut(section, "\n"); ok {
+			section = after
 		}
 		return strings.TrimSpace(section)
 	}
@@ -110,8 +115,8 @@ func extractSection(content, sectionName string) string {
 	section := content[start:end]
 
 	// Skip first line (the heading itself)
-	if idx := strings.Index(section, "\n"); idx != -1 {
-		section = section[idx+1:]
+	if _, after, ok := strings.Cut(section, "\n"); ok {
+		section = after
 	}
 
 	return strings.TrimSpace(section)
@@ -169,8 +174,7 @@ func extractScopeFiles(content string) Scope {
 		}
 
 		// Extract file paths (marked with -)
-		if strings.HasPrefix(line, "-") {
-			filePath := strings.TrimPrefix(line, "-")
+		if filePath, ok := strings.CutPrefix(line, "-"); ok {
 			filePath = strings.TrimSpace(filePath)
 			filePath = strings.TrimPrefix(filePath, "`")
 			filePath = strings.TrimSuffix(filePath, "`")

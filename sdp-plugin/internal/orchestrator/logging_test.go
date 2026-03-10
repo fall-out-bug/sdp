@@ -201,7 +201,7 @@ func TestStructuredFields(t *testing.T) {
 
 	ol.LogWSStart("00-001-01")
 
-	var logEntry map[string]interface{}
+	var logEntry map[string]any
 	if err := json.Unmarshal(buf.Bytes(), &logEntry); err != nil {
 		t.Fatalf("Failed to parse log JSON: %v", err)
 	}

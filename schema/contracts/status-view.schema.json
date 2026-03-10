@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/status-view/v1",
+  "title": "SDP Status View Contract",
+  "description": "Machine-readable project state returned by sdp status --json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "has_git", "has_claude", "has_sdp", "has_beads", "environment", "workstreams", "next_action", "next_step"],
+  "properties": {
+    "version": { "type": "string", "minLength": 1 },
+    "has_git": { "type": "boolean" },
+    "has_claude": { "type": "boolean" },
+    "has_sdp": { "type": "boolean" },
+    "has_beads": { "type": "boolean" },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uncommitted", "has_sdp_config", "has_sdp_dir", "has_claude_dir", "has_beads_issues", "has_evidence_log"],
+      "properties": {
+        "project_root": { "type": "string" },
+        "git_branch": { "type": "string" },
+        "main_branch": { "type": "string" },
+        "uncommitted": { "type": "boolean" },
+        "has_sdp_config": { "type": "boolean" },
+        "has_sdp_dir": { "type": "boolean" },
+        "has_claude_dir": { "type": "boolean" },
+        "has_beads_issues": { "type": "boolean" },
+        "has_evidence_log": { "type": "boolean" }
+      }
+    },
+    "workstreams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "backlog", "completed"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "backlog": { "type": "integer", "minimum": 0 },
+        "completed": { "type": "integer", "minimum": 0 },
+        "ready": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workstream_status" }
+        },
+        "in_progress": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workstream_status" }
+        },
+        "blocked": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workstream_status" }
+        },
+        "failed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workstream_status" }
+        }
+      }
+    },
+    "active_session": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workstream_id": { "type": "string" },
+        "feature_id": { "type": "string" },
+        "worktree_path": { "type": "string" },
+        "expected_branch": { "type": "string" },
+        "expected_remote": { "type": "string" },
+        "source": { "type": "string" }
+      }
+    },
+    "next_action": { "type": "string", "minLength": 1 },
+    "next_step": { "$ref": "#/$defs/instruction_payload" }
+  },
+  "$defs": {
+    "workstream_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "priority"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["backlog", "ready", "in_progress", "blocked", "completed", "failed"]
+        },
+        "priority": { "type": "integer", "minimum": 0 },
+        "blocked_by": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "feature": { "type": "string" },
+        "size": { "type": "string" },
+        "last_error": { "type": "string" }
+      }
+    },
+    "instruction_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "command", "reason", "confidence", "category", "version"],
+      "properties": {
+        "action_id": { "type": "string", "minLength": 1 },
+        "command": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "category": {
+          "type": "string",
+          "enum": ["execution", "recovery", "planning", "information", "setup"]
+        },
+        "version": { "type": "string", "minLength": 1 },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["command", "reason"],
+            "properties": {
+              "command": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "required_context": { "type": "object", "additionalProperties": true },
+        "optional_context": { "type": "object", "additionalProperties": true },
+        "policy_expectations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evidence_expectations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "metadata": { "type": "object", "additionalProperties": true }
+      }
+    }
+  }
+}

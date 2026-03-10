@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 )
@@ -11,7 +12,7 @@ func TestCommandEvent(t *testing.T) {
 		name     string
 		cmdName  string
 		args     []string
-		flags    map[string]interface{}
+		flags    map[string]any
 		duration time.Duration
 		output   string
 		err      error
@@ -20,7 +21,7 @@ func TestCommandEvent(t *testing.T) {
 			name:     "simple command",
 			cmdName:  "build",
 			args:     []string{"--verbose"},
-			flags:    map[string]interface{}{"verbose": true},
+			flags:    map[string]any{"verbose": true},
 			duration: 100 * time.Millisecond,
 			output:   "Build successful",
 			err:      nil,
@@ -66,7 +67,7 @@ func TestCommandEvent_ToHookEvent(t *testing.T) {
 	cmdEvent := NewCommandEvent(
 		"apply",
 		[]string{"--ws", "00-001-01"},
-		map[string]interface{}{"dry_run": true},
+		map[string]any{"dry_run": true},
 		150*time.Millisecond,
 		"Applied successfully",
 		nil,
@@ -102,14 +103,7 @@ func TestRegisterCommandHooks(t *testing.T) {
 	}
 
 	for _, expected := range expectedTypes {
-		found := false
-		for _, actual := range types {
-			if actual == expected {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(types, expected) {
 			t.Errorf("missing event type: %s", expected)
 		}
 	}
@@ -183,7 +177,7 @@ func TestCommandHook_ErrorHookReceivesError(t *testing.T) {
 }
 
 func TestCommandEvent_Flags(t *testing.T) {
-	flags := map[string]interface{}{
+	flags := map[string]any{
 		"verbose": true,
 		"count":   5,
 		"name":    "test",

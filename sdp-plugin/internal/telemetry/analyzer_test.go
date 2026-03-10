@@ -18,32 +18,32 @@ func TestAnalyzer_CalculateSuccessRate(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-2 * time.Hour),
-			Data:      map[string]interface{}{"command": "test"},
+			Data:      map[string]any{"command": "test"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-2 * time.Hour),
-			Data:      map[string]interface{}{"command": "test", "success": true},
+			Data:      map[string]any{"command": "test", "success": true},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-1 * time.Hour),
-			Data:      map[string]interface{}{"command": "test"},
+			Data:      map[string]any{"command": "test"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-1 * time.Hour),
-			Data:      map[string]interface{}{"command": "test", "success": false},
+			Data:      map[string]any{"command": "test", "success": false},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-30 * time.Minute),
-			Data:      map[string]interface{}{"command": "build"},
+			Data:      map[string]any{"command": "build"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-30 * time.Minute),
-			Data:      map[string]interface{}{"command": "build", "success": true},
+			Data:      map[string]any{"command": "build", "success": true},
 		},
 	}
 
@@ -100,32 +100,32 @@ func TestAnalyzer_CalculateAverageDuration(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-2 * time.Hour),
-			Data:      map[string]interface{}{"command": "test"},
+			Data:      map[string]any{"command": "test"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-2 * time.Hour).Add(100 * time.Millisecond),
-			Data:      map[string]interface{}{"command": "test", "success": true, "duration": 100},
+			Data:      map[string]any{"command": "test", "success": true, "duration": 100},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-1 * time.Hour),
-			Data:      map[string]interface{}{"command": "test"},
+			Data:      map[string]any{"command": "test"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-1 * time.Hour).Add(200 * time.Millisecond),
-			Data:      map[string]interface{}{"command": "test", "success": true, "duration": 200},
+			Data:      map[string]any{"command": "test", "success": true, "duration": 200},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-30 * time.Minute),
-			Data:      map[string]interface{}{"command": "build"},
+			Data:      map[string]any{"command": "build"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-30 * time.Minute).Add(500 * time.Millisecond),
-			Data:      map[string]interface{}{"command": "build", "success": true, "duration": 500},
+			Data:      map[string]any{"command": "build", "success": true, "duration": 500},
 		},
 	}
 
@@ -182,27 +182,27 @@ func TestAnalyzer_TopErrorCategories(t *testing.T) {
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-2 * time.Hour),
-			Data:      map[string]interface{}{"command": "test", "success": false, "error": "file not found"},
+			Data:      map[string]any{"command": "test", "success": false, "error": "file not found"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-1*time.Hour - 30*time.Minute),
-			Data:      map[string]interface{}{"command": "test", "success": false, "error": "file not found"},
+			Data:      map[string]any{"command": "test", "success": false, "error": "file not found"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-1 * time.Hour),
-			Data:      map[string]interface{}{"command": "test", "success": false, "error": "permission denied"},
+			Data:      map[string]any{"command": "test", "success": false, "error": "permission denied"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-30 * time.Minute),
-			Data:      map[string]interface{}{"command": "build", "success": false, "error": "syntax error"},
+			Data:      map[string]any{"command": "build", "success": false, "error": "syntax error"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-15 * time.Minute),
-			Data:      map[string]interface{}{"command": "build", "success": false, "error": "timeout"},
+			Data:      map[string]any{"command": "build", "success": false, "error": "timeout"},
 		},
 	}
 
@@ -252,32 +252,32 @@ func TestAnalyzer_GenerateReport(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: now.Add(-2 * time.Hour),
-			Data:      map[string]interface{}{"command": "test"},
+			Data:      map[string]any{"command": "test"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-2 * time.Hour).Add(100 * time.Millisecond),
-			Data:      map[string]interface{}{"command": "test", "success": true, "duration": 100},
+			Data:      map[string]any{"command": "test", "success": true, "duration": 100},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: now.Add(-1 * time.Hour),
-			Data:      map[string]interface{}{"command": "test"},
+			Data:      map[string]any{"command": "test"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-1 * time.Hour).Add(200 * time.Millisecond),
-			Data:      map[string]interface{}{"command": "test", "success": false, "error": "timeout", "duration": 200},
+			Data:      map[string]any{"command": "test", "success": false, "error": "timeout", "duration": 200},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: now.Add(-30 * time.Minute),
-			Data:      map[string]interface{}{"command": "build"},
+			Data:      map[string]any{"command": "build"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-30 * time.Minute).Add(500 * time.Millisecond),
-			Data:      map[string]interface{}{"command": "build", "success": true, "duration": 500},
+			Data:      map[string]any{"command": "build", "success": true, "duration": 500},
 		},
 	}
 
@@ -346,22 +346,22 @@ func TestAnalyzer_FilterByDateRange(t *testing.T) {
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-72 * time.Hour), // 3 days ago
-			Data:      map[string]interface{}{"command": "test", "success": true},
+			Data:      map[string]any{"command": "test", "success": true},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-48 * time.Hour), // 2 days ago
-			Data:      map[string]interface{}{"command": "test", "success": true},
+			Data:      map[string]any{"command": "test", "success": true},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-24 * time.Hour), // 1 day ago
-			Data:      map[string]interface{}{"command": "test", "success": true},
+			Data:      map[string]any{"command": "test", "success": true},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: now.Add(-12 * time.Hour), // 12 hours ago
-			Data:      map[string]interface{}{"command": "test", "success": true},
+			Data:      map[string]any{"command": "test", "success": true},
 		},
 	}
 

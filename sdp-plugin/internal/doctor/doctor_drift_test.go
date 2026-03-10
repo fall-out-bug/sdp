@@ -32,7 +32,7 @@ func TestCheckDriftWithWorkstreams(t *testing.T) {
 	// Create temp directory with docs/workstreams/completed
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -78,7 +78,7 @@ func TestCheckDriftInvalidWorkstream(t *testing.T) {
 	// Create temp directory with invalid workstream files
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -111,7 +111,7 @@ func TestCheckDriftManyWorkstreams(t *testing.T) {
 	// Create temp directory with 7 workstreams
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -150,7 +150,7 @@ func TestFindProjectRootForDriftWithGit(t *testing.T) {
 	// Create temp directory with .git
 	tmpDir := t.TempDir()
 	gitDir := filepath.Join(tmpDir, ".git")
-	if err := os.MkdirAll(gitDir, 0755); err != nil {
+	if err := os.MkdirAll(gitDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -178,7 +178,7 @@ func TestFindProjectRootForDriftWithDocs(t *testing.T) {
 	// Create temp directory with docs
 	tmpDir := t.TempDir()
 	docsDir := filepath.Join(tmpDir, "docs")
-	if err := os.MkdirAll(docsDir, 0755); err != nil {
+	if err := os.MkdirAll(docsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -201,7 +201,7 @@ func TestFindProjectRootForDriftInSdpPlugin(t *testing.T) {
 	// Create sdp-plugin directory structure
 	tmpDir := t.TempDir()
 	pluginDir := filepath.Join(tmpDir, "sdp-plugin")
-	if err := os.MkdirAll(pluginDir, 0755); err != nil {
+	if err := os.MkdirAll(pluginDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -233,7 +233,7 @@ func TestFindProjectRootForDriftWithBeads(t *testing.T) {
 	// Create temp directory with .beads
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -256,7 +256,7 @@ func TestFindRecentWorkstreamsForDriftMultiple(t *testing.T) {
 	// Create temp directory with multiple workstreams
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -284,7 +284,7 @@ func TestCheckFilePermissionsInsecureDirectory(t *testing.T) {
 	// Create .beads directory with insecure file inside
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -315,7 +315,7 @@ func TestCheckFilePermissionsMultipleInsecure(t *testing.T) {
 	// Create .beads directory with multiple insecure files
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -345,7 +345,7 @@ func TestCheckFilePermissionsSecureDirectory(t *testing.T) {
 	// Create .beads directory with secure files
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -374,7 +374,7 @@ func TestCheckFilePermissionsTelemetryFile(t *testing.T) {
 	// Create .sdp directory with telemetry file
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -401,7 +401,7 @@ func TestCheckClaudeDirMissingSubdirs(t *testing.T) {
 	// Create .claude directory but missing subdirs
 	tmpDir := t.TempDir()
 	claudeDir := filepath.Join(tmpDir, ".claude")
-	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -424,7 +424,7 @@ func TestCheckClaudeDirPartialSubdirs(t *testing.T) {
 	tmpDir := t.TempDir()
 	claudeDir := filepath.Join(tmpDir, ".claude")
 	skillsDir := filepath.Join(claudeDir, "skills")
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 

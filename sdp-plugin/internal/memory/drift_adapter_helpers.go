@@ -2,6 +2,8 @@ package memory
 
 import (
 	"encoding/json"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/drift"
@@ -9,48 +11,78 @@ import (
 
 // buildDriftContent creates searchable content from a DriftReport
 func (a *DriftAdapter) buildDriftContent(report *drift.DriftReport) string {
-	content := "Drift report for " + report.WorkstreamID + "\n"
-	content += "Verdict: " + report.Verdict + "\n"
-	content += "Timestamp: " + report.Timestamp.Format(time.RFC3339) + "\n"
+	var content strings.Builder
+	content.WriteString("Drift report for ")
+	content.WriteString(report.WorkstreamID)
+	content.WriteString("\nVerdict: ")
+	content.WriteString(report.Verdict)
+	content.WriteString("\nTimestamp: ")
+	content.WriteString(report.Timestamp.Format(time.RFC3339))
+	content.WriteString("\n")
 
 	for _, issue := range report.Issues {
-		content += "Issue: " + issue.File + " " + string(issue.Status) + "\n"
-		content += "Expected: " + issue.Expected + "\n"
+		content.WriteString("Issue: ")
+		content.WriteString(issue.File)
+		content.WriteString(" ")
+		content.WriteString(string(issue.Status))
+		content.WriteString("\nExpected: ")
+		content.WriteString(issue.Expected)
+		content.WriteString("\n")
 		if issue.Actual != "" {
-			content += "Actual: " + issue.Actual + "\n"
+			content.WriteString("Actual: ")
+			content.WriteString(issue.Actual)
+			content.WriteString("\n")
 		}
 		if issue.Recommendation != "" {
-			content += "Recommendation: " + issue.Recommendation + "\n"
+			content.WriteString("Recommendation: ")
+			content.WriteString(issue.Recommendation)
+			content.WriteString("\n")
 		}
 	}
 
-	return content
+	return content.String()
 }
 
 // buildEnhancedDriftContent creates searchable content from an EnhancedDriftReport
 func (a *DriftAdapter) buildEnhancedDriftContent(report *drift.EnhancedDriftReport, dataBytes []byte) string {
-	content := "Enhanced drift report for " + report.WorkstreamID + "\n"
-	content += "Verdict: " + report.Verdict + "\n"
-	content += "Timestamp: " + report.Timestamp.Format(time.RFC3339) + "\n"
+	var content strings.Builder
+	content.WriteString("Enhanced drift report for ")
+	content.WriteString(report.WorkstreamID)
+	content.WriteString("\nVerdict: ")
+	content.WriteString(report.Verdict)
+	content.WriteString("\nTimestamp: ")
+	content.WriteString(report.Timestamp.Format(time.RFC3339))
+	content.WriteString("\n")
 
 	for _, dt := range report.DriftTypes {
-		content += "Type: " + string(dt.Type) + " (" + string(dt.Severity) + ")\n"
+		content.WriteString("Type: ")
+		content.WriteString(string(dt.Type))
+		content.WriteString(" (")
+		content.WriteString(string(dt.Severity))
+		content.WriteString(")\n")
 		for _, issue := range dt.Issues {
-			content += "Issue: " + issue.File
+			content.WriteString("Issue: ")
+			content.WriteString(issue.File)
 			if issue.Line > 0 {
-				content += ":" + string(rune(issue.Line))
+				content.WriteString(":")
+				content.WriteString(strconv.Itoa(issue.Line))
 			}
-			content += " " + issue.Message + "\n"
+			content.WriteString(" ")
+			content.WriteString(issue.Message)
+			content.WriteString("\n")
 		}
 		for _, s := range dt.Suggestions {
-			content += "Suggestion: " + s + "\n"
+			content.WriteString("Suggestion: ")
+			content.WriteString(s)
+			content.WriteString("\n")
 		}
 	}
 
 	// Include full JSON for detailed search
-	content += " " + string(dataBytes)
+	content.WriteString(" ")
+	content.Write(dataBytes)
 
-	return content
+	return content.String()
 }
 
 // buildDriftTags builds tags from drift report

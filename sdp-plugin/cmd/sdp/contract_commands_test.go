@@ -27,7 +27,7 @@ func TestLockCmd_CreateLock(t *testing.T) {
 	// Create test contract
 	contractPath := filepath.Join(tmpDir, "test.yaml")
 	contractContent := "openapi: 3.0.0\ninfo:\n  title: Test API\n"
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test contract: %v", err)
 	}
 
@@ -96,13 +96,13 @@ func TestLockCmd_LockAlreadyExists(t *testing.T) {
 	// Create test contract
 	contractPath := filepath.Join(tmpDir, "test.yaml")
 	contractContent := "openapi: 3.0.0\ninfo:\n  title: Test API\n"
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test contract: %v", err)
 	}
 
 	// Create existing lock file
 	lockPath := filepath.Join(tmpDir, "test.lock")
-	if err := os.WriteFile(lockPath, []byte("existing lock"), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte("existing lock"), 0o644); err != nil {
 		t.Fatalf("Failed to create existing lock: %v", err)
 	}
 
@@ -130,13 +130,13 @@ func TestLockCmd_ForceRelock(t *testing.T) {
 	// Create test contract
 	contractPath := filepath.Join(tmpDir, "test.yaml")
 	contractContent := "openapi: 3.0.0\ninfo:\n  title: Test API\n"
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test contract: %v", err)
 	}
 
 	// Create existing lock file
 	lockPath := filepath.Join(tmpDir, "test.lock")
-	if err := os.WriteFile(lockPath, []byte("old lock"), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte("old lock"), 0o644); err != nil {
 		t.Fatalf("Failed to create existing lock: %v", err)
 	}
 
@@ -166,7 +166,7 @@ func TestVerifyCmd_Match(t *testing.T) {
 	// Create test contract
 	contractPath := filepath.Join(tmpDir, "test.yaml")
 	contractContent := "openapi: 3.0.0\ninfo:\n  title: Test API\n"
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test contract: %v", err)
 	}
 
@@ -177,7 +177,7 @@ func TestVerifyCmd_Match(t *testing.T) {
 
 	lockContent := fmt.Sprintf("contract_file: %s\ncontract_hash: %s\ngit_sha: %s\nlocked_at: \"%s\"\n",
 		contractPath, expectedHash, gitSHA, time.Now().UTC().Format(time.RFC3339))
-	if err := os.WriteFile(lockPath, []byte(lockContent), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(lockContent), 0o644); err != nil {
 		t.Fatalf("Failed to create lock file: %v", err)
 	}
 
@@ -199,7 +199,7 @@ func TestVerifyCmd_Mismatch(t *testing.T) {
 	// Create test contract (modified version)
 	contractPath := filepath.Join(tmpDir, "test.yaml")
 	modifiedContent := "openapi: 3.0.0\ninfo:\n  title: MODIFIED API\n"
-	if err := os.WriteFile(contractPath, []byte(modifiedContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(modifiedContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test contract: %v", err)
 	}
 
@@ -209,7 +209,7 @@ func TestVerifyCmd_Mismatch(t *testing.T) {
 
 	lockContent := fmt.Sprintf("contract_file: %s\ncontract_hash: %s\ngit_sha: abc123\nlocked_at: \"%s\"\n",
 		contractPath, originalHash, time.Now().UTC().Format(time.RFC3339))
-	if err := os.WriteFile(lockPath, []byte(lockContent), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(lockContent), 0o644); err != nil {
 		t.Fatalf("Failed to create lock file: %v", err)
 	}
 
@@ -361,7 +361,7 @@ components:
     Post:
       type: object
 `
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
@@ -397,7 +397,7 @@ func TestContractLock_Checksum(t *testing.T) {
 
 	contractPath := filepath.Join(tmpDir, "test.yaml")
 	contractContent := "test: content"
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
@@ -449,7 +449,7 @@ func TestVerifyCmd_ContractNotFound(t *testing.T) {
 	// Create lock but no contract
 	lockPath := filepath.Join(tmpDir, "test.lock")
 	lockContent := "contract_file: nonexistent.yaml\ncontract_hash: abc123"
-	if err := os.WriteFile(lockPath, []byte(lockContent), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(lockContent), 0o644); err != nil {
 		t.Fatalf("Failed to create lock: %v", err)
 	}
 
@@ -490,10 +490,10 @@ func TestRunContractLock_EmptyPaths(t *testing.T) {
 	defer os.Chdir(oldDir)
 
 	// Create default contract location
-	if err := os.MkdirAll(".contracts", 0755); err != nil {
+	if err := os.MkdirAll(".contracts", 0o755); err != nil {
 		t.Fatalf("Failed to create contracts dir: %v", err)
 	}
-	if err := os.WriteFile(".contracts/feature.yaml", []byte("test: value"), 0644); err != nil {
+	if err := os.WriteFile(".contracts/feature.yaml", []byte("test: value"), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
@@ -516,7 +516,7 @@ func TestContractLock_InvalidYAML(t *testing.T) {
 	// Create invalid YAML contract
 	contractPath := filepath.Join(tmpDir, "invalid.yaml")
 	contractContent := "invalid: yaml: content: ["
-	if err := os.WriteFile(contractPath, []byte(contractContent), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte(contractContent), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
@@ -544,7 +544,7 @@ func TestContractLock_WriteError(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	contractPath := filepath.Join(tmpDir, "test.yaml")
-	if err := os.WriteFile(contractPath, []byte("test: content"), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte("test: content"), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
@@ -562,13 +562,13 @@ func TestContractVerify_EmptyLock(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	contractPath := filepath.Join(tmpDir, "test.yaml")
-	if err := os.WriteFile(contractPath, []byte("test: content"), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte("test: content"), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
 	// Create empty lock file
 	lockPath := filepath.Join(tmpDir, "test.lock")
-	if err := os.WriteFile(lockPath, []byte(""), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(""), 0o644); err != nil {
 		t.Fatalf("Failed to create lock: %v", err)
 	}
 
@@ -588,14 +588,14 @@ func TestContractVerify_MalformedLock(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	contractPath := filepath.Join(tmpDir, "test.yaml")
-	if err := os.WriteFile(contractPath, []byte("test: content"), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte("test: content"), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
 	// Create malformed lock file
 	lockPath := filepath.Join(tmpDir, "test.lock")
 	malformedContent := "not: valid: yaml: ["
-	if err := os.WriteFile(lockPath, []byte(malformedContent), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(malformedContent), 0o644); err != nil {
 		t.Fatalf("Failed to create lock: %v", err)
 	}
 
@@ -610,14 +610,14 @@ func TestContractVerify_MissingHash(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	contractPath := filepath.Join(tmpDir, "test.yaml")
-	if err := os.WriteFile(contractPath, []byte("test: content"), 0644); err != nil {
+	if err := os.WriteFile(contractPath, []byte("test: content"), 0o644); err != nil {
 		t.Fatalf("Failed to create contract: %v", err)
 	}
 
 	// Create lock without contract_hash
 	lockPath := filepath.Join(tmpDir, "test.lock")
 	lockContent := "contract_file: test.yaml\ngit_sha: abc123"
-	if err := os.WriteFile(lockPath, []byte(lockContent), 0644); err != nil {
+	if err := os.WriteFile(lockPath, []byte(lockContent), 0o644); err != nil {
 		t.Fatalf("Failed to create lock: %v", err)
 	}
 
@@ -739,7 +739,7 @@ func TestGenerate_FeatureParsing(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			var result []string
 			if tt.input != "" {
-				for _, f := range strings.Split(tt.input, ",") {
+				for f := range strings.SplitSeq(tt.input, ",") {
 					result = append(result, strings.TrimSpace(f))
 				}
 			}

@@ -69,6 +69,13 @@
       "description": "Systematic debugging",
       "phase": "debug"
     },
+    "go-modern": {
+      "file": "skills/go-modern.md",
+      "cli": null,
+      "mode": "llm_only",
+      "description": "Modern Go style and review rules",
+      "phase": "execution"
+    },
     "vision": {
       "file": "skills/vision.md",
       "cli": "sdp prd generate",

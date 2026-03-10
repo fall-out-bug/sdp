@@ -335,7 +335,7 @@ func TestIndexer_GetStats(t *testing.T) {
 	}
 
 	// Create test files (different content to get different hashes)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		content := fmt.Sprintf("---\ntitle: Doc %d\n---\n\nContent %d", i, i)
 		filename := fmt.Sprintf("doc%d.md", i)
 		if err := os.WriteFile(filepath.Join(docsDir, filename), []byte(content), 0644); err != nil {

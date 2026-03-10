@@ -9,13 +9,13 @@ import (
 func TestLoad_LogPathValidationWhenProjectRootEmpty(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	// Malicious log_path that would escape when resolved from cwd
 	cfgContent := "version: 1\nevidence:\n  enabled: true\n  log_path: \"../../etc/passwd\"\n"
-	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	origWd, _ := os.Getwd()
@@ -51,11 +51,11 @@ func TestLoad_FileNotExist_ReturnsDefault(t *testing.T) {
 func TestLoad_InvalidYAML_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
-	if err := os.WriteFile(cfgPath, []byte("invalid: yaml: content: ["), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte("invalid: yaml: content: ["), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -68,12 +68,12 @@ func TestLoad_InvalidYAML_ReturnsError(t *testing.T) {
 func TestLoad_ValidYAML_MergesWithDefaults(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	content := "version: 1\nquality:\n  coverage_threshold: 90\n"
-	if err := os.WriteFile(cfgPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -92,11 +92,11 @@ func TestLoad_ValidYAML_MergesWithDefaults(t *testing.T) {
 func TestLoad_InvalidVersion_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
-	if err := os.WriteFile(cfgPath, []byte("version: 0\n"), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte("version: 0\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -109,12 +109,12 @@ func TestLoad_InvalidVersion_ReturnsError(t *testing.T) {
 func TestLoad_InvalidDuration_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	content := "version: 1\ntimeouts:\n  verification_command: \"invalid\"\n"
-	if err := os.WriteFile(cfgPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -127,12 +127,12 @@ func TestLoad_InvalidDuration_ReturnsError(t *testing.T) {
 func TestLoad_GuardRulesFileOutsideRoot_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	content := "version: 1\nguard:\n  rules_file: \"../../etc/guard-rules.yml\"\n"
-	if err := os.WriteFile(cfgPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -196,7 +196,7 @@ func TestTimeoutFromConfigOrEnv_ConfigEmpty_FallsToEnv(t *testing.T) {
 func TestFindProjectRoot_InProjectDir(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -221,11 +221,11 @@ func TestFindProjectRoot_InProjectDir(t *testing.T) {
 func TestFindProjectRoot_InSubdir_FindsParent(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	subDir := filepath.Join(dir, "sub", "nested")
-	if err := os.MkdirAll(subDir, 0755); err != nil {
+	if err := os.MkdirAll(subDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -249,11 +249,11 @@ func TestFindProjectRoot_InSubdir_FindsParent(t *testing.T) {
 func TestFindProjectRoot_WithGit_FindsRoot(t *testing.T) {
 	dir := t.TempDir()
 	gitDir := filepath.Join(dir, ".git")
-	if err := os.MkdirAll(gitDir, 0755); err != nil {
+	if err := os.MkdirAll(gitDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	subDir := filepath.Join(dir, "src")
-	if err := os.MkdirAll(subDir, 0755); err != nil {
+	if err := os.MkdirAll(subDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

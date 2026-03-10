@@ -13,16 +13,16 @@ const (
 
 // CommandEvent represents a command execution event.
 type CommandEvent struct {
-	Name     string                 // Command name (e.g., "build", "apply")
-	Args     []string               // Command arguments
-	Flags    map[string]interface{} // Command flags/options
-	Duration time.Duration          // Execution duration
-	Output   string                 // Command output
-	Error    error                  // Error if command failed
+	Name     string         // Command name (e.g., "build", "apply")
+	Args     []string       // Command arguments
+	Flags    map[string]any // Command flags/options
+	Duration time.Duration  // Execution duration
+	Output   string         // Command output
+	Error    error          // Error if command failed
 }
 
 // NewCommandEvent creates a new command event.
-func NewCommandEvent(name string, args []string, flags map[string]interface{}, duration time.Duration, output string, err error) CommandEvent {
+func NewCommandEvent(name string, args []string, flags map[string]any, duration time.Duration, output string, err error) CommandEvent {
 	return CommandEvent{
 		Name:     name,
 		Args:     args,
@@ -35,7 +35,7 @@ func NewCommandEvent(name string, args []string, flags map[string]interface{}, d
 
 // ToHookEvent converts a CommandEvent to a HookEvent.
 func (e CommandEvent) ToHookEvent(eventType string) HookEvent {
-	return NewEvent(eventType, map[string]interface{}{
+	return NewEvent(eventType, map[string]any{
 		"name":     e.Name,
 		"args":     e.Args,
 		"flags":    e.Flags,

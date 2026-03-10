@@ -18,7 +18,7 @@ func TestCircuitBreaker_Closed(t *testing.T) {
 	}
 
 	// Execute successful calls
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		err := cb.Execute(nil, func() error { return nil })
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
@@ -38,7 +38,7 @@ func TestCircuitBreaker_Open(t *testing.T) {
 	})
 
 	// Trigger failures
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		cb.Execute(nil, func() error { return errors.New("fail") })
 	}
 
@@ -61,7 +61,7 @@ func TestCircuitBreaker_HalfOpen(t *testing.T) {
 	})
 
 	// Trigger open
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		cb.Execute(nil, func() error { return errors.New("fail") })
 	}
 
@@ -98,7 +98,7 @@ func TestCircuitBreaker_HalfOpenToOpen(t *testing.T) {
 	})
 
 	// Trigger open
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		cb.Execute(nil, func() error { return errors.New("fail") })
 	}
 
@@ -123,7 +123,7 @@ func TestCircuitBreaker_Reset(t *testing.T) {
 	})
 
 	// Trigger open
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		cb.Execute(nil, func() error { return errors.New("fail") })
 	}
 
@@ -148,9 +148,9 @@ func TestCircuitBreaker_Concurrent(t *testing.T) {
 	done := make(chan bool)
 
 	// Launch concurrent operations
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
-			for j := 0; j < 100; j++ {
+			for range 100 {
 				cb.Execute(nil, func() error { return nil })
 			}
 			done <- true
@@ -158,7 +158,7 @@ func TestCircuitBreaker_Concurrent(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 

@@ -29,7 +29,7 @@ func TestLogger_MalformedJSON(t *testing.T) {
 
 	// Create log file with malformed JSON
 	logPath := filepath.Join(tempDir, "docs", "decisions", "decisions.jsonl")
-	os.WriteFile(logPath, []byte("{invalid json}\n{\"valid\": true}\n"), 0644)
+	os.WriteFile(logPath, []byte("{invalid json}\n{\"valid\": true}\n"), 0o644)
 
 	decisions, err := logger.LoadAll()
 	if err != nil {

@@ -11,10 +11,10 @@ import (
 
 func writeRunFile(t *testing.T, dir, name string) {
 	t.Helper()
-	content := map[string]interface{}{
+	content := map[string]any{
 		"run_id":     name,
 		"feature_id": "F014",
-		"events":     []interface{}{},
+		"events":     []any{},
 		"last_phase": "init",
 		"last_state": "ok",
 	}
@@ -38,11 +38,11 @@ func TestAppendRunEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var rf map[string]interface{}
+	var rf map[string]any
 	if err := json.Unmarshal(data, &rf); err != nil {
 		t.Fatal(err)
 	}
-	events, ok := rf["events"].([]interface{})
+	events, ok := rf["events"].([]any)
 	if !ok || len(events) != 1 {
 		t.Errorf("expected 1 event, got %v", rf["events"])
 	}
@@ -67,18 +67,18 @@ func TestAppendRunEventLatestFile(t *testing.T) {
 
 	// The earlier file should be untouched.
 	data, _ := os.ReadFile(filepath.Join(dir, "oneshot-F014-20260223T000000Z.json"))
-	var rf1 map[string]interface{}
+	var rf1 map[string]any
 	json.Unmarshal(data, &rf1)
-	events1 := rf1["events"].([]interface{})
+	events1 := rf1["events"].([]any)
 	if len(events1) != 0 {
 		t.Errorf("expected 0 events in older file, got %d", len(events1))
 	}
 
 	// The later file should have the event.
 	data2, _ := os.ReadFile(filepath.Join(dir, "oneshot-F014-20260223T120000Z.json"))
-	var rf2 map[string]interface{}
+	var rf2 map[string]any
 	json.Unmarshal(data2, &rf2)
-	events2 := rf2["events"].([]interface{})
+	events2 := rf2["events"].([]any)
 	if len(events2) != 1 {
 		t.Errorf("expected 1 event in latest file, got %d", len(events2))
 	}
@@ -101,10 +101,10 @@ func TestAppendRunEventWithNotes(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	data, _ := os.ReadFile(filepath.Join(dir, "oneshot-F014-20260223T000000Z.json"))
-	var rf map[string]interface{}
+	var rf map[string]any
 	json.Unmarshal(data, &rf)
-	events := rf["events"].([]interface{})
-	ev := events[0].(map[string]interface{})
+	events := rf["events"].([]any)
+	ev := events[0].(map[string]any)
 	if ev["notes"] != "secrets-scan failure" {
 		t.Errorf("expected notes to be set, got %v", ev["notes"])
 	}

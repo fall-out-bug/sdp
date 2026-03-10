@@ -90,7 +90,7 @@ Examples:
 				fmt.Printf("   - %s: WS-%s\n", wsID, wsID)
 			}
 			// F056-03: emit generation event (non-blocking)
-			evidence.Emit(evidence.SkillEvent("prototype", "generation", "00-000-00", map[string]interface{}{
+			evidence.Emit(evidence.SkillEvent("prototype", "generation", "00-000-00", map[string]any{
 				"workstream_count": numWS,
 				"feature_id":       featureID,
 			}))
@@ -178,7 +178,7 @@ func resolveFeatureID(id string) string {
 // createPrototypeWorkstreams writes minimal workstream files for the feature.
 func createPrototypeWorkstreams(projectRoot, featureID, featureDesc string, numWS int) error {
 	backlogDir := filepath.Join(projectRoot, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		return err
 	}
 	rawNum := strings.TrimPrefix(featureID, "F")
@@ -210,13 +210,13 @@ scope_files: []
 - [ ] Working prototype
 `, wsID, featureID, wsID, featureDesc, featureDesc)
 		path := filepath.Join(backlogDir, wsID+".md")
-		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return err
 		}
 	}
 	// Append to .beads-sdp-mapping.jsonl if it exists
 	mappingPath := filepath.Join(projectRoot, ".beads-sdp-mapping.jsonl")
-	f, err := os.OpenFile(mappingPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(mappingPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err == nil {
 		for i := 1; i <= numWS; i++ {
 			wsID := fmt.Sprintf("00-%03d-%02d", n, i)

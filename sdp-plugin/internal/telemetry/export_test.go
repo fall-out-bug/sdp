@@ -20,7 +20,7 @@ func TestPackForUploadJSON(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-2 * time.Hour),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"command": "doctor",
 				"args":    []string{},
 			},
@@ -28,7 +28,7 @@ func TestPackForUploadJSON(t *testing.T) {
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now().Add(-2*time.Hour + time.Second),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"command":  "doctor",
 				"duration": 1234,
 				"success":  true,
@@ -80,7 +80,7 @@ func TestPackForUploadJSON(t *testing.T) {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
 
-	var uploadData map[string]interface{}
+	var uploadData map[string]any
 	if err := json.Unmarshal(data, &uploadData); err != nil {
 		t.Errorf("Output file is not valid JSON: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestPackForUploadArchive(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now(),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"command": "build",
 				"args":    []string{"00-001-01"},
 			},
@@ -243,7 +243,7 @@ func TestPackForUploadJSONStructure(t *testing.T) {
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: testTime,
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"command":  "init",
 				"args":     []string{"."},
 				"duration": 5000,
@@ -268,11 +268,11 @@ func TestPackForUploadJSONStructure(t *testing.T) {
 
 	// Read and verify JSON structure
 	data, _ := os.ReadFile(outputPath)
-	var uploadData map[string]interface{}
+	var uploadData map[string]any
 	json.Unmarshal(data, &uploadData)
 
 	// Verify metadata
-	metadata, ok := uploadData["metadata"].(map[string]interface{})
+	metadata, ok := uploadData["metadata"].(map[string]any)
 	if !ok {
 		t.Fatal("metadata is not a map")
 	}
@@ -290,7 +290,7 @@ func TestPackForUploadJSONStructure(t *testing.T) {
 	}
 
 	// Verify events array
-	eventsArray, ok := uploadData["events"].([]interface{})
+	eventsArray, ok := uploadData["events"].([]any)
 	if !ok {
 		t.Fatal("events is not an array")
 	}
@@ -300,7 +300,7 @@ func TestPackForUploadJSONStructure(t *testing.T) {
 	}
 
 	// Verify event structure
-	event, ok := eventsArray[0].(map[string]interface{})
+	event, ok := eventsArray[0].(map[string]any)
 	if !ok {
 		t.Fatal("event is not a map")
 	}
@@ -328,7 +328,7 @@ func TestPackForUploadPermissions(t *testing.T) {
 	collector.Record(Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{"command": "doctor"},
+		Data:      map[string]any{"command": "doctor"},
 	})
 
 	// Package as JSON

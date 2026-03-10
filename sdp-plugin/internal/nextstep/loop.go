@@ -2,6 +2,7 @@ package nextstep
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 )
 
@@ -169,8 +170,6 @@ func copyMetadata(m map[string]any) map[string]any {
 		return make(map[string]any)
 	}
 	cp := make(map[string]any, len(m))
-	for k, v := range m {
-		cp[k] = v
-	}
+	maps.Copy(cp, m)
 	return cp
 }

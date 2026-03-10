@@ -31,7 +31,7 @@ func NewStateManager(configDir string) *StateManager {
 func (sm *StateManager) Save(state GuardState) error {
 	// Create config directory if needed
 	if sm.configDir != "" {
-		if err := os.MkdirAll(sm.configDir, 0755); err != nil {
+		if err := os.MkdirAll(sm.configDir, 0o755); err != nil {
 			return fmt.Errorf("failed to create config directory: %w", err)
 		}
 	}
@@ -48,7 +48,7 @@ func (sm *StateManager) Save(state GuardState) error {
 	}
 
 	// Write with secure permissions
-	if err := os.WriteFile(statePath, data, 0600); err != nil {
+	if err := os.WriteFile(statePath, data, 0o600); err != nil {
 		return fmt.Errorf("failed to write state file: %w", err)
 	}
 

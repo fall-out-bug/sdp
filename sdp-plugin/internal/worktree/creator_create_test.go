@@ -49,7 +49,7 @@ func TestCreate_Defaults(t *testing.T) {
 
 	creator := NewCreator(tmpDir)
 	worktreesDir := filepath.Join(tmpDir, "worktrees")
-	os.MkdirAll(worktreesDir, 0755)
+	os.MkdirAll(worktreesDir, 0o755)
 	creator.WorktreesDir = worktreesDir
 
 	result, err := creator.Create(CreateOptions{
@@ -113,7 +113,7 @@ func TestCreate_CustomBranchName(t *testing.T) {
 
 	creator := NewCreator(tmpDir)
 	worktreesDir := filepath.Join(tmpDir, "worktrees")
-	os.MkdirAll(worktreesDir, 0755)
+	os.MkdirAll(worktreesDir, 0o755)
 	creator.WorktreesDir = worktreesDir
 
 	result, err := creator.Create(CreateOptions{
@@ -193,7 +193,7 @@ func TestCreate_ExistingBranch(t *testing.T) {
 
 	creator := NewCreator(tmpDir)
 	worktreesDir := filepath.Join(tmpDir, "worktrees")
-	os.MkdirAll(worktreesDir, 0755)
+	os.MkdirAll(worktreesDir, 0o755)
 	creator.WorktreesDir = worktreesDir
 
 	// Create using existing branch (CreateBranch=false)
@@ -242,7 +242,7 @@ func TestCreate_DefaultBaseBranch(t *testing.T) {
 
 	creator := NewCreator(tmpDir)
 	worktreesDir := filepath.Join(tmpDir, "worktrees")
-	os.MkdirAll(worktreesDir, 0755)
+	os.MkdirAll(worktreesDir, 0o755)
 	creator.WorktreesDir = worktreesDir
 
 	// Create without specifying BaseBranch (should default to dev)

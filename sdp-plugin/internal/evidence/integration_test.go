@@ -72,11 +72,11 @@ func TestFullPipelineEvidenceChain(t *testing.T) {
 		t.Fatalf("NewWriter: %v", err)
 	}
 	chain := []*Event{
-		{ID: "idea", Type: "plan", Timestamp: "2026-02-10T10:00:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "idea"}},
-		{ID: "design", Type: "plan", Timestamp: "2026-02-10T10:01:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "design"}},
-		{ID: "build", Type: "generation", Timestamp: "2026-02-10T10:02:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "build"}},
-		{ID: "review", Type: "verification", Timestamp: "2026-02-10T10:03:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "review", "passed": true}},
-		{ID: "deploy", Type: "approval", Timestamp: "2026-02-10T10:04:00Z", WSID: "00-056-04", Data: map[string]interface{}{"skill": "deploy"}},
+		{ID: "idea", Type: "plan", Timestamp: "2026-02-10T10:00:00Z", WSID: "00-056-04", Data: map[string]any{"skill": "idea"}},
+		{ID: "design", Type: "plan", Timestamp: "2026-02-10T10:01:00Z", WSID: "00-056-04", Data: map[string]any{"skill": "design"}},
+		{ID: "build", Type: "generation", Timestamp: "2026-02-10T10:02:00Z", WSID: "00-056-04", Data: map[string]any{"skill": "build"}},
+		{ID: "review", Type: "verification", Timestamp: "2026-02-10T10:03:00Z", WSID: "00-056-04", Data: map[string]any{"skill": "review", "passed": true}},
+		{ID: "deploy", Type: "approval", Timestamp: "2026-02-10T10:04:00Z", WSID: "00-056-04", Data: map[string]any{"skill": "deploy"}},
 	}
 	for _, ev := range chain {
 		if err := w.Append(ev); err != nil {

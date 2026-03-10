@@ -3,6 +3,7 @@ package sdpinit
 import (
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 // PreflightResult contains preflight check results
@@ -51,7 +52,7 @@ func DetectProjectType() string {
 		{isPythonProject, "python"},
 	}
 
-	detected := []string{}
+	detected := make([]string, 0, len(detectors))
 	for _, d := range detectors {
 		if d.check() {
 			detected = append(detected, d.typ)
@@ -114,10 +115,8 @@ func hasFilesWithExt(exts ...string) bool {
 		if entry.IsDir() {
 			continue
 		}
-		for _, ext := range exts {
-			if filepath.Ext(entry.Name()) == ext {
-				return true
-			}
+		if slices.Contains(exts, filepath.Ext(entry.Name())) {
+			return true
 		}
 	}
 	return false

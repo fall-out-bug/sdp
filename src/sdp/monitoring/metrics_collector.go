@@ -1,6 +1,8 @@
 package monitoring
 
 import (
+	"maps"
+	"slices"
 	"sync"
 	"time"
 )
@@ -114,9 +116,7 @@ func (m *MetricsCollector) GetMetrics() *MetricsSnapshot {
 		SeverityDistribution: make(map[string]int64),
 	}
 
-	for k, v := range m.validationsBySeverity {
-		snapshot.SeverityDistribution[k] = v
-	}
+	maps.Copy(snapshot.SeverityDistribution, m.validationsBySeverity)
 
 	if len(m.validationsLatency) > 0 {
 		snapshot.Validations.Latency = calculatePercentiles(m.validationsLatency)
@@ -165,13 +165,7 @@ func calculatePercentiles(durations []time.Duration) LatencyMetrics {
 	sorted := make([]time.Duration, len(durations))
 	copy(sorted, durations)
 
-	for i := 0; i < len(sorted); i++ {
-		for j := i + 1; j < len(sorted); j++ {
-			if sorted[i] > sorted[j] {
-				sorted[i], sorted[j] = sorted[j], sorted[i]
-			}
-		}
-	}
+	slices.Sort(sorted)
 
 	p50 := sorted[len(sorted)*50/100]
 	p95 := sorted[len(sorted)*95/100]

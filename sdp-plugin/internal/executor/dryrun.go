@@ -14,7 +14,7 @@ func writeLine(w io.Writer, s string) error {
 	_, err := fmt.Fprint(w, s+"\n")
 	return err
 }
-func writeFmt(w io.Writer, format string, a ...interface{}) error {
+func writeFmt(w io.Writer, format string, a ...any) error {
 	_, err := fmt.Fprintf(w, format, a...)
 	return err
 }

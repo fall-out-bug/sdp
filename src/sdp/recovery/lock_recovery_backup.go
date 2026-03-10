@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 )
 
@@ -20,7 +21,7 @@ func (rm *LockRecoveryManager) CreateBackup(lockPath string, reason string) (*Lo
 		return nil, fmt.Errorf("failed to parse lock file: %w", err)
 	}
 
-	if err := os.MkdirAll(rm.backupDir, 0755); err != nil {
+	if err := os.MkdirAll(rm.backupDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create backup directory: %w", err)
 	}
 
@@ -39,7 +40,7 @@ func (rm *LockRecoveryManager) CreateBackup(lockPath string, reason string) (*Lo
 		return nil, fmt.Errorf("failed to marshal backup: %w", err)
 	}
 
-	if err := os.WriteFile(backupPath, backupData, 0644); err != nil {
+	if err := os.WriteFile(backupPath, backupData, 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write backup: %w", err)
 	}
 
@@ -81,7 +82,7 @@ func (rm *LockRecoveryManager) RestoreFromBackup(lockPath string, backupPath str
 		}, fmt.Errorf("failed to marshal lock: %w", err)
 	}
 
-	if err := os.WriteFile(lockPath, lockData, 0644); err != nil {
+	if err := os.WriteFile(lockPath, lockData, 0o644); err != nil {
 		return &RecoveryResult{
 			Success:      false,
 			LockFile:     lockPath,
@@ -150,13 +151,16 @@ func (rm *LockRecoveryManager) cleanOldBackups(featureName string) error {
 	sortedBackups := make([]*LockBackup, len(backups))
 	copy(sortedBackups, backups)
 
-	for i := 0; i < len(sortedBackups); i++ {
-		for j := i + 1; j < len(sortedBackups); j++ {
-			if sortedBackups[i].CreatedAt.Before(sortedBackups[j].CreatedAt) {
-				sortedBackups[i], sortedBackups[j] = sortedBackups[j], sortedBackups[i]
-			}
+	slices.SortFunc(sortedBackups, func(a, b *LockBackup) int {
+		switch {
+		case a.CreatedAt.After(b.CreatedAt):
+			return -1
+		case a.CreatedAt.Before(b.CreatedAt):
+			return 1
+		default:
+			return 0
 		}
-	}
+	})
 
 	for i := 0; i < len(sortedBackups)-rm.maxBackups; i++ {
 		if err := os.Remove(sortedBackups[i].BackupPath); err != nil {

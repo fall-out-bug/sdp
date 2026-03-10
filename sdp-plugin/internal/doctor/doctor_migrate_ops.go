@@ -15,14 +15,14 @@ func createConfigBackup(configPath string) (string, error) {
 	}
 
 	backupDir := ".sdp/backups"
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
+	if err := os.MkdirAll(backupDir, 0o755); err != nil {
 		return "", err
 	}
 
 	timestamp := time.Now().Format("20060102-150405")
 	backupPath := filepath.Join(backupDir, fmt.Sprintf("config-%s.yml", timestamp))
 
-	if err := os.WriteFile(backupPath, content, 0644); err != nil {
+	if err := os.WriteFile(backupPath, content, 0o644); err != nil {
 		return "", err
 	}
 
@@ -32,7 +32,7 @@ func createConfigBackup(configPath string) (string, error) {
 // logMigration records migration to history file
 func logMigration(m *Migration) {
 	logPath := ".sdp/migrations.log"
-	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func migrateV0ToV1(configPath string) error {
 		contentStr = fmt.Sprintf("version: 1\n%s", contentStr)
 	}
 
-	return os.WriteFile(configPath, []byte(contentStr), 0644)
+	return os.WriteFile(configPath, []byte(contentStr), 0o644)
 }
 
 // ListBackups returns list of available config backups

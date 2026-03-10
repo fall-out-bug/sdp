@@ -12,19 +12,19 @@ var ErrCannotSynthesize = errors.New("cannot synthesize: conflicting proposals")
 type ConflictType int
 
 const (
-	NoConflict ConflictType = iota
-	MinorConflict  // Formatting, style
-	MediumConflict // Approach, implementation
-	MajorConflict  // Architecture, design
+	NoConflict     ConflictType = iota
+	MinorConflict               // Formatting, style
+	MediumConflict              // Approach, implementation
+	MajorConflict               // Architecture, design
 )
 
 // SynthesisResult represents the result of synthesis
 type SynthesisResult struct {
-	Solution      interface{}
-	Rule          string
-	WinningAgent  string
-	Reasoning     string
-	Proposals     []*Proposal
+	Solution     any
+	Rule         string
+	WinningAgent string
+	Reasoning    string
+	Proposals    []*Proposal
 }
 
 // Synthesizer manages agent proposals and applies synthesis rules
@@ -114,7 +114,7 @@ func (s *Synthesizer) unanimousResult() *SynthesisResult {
 	}
 
 	// Get first solution as reference
-	var firstSolution interface{}
+	var firstSolution any
 	for _, p := range s.proposals {
 		firstSolution = p.Solution
 		break
@@ -172,6 +172,6 @@ func (s *Synthesizer) domainExpertiseResult() *SynthesisResult {
 }
 
 // solutionsEqual compares two solutions for equality
-func solutionsEqual(a, b interface{}) bool {
+func solutionsEqual(a, b any) bool {
 	return fmt.Sprintf("%v", a) == fmt.Sprintf("%v", b)
 }

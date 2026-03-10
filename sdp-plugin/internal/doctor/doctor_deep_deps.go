@@ -10,7 +10,7 @@ import (
 // checkWorkstreamCircularDeps checks for circular dependencies in workstreams
 func checkWorkstreamCircularDeps() DeepCheckResult {
 	start := getTime()
-	details := make(map[string]interface{})
+	details := make(map[string]any)
 
 	wsDir := "docs/workstreams/backlog"
 	entries, err := os.ReadDir(wsDir)
@@ -47,13 +47,11 @@ func checkWorkstreamCircularDeps() DeepCheckResult {
 		}
 
 		// Simple "Depends on:" parsing
-		lines := strings.Split(string(content), "\n")
-		for _, line := range lines {
-			if strings.HasPrefix(line, "**Depends on**:") {
-				depList := strings.TrimPrefix(line, "**Depends on**:")
+		for line := range strings.SplitSeq(string(content), "\n") {
+			if depList, ok := strings.CutPrefix(line, "**Depends on**:"); ok {
 				depList = strings.TrimSpace(depList)
 				if depList != "" && depList != "-" {
-					for _, dep := range strings.Split(depList, ",") {
+					for dep := range strings.SplitSeq(depList, ",") {
 						deps[wsID] = append(deps[wsID], strings.TrimSpace(dep))
 					}
 				}
@@ -123,7 +121,7 @@ func detectCycles(deps map[string][]string) []string {
 // checkSkillsSyntax validates skill files have valid structure
 func checkSkillsSyntax() DeepCheckResult {
 	start := getTime()
-	details := make(map[string]interface{})
+	details := make(map[string]any)
 
 	skillsDir := ".claude/skills"
 	entries, err := os.ReadDir(skillsDir)

@@ -2,13 +2,13 @@ package evidence
 
 // Event is the base evidence log event (AC5, AC6).
 type Event struct {
-	ID        string      `json:"id"`
-	Type      string      `json:"type"` // plan, generation, verification, approval, decision, lesson
-	Timestamp string      `json:"timestamp"`
-	WSID      string      `json:"ws_id"`
-	CommitSHA string      `json:"commit_sha,omitempty"`
-	PrevHash  string      `json:"prev_hash,omitempty"`
-	Data      interface{} `json:"data,omitempty"`
+	ID        string `json:"id"`
+	Type      string `json:"type"` // plan, generation, verification, approval, decision, lesson
+	Timestamp string `json:"timestamp"`
+	WSID      string `json:"ws_id"`
+	CommitSHA string `json:"commit_sha,omitempty"`
+	PrevHash  string `json:"prev_hash,omitempty"`
+	Data      any    `json:"data,omitempty"`
 }
 
 // GenerationData is provenance for generation events (AC3).

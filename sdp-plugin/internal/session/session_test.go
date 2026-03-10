@@ -49,7 +49,7 @@ func TestSessionFormat(t *testing.T) {
 				t.Fatalf("failed to marshal session: %v", err)
 			}
 
-			var result map[string]interface{}
+			var result map[string]any
 			if err := json.Unmarshal(data, &result); err != nil {
 				t.Fatalf("failed to unmarshal result: %v", err)
 			}
@@ -67,7 +67,7 @@ func TestSessionInit(t *testing.T) {
 	// AC2: Implement `sdp session init` command to create session file
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -117,7 +117,7 @@ func TestSessionSaveAndLoad(t *testing.T) {
 	// AC2: Session file should be saved and loaded correctly
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -152,7 +152,7 @@ func TestSessionSync(t *testing.T) {
 	// AC3: Implement `sdp session sync` to update session from git state
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -186,7 +186,7 @@ func TestSessionRepair(t *testing.T) {
 	// AC4: Implement `sdp session repair` to rebuild corrupted sessions
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -207,7 +207,7 @@ func TestSessionRepair(t *testing.T) {
 	}
 	// Modify the feature ID without updating hash
 	corruptData = []byte(strings.Replace(string(corruptData), "F065", "F066", 1))
-	if err := os.WriteFile(sessionPath, corruptData, 0644); err != nil {
+	if err := os.WriteFile(sessionPath, corruptData, 0o644); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
 
@@ -236,7 +236,7 @@ func TestHashVerification(t *testing.T) {
 	// AC5: Add hash verification for tamper detection
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -397,7 +397,7 @@ func TestValidate(t *testing.T) {
 func TestExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -424,7 +424,7 @@ func TestExists(t *testing.T) {
 func TestDelete(t *testing.T) {
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 

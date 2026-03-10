@@ -2,6 +2,7 @@ package coordination
 
 import (
 	"context"
+	"slices"
 	"strings"
 )
 
@@ -29,13 +30,9 @@ func (r *ACCoverageRule) Verify(ctx context.Context, spec *WorkstreamSpec, code 
 	}
 
 	// Check if test entities exist
-	hasTests := false
-	for _, entity := range code.Entities {
-		if strings.HasPrefix(entity, "Test") {
-			hasTests = true
-			break
-		}
-	}
+	hasTests := slices.ContainsFunc(code.Entities, func(entity string) bool {
+		return strings.HasPrefix(entity, "Test")
+	})
 
 	if !hasTests {
 		return &VerificationResult{

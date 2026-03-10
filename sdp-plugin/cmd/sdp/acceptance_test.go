@@ -26,7 +26,7 @@ func TestRunAcceptanceFromConfig_EmptyCommand(t *testing.T) {
 
 	// Create .sdp directory
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -35,7 +35,7 @@ func TestRunAcceptanceFromConfig_EmptyCommand(t *testing.T) {
 acceptance:
   command: ""
 `
-	if err := os.WriteFile(filepath.Join(sdpDir, "config.yml"), []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sdpDir, "config.yml"), []byte(configContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,7 +56,7 @@ func TestRunAcceptanceFromConfig_WithInvalidCommand(t *testing.T) {
 
 	// Create .sdp directory
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -66,7 +66,7 @@ acceptance:
   command: "nonexistent-command-that-should-fail"
   timeout: "5s"
 `
-	if err := os.WriteFile(filepath.Join(sdpDir, "config.yml"), []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sdpDir, "config.yml"), []byte(configContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

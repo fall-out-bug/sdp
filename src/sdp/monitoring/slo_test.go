@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -10,7 +11,7 @@ func TestEvaluateSLOs_AllPassing(t *testing.T) {
 	collector := NewMetricsCollector()
 
 	// Record good metrics (fast, successful)
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		collector.RecordValidation(true, 100*time.Millisecond, 0, 0, 0)
 		collector.RecordSchemaParse(true)
 		collector.RecordReportGeneration(true, 50*time.Millisecond)
@@ -46,7 +47,7 @@ func TestEvaluateSLOs_SlowLatency(t *testing.T) {
 	collector := NewMetricsCollector()
 
 	// Record some slow validations (p95 will exceed 5s target)
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		latency := 100 * time.Millisecond
 		if i >= 95 {
 			latency = 6 * time.Second // Slow p95
@@ -76,7 +77,7 @@ func TestEvaluateSLOs_LowAvailability(t *testing.T) {
 	collector := NewMetricsCollector()
 
 	// Record 50% success rate (below 99.9% target)
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		success := i%2 == 0
 		collector.RecordValidation(success, 100*time.Millisecond, 0, 0, 0)
 	}
@@ -171,7 +172,7 @@ func TestSLOReportString(t *testing.T) {
 	}
 
 	for _, required := range requiredStrings {
-		if !contains(output, required) {
+		if !strings.Contains(output, required) {
 			t.Errorf("Expected report to contain %q", required)
 		}
 	}
@@ -203,7 +204,7 @@ func TestHealthCheck_NoMetrics(t *testing.T) {
 		t.Error("Expected health check to fail when no metrics available")
 	}
 
-	if !contains(err.Error(), "no validation metrics") {
+	if !strings.Contains(err.Error(), "no validation metrics") {
 		t.Errorf("Expected 'no validation metrics' error, got: %v", err)
 	}
 }
@@ -225,7 +226,7 @@ func TestHealthCheck_LowSuccessRate(t *testing.T) {
 		t.Error("Expected health check to fail with low success rate")
 	}
 
-	if !contains(err.Error(), "success rate below minimum") {
+	if !strings.Contains(err.Error(), "success rate below minimum") {
 		t.Errorf("Expected 'success rate below minimum' error, got: %v", err)
 	}
 }

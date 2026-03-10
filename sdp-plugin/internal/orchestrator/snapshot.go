@@ -98,7 +98,7 @@ func (m *SnapshotManager) Save(snap *Snapshot) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if err := os.MkdirAll(m.snapshotsDir, 0755); err != nil {
+	if err := os.MkdirAll(m.snapshotsDir, 0o755); err != nil {
 		return err
 	}
 
@@ -108,7 +108,7 @@ func (m *SnapshotManager) Save(snap *Snapshot) error {
 	}
 
 	path := filepath.Join(m.snapshotsDir, snap.ID+".json")
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0o644)
 }
 
 // Load retrieves a snapshot from disk (AC3)

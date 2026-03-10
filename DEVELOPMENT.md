@@ -124,8 +124,22 @@ golangci-lint run ./...
 golangci-lint run --fix ./...
 
 # Specific linter
-golangci-lint run --disable-all --enable=errcheck ./...
+golangci-lint run --enable-only errcheck ./...
+
+# Modern Go audit snapshot
+golangci-lint run --enable-only modernize --issues-exit-code 0 ./...
 ```
+
+## Go Style
+
+For Go code, follow `@go-modern` and prefer behavior-preserving stdlib idioms that match the module Go version.
+
+- Prefer `slices.SortFunc` over `sort.Slice`
+- Prefer `strings.Cut` over `strings.SplitN(..., 2)` or manual `strings.Index` slicing
+- Prefer `strings.CutPrefix` and `strings.CutSuffix` over prefix or suffix checks plus trim
+- Prefer `slices.Contains`, `maps.Copy`, and `maps.Clone` over handwritten helper loops
+- Prefer `any` over `interface{}` for locals, parameters, and variadics when behavior does not change
+- Use `golangci-lint` or `staticcheck` instead of `golint`
 
 ### Pre-commit Checks
 

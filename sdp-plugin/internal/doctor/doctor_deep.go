@@ -14,7 +14,7 @@ type DeepCheckResult struct {
 	Status   string // "ok", "warning", "error"
 	Duration time.Duration
 	Message  string
-	Details  map[string]interface{}
+	Details  map[string]any
 }
 
 // getTime returns current time for duration tracking
@@ -52,7 +52,7 @@ func RunDeepChecks() []DeepCheckResult {
 // checkGitHooks validates git hooks are properly configured
 func checkGitHooks() DeepCheckResult {
 	start := getTime()
-	details := make(map[string]interface{})
+	details := make(map[string]any)
 
 	hooksDir := ".git/hooks"
 	if _, err := os.Stat(hooksDir); os.IsNotExist(err) {

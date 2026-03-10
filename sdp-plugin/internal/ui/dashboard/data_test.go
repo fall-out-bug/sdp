@@ -37,26 +37,85 @@ func TestFetchWorkstreams_WithWorkstreamFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create a workstream file
 	wsContent := `---
-id: 00-001-01
-feature: F001
-status: open
-goal: Test workstream
+ws_id: 00-001-01
+feature_id: F001
+status: completed
+priority: 0
 size: S
+depends_on: []
 ---
+
+## Goal
+
+Completed workstream
+
+## Acceptance Criteria
+
+- [x] Completed item
+`
+	blockedContent := `---
+ws_id: 00-001-03
+feature_id: F001
+status: ready
+priority: 2
+size: M
+depends_on: ["00-001-02"]
+---
+
+## Goal
+
+Blocked workstream
+
+## Acceptance Criteria
+
+- [ ] Blocked item
+`
+	readyAfterDependencyContent := `---
+ws_id: 00-001-02
+feature_id: F001
+status: ready
+priority: 1
+size: M
+depends_on: ["00-001-01"]
+---
+
+## Goal
+
+Ready after dependency
+
+## Acceptance Criteria
+
+- [ ] Ready item after dependency
 `
 	wsFile := filepath.Join(wsDir, "00-001-01.md")
 	if err := os.WriteFile(wsFile, []byte(wsContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(wsDir, "00-001-02.md"), []byte(readyAfterDependencyContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(wsDir, "00-001-03.md"), []byte(blockedContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	app := New()
 	summaries := app.fetchWorkstreams()
 
-	// Should have at least the open group
-	if len(summaries["open"]) == 0 {
-		t.Log("No workstreams found (parser may require different format)")
+	if len(summaries["open"]) != 1 {
+		t.Fatalf("expected 1 open workstream, got %d", len(summaries["open"]))
+	}
+	if summaries["open"][0].ID != "00-001-02" {
+		t.Fatalf("expected open workstream 00-001-02, got %s", summaries["open"][0].ID)
+	}
+	if summaries["open"][0].Title != "Ready after dependency" {
+		t.Fatalf("expected title from parsed workstream, got %q", summaries["open"][0].Title)
+	}
+	if len(summaries["blocked"]) != 1 {
+		t.Fatalf("expected 1 blocked workstream, got %d", len(summaries["blocked"]))
+	}
+	if summaries["blocked"][0].ID != "00-001-03" {
+		t.Fatalf("expected blocked workstream 00-001-03, got %s", summaries["blocked"][0].ID)
 	}
 }
 

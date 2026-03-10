@@ -1,6 +1,7 @@
 package drift
 
 import (
+	"strings"
 	"time"
 )
 
@@ -70,17 +71,27 @@ func (r *EnhancedDriftReport) GenerateVerdict() string {
 
 // String returns a formatted report
 func (r *EnhancedDriftReport) String() string {
-	result := "## Enhanced Drift Report\n\n"
+	var builder strings.Builder
+	builder.WriteString("## Enhanced Drift Report\n\n")
 	for _, dt := range r.DriftTypes {
-		result += "### " + string(dt.Type) + " (" + string(dt.Severity) + ")\n"
+		builder.WriteString("### ")
+		builder.WriteString(string(dt.Type))
+		builder.WriteString(" (")
+		builder.WriteString(string(dt.Severity))
+		builder.WriteString(")\n")
 		for _, issue := range dt.Issues {
-			result += "- " + issue.File
+			builder.WriteString("- ")
+			builder.WriteString(issue.File)
 			if issue.Line > 0 {
-				result += ":" + string(rune(issue.Line))
+				builder.WriteString(":" + string(rune(issue.Line)))
 			}
-			result += ": " + issue.Message + "\n"
+			builder.WriteString(": ")
+			builder.WriteString(issue.Message)
+			builder.WriteString("\n")
 		}
 	}
-	result += "\n**Verdict:** " + r.Verdict + "\n"
-	return result
+	builder.WriteString("\n**Verdict:** ")
+	builder.WriteString(r.Verdict)
+	builder.WriteString("\n")
+	return builder.String()
 }

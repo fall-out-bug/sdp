@@ -7,18 +7,18 @@
 
 ### New to SDP?
 1. **[Quick Start](#quick-start)** - Get started in 5 minutes
-2. **[Tutorial](docs/TUTORIAL.md)** - 15-minute hands-on tutorial
-3. **[PROTOCOL.md](docs/PROTOCOL.md)** - Full specification (when you need details)
+2. **[Tutorial](TUTORIAL.md)** - 15-minute hands-on tutorial
+3. **[PROTOCOL.md](PROTOCOL.md)** - Full specification (when you need details)
 
 ### Experienced User
 1. **[Skill Reference](#skill-reference)** - Quick command lookup
 2. **[Decision Trees](#decision-trees)** - Choose the right workflow
-3. **[Quality Gates](docs/quality-gates.md)** - Code quality standards
+3. **[Quality Gates](quality-gates.md)** - Code quality standards
 
 ### Enterprise/Team
-1. **[Beads Workflow](docs/workflow-decision.md)** - Task tracking integration
-2. **[SRE SLOs](docs/slos/orchestrator.md)** - Service level objectives
-3. **[Security](docs/SECURITY.md)** - Security guidelines
+1. **[Beads Workflow](workflow-decision.md)** - Task tracking integration
+2. **[SRE SLOs](slos/orchestrator.md)** - Service level objectives
+3. **[Security](SECURITY.md)** - Security guidelines
 
 ---
 
@@ -45,18 +45,18 @@ That's it! Everything else builds on these three commands.
 
 ### Level 1: Getting Started (L1)
 - [Quick Start](#quick-start) - 3 commands to know
-- [Tutorial](docs/TUTORIAL.md) - Learn by doing
-- [README](README.md) - Project overview
+- [Tutorial](TUTORIAL.md) - Learn by doing
+- [README](../README.md) - Project overview
 
 ### Level 2: Core Concepts (L2)
-- [Workstreams](docs/PROTOCOL.md#workstream) - Atomic units of work
-- [Features](docs/PROTOCOL.md#feature) - Collections of workstreams
-- [Quality Gates](docs/quality-gates.md) - Code quality standards
+- [Workstreams](PROTOCOL.md#workstream) - Atomic units of work
+- [Features](PROTOCOL.md#feature) - Collections of workstreams
+- [Quality Gates](quality-gates.md) - Code quality standards
 - [Skills](#skill-reference) - Available commands
 
 ### Level 3: Workflows & Decisions (L3)
 - [Decision Trees](#decision-trees) - Choose the right approach
-- [Workflow Comparison](docs/workflow-decision.md) - Beads vs Traditional
+- [Workflow Comparison](workflow-decision.md) - Beads vs Traditional
 - [Debugging](#debugging) - Systematic problem solving
 
 ### Level 4: Advanced Topics (L4)
@@ -90,7 +90,7 @@ START: I want to build a feature
       (Spawns orchestrator agent, runs workstreams autonomously)
 ```
 
-**See Also:** [Workflow Comparison](docs/workflow-decision.md)
+**See Also:** [Workflow Comparison](workflow-decision.md)
 
 ---
 
@@ -116,7 +116,7 @@ START: I need to check code quality
       (Coverage ≥80%, files <200 LOC, type hints, etc.)
 ```
 
-**See Also:** [Quality Gates Reference](docs/quality-gates.md)
+**See Also:** [Quality Gates Reference](quality-gates.md)
 
 ---
 
@@ -141,7 +141,7 @@ START: How should I execute workstreams?
    └─ YES → Use @build or @oneshot (same, but no Beads tracking)
 ```
 
-**See Also:** [Beads Integration](docs/workflow-decision.md#beads-first-workflow)
+**See Also:** [Beads Integration](workflow-decision.md#beads-first-workflow)
 
 ---
 
@@ -188,76 +188,77 @@ START: How should I execute workstreams?
 ### Level 1: Essential (L1)
 **Goal:** Get started immediately
 - [Quick Start](#quick-start) - 3 commands
-- [Tutorial](docs/TUTORIAL.md) - 15-minute intro
-- [README](README.md) - Project overview
+- [Tutorial](TUTORIAL.md) - 15-minute intro
+- [README](../README.md) - Project overview
 
 ### Level 2: Core Concepts (L2)
 **Goal:** Understand how SDP works
-- [PROTOCOL.md](docs/PROTOCOL.md) - Full specification
-- [Workstreams](docs/PROTOCOL.md#workstream) - Atomic tasks
-- [Quality Gates](docs/quality-gates.md) - Code quality standards
+- [PROTOCOL.md](PROTOCOL.md) - Full specification
+- [Workstreams](PROTOCOL.md#workstream) - Atomic tasks
+- [Quality Gates](quality-gates.md) - Code quality standards
 
 ### Level 3: Workflows (L3)
 **Goal:** Choose the right approach
 - [Decision Trees](#decision-trees) - This page
-- [Workflow Comparison](docs/workflow-decision.md) - Beads vs Traditional
-- [CLAUDE.md](CLAUDE.md) - Integration guide
+- [Workflow Comparison](workflow-decision.md) - Beads vs Traditional
+- [CLAUDE.md](../CLAUDE.md) - Integration guide
 
 ### Level 4: Advanced (L4)
 **Goal:** Deep dive and customization
 - [SRE & Operations](#sre--operations) - Monitoring, SLOs
 - [Architecture](#architecture) - System design
-- [Security](docs/SECURITY.md) - Security guidelines
+- [Security](SECURITY.md) - Security guidelines
 
 ---
 
 ## SRE & Operations
 
 ### Monitoring & Observability
-- [Orchestrator SLOs](docs/slos/orchestrator.md) - Service level objectives
-- [Structured Logging](docs/workflows/backlog/sdp-zig-structured_logging.md) - Logging implementation
-- [Telemetry Guide](docs/TELEMETRY_HOWTO.md) - Telemetry setup
+- [Orchestrator SLOs](slos/orchestrator.md) - Service level objectives
+- [Structured Logging](workflows/backlog/sdp-zig-structured_logging.md) - Logging implementation
+- [Telemetry Guide](TELEMETRY_HOWTO.md) - Telemetry setup
 
 ### Runbooks
-- [Decision Logging](docs/runbooks/decision-logging.md) - Logging runbook
-- [Decision Backup](docs/operations/decision-backup.md) - Backup procedures
+- [Decision Logging](runbooks/decision-logging.md) - Logging runbook
+- [Decision Backup](operations/decision-backup.md) - Backup procedures
 
 ---
 
 ## Architecture
 
 ### Core Components
-- [Checkpoint System](docs/PROTOCOL.md#checkpoint-system) - State persistence
-- [Orchestrator](docs/F024_unified_workflow_spec.md) - Multi-workstream execution
-- [Beads Integration](docs/workflow-decision.md#beads-integration) - Task tracking
+- [Checkpoint System](PROTOCOL.md#checkpoint-system) - State persistence
+- [Orchestrator](F024_unified_workflow_spec.md) - Multi-workstream execution
+- [Beads Integration](workflow-decision.md#beads-integration) - Task tracking
 
 ### Feature Specifications
-- [Unified Workflow](docs/F024_unified_workflow_spec.md) - Multi-workstream orchestration
-- [Workstream Specifications](docs/workflows/) - Detailed workstream docs
+- [Unified Workflow](F024_unified_workflow_spec.md) - Multi-workstream orchestration
+- [Workstream Specifications](workflows/) - Detailed workstream docs
+- [Library Capabilities](reference/LIBRARY_CAPABILITIES.md) - Current package and subsystem map
 
 ---
 
 ## Extensions
 
 ### Role Management
-- [Role Setup Guide](docs/ROLE_SETUP_GUIDE.md) - Configure 100+ roles
-- [Role Switching Guide](docs/ROLE_SWITCHING_GUIDE.md) - Dynamic role activation
+- [Role Setup Guide](ROLE_SETUP_GUIDE.md) - Configure 100+ roles
+- [Role Switching Guide](ROLE_SWITCHING_GUIDE.md) - Dynamic role activation
 
 ### Notifications
-- [Notification System Guide](docs/NOTIFICATION_SYSTEM_GUIDE.md) - Telegram integration
-- [Notification Provider](docs/workflows/WS-017_notification_provider.md) - Provider interface
+- [Notification System Guide](NOTIFICATION_SYSTEM_GUIDE.md) - Telegram integration
+- [Notification Provider](workflows/WS-017_notification_provider.md) - Provider interface
 
 ### Testing
-- [Testing Guide](docs/TESTING_GUIDE.md) - Testing best practices
-- [Bug Report Guide](docs/BUG_REPORT_GUIDE.md) - Bug reporting workflow
+- [Testing Guide](TESTING_GUIDE.md) - Testing best practices
+- [Bug Report Guide](BUG_REPORT_GUIDE.md) - Bug reporting workflow
 
 ---
 
 ## Language-Specific Quick Starts
 
-- [Python Quick Start](docs/examples/python/QUICKSTART.md)
-- [Java Quick Start](docs/examples/java/QUICKSTART.md)
-- [Go Quick Start](docs/examples/go/QUICKSTART.md)
+- [Python Quick Start](examples/python/QUICKSTART.md)
+- [Java Quick Start](examples/java/QUICKSTART.md)
+- [Go Quick Start](examples/go/QUICKSTART.md)
 
 ---
 
@@ -290,7 +291,7 @@ Use `/debug` for unexpected failures:
 **A:** `@feature` is the **unified workflow** (vision → requirements → planning → execution). `@design` is just the **planning phase** - use it when you already have requirements but need to break down into workstreams.
 
 ### Q: Do I need Beads CLI?
-**A:** Recommended for team collaboration and multi-session work. Optional for single-developer projects. See [Workflow Comparison](docs/workflow-decision.md).
+**A:** Recommended for team collaboration and multi-session work. Optional for single-developer projects. See [Workflow Comparison](workflow-decision.md).
 
 ### Q: How do I get help?
 **A:** Use `@help` or `claude help` to see available commands and get interactive guidance.
@@ -300,7 +301,7 @@ Use `/debug` for unexpected failures:
 ## Need Help?
 
 - **Quick Help:** Run `@help` in Claude Code
-- **Report Issues:** See [Bug Report Guide](docs/BUG_REPORT_GUIDE.md)
+- **Report Issues:** See [Bug Report Guide](BUG_REPORT_GUIDE.md)
 - **Contributing:** See [README - Contributing Section](README.md#contributing)
 
 ---

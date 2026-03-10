@@ -3,6 +3,7 @@ package ciloop_test
 import (
 	"context"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/fall-out-bug/sdp/internal/ciloop"
@@ -20,7 +21,7 @@ func TestMatchingFixersImportError(t *testing.T) {
 	for i, f := range matching {
 		names[i] = f.Name
 	}
-	if !contains(names, "goimports") {
+	if !slices.Contains(names, "goimports") {
 		t.Errorf("expected goimports to match, got %v", names)
 	}
 }
@@ -34,7 +35,7 @@ func TestMatchingFixersGoModTidy(t *testing.T) {
 	for i, f := range matching {
 		names[i] = f.Name
 	}
-	if !contains(names, "go-mod-tidy") {
+	if !slices.Contains(names, "go-mod-tidy") {
 		t.Errorf("expected go-mod-tidy to match missing package, got %v", names)
 	}
 }
@@ -83,15 +84,6 @@ func TestDeterministicFirstFixerFallsThroughToInnerWhenNoDeterministicHelp(t *te
 	if len(committer.commits) != 1 {
 		t.Errorf("expected inner fixer to commit, got %d commits", len(committer.commits))
 	}
-}
-
-func contains(s []string, x string) bool {
-	for _, v := range s {
-		if v == x {
-			return true
-		}
-	}
-	return false
 }
 
 func TestSplitCommand(t *testing.T) {

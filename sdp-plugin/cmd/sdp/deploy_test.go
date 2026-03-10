@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -17,12 +18,12 @@ func TestDeployCmd_ApprovalEvent(t *testing.T) {
 	// Create .sdp/config.yml to enable evidence
 	cfgDir := filepath.Join(tmpDir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	cfgContent := "version: 1\nevidence:\n  enabled: true\n  log_path: \".sdp/log/events.jsonl\"\n"
-	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 
@@ -73,12 +74,12 @@ func TestDeployCmd_DefaultValues(t *testing.T) {
 
 	cfgDir := filepath.Join(tmpDir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	cfgContent := "version: 1\nevidence:\n  enabled: false\n"
-	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 
@@ -102,12 +103,12 @@ func TestDeployCmd_EvidenceDisabled(t *testing.T) {
 
 	cfgDir := filepath.Join(tmpDir, ".sdp")
 	logDir := filepath.Join(cfgDir, "log")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	cfgPath := filepath.Join(cfgDir, "config.yml")
 	cfgContent := "version: 1\nevidence:\n  enabled: false\n"
-	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0644); err != nil {
+	if err := os.WriteFile(cfgPath, []byte(cfgContent), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 
@@ -137,7 +138,7 @@ func TestDeployCmd_EvidenceDisabled(t *testing.T) {
 // containsAll checks if s contains all substrings
 func containsAll(s string, subs ...string) bool {
 	for _, sub := range subs {
-		if !contains(s, sub) {
+		if !strings.Contains(s, sub) {
 			return false
 		}
 	}

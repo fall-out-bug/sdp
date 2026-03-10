@@ -43,6 +43,9 @@ complete -c sdp -f
 
 complete -c sdp -n "__fish_use_subcommand" -a init -d "Initialize project with SDP prompts"
 complete -c sdp -n "__fish_use_subcommand" -a doctor -d "Check environment"
+complete -c sdp -n "__fish_use_subcommand" -a status -d "Show current project state"
+complete -c sdp -n "__fish_use_subcommand" -a next -d "Get next-step recommendation"
+complete -c sdp -n "__fish_use_subcommand" -a demo -d "Run a guided first-success walkthrough"
 complete -c sdp -n "__fish_use_subcommand" -a hooks -d "Manage Git hooks"
 complete -c sdp -n "__fish_use_subcommand" -a parse -d "Parse SDP workstream files"
 complete -c sdp -n "__fish_use_subcommand" -a beads -d "Interact with Beads task tracker"

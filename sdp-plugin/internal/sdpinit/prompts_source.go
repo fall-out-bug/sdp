@@ -73,7 +73,7 @@ func downloadPromptsToCache() (string, error) {
 	}
 	// Clear invalid/partial cache before re-download
 	_ = os.RemoveAll(promptsRoot)
-	if err := os.MkdirAll(promptsRoot, 0755); err != nil {
+	if err := os.MkdirAll(promptsRoot, 0o755); err != nil {
 		return "", fmt.Errorf("create prompts cache dir: %w", err)
 	}
 
@@ -128,7 +128,7 @@ func unzipPrompts(zipPath, destRoot string) error {
 		}
 
 		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(target, 0755); err != nil {
+			if err := os.MkdirAll(target, 0o755); err != nil {
 				return fmt.Errorf("create prompts dir %s: %w", target, err)
 			}
 			continue
@@ -142,11 +142,11 @@ func unzipPrompts(zipPath, destRoot string) error {
 }
 
 func promptsArchiveRelPath(entryName string) (string, bool) {
-	idx := strings.Index(entryName, "/prompts/")
-	if idx < 0 {
+	_, rel, ok := strings.Cut(entryName, "/prompts/")
+	if !ok {
 		return "", false
 	}
-	rel := strings.TrimPrefix(entryName[idx+len("/prompts/"):], "/")
+	rel = strings.TrimPrefix(rel, "/")
 	if rel == "" {
 		return "", false
 	}
@@ -162,7 +162,7 @@ func safePromptsTarget(destRoot, rel string) (string, error) {
 }
 
 func extractArchiveFile(f *zip.File, target string) error {
-	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 		return fmt.Errorf("create prompts parent dir %s: %w", target, err)
 	}
 

@@ -14,7 +14,7 @@ func TestCheckFileSize_WithViolation(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -25,7 +25,7 @@ func TestCheckFileSize_WithViolation(t *testing.T) {
 	}
 	largeContent := strings.Join(lines, "\n")
 	largeFile := filepath.Join(tmpDir, "large.go")
-	if err := os.WriteFile(largeFile, []byte("package main\n\n"+largeContent), 0644); err != nil {
+	if err := os.WriteFile(largeFile, []byte("package main\n\n"+largeContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -58,7 +58,7 @@ func TestCheckFileSize_WithRelativePath(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -69,7 +69,7 @@ func TestCheckFileSize_WithRelativePath(t *testing.T) {
 	}
 	largeContent := strings.Join(lines, "\n")
 	largeFile := filepath.Join(tmpDir, "bigfile.go")
-	if err := os.WriteFile(largeFile, []byte("package main\n\n"+largeContent), 0644); err != nil {
+	if err := os.WriteFile(largeFile, []byte("package main\n\n"+largeContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -95,7 +95,7 @@ func TestCheckComplexity_WithViolation(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -149,7 +149,7 @@ func complexFunction(x int) int {
 }
 `
 	complexFile := filepath.Join(tmpDir, "complex.go")
-	if err := os.WriteFile(complexFile, []byte(complexContent), 0644); err != nil {
+	if err := os.WriteFile(complexFile, []byte(complexContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -179,7 +179,7 @@ func TestCheckFileSize_NotQuiet(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -189,7 +189,7 @@ func TestCheckFileSize_NotQuiet(t *testing.T) {
 		lines[i] = "// line"
 	}
 	largeFile := filepath.Join(tmpDir, "large.go")
-	if err := os.WriteFile(largeFile, []byte("package main\n"+strings.Join(lines, "\n")), 0644); err != nil {
+	if err := os.WriteFile(largeFile, []byte("package main\n"+strings.Join(lines, "\n")), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -216,7 +216,7 @@ func TestClearViolations_RemovesExisting(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

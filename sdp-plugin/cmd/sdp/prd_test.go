@@ -46,7 +46,7 @@ func TestPrdDetectTypeCmd(t *testing.T) {
 			// Create test file if specified
 			if tt.createFile != "" {
 				filePath := tmpDir + "/" + tt.createFile
-				if err := os.WriteFile(filePath, []byte("test"), 0644); err != nil {
+				if err := os.WriteFile(filePath, []byte("test"), 0o644); err != nil {
 					t.Fatalf("Failed to create test file: %v", err)
 				}
 			}
@@ -74,7 +74,7 @@ func TestPrdDetectTypeWithPath(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a go.mod file
-	if err := os.WriteFile(tmpDir+"/go.mod", []byte("module test"), 0644); err != nil {
+	if err := os.WriteFile(tmpDir+"/go.mod", []byte("module test"), 0o644); err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
 

@@ -1,5 +1,7 @@
 package evidence
 
+import "maps"
+
 // PlanEvent builds a plan event (AC1).
 func PlanEvent(wsID string, scopeFiles []string) *Event {
 	return PlanEventWithFeature(wsID, "", scopeFiles)
@@ -7,7 +9,7 @@ func PlanEvent(wsID string, scopeFiles []string) *Event {
 
 // PlanEventWithFeature builds a plan event with feature_id (F056).
 func PlanEventWithFeature(wsID, featureID string, scopeFiles []string) *Event {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"scope_files": scopeFiles,
 		"action":      "activate",
 	}
@@ -22,16 +24,14 @@ func PlanEventWithFeature(wsID, featureID string, scopeFiles []string) *Event {
 }
 
 // PlanEventForDesign builds a plan event for @design completion (F056).
-func PlanEventForDesign(wsID, featureID string, wsCount int, scopeFiles []string, metadata map[string]interface{}) *Event {
-	data := map[string]interface{}{
+func PlanEventForDesign(wsID, featureID string, wsCount int, scopeFiles []string, metadata map[string]any) *Event {
+	data := map[string]any{
 		"feature_id":  featureID,
 		"ws_count":    wsCount,
 		"scope_files": scopeFiles,
 		"action":      "design_complete",
 	}
-	for k, v := range metadata {
-		data[k] = v
-	}
+	maps.Copy(data, metadata)
 	return &Event{
 		Type: "plan",
 		WSID: wsID,
@@ -47,7 +47,7 @@ type QAPair struct {
 
 // PlanEventForIdea builds a plan event for @idea completion (F056).
 func PlanEventForIdea(wsID, featureID string, questionCount int, summary string, qaPairs []QAPair) *Event {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"feature_id":     featureID,
 		"question_count": questionCount,
 		"summary":        summary,

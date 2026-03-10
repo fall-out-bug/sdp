@@ -6,9 +6,9 @@ import (
 )
 
 var (
-	reScopeFile   = regexp.MustCompile(`^-\s+` + "`" + `([^` + "`" + `]+)` + "`")
-	reAcceptance  = regexp.MustCompile(`^-\s+\[[ x]\]\s+(.+)`)
-	reDependsOn   = regexp.MustCompile(`(?m)^depends_on:\s*\[(.*?)\]`)
+	reScopeFile  = regexp.MustCompile(`^-\s+` + "`" + `([^` + "`" + `]+)` + "`")
+	reAcceptance = regexp.MustCompile(`^-\s+\[[ x]\]\s+(.+)`)
+	reDependsOn  = regexp.MustCompile(`(?m)^depends_on:\s*\[(.*?)\]`)
 )
 
 func parseWorkstreamSections(content string) (acceptance []string, scopeFiles []string) {
@@ -47,7 +47,7 @@ func parseWorkstreamSections(content string) (acceptance []string, scopeFiles []
 func parseDependsOn(content string) []string {
 	var deps []string
 	if m := reDependsOn.FindStringSubmatch(content); len(m) > 1 {
-		for _, s := range strings.Split(m[1], ",") {
+		for s := range strings.SplitSeq(m[1], ",") {
 			id := strings.Trim(strings.Trim(s, `"`), " ")
 			if id != "" {
 				deps = append(deps, id)
@@ -58,14 +58,13 @@ func parseDependsOn(content string) []string {
 }
 
 func parseQualityGates(agentsContent string) string {
-	idx := strings.Index(agentsContent, "## Quality Gates")
-	if idx < 0 {
+	_, rest, ok := strings.Cut(agentsContent, "## Quality Gates")
+	if !ok {
 		return ""
 	}
-	rest := agentsContent[idx:]
-	end := strings.Index(rest, "\n## ")
-	if end > 0 {
-		rest = rest[:end]
+	section := "## Quality Gates" + rest
+	if before, _, ok := strings.Cut(section, "\n## "); ok {
+		section = before
 	}
-	return strings.TrimSpace(rest)
+	return strings.TrimSpace(section)
 }

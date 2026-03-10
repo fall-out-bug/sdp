@@ -67,13 +67,10 @@ func (c *Checker) checkPythonCoverage(ctx context.Context, result *CoverageResul
 		// Parse output for coverage percentage
 		outputStr := string(output)
 		if strings.Contains(outputStr, "%") {
-			lines := strings.Split(outputStr, "\n")
-			for _, line := range lines {
+			for line := range strings.SplitSeq(outputStr, "\n") {
 				if strings.Contains(line, "TOTAL") && strings.Contains(line, "%") {
-					fields := strings.Fields(line)
-					for _, field := range fields {
-						if strings.HasSuffix(field, "%") {
-							covStr := strings.TrimSuffix(field, "%")
+					for field := range strings.FieldsSeq(line) {
+						if covStr, ok := strings.CutSuffix(field, "%"); ok {
 							cov, err := strconv.ParseFloat(covStr, 64)
 							if err == nil {
 								result.Coverage = cov
@@ -138,7 +135,7 @@ func (c *Checker) checkGoCoverage(ctx context.Context, result *CoverageResult) (
 				testArgs = append(testArgs, "./...")
 			} else {
 				var pkgs []string
-				for _, line := range strings.Split(strings.TrimSpace(string(listOut)), "\n") {
+				for line := range strings.SplitSeq(strings.TrimSpace(string(listOut)), "\n") {
 					line = strings.TrimSpace(line)
 					if line == "" {
 						continue
@@ -300,7 +297,7 @@ func truncateOutput(b []byte, maxLen int) string {
 
 // parseCoverageJSON extracts percent_covered from JSON. Returns -1 if not found or invalid.
 func parseCoverageJSON(data []byte) float64 {
-	var m map[string]interface{}
+	var m map[string]any
 	if err := json.Unmarshal(data, &m); err != nil {
 		return -1
 	}
@@ -312,7 +309,7 @@ func parseCoverageJSON(data []byte) float64 {
 			return float64(x)
 		}
 	}
-	if totals, ok := m["totals"].(map[string]interface{}); ok {
+	if totals, ok := m["totals"].(map[string]any); ok {
 		if v, ok := totals["percent_covered"]; ok {
 			switch x := v.(type) {
 			case float64:

@@ -104,7 +104,7 @@ func RollbackMigration(backupPath string) error {
 	}
 
 	// Write to config
-	if err := os.WriteFile(configPath, backupContent, 0644); err != nil {
+	if err := os.WriteFile(configPath, backupContent, 0o644); err != nil {
 		return fmt.Errorf("cannot restore config: %w", err)
 	}
 

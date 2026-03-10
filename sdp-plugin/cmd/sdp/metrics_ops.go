@@ -23,10 +23,10 @@ func getValidTypes() []string {
 
 // evidenceEvent represents a simplified evidence event for classification.
 type evidenceEvent struct {
-	ID   string                 `json:"id"`
-	Type string                 `json:"type"`
-	WSID string                 `json:"ws_id"`
-	Data map[string]interface{} `json:"data"`
+	ID   string         `json:"id"`
+	Type string         `json:"type"`
+	WSID string         `json:"ws_id"`
+	Data map[string]any `json:"data"`
 }
 
 // readEventsJSONL reads events from JSONL file.
@@ -51,7 +51,7 @@ func readEventsJSONL(path string) ([]evidenceEvent, error) {
 			continue // Skip invalid lines
 		}
 		if ev.Data == nil {
-			ev.Data = make(map[string]interface{})
+			ev.Data = make(map[string]any)
 		}
 		events = append(events, ev)
 	}
@@ -62,7 +62,7 @@ func readEventsJSONL(path string) ([]evidenceEvent, error) {
 // initMetricsDir ensures metrics directory exists
 func initMetricsDir() {
 	metricsDir := filepath.Join(".sdp", "metrics")
-	if err := os.MkdirAll(metricsDir, 0755); err != nil {
+	if err := os.MkdirAll(metricsDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "warning: failed to create metrics directory: %v\n", err)
 	}
 }

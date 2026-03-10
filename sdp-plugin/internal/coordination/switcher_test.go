@@ -47,7 +47,7 @@ func TestRoleSwitcher_AssignRole_SelfReview(t *testing.T) {
 
 func TestRoleSwitcher_AssignRole_SpecialistTask(t *testing.T) {
 	switcher := NewRoleSwitcher()
-	task := &Task{Type: "implement", ID: "task-001", AssignedAgent: "agent-1", Metadata: map[string]interface{}{"specialty": "security"}}
+	task := &Task{Type: "implement", ID: "task-001", AssignedAgent: "agent-1", Metadata: map[string]any{"specialty": "security"}}
 	history := []AgentEvent{}
 
 	role := switcher.AssignRole(task, history)

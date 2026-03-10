@@ -10,7 +10,7 @@ import (
 func TestPromptForInteractive(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -35,7 +35,7 @@ func TestPromptForInteractive(t *testing.T) {
 func TestExecuteAutoApply(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,

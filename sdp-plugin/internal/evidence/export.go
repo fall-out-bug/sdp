@@ -56,7 +56,7 @@ func (e *Exporter) extractFields(ev Event) (model, action string) {
 	if ev.Data == nil {
 		return "", ""
 	}
-	m, ok := ev.Data.(map[string]interface{})
+	m, ok := ev.Data.(map[string]any)
 	if !ok {
 		return "", ""
 	}
@@ -114,7 +114,7 @@ func (e *Exporter) Stats(events []Event) Stats {
 
 		// Count by model
 		if ev.Data != nil {
-			m, ok := ev.Data.(map[string]interface{})
+			m, ok := ev.Data.(map[string]any)
 			if ok {
 				if v, ok := m["model_id"]; ok {
 					if s, ok := v.(string); ok {

@@ -66,8 +66,19 @@ type ProjectState struct {
 	// ActiveWorkstream is the currently active workstream, if any.
 	ActiveWorkstream string `json:"active_workstream,omitempty"`
 
+	Session *SessionState `json:"session,omitempty"`
+
 	// SessionID is the current session identifier.
 	SessionID string `json:"session_id,omitempty"`
+}
+
+type SessionState struct {
+	WorkstreamID   string `json:"workstream_id,omitempty"`
+	FeatureID      string `json:"feature_id,omitempty"`
+	WorktreePath   string `json:"worktree_path,omitempty"`
+	ExpectedBranch string `json:"expected_branch,omitempty"`
+	ExpectedRemote string `json:"expected_remote,omitempty"`
+	Source         string `json:"source,omitempty"`
 }
 
 // ExecutionMode represents the current execution mode.

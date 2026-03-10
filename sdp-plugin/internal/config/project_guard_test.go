@@ -42,7 +42,7 @@ func TestLoadGuardRules_FileNotExist_ReturnsDefault(t *testing.T) {
 func TestLoadGuardRules_ValidFile(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	rulesPath := filepath.Join(cfgDir, "guard-rules.yml")
@@ -52,7 +52,7 @@ rules:
     enabled: true
     severity: warning
 `
-	if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(rulesPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -74,11 +74,11 @@ rules:
 func TestLoadGuardRules_InvalidYAML_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	rulesPath := filepath.Join(cfgDir, "guard-rules.yml")
-	if err := os.WriteFile(rulesPath, []byte("invalid: ["), 0644); err != nil {
+	if err := os.WriteFile(rulesPath, []byte("invalid: ["), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -91,14 +91,14 @@ func TestLoadGuardRules_InvalidYAML_ReturnsError(t *testing.T) {
 func TestLoadGuardRules_InvalidVersion_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	rulesPath := filepath.Join(cfgDir, "guard-rules.yml")
 	content := `version: 0
 rules: []
 `
-	if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(rulesPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -111,7 +111,7 @@ rules: []
 func TestLoadGuardRules_MissingRuleID_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	rulesPath := filepath.Join(cfgDir, "guard-rules.yml")
@@ -120,7 +120,7 @@ rules:
   - enabled: true
     severity: error
 `
-	if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(rulesPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -133,7 +133,7 @@ rules:
 func TestLoadGuardRules_MissingSeverity_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	rulesPath := filepath.Join(cfgDir, "guard-rules.yml")
@@ -142,7 +142,7 @@ rules:
   - id: my-rule
     enabled: true
 `
-	if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(rulesPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -155,7 +155,7 @@ rules:
 func TestLoadGuardRules_InvalidSeverity_ReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	cfgDir := filepath.Join(dir, ".sdp")
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	rulesPath := filepath.Join(cfgDir, "guard-rules.yml")
@@ -165,7 +165,7 @@ rules:
     enabled: true
     severity: critical
 `
-	if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(rulesPath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

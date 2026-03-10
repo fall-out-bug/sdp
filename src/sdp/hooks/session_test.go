@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -87,14 +88,7 @@ func TestRegisterSessionHooks(t *testing.T) {
 	}
 
 	for _, expected := range expectedTypes {
-		found := false
-		for _, actual := range types {
-			if actual == expected {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(types, expected) {
 			t.Errorf("missing event type: %s", expected)
 		}
 	}

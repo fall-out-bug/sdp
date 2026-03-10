@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -276,22 +277,8 @@ func TestMetricsSnapshotString(t *testing.T) {
 	}
 
 	for _, required := range requiredStrings {
-		if !contains(output, required) {
+		if !strings.Contains(output, required) {
 			t.Errorf("Expected output to contain %q", required)
 		}
 	}
-}
-
-// Helper function
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || indexOf(s, substr) >= 0)
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
 }

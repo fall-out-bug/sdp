@@ -40,6 +40,7 @@ SDP is a **protocol + evidence layer** for AI coding agents. It structures work 
 | What | When |
 |------|------|
 | `sdp-evidence` as standalone binary | Soon — `go install` or release |
+| Audit walkthrough polish (`sdp demo`, `sdp log show`, sample evidence story) | Soon — adoption packaging, not a new protocol layer |
 | awesome-opencode listing | After first release |
 | Multi-repo protocol | Protocol defines path→scope, commit per-repo; repo names = project config |
 

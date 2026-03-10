@@ -26,9 +26,7 @@ func (cb *CircuitBreaker) calculateBackoff() time.Duration {
 	backoff := baseTimeout * time.Duration(1<<uint(cb.consecutiveOpens-1))
 
 	// Cap at max backoff
-	if backoff > cb.maxBackoff {
-		backoff = cb.maxBackoff
-	}
+	backoff = min(backoff, cb.maxBackoff)
 
 	return backoff
 }

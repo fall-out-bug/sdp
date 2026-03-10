@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/fall-out-bug/sdp/internal/checkpoint"
 )
@@ -80,11 +81,8 @@ func (o *Orchestrator) getRemainingWorkstreams(allWorkstreams []string, cp *chec
 	// Find position of current workstream
 	startIndex := 0
 	if cp.CurrentWorkstream != "" {
-		for i, wsID := range allWorkstreams {
-			if wsID == cp.CurrentWorkstream {
-				startIndex = i
-				break
-			}
+		if idx := slices.Index(allWorkstreams, cp.CurrentWorkstream); idx >= 0 {
+			startIndex = idx
 		}
 	}
 

@@ -3,6 +3,7 @@ package planner
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -57,7 +58,7 @@ func TestPlanExecution_AC5(t *testing.T) {
 func TestEmitPlanEvent_NoWriter(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:     backlogDir,
@@ -74,7 +75,7 @@ func TestEmitPlanEvent_NoWriter(t *testing.T) {
 		t.Error("Expected error when evidence writer not configured")
 	}
 
-	if !containsString(err.Error(), "evidence writer") {
+	if !strings.Contains(err.Error(), "evidence writer") {
 		t.Errorf("Error should mention evidence writer, got: %v", err)
 	}
 }

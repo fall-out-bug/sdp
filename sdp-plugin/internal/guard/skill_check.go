@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 )
 
@@ -42,13 +43,7 @@ func (s *Skill) CheckEdit(filePath string) (*GuardResult, error) {
 	}
 
 	// Check if file is in scope
-	allowed := false
-	for _, scopeFile := range state.ScopeFiles {
-		if filePath == scopeFile {
-			allowed = true
-			break
-		}
-	}
+	allowed := slices.Contains(state.ScopeFiles, filePath)
 
 	if !allowed {
 		return &GuardResult{

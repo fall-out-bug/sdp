@@ -25,7 +25,7 @@ func TestLogTraceCommand(t *testing.T) {
 
 	// Initialize minimal project structure
 	sdpDir := filepath.Join(tmpDir, ".sdp", "log")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("create .sdp/log dir: %v", err)
 	}
 
@@ -36,7 +36,7 @@ evidence:
   log_path: ".sdp/log/events.jsonl"
 `
 	configPath := filepath.Join(tmpDir, ".sdp", "config.yml")
-	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 		t.Fatalf("create config: %v", err)
 	}
 
@@ -76,7 +76,7 @@ func TestLogStatsCommand(t *testing.T) {
 
 	// Initialize minimal project structure
 	sdpDir := filepath.Join(tmpDir, ".sdp", "log")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("create .sdp/log dir: %v", err)
 	}
 
@@ -87,7 +87,7 @@ evidence:
   log_path: ".sdp/log/events.jsonl"
 `
 	configPath := filepath.Join(tmpDir, ".sdp", "config.yml")
-	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 		t.Fatalf("create config: %v", err)
 	}
 

@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/checkpoint"
@@ -167,14 +168,7 @@ func (fc *FeatureCoordinator) getRemainingWorkstreams(allWorkstreams []string, c
 	// Filter out already completed workstreams
 	var result []string
 	for _, wsID := range remaining {
-		completed := false
-		for _, completedID := range cp.CompletedWorkstreams {
-			if wsID == completedID {
-				completed = true
-				break
-			}
-		}
-		if !completed {
+		if !slices.Contains(cp.CompletedWorkstreams, wsID) {
 			result = append(result, wsID)
 		}
 	}
