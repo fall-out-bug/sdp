@@ -12,7 +12,7 @@
 
 ```bash
 # Install plugin (no Python required)
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 cp -r ~/.claude/sdp/prompts/* .claude/
 
 # Create feature (interactive)

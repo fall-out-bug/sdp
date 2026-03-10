@@ -93,7 +93,7 @@ Legacy format still supported!
 
 ```bash
 # Clone plugin repository
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 
 # Copy prompts to your project
 cp -r ~/.claude/sdp/prompts/* .claude/
@@ -262,7 +262,7 @@ sdp deploy WS-001-01
 
 ```bash
 # Installation (no pip)
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 cp -r ~/.claude/sdp/prompts/* .claude/
 
 # Create workstream (interactive)
