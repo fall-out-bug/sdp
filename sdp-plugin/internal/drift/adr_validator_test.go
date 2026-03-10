@@ -3,6 +3,7 @@ package drift
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -107,15 +108,7 @@ func TestADRValidator_ExtractKeywords(t *testing.T) {
 	}
 
 	// Should find SQLite and FTS5
-	hasSQLite := false
-	for _, kw := range keywords {
-		if kw == "sqlite" {
-			hasSQLite = true
-			break
-		}
-	}
-
-	if !hasSQLite {
+	if !slices.Contains(keywords, "sqlite") {
 		t.Error("Expected to find 'sqlite' keyword")
 	}
 }

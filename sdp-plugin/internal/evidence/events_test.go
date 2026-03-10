@@ -17,7 +17,7 @@ func TestVerificationEventWithFindings(t *testing.T) {
 	if ev.Data == nil {
 		t.Fatal("Data is nil")
 	}
-	m, _ := ev.Data.(map[string]interface{})
+	m, _ := ev.Data.(map[string]any)
 	if m["findings"] != "Coverage below threshold" {
 		t.Errorf("findings: got %v", m["findings"])
 	}
@@ -31,18 +31,18 @@ func TestApprovalEvent(t *testing.T) {
 	if ev.Data == nil {
 		t.Fatal("Data is nil")
 	}
-	m, _ := ev.Data.(map[string]interface{})
+	m, _ := ev.Data.(map[string]any)
 	if m["target_branch"] != "main" || m["commit_sha"] != "abc123def" || m["approved_by"] != "CI" {
 		t.Errorf("ApprovalEvent data: got %v", m)
 	}
 }
 
 func TestSkillEvent(t *testing.T) {
-	ev := SkillEvent("vision", "plan", "00-000-00", map[string]interface{}{"strategic": true})
+	ev := SkillEvent("vision", "plan", "00-000-00", map[string]any{"strategic": true})
 	if ev.Type != "plan" || ev.WSID != "00-000-00" {
 		t.Errorf("SkillEvent: got %+v", ev)
 	}
-	m, _ := ev.Data.(map[string]interface{})
+	m, _ := ev.Data.(map[string]any)
 	if m["skill"] != "vision" || m["strategic"] != true {
 		t.Errorf("SkillEvent data: got %v", m)
 	}
@@ -50,7 +50,7 @@ func TestSkillEvent(t *testing.T) {
 	if ev2.Data == nil {
 		t.Fatal("SkillEvent with nil data: Data is nil")
 	}
-	m2, _ := ev2.Data.(map[string]interface{})
+	m2, _ := ev2.Data.(map[string]any)
 	if m2["skill"] != "reality" {
 		t.Errorf("SkillEvent nil data: got %v", m2)
 	}

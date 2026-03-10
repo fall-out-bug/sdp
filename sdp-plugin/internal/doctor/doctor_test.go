@@ -3,6 +3,7 @@ package doctor
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestCheckClaudeDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	claudeDir := filepath.Join(tmpDir, ".claude")
 	for _, subdir := range []string{"skills", "agents", "validators"} {
-		if err := os.MkdirAll(filepath.Join(claudeDir, subdir), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(claudeDir, subdir), 0o755); err != nil {
 			t.Fatalf("mkdir: %v", err)
 		}
 	}
@@ -28,7 +29,7 @@ func TestCheckClaudeDir(t *testing.T) {
 	if result.Status != "ok" {
 		t.Errorf("Expected status ok, got %s", result.Status)
 	}
-	if !contains(result.Message, "SDP prompts installed") {
+	if !strings.Contains(result.Message, "SDP prompts installed") {
 		t.Errorf("Wrong message: %s", result.Message)
 	}
 }
@@ -48,7 +49,7 @@ func TestCheckClaudeDir_NotFound(t *testing.T) {
 	if result.Status != "error" {
 		t.Errorf("Expected status error, got %s", result.Status)
 	}
-	if !contains(result.Message, "Not found") {
+	if !strings.Contains(result.Message, "Not found") {
 		t.Errorf("Wrong message: %s", result.Message)
 	}
 }
@@ -73,7 +74,7 @@ func TestCheckFilePermissions_AllSecure(t *testing.T) {
 	// Create temp directory with .beads
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -213,7 +214,7 @@ func TestRunWithOptions_WithDrift(t *testing.T) {
 	// Create temp directory with docs/workstreams/completed
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -269,7 +270,7 @@ func TestFindRecentWorkstreamsForDrift(t *testing.T) {
 	// Create temp directory with docs/workstreams/completed
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -310,7 +311,7 @@ func TestFindRecentWorkstreamsForDrift_EmptyDirectories(t *testing.T) {
 	// Create temp directory with empty workstreams directories
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -324,27 +325,11 @@ func TestFindRecentWorkstreamsForDrift_EmptyDirectories(t *testing.T) {
 	}
 }
 
-// Helper function
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
-		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			indexOf(s, substr) >= 0))
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
-}
-
 func TestCheckFilePermissions_Insecure(t *testing.T) {
 	// Create a temp .beads directory with insecure file
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -373,7 +358,7 @@ func TestCheckFilePermissions_Secure(t *testing.T) {
 	// Create a temp .beads directory with secure file
 	tmpDir := t.TempDir()
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -418,7 +403,7 @@ func TestCheckFilePermissions_InsecureFilesInDirectory(t *testing.T) {
 	// Create .oneshot directory with insecure file
 	tmpDir := t.TempDir()
 	oneshotDir := filepath.Join(tmpDir, ".oneshot")
-	if err := os.MkdirAll(oneshotDir, 0755); err != nil {
+	if err := os.MkdirAll(oneshotDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -440,7 +425,7 @@ func TestCheckFilePermissions_InsecureFilesInDirectory(t *testing.T) {
 	if result.Status != "warning" {
 		t.Errorf("Expected warning for insecure directory files, got %s: %s", result.Status, result.Message)
 	}
-	if !contains(result.Message, "insecure permissions") {
+	if !strings.Contains(result.Message, "insecure permissions") {
 		t.Errorf("Expected insecure permissions message, got: %s", result.Message)
 	}
 }
@@ -449,7 +434,7 @@ func TestCheckDrift_NoWorkstreamsFound(t *testing.T) {
 	// Create temp directory with docs/workstreams/completed but empty
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -471,7 +456,7 @@ func TestCheckDrift_NoWorkstreamsFound(t *testing.T) {
 	if result.Status != "ok" {
 		t.Errorf("Expected ok status when no workstreams, got %s: %s", result.Status, result.Message)
 	}
-	if !contains(result.Message, "No recent workstreams") {
+	if !strings.Contains(result.Message, "No recent workstreams") {
 		t.Errorf("Expected 'No recent workstreams' message, got: %s", result.Message)
 	}
 }
@@ -480,7 +465,7 @@ func TestCheckDrift_CouldNotCheckAny(t *testing.T) {
 	// Create temp directory with invalid workstream files (can't be parsed)
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -511,7 +496,7 @@ func TestCheckDrift_CouldNotCheckAny(t *testing.T) {
 	if result.Status != "warning" {
 		t.Errorf("Expected warning status when can't check workstreams, got %s: %s", result.Status, result.Message)
 	}
-	if !contains(result.Message, "Could not check") {
+	if !strings.Contains(result.Message, "Could not check") {
 		t.Errorf("Expected 'Could not check' message, got: %s", result.Message)
 	}
 }
@@ -525,7 +510,7 @@ func TestCheckDrift_WithValidWorkstreams(t *testing.T) {
 	// Change to a directory with actual workstreams (the sdp repo)
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 

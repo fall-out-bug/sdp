@@ -126,6 +126,12 @@ func runDemo(template string, shouldCleanup bool, verbose bool) error {
 			Expected:    "Next Action:",
 		},
 		{
+			Name:        "Get Next Step",
+			Description: "View machine-readable next-step guidance",
+			Command:     "sdp next --json",
+			Expected:    "\"action_id\"",
+		},
+		{
 			Name:        "Run Tests",
 			Description: "Execute project tests",
 			Command:     "go test ./...",
@@ -185,7 +191,8 @@ func printDemoSummary(shouldCleanup bool, demoDir string) {
 	fmt.Println("  2. Initialized SDP with guided setup")
 	fmt.Println("  3. Verified your environment")
 	fmt.Println("  4. Checked project status")
-	fmt.Println("  5. Run project tests")
+	fmt.Println("  5. Retrieved the next recommended action")
+	fmt.Println("  6. Run project tests")
 	fmt.Println()
 
 	if shouldCleanup {

@@ -44,6 +44,12 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 |-----|---------|
 | [releases/v0.9.8.md](releases/v0.9.8.md) | v0.9.8 — Evidence Before Push |
 
+## Drafts
+
+| Doc | Purpose |
+|-----|---------|
+| [drafts/idea-audit-demo-surface-polish.md](drafts/idea-audit-demo-surface-polish.md) | Align the public audit walkthrough with existing evidence surfaces |
+
 ## Artifacts
 
 - **Prompts:** `../prompts/skills/`, `../prompts/agents/`

@@ -54,50 +54,6 @@ func TestContainsPathTraversal(t *testing.T) {
 	}
 }
 
-// TestContains tests substring search
-func TestContains(t *testing.T) {
-	tests := []struct {
-		name     string
-		s        string
-		substr   string
-		expected bool
-	}{
-		{
-			name:     "substring exists",
-			s:        "hello world",
-			substr:   "world",
-			expected: true,
-		},
-		{
-			name:     "substring not exists",
-			s:        "hello world",
-			substr:   "foo",
-			expected: false,
-		},
-		{
-			name:     "empty substring",
-			s:        "hello",
-			substr:   "",
-			expected: true,
-		},
-		{
-			name:     "exact match",
-			s:        "test",
-			substr:   "test",
-			expected: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := contains(tt.s, tt.substr)
-			if result != tt.expected {
-				t.Errorf("contains(%q, %q) = %v, want %v", tt.s, tt.substr, result, tt.expected)
-			}
-		})
-	}
-}
-
 // TestCountErrors tests error counting in validation issues
 func TestCountErrors(t *testing.T) {
 	tests := []struct {
@@ -152,7 +108,7 @@ func TestFindWorkstreamFile(t *testing.T) {
 	// Create temp directory structure
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -166,7 +122,7 @@ status: completed
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -198,7 +154,7 @@ func TestParseRun(t *testing.T) {
 	// Create temp directory with workstream file
 	tmpDir := t.TempDir()
 	backlogDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(backlogDir, 0755); err != nil {
+	if err := os.MkdirAll(backlogDir, 0o755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
@@ -215,7 +171,7 @@ acceptance_criteria:
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -303,7 +259,7 @@ status: completed
 ---
 # Test Workstream
 `
-	if err := os.WriteFile(wsPath, []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(wsPath, []byte(wsContent), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 

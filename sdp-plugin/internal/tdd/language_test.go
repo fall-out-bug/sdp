@@ -10,7 +10,7 @@ func TestDetectLanguageByGoMod(t *testing.T) {
 	// Create temporary directory with go.mod
 	tmpDir := t.TempDir()
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
@@ -31,7 +31,7 @@ func TestDetectLanguageByPyprojectToml(t *testing.T) {
 	// Create temporary directory with pyproject.toml
 	tmpDir := t.TempDir()
 	pyprojectPath := filepath.Join(tmpDir, "pyproject.toml")
-	err := os.WriteFile(pyprojectPath, []byte("[tool.poetry]\n"), 0644)
+	err := os.WriteFile(pyprojectPath, []byte("[tool.poetry]\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create pyproject.toml: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestDetectLanguageByPomXml(t *testing.T) {
 	// Create temporary directory with pom.xml
 	tmpDir := t.TempDir()
 	pomPath := filepath.Join(tmpDir, "pom.xml")
-	err := os.WriteFile(pomPath, []byte("<project></project>\n"), 0644)
+	err := os.WriteFile(pomPath, []byte("<project></project>\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create pom.xml: %v", err)
 	}
@@ -87,13 +87,13 @@ func TestDetectLanguagePriority(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
 
 	pyprojectPath := filepath.Join(tmpDir, "pyproject.toml")
-	err = os.WriteFile(pyprojectPath, []byte("[tool.poetry]\n"), 0644)
+	err = os.WriteFile(pyprojectPath, []byte("[tool.poetry]\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create pyproject.toml: %v", err)
 	}

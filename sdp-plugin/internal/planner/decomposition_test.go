@@ -3,6 +3,7 @@ package planner
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestPlanExecution_AC1(t *testing.T) {
 	// Create temp directory for testing
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	// Mock decomposition
 	result := &DecompositionResult{
@@ -52,7 +53,7 @@ func TestPlanExecution_AC1(t *testing.T) {
 func TestPlanExecution_AC2(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -74,7 +75,7 @@ func TestPlanExecution_AC2(t *testing.T) {
 func TestPlanExecution_AC3(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -91,7 +92,7 @@ func TestPlanExecution_AC3(t *testing.T) {
 func TestPlanExecution_AC7(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -122,7 +123,7 @@ func TestPlanExecution_AC7(t *testing.T) {
 func TestPlanExecution_AC8(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -141,7 +142,7 @@ func TestPlanExecution_AC8(t *testing.T) {
 	}
 
 	expectedMsg := "model API"
-	if err != nil && !containsString(err.Error(), expectedMsg) {
+	if err != nil && !strings.Contains(err.Error(), expectedMsg) {
 		t.Errorf("Error message should mention model API, got: %v", err)
 	}
 }
@@ -150,7 +151,7 @@ func TestPlanExecution_AC8(t *testing.T) {
 func TestDecompose_WithModel(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -182,18 +183,4 @@ func TestDecompose_WithModel(t *testing.T) {
 	if result.CreatedAt == "" {
 		t.Error("Should have CreatedAt timestamp")
 	}
-}
-
-// Helper function for string contains
-func containsString(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && containsSubstr(s, substr))
-}
-
-func containsSubstr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }

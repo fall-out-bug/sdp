@@ -304,7 +304,7 @@ func New(code ErrorCode, cause error) *SDPError {
 }
 
 // Newf creates a new SDPError with a custom message.
-func Newf(code ErrorCode, format string, args ...interface{}) *SDPError {
+func Newf(code ErrorCode, format string, args ...any) *SDPError {
 	return &SDPError{
 		Code:    code,
 		Message: fmt.Sprintf(format, args...),

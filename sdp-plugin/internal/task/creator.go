@@ -20,14 +20,14 @@ func (c *Creator) CreateWorkstream(task *Task) (*Workstream, error) {
 	seq := c.nextSequence(prefix)
 	wsID := c.generateWSID(task.Type, task.FeatureID, seq)
 
-	if err := os.MkdirAll(c.config.WorkstreamDir, 0755); err != nil {
+	if err := os.MkdirAll(c.config.WorkstreamDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create workstream dir: %w", err)
 	}
 
 	content := c.generateWorkstreamContent(wsID, task)
 	path := filepath.Join(c.config.WorkstreamDir, wsID+".md")
 
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write workstream: %w", err)
 	}
 

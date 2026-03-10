@@ -1,7 +1,7 @@
 package synthesis
 
 import (
-	"sort"
+	"slices"
 )
 
 // RuleEngine executes synthesis rules in priority order
@@ -21,8 +21,15 @@ func (e *RuleEngine) AddRule(rule SynthesisRule) {
 	e.rules = append(e.rules, rule)
 
 	// Sort by priority (1 = highest)
-	sort.Slice(e.rules, func(i, j int) bool {
-		return e.rules[i].Priority() < e.rules[j].Priority()
+	slices.SortFunc(e.rules, func(a, b SynthesisRule) int {
+		switch {
+		case a.Priority() < b.Priority():
+			return -1
+		case a.Priority() > b.Priority():
+			return 1
+		default:
+			return 0
+		}
 	})
 }
 

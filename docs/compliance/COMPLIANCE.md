@@ -10,7 +10,7 @@ Enterprise reference for the Spec-Driven Protocol (SDP) evidence layer. Use this
 
 - **Where evidence lives:** The evidence log lives in the customer's git repository, under `.sdp/log/` (or configured path). No evidence is stored on SDP servers by default.
 - **What leaves the repo:** Nothing leaves the repository unless the customer explicitly configures export (e.g. audit log forwarding). SDP CLI and plugins operate locally against the repo.
-- **Telemetry:** Anonymous usage statistics may be sent to SDP infrastructure when telemetry is enabled; opt-out is available. Telemetry does not include evidence content or prompts.
+- **Telemetry:** Telemetry is opt-in and stored locally under the user config directory. SDP does not transmit telemetry to SDP infrastructure or third-party analytics services by default.
 - **Code:** Raw code is never transmitted by SDP to third parties; model providers handle prompts and completions under their own terms.
 
 **Use cases:** Banks and regulated industries can keep all evidence on-premises or in their chosen region by keeping the repo in that environment.

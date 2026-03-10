@@ -1,5 +1,7 @@
 package graph
 
+import "maps"
+
 // GetCompleted returns the list of completed workstream IDs
 func (d *Dispatcher) GetCompleted() []string {
 	d.mu.RLock()
@@ -18,9 +20,7 @@ func (d *Dispatcher) GetFailed() map[string]error {
 	defer d.mu.RUnlock()
 
 	failed := make(map[string]error)
-	for id, err := range d.failed {
-		failed[id] = err
-	}
+	maps.Copy(failed, d.failed)
 	return failed
 }
 

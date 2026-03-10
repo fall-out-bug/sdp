@@ -1,6 +1,7 @@
 package coordination
 
 import (
+	"slices"
 	"time"
 )
 
@@ -12,7 +13,7 @@ type Task struct {
 	ID            string
 	Type          string
 	AssignedAgent string
-	Metadata      map[string]interface{}
+	Metadata      map[string]any
 }
 
 // RoleSwitcher handles dynamic role switching (AC2, AC3, AC4, AC5)
@@ -65,7 +66,7 @@ func (s *RoleSwitcher) SwitchRole(newRole Role, reason string) *AgentEvent {
 		AgentID:   s.AgentID,
 		Role:      string(newRole),
 		Timestamp: time.Now(),
-		Payload: map[string]interface{}{
+		Payload: map[string]any{
 			"from_role": string(oldRole),
 			"to_role":   string(newRole),
 			"reason":    reason,
@@ -75,18 +76,15 @@ func (s *RoleSwitcher) SwitchRole(newRole Role, reason string) *AgentEvent {
 
 // IsSelfReview checks if an agent is reviewing their own work (AC4)
 func (s *RoleSwitcher) IsSelfReview(taskID, agentID string, history []AgentEvent) bool {
-	for _, event := range history {
-		if event.TaskID == taskID && event.AgentID == agentID && event.Type == EventTypeAgentComplete {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(history, func(event AgentEvent) bool {
+		return event.TaskID == taskID && event.AgentID == agentID && event.Type == EventTypeAgentComplete
+	})
 }
 
 // GetPromptContext returns context to inject based on role (AC4)
-func (s *RoleSwitcher) GetPromptContext() map[string]interface{} {
+func (s *RoleSwitcher) GetPromptContext() map[string]any {
 	cap := GetCapabilities(s.CurrentRole)
-	return map[string]interface{}{
+	return map[string]any{
 		"role":         string(s.CurrentRole),
 		"can_execute":  cap.CanExecute,
 		"can_review":   cap.CanReview,

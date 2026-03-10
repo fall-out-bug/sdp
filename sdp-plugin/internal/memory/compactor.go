@@ -83,10 +83,7 @@ func (c *Compactor) CompactEvents(events []CompactableEvent) []EventSummary {
 
 	// Group events into batches of 'ratio' size
 	for i := 0; i < len(events); i += ratio {
-		end := i + ratio
-		if end > len(events) {
-			end = len(events)
-		}
+		end := min(i+ratio, len(events))
 
 		batch := events[i:end]
 		summary := c.Summarize(batch)

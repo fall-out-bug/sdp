@@ -23,8 +23,8 @@ type Committer interface {
 
 // FixerOptions configures the AutoFixer.
 type FixerOptions struct {
-	PRNumber       int
-	FeatureID      string
+	PRNumber  int
+	FeatureID string
 	// DiagnosticsDir is where fix diagnostics files are written before committing.
 	// Defaults to ".sdp/ci-fixes" when empty.
 	DiagnosticsDir string
@@ -147,11 +147,11 @@ func (f *AutoFixer) applyFix(check CheckResult, log string) (string, error) {
 
 // go test failure patterns.
 var (
-	reGoTestFail     = regexp.MustCompile(`--- FAIL: (\S+)`)
-	reGoTestAssert   = regexp.MustCompile(`\S+_test\.go:\d+: (.+)`)
-	reGoBuildUndef   = regexp.MustCompile(`undefined: (\S+)`)
-	reGoBuildNoPkg   = regexp.MustCompile(`cannot find package "([^"]+)"`)
-	reK8sYAMLError   = regexp.MustCompile(`yaml: (.+)`)
+	reGoTestFail   = regexp.MustCompile(`--- FAIL: (\S+)`)
+	reGoTestAssert = regexp.MustCompile(`\S+_test\.go:\d+: (.+)`)
+	reGoBuildUndef = regexp.MustCompile(`undefined: (\S+)`)
+	reGoBuildNoPkg = regexp.MustCompile(`cannot find package "([^"]+)"`)
+	reK8sYAMLError = regexp.MustCompile(`yaml: (.+)`)
 )
 
 func (f *AutoFixer) fixGoTest(log string) (string, error) {
@@ -193,8 +193,8 @@ func truncate(s string, n int) string {
 func sanitizeFixDescs(descs []string) []string {
 	out := make([]string, len(descs))
 	for i, d := range descs {
-		if idx := strings.Index(d, ":"); idx > 0 {
-			out[i] = strings.TrimSpace(d[:idx])
+		if before, _, ok := strings.Cut(d, ":"); ok && before != "" {
+			out[i] = strings.TrimSpace(before)
 		} else {
 			out[i] = truncate(d, 30)
 		}

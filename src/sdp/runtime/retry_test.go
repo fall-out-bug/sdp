@@ -180,7 +180,7 @@ func TestIsRetryable(t *testing.T) {
 func TestAddJitter(t *testing.T) {
 	delay := 100 * time.Millisecond
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		result := addJitter(delay)
 		// Jitter is ±25%, so 75ms to 125ms
 		if result < 75*time.Millisecond || result > 125*time.Millisecond {

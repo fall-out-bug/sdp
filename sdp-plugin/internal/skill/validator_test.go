@@ -3,6 +3,8 @@ package skill
 import (
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 )
 
@@ -63,10 +65,12 @@ func TestValidateFileTooLong(t *testing.T) {
 	validator := NewValidator()
 
 	// Create skill file with too many lines
-	content := "---\n"
-	for i := 0; i < 160; i++ {
-		content += "line\n"
+	var contentBuilder strings.Builder
+	contentBuilder.WriteString("---\n")
+	for range 160 {
+		contentBuilder.WriteString("line\n")
 	}
+	content := contentBuilder.String()
 
 	skillPath := filepath.Join(tmpDir, "SKILL.md")
 	os.WriteFile(skillPath, []byte(content), 0644)
@@ -90,10 +94,12 @@ func TestValidateFileWarningLength(t *testing.T) {
 	validator := NewValidator()
 
 	// Create skill file with warning length
-	content := "---\n## Quick Reference\n## Workflow\n## See Also\n"
-	for i := 0; i < 110; i++ {
-		content += "line\n"
+	var contentBuilder strings.Builder
+	contentBuilder.WriteString("---\n## Quick Reference\n## Workflow\n## See Also\n")
+	for range 110 {
+		contentBuilder.WriteString("line\n")
 	}
+	content := contentBuilder.String()
 
 	skillPath := filepath.Join(tmpDir, "SKILL.md")
 	os.WriteFile(skillPath, []byte(content), 0644)
@@ -160,15 +166,7 @@ func TestValidateFileNoFrontmatter(t *testing.T) {
 		t.Error("IsValid should be false without frontmatter")
 	}
 
-	found := false
-	for _, err := range result.Errors {
-		if err == "Missing frontmatter (must start with ---)" {
-			found = true
-			break
-		}
-	}
-
-	if !found {
+	if !slices.Contains(result.Errors, "Missing frontmatter (must start with ---)") {
 		t.Error("Should have error for missing frontmatter")
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -81,14 +82,7 @@ func TestCompletionValidArgsFunction(t *testing.T) {
 
 	expected := []string{"bash", "zsh", "fish"}
 	for _, exp := range expected {
-		found := false
-		for _, sug := range suggestions {
-			if sug == exp {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(suggestions, exp) {
 			t.Errorf("completionCmd() missing valid arg: %s", exp)
 		}
 	}

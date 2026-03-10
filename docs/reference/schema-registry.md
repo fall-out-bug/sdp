@@ -6,14 +6,17 @@ For implementation patterns and rollout guidance, see `docs/reference/integratio
 
 ## Registry Index
 
-- Canonical index: `schema/index.json`
-- Contract: every index entry must point to valid JSON
-- Verification: `TestSchemaRegistryLoads` in `sdp-plugin/internal/parser/workstream_test.go`
+- canonical index: `schema/index.json`
+- contract: every index entry must point to valid JSON
+- verification: `TestSchemaRegistryLoads` in `sdp-plugin/internal/parser/workstream_test.go`
 
 ## Protocol Contracts
 
 | Schema | Purpose |
 |---|---|
+| `schema/next-action.schema.json` | Legacy machine-readable next-action payload for orchestration flows |
+| `schema/contracts/instructions.schema.json` | Machine-readable next-step instruction payload for CLI and agents |
+| `schema/contracts/status-view.schema.json` | Machine-readable project state payload for `sdp status --json` |
 | `schema/contracts/orchestration-event.schema.json` | Event contract for orchestration telemetry (`task.started`, `quality.gate.failed`, etc.) |
 | `schema/contracts/runtime-decision.schema.json` | Runtime governance decision contract with `allow` / `ask` / `deny` semantics |
 
@@ -30,7 +33,7 @@ For implementation patterns and rollout guidance, see `docs/reference/integratio
 |---|---|
 | `schema/handoff-analyst.schema.json` | Analyst -> coder handoff payload |
 | `schema/handoff-coder.schema.json` | Coder -> reviewer handoff payload |
-| `schema/handoff-reviewer.schema.json` | Reviewer verdict payload (`approve` / `needs_changes` / `reject`) |
+| `schema/handoff-reviewer.schema.json` | Reviewer verdict payload |
 
 ## Hook Template
 

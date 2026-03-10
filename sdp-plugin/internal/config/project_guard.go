@@ -18,10 +18,10 @@ type GuardRules struct {
 
 // GuardRule represents a single guard rule.
 type GuardRule struct {
-	ID       string                 `yaml:"id"`
-	Enabled  bool                   `yaml:"enabled"`
-	Severity string                 `yaml:"severity"`
-	Config   map[string]interface{} `yaml:"config"`
+	ID       string         `yaml:"id"`
+	Enabled  bool           `yaml:"enabled"`
+	Severity string         `yaml:"severity"`
+	Config   map[string]any `yaml:"config"`
 }
 
 // DefaultGuardRules returns default guard rules when no rules file exists.
@@ -33,13 +33,13 @@ func DefaultGuardRules() *GuardRules {
 				ID:       "max-file-loc",
 				Enabled:  true,
 				Severity: "error",
-				Config:   map[string]interface{}{"max_lines": 200},
+				Config:   map[string]any{"max_lines": 200},
 			},
 			{
 				ID:       "coverage-threshold",
 				Enabled:  true,
 				Severity: "error",
-				Config:   map[string]interface{}{"minimum": 80},
+				Config:   map[string]any{"minimum": 80},
 			},
 		},
 	}

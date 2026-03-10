@@ -68,7 +68,7 @@ func (t *Taxonomy) Save() error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(t.path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create taxonomy dir: %w", err)
 	}
 
@@ -77,5 +77,5 @@ func (t *Taxonomy) Save() error {
 		return fmt.Errorf("marshal taxonomy: %w", err)
 	}
 
-	return os.WriteFile(t.path, data, 0644)
+	return os.WriteFile(t.path, data, 0o644)
 }

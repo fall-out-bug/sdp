@@ -26,10 +26,10 @@ func TestRoleLoader_LoadAll(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create test role files
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		path := filepath.Join(tmpDir, fmt.Sprintf("role%d.md", i))
 		content := fmt.Sprintf("# Role %d\n\nDescription for role %d", i, i)
-		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -68,7 +68,7 @@ func TestRoleLoader_Get(t *testing.T) {
 	// Create test role
 	path := filepath.Join(tmpDir, "test-role.md")
 	content := "# Test Role\n\nDescription"
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -117,10 +117,10 @@ func TestRoleLoader_List(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create test roles
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		path := filepath.Join(tmpDir, fmt.Sprintf("role%d.md", i))
 		content := fmt.Sprintf("# Role %d", i)
-		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -141,7 +141,7 @@ func TestRoleLoader_InvalidateCache(t *testing.T) {
 	// Create test role
 	path := filepath.Join(tmpDir, "test-role.md")
 	content := "# Test Role"
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -169,8 +169,8 @@ func TestRoleLoader_DuplicateRoles(t *testing.T) {
 	path2 := filepath.Join(tmpDir, "role-copy.md")
 
 	content := "# Duplicate Role"
-	os.WriteFile(path1, []byte(content), 0644)
-	os.WriteFile(path2, []byte(content), 0644)
+	os.WriteFile(path1, []byte(content), 0o644)
+	os.WriteFile(path2, []byte(content), 0o644)
 
 	loader := NewRoleLoader(tmpDir)
 	loader.LoadAll()

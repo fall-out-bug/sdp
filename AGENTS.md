@@ -22,6 +22,8 @@ go test ./...               # must pass
 go vet ./...                # no issues
 ```
 
+For Go changes, follow the canonical `@go-modern` skill in `prompts/skills/go-modern/SKILL.md` and prefer modern stdlib idioms when they preserve behavior.
+
 ## Canonical Prompt Source
 
 - Canonical prompts live in `prompts/skills/*/SKILL.md` and `prompts/agents/*.md`.

@@ -18,6 +18,9 @@ _sdp() {
 	commands=(
 		'init:Initialize project with SDP prompts'
 		'doctor:Check environment (Git, Claude Code, .claude/)'
+		'status:Show current project state'
+		'next:Get next-step recommendation'
+		'demo:Run a guided first-success walkthrough'
 		'hooks:Manage Git hooks for SDP'
 		'parse:Parse SDP workstream files'
 		'beads:Interact with Beads task tracker'

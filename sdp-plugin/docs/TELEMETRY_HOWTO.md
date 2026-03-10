@@ -59,7 +59,7 @@ telemetry.TrackCommandComplete(true, "")
 ### Location
 
 ```
-~/.sdp/telemetry.jsonl
+~/.config/sdp/telemetry.jsonl
 ```
 
 **Format:** JSONL (one JSON object per line)
@@ -93,7 +93,7 @@ $ sdp telemetry status
 Telemetry Status:
   Enabled: No
   Events: 5
-  File: /home/user/.sdp/telemetry.jsonl
+  File: /home/user/.config/sdp/telemetry.jsonl
 ```
 
 ### 2. Analyze Data
@@ -187,10 +187,10 @@ Exported telemetry to telemetry_export.csv
 
 ```bash
 # View last 10 events
-$ tail -10 ~/.sdp/telemetry.jsonl
+$ tail -10 ~/.config/sdp/telemetry.jsonl
 
 # Count events
-$ wc -l ~/.sdp/telemetry.jsonl
+$ wc -l ~/.config/sdp/telemetry.jsonl
 ```
 
 ## Usage Examples
@@ -204,7 +204,7 @@ $ sdp telemetry enable
 $ sdp init .
 
 # Check what was recorded
-$ cat ~/.sdp/telemetry.jsonl | jq .
+$ cat ~/.config/sdp/telemetry.jsonl | jq .
 
 # Output:
 {"type":"command_start",...}
@@ -237,7 +237,7 @@ $ sdp telemetry export json
 $ cat telemetry_export.json
 
 # Or review locally before sharing
-$ less ~/.sdp/telemetry.jsonl
+$ less ~/.config/sdp/telemetry.jsonl
 ```
 
 ## Privacy Checklist
@@ -266,13 +266,13 @@ If you want to share telemetry (e.g., for debugging):
 
 1. **Export your data:**
    ```bash
-   sdp telemetry export my-telemetry.jsonl
+   sdp telemetry export json
    ```
 
 2. **Review the file:**
    ```bash
    # Check for sensitive information
-   cat my-telemetry.jsonl | jq '.data | keys'
+   cat telemetry_export.json | jq '.events[0].data | keys'
    ```
 
 3. **Share voluntarily:**
@@ -291,7 +291,7 @@ $ sdp telemetry status
 Events: 0
 
 # Check if enabled:
-$ cat ~/.sdp/telemetry.json
+$ cat ~/.config/sdp/telemetry.json
 # Should see: {"enabled":true}
 
 # If disabled:
@@ -302,18 +302,18 @@ $ sdp telemetry enable
 
 ```bash
 # Check file size
-$ ls -lh ~/.sdp/telemetry.jsonl
+$ ls -lh ~/.config/sdp/telemetry.jsonl
 -rw------- 1 user user 2.5M Feb  6 10:32 telemetry.jsonl
 
 # Clear old data (keeps last 90 days per policy)
-$ sdp telemetry clear
+$ rm ~/.config/sdp/telemetry.json ~/.config/sdp/telemetry.jsonl
 ```
 
 ### First Run No Prompt
 
 ```bash
 # First run should prompt, but didn't?
-$ rm ~/.sdp/telemetry.json
+$ rm ~/.config/sdp/telemetry.json
 $ sdp doctor
 # Should show consent prompt now
 ```
@@ -326,7 +326,7 @@ $ sdp doctor
 - Success/failure rates
 
 **Where:**
-- `~/.sdp/telemetry.jsonl` (local file)
+- `~/.config/sdp/telemetry.jsonl` (local file)
 
 **How:**
 - Automatic on every command
@@ -337,7 +337,7 @@ $ sdp doctor
 - Opt-in (disabled by default)
 - Enable/disable anytime
 - View/export your data
-- Clear when you want
+- Delete local telemetry files manually when you want a hard reset
 
 **NOT:**
 - ❌ No PII

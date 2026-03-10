@@ -18,7 +18,7 @@ const (
 )
 
 // safeYAMLUnmarshal safely unmarshals YAML with security controls
-func safeYAMLUnmarshal(data []byte, v interface{}) error {
+func safeYAMLUnmarshal(data []byte, v any) error {
 	if len(data) > MaxYAMLFileSize {
 		return fmt.Errorf("YAML file size %d bytes exceeds maximum allowed size %d bytes", len(data), MaxYAMLFileSize)
 	}

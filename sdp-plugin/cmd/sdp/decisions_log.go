@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/fall-out-bug/sdp/internal/decision"
@@ -56,14 +57,7 @@ func decisionsLogCmd() *cobra.Command {
 					decision.DecisionTypeTradeoff,
 					decision.DecisionTypeExplicit,
 				}
-				valid := false
-				for _, t := range validTypes {
-					if decisionType == t {
-						valid = true
-						break
-					}
-				}
-				if !valid {
+				if !slices.Contains(validTypes, decisionType) {
 					return fmt.Errorf("invalid decision type %q, must be one of: vision, technical, tradeoff, explicit", decisionType)
 				}
 			}

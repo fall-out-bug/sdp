@@ -27,9 +27,9 @@ type modelVerificationStats struct {
 
 // evidenceEvent represents an evidence log event.
 type evidenceEvent struct {
-	ID        string                 `json:"id"`
-	Type      string                 `json:"type"`
-	Timestamp string                 `json:"timestamp"`
-	WSID      string                 `json:"ws_id"`
-	Data      map[string]interface{} `json:"data"`
+	ID        string         `json:"id"`
+	Type      string         `json:"type"`
+	Timestamp string         `json:"timestamp"`
+	WSID      string         `json:"ws_id"`
+	Data      map[string]any `json:"data"`
 }

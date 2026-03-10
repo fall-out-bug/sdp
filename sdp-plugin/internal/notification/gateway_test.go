@@ -70,7 +70,7 @@ func TestGateway_RateLimit(t *testing.T) {
 	gateway := NewGatewayWithRateLimit(2, 60) // 2 per minute
 
 	// First two should succeed
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if !gateway.AllowSend("test-feature") {
 			t.Errorf("Notification %d should be allowed", i+1)
 		}
@@ -99,7 +99,7 @@ func TestGateway_History(t *testing.T) {
 	gateway.AddChannel(&MockChannel{name: "test", enabled: true})
 
 	// Send multiple notifications
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		gateway.Send(&Notification{
 			Type:    NotifyFeatureComplete,
 			Message: "Test notification",

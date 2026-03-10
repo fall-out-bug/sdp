@@ -25,7 +25,7 @@ func TestMigrateConfig_AlreadyLatest(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// Create config with latest version
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("version: 1\nfoo: bar"), 0644)
 
 	m, err := MigrateConfig(false)
@@ -48,7 +48,7 @@ func TestMigrateConfig_DryRun(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// Create config without version (v0)
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("foo: bar"), 0644)
 
 	m, err := MigrateConfig(true)
@@ -71,7 +71,7 @@ func TestMigrateConfig_Actual(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// Create config without version (v0)
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("foo: bar"), 0644)
 
 	m, err := MigrateConfig(false)
@@ -97,7 +97,7 @@ func TestRollbackMigration(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// Create config and backup
-	os.MkdirAll(".sdp/backups", 0755)
+	os.MkdirAll(".sdp/backups", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("version: 1\nnew: content"), 0644)
 	os.WriteFile(".sdp/backups/config-old.yml", []byte("old: content"), 0644)
 
@@ -154,7 +154,7 @@ func TestCreateConfigBackup(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("test: content"), 0644)
 
 	backupPath, err := createConfigBackup(".sdp/config.yml")
@@ -190,7 +190,7 @@ func TestListBackups(t *testing.T) {
 	}
 
 	// Create backups
-	os.MkdirAll(".sdp/backups", 0755)
+	os.MkdirAll(".sdp/backups", 0o755)
 	os.WriteFile(".sdp/backups/config-20260101-120000.yml", []byte("old"), 0644)
 	os.WriteFile(".sdp/backups/config-20260102-120000.yml", []byte("newer"), 0644)
 	os.WriteFile(".sdp/backups/other.txt", []byte("not a backup"), 0644)
@@ -210,7 +210,7 @@ func TestLogMigration(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 
 	m := &Migration{
 		FromVersion: 0,

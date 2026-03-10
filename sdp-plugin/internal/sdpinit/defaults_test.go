@@ -1,6 +1,7 @@
 package sdpinit
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -19,14 +20,7 @@ func TestGetDefaults_Go(t *testing.T) {
 	// Check specific skills
 	expectedSkills := []string{"feature", "idea", "design", "build", "review"}
 	for _, skill := range expectedSkills {
-		found := false
-		for _, s := range defaults.Skills {
-			if s == skill {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(defaults.Skills, skill) {
 			t.Errorf("Go defaults missing skill: %s", skill)
 		}
 	}

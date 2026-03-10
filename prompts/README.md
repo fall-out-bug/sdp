@@ -17,3 +17,5 @@ Compatibility adapters are provided as symlinks:
 - `.codex/agents` -> `../prompts/agents`
 
 Edit only `prompts/*` to avoid prompt drift across tools.
+
+When prompts touch Go code, reference `@go-modern` from this canonical tree instead of duplicating tool-specific Go style rules.

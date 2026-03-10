@@ -44,7 +44,7 @@ func NewSafeYAMLDecoder(r io.Reader) *SafeYAMLDecoder {
 }
 
 // Decode decodes YAML with security checks
-func (d *SafeYAMLDecoder) Decode(v interface{}) error {
+func (d *SafeYAMLDecoder) Decode(v any) error {
 	// Check depth before decoding
 	if d.depth > MaxYAMLDocumentDepth {
 		return fmt.Errorf("%w: depth %d exceeds maximum %d", ErrYAMLDepthExceeded, d.depth, MaxYAMLDocumentDepth)
@@ -67,7 +67,7 @@ func (d *SafeYAMLDecoder) Decode(v interface{}) error {
 }
 
 // validateStringLengths validates that all string fields are within limits
-func validateStringLengths(v interface{}) error {
+func validateStringLengths(v any) error {
 	// For frontmatter struct, validate specific fields
 	if fm, ok := v.(*frontmatter); ok {
 		if len(fm.WSID) > MaxStringLength {
@@ -114,7 +114,7 @@ func ValidateContentLength(content string) error {
 }
 
 // SafeYAMLUnmarshal wraps yaml.Unmarshal with security checks
-func SafeYAMLUnmarshal(data []byte, v interface{}) error {
+func SafeYAMLUnmarshal(data []byte, v any) error {
 	// Check file size first
 	if err := ValidateFileSize(data); err != nil {
 		return err

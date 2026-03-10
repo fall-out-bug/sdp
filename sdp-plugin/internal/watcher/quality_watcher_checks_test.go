@@ -13,13 +13,13 @@ func TestQualityWatcher_OnFileChange(t *testing.T) {
 
 	// Create go.mod for valid module
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a Go file
 	goFile := filepath.Join(tmpDir, "test.go")
-	if err := os.WriteFile(goFile, []byte("package main\n"), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte("package main\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -41,13 +41,13 @@ func TestQualityWatcher_CheckFile(t *testing.T) {
 
 	// Create go.mod for valid module
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a Go file
 	goFile := filepath.Join(tmpDir, "test.go")
-	if err := os.WriteFile(goFile, []byte("package main\n"), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte("package main\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -66,7 +66,7 @@ func TestQualityWatcher_AddViolation(t *testing.T) {
 
 	// Create go.mod for valid module
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,7 +122,7 @@ func TestQualityWatcherConfig_Defaults(t *testing.T) {
 
 	// Create go.mod for valid module
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -143,7 +143,7 @@ func TestQualityWatcher_checkFileSize(t *testing.T) {
 
 	// Create go.mod for valid module
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -161,7 +161,7 @@ func TestQualityWatcher_checkFileSize(t *testing.T) {
 
 	// Create a small file
 	goFile := filepath.Join(tmpDir, "small.go")
-	if err := os.WriteFile(goFile, []byte("package main\n"), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte("package main\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -174,7 +174,7 @@ func TestQualityWatcher_checkTypes(t *testing.T) {
 
 	// Create go.mod for valid module
 	modFile := filepath.Join(tmpDir, "go.mod")
-	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -191,7 +191,7 @@ func TestQualityWatcher_checkTypes(t *testing.T) {
 
 	// Create a Go file
 	goFile := filepath.Join(tmpDir, "typed.go")
-	if err := os.WriteFile(goFile, []byte("package main\n"), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte("package main\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

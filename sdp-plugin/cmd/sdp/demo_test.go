@@ -53,9 +53,9 @@ func TestCopyTemplate(t *testing.T) {
 	dstDir := t.TempDir()
 
 	// Create files in source
-	os.MkdirAll(filepath.Join(srcDir, "subdir"), 0755)
-	os.WriteFile(filepath.Join(srcDir, "file.txt"), []byte("content"), 0644)
-	os.WriteFile(filepath.Join(srcDir, "subdir", "nested.txt"), []byte("nested content"), 0644)
+	os.MkdirAll(filepath.Join(srcDir, "subdir"), 0o755)
+	os.WriteFile(filepath.Join(srcDir, "file.txt"), []byte("content"), 0o644)
+	os.WriteFile(filepath.Join(srcDir, "subdir", "nested.txt"), []byte("nested content"), 0o644)
 
 	// Copy
 	err := copyTemplate(srcDir, dstDir)

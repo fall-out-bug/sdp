@@ -31,7 +31,7 @@ func TestAgentEvent_Schema(t *testing.T) {
 		Role:      "implementer",
 		TaskID:    "task-456",
 		Timestamp: time.Now(),
-		Payload:   map[string]interface{}{"ws_id": "00-051-01"},
+		Payload:   map[string]any{"ws_id": "00-051-01"},
 		PrevHash:  "prev123",
 		Hash:      "hash123",
 	}
@@ -125,7 +125,7 @@ func TestAgentEvent_ComputeHash(t *testing.T) {
 		Role:      "implementer",
 		TaskID:    "task-1",
 		Timestamp: time.Date(2026, 2, 12, 10, 0, 0, 0, time.UTC),
-		Payload:   map[string]interface{}{"key": "value"},
+		Payload:   map[string]any{"key": "value"},
 		PrevHash:  "prev-hash",
 	}
 

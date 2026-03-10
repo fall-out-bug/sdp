@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/fall-out-bug/sdp/internal/collision"
@@ -53,7 +54,7 @@ func runContractGenerate(cmd *cobra.Command, args []string) error {
 	// Parse feature IDs
 	var featureIDs []string
 	if featuresFlag != "" {
-		for _, f := range strings.Split(featuresFlag, ",") {
+		for f := range strings.SplitSeq(featuresFlag, ",") {
 			featureIDs = append(featureIDs, strings.TrimSpace(f))
 		}
 	}
@@ -71,13 +72,10 @@ func runContractGenerate(cmd *cobra.Command, args []string) error {
 
 	// Filter by specified features if provided
 	if len(featureIDs) > 0 {
-		filtered := make([]collision.FeatureScope, 0)
+		filtered := make([]collision.FeatureScope, 0, len(featureScopes))
 		for _, fs := range featureScopes {
-			for _, fid := range featureIDs {
-				if fs.FeatureID == fid {
-					filtered = append(filtered, fs)
-					break
-				}
+			if slices.Contains(featureIDs, fs.FeatureID) {
+				filtered = append(filtered, fs)
 			}
 		}
 		featureScopes = filtered

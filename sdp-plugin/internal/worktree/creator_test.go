@@ -51,7 +51,7 @@ func TestWorktreeInfo(t *testing.T) {
 	// Test that WorktreeInfo can hold session info
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 
@@ -299,7 +299,7 @@ func TestParseWorktreeListWithSession(t *testing.T) {
 	// Create a temp directory with session for testing session loading
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("failed to create .sdp dir: %v", err)
 	}
 

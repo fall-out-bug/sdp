@@ -119,8 +119,12 @@ func (b *BeadsLoader) extractDependencies(ws *parser.Workstream) []string {
 		}
 
 		// Extract dependency IDs (must start with "-")
-		if inDepsSection && strings.HasPrefix(trimmed, "-") {
-			depID := strings.TrimSpace(strings.TrimPrefix(trimmed, "-"))
+		if inDepsSection {
+			depID, ok := strings.CutPrefix(trimmed, "-")
+			if !ok {
+				continue
+			}
+			depID = strings.TrimSpace(depID)
 			depID = strings.TrimPrefix(depID, "`")
 			depID = strings.TrimSuffix(depID, "`")
 			depID = strings.TrimSpace(depID)

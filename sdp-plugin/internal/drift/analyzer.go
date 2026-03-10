@@ -51,8 +51,7 @@ func extractPurpose(content string) string {
 		trimmed := strings.TrimSpace(line)
 
 		// Go comment
-		if strings.HasPrefix(trimmed, "//") {
-			comment := strings.TrimPrefix(trimmed, "//")
+		if comment, ok := strings.CutPrefix(trimmed, "//"); ok {
 			comment = strings.TrimSpace(comment)
 			if comment != "" {
 				purposeLines = append(purposeLines, comment)

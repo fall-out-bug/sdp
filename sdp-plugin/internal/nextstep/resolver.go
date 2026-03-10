@@ -19,10 +19,13 @@ func (r *Resolver) Recommend(state ProjectState) (*Recommendation, error) {
 	for _, rule := range r.rules {
 		if rec := rule.Evaluate(state); rec != nil {
 			rec.Version = ContractVersion
+			rec.enrich()
 			return rec, nil
 		}
 	}
-	return r.fallbackRecommendation(state), nil
+	rec := r.fallbackRecommendation(state)
+	rec.enrich()
+	return rec, nil
 }
 
 // fallbackRecommendation provides a low-confidence fallback when no rule matches.

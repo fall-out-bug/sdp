@@ -32,8 +32,8 @@ func TestStateManagerSaveAndLoad(t *testing.T) {
 	}
 
 	perms := info.Mode().Perm()
-	if perms != 0600 {
-		t.Errorf("File permissions = %04o, want 0600", perms)
+	if perms != 0o600 {
+		t.Errorf("File permissions = %04o, want 0o600", perms)
 	}
 
 	// Load

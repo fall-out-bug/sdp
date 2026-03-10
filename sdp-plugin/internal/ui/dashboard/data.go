@@ -1,19 +1,37 @@
 package dashboard
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
-	"github.com/fall-out-bug/sdp/internal/beads"
+	"github.com/fall-out-bug/sdp/internal/controltower"
 	"github.com/fall-out-bug/sdp/internal/nextstep"
 	"github.com/fall-out-bug/sdp/internal/parser"
 )
 
-// fetchWorkstreams fetches workstream data from Beads and docs/workstreams/
 func (a *App) fetchWorkstreams() map[string][]WorkstreamSummary {
+	return a.workstreamsFromControlTower(a.fetchControlTower(false))
+}
+
+func (a *App) fetchControlTower(force bool) *controltower.Data {
+	if !force && a.controlTowerData != nil && time.Since(a.controlTowerLoaded) < refreshInterval {
+		return a.controlTowerData
+	}
+
+	data, err := controltower.Collect()
+	if err != nil {
+		return nil
+	}
+	a.controlTowerData = data
+	a.controlTowerLoaded = time.Now()
+	return data
+}
+
+func (a *App) workstreamsFromControlTower(data *controltower.Data) map[string][]WorkstreamSummary {
 	// Try to fetch from Beads first
 	summaries := make(map[string][]WorkstreamSummary)
 
@@ -22,95 +40,36 @@ func (a *App) fetchWorkstreams() map[string][]WorkstreamSummary {
 	summaries["in_progress"] = []WorkstreamSummary{}
 	summaries["completed"] = []WorkstreamSummary{}
 	summaries["blocked"] = []WorkstreamSummary{}
-
-	// Try to get data from Beads (if available)
-	client, err := beads.NewClient()
-	if err == nil {
-		// Beads is available, fetch tasks
-		tasks, err := client.Ready()
-		if err == nil && len(tasks) > 0 {
-			for _, task := range tasks {
-				status := strings.ToLower(task.Status)
-				if status == "ready" || status == "open" {
-					status = "open"
-				}
-
-				// Map Beads priority to our format
-				priority := task.Priority
-				if strings.HasPrefix(priority, "P") {
-					// Already in P0-P4 format
-				} else {
-					// Convert numeric to P format
-					switch priority {
-					case "0":
-						priority = "P0"
-					case "1":
-						priority = "P1"
-					case "2":
-						priority = "P2"
-					case "3":
-						priority = "P3"
-					case "4":
-						priority = "P4"
-					default:
-						priority = "P2" // Default
-					}
-				}
-
-				ws := WorkstreamSummary{
-					ID:       task.ID,
-					Title:    task.Title,
-					Status:   status,
-					Priority: priority,
-					Assignee: "", // Task doesn't have Assignee field
-				}
-
-				if group, ok := summaries[status]; ok {
-					summaries[status] = append(group, ws)
-				}
-			}
-		}
+	if data == nil {
+		return summaries
 	}
 
-	// Always check docs/workstreams/ as additional source
-	// (even if Beads returned data, this might have different items)
-	wsFiles, err := filepath.Glob("docs/workstreams/*/backlog/*.md")
-	if err == nil && len(wsFiles) > 0 {
-		for _, wsFile := range wsFiles {
-			ws, err := parser.ParseWorkstream(wsFile)
-			if err != nil {
-				continue
-			}
-
-			status := strings.ToLower(ws.Status)
-			wsSummary := WorkstreamSummary{
-				ID:       ws.ID,
-				Title:    ws.Goal,
-				Status:   status,
-				Priority: "P2", // Default priority
-				Size:     ws.Size,
-			}
-
-			// Add to appropriate status group (avoiding duplicates by ID)
-			group := summaries[status]
-			alreadyExists := false
-			for _, existing := range group {
-				if existing.ID == wsSummary.ID {
-					alreadyExists = true
-					break
-				}
-			}
-			if !alreadyExists {
-				summaries[status] = append(group, wsSummary)
-			}
-		}
+	titles := loadWorkstreamTitles(data.ProjectRoot)
+	grouped := map[string][]nextstep.WorkstreamStatus{
+		"open":        {},
+		"in_progress": {},
+		"completed":   {},
+		"blocked":     {},
 	}
 
-	// Sort each group by ID
-	for status := range summaries {
-		sort.Slice(summaries[status], func(i, j int) bool {
-			return summaries[status][i].ID < summaries[status][j].ID
+	for _, ws := range data.State.Workstreams {
+		group := dashboardGroup(ws)
+		grouped[group] = append(grouped[group], ws)
+	}
+
+	for group, items := range grouped {
+		slices.SortFunc(items, func(a, b nextstep.WorkstreamStatus) int {
+			return nextstep.ComparePriority(a, b)
 		})
+		for _, ws := range items {
+			summaries[group] = append(summaries[group], WorkstreamSummary{
+				ID:       ws.ID,
+				Title:    workstreamTitle(ws, titles),
+				Status:   group,
+				Priority: formatPriority(ws.Priority),
+				Size:     ws.Size,
+			})
+		}
 	}
 
 	return summaries
@@ -150,14 +109,20 @@ func (a *App) fetchIdeas() []IdeaSummary {
 	}
 
 	// Sort by date (newest first)
-	sort.Slice(ideas, func(i, j int) bool {
-		return ideas[i].Date.After(ideas[j].Date)
+	slices.SortFunc(ideas, func(a, b IdeaSummary) int {
+		switch {
+		case a.Date.After(b.Date):
+			return -1
+		case a.Date.Before(b.Date):
+			return 1
+		default:
+			return 0
+		}
 	})
 
 	return ideas
 }
 
-// fetchTestResults fetches test results
 func (a *App) fetchTestResults() TestSummary {
 	// Future: Integrate with go test -cover output
 	// For now, return placeholder data (dashboard MVP)
@@ -174,11 +139,12 @@ func (a *App) fetchTestResults() TestSummary {
 	}
 }
 
-// fetchNextStep fetches the next step recommendation
 func (a *App) fetchNextStep() NextStepInfo {
-	// Get project root
-	projectRoot, err := os.Getwd()
-	if err != nil {
+	return a.nextStepFromControlTower(a.fetchControlTower(false))
+}
+
+func (a *App) nextStepFromControlTower(data *controltower.Data) NextStepInfo {
+	if data == nil || data.NextStep == nil {
 		return NextStepInfo{
 			Command:    "sdp doctor",
 			Reason:     "Check environment setup",
@@ -187,34 +153,74 @@ func (a *App) fetchNextStep() NextStepInfo {
 		}
 	}
 
-	// Collect state
-	collector := nextstep.NewStateCollector(projectRoot)
-	state, err := collector.Collect()
-	if err != nil {
-		return NextStepInfo{
-			Command:    "sdp doctor",
-			Reason:     "Unable to collect project state",
-			Confidence: 0.5,
-			Category:   "setup",
-		}
-	}
-
-	// Get recommendation
-	resolver := nextstep.NewResolver()
-	rec, err := resolver.Recommend(state)
-	if err != nil {
-		return NextStepInfo{
-			Command:    "sdp status",
-			Reason:     "Check current project state",
-			Confidence: 0.5,
-			Category:   "information",
-		}
-	}
-
+	rec := data.NextStep
 	return NextStepInfo{
 		Command:    rec.Command,
 		Reason:     rec.Reason,
 		Confidence: rec.Confidence,
 		Category:   string(rec.Category),
 	}
+}
+
+func dashboardGroup(ws nextstep.WorkstreamStatus) string {
+	switch ws.Status {
+	case nextstep.StatusInProgress:
+		return "in_progress"
+	case nextstep.StatusCompleted:
+		return "completed"
+	case nextstep.StatusBlocked, nextstep.StatusFailed:
+		return "blocked"
+	case nextstep.StatusReady:
+		if len(ws.BlockedBy) > 0 {
+			return "blocked"
+		}
+		return "open"
+	default:
+		return "open"
+	}
+}
+
+func formatPriority(priority int) string {
+	if priority < 0 {
+		priority = 0
+	}
+	return fmt.Sprintf("P%d", priority)
+}
+
+func workstreamTitle(ws nextstep.WorkstreamStatus, titles map[string]string) string {
+	if title := titles[ws.ID]; title != "" {
+		return title
+	}
+	if ws.Feature != "" {
+		return ws.Feature
+	}
+	if ws.LastError != "" {
+		return ws.LastError
+	}
+	return "Workstream"
+}
+
+func loadWorkstreamTitles(projectRoot string) map[string]string {
+	titles := map[string]string{}
+	patterns := []string{
+		filepath.Join(projectRoot, "docs", "workstreams", "*", "backlog", "*.md"),
+		filepath.Join(projectRoot, "docs", "workstreams", "backlog", "*.md"),
+	}
+	for _, pattern := range patterns {
+		files, err := filepath.Glob(pattern)
+		if err != nil {
+			continue
+		}
+		for _, file := range files {
+			ws, err := parser.ParseWorkstream(file)
+			if err != nil {
+				continue
+			}
+			if _, exists := titles[ws.ID]; exists {
+				continue
+			}
+			titles[ws.ID] = ws.Goal
+		}
+	}
+	return titles
 }

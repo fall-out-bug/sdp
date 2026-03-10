@@ -100,13 +100,13 @@ func TestJSONOutputParseable(t *testing.T) {
 
 	// Setup minimal structure
 	sdpDir := filepath.Join(tmpDir, ".sdp", "log")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("create .sdp/log: %v", err)
 	}
 
 	// Create empty events file for log commands
 	eventsPath := filepath.Join(sdpDir, "events.jsonl")
-	if err := os.WriteFile(eventsPath, []byte{}, 0644); err != nil {
+	if err := os.WriteFile(eventsPath, []byte{}, 0o644); err != nil {
 		t.Fatalf("create events file: %v", err)
 	}
 

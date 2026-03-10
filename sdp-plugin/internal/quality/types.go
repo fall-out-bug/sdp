@@ -34,9 +34,7 @@ func (c *Checker) checkPythonTypes(result *TypeResult) (*TypeResult, error) {
 	if err != nil {
 		// mypy failed, parse errors
 		outputStr := string(output)
-		lines := strings.Split(outputStr, "\n")
-
-		for _, line := range lines {
+		for line := range strings.SplitSeq(outputStr, "\n") {
 			line = strings.TrimSpace(line)
 			if line == "" || strings.HasPrefix(line, "Success:") {
 				continue
@@ -90,9 +88,7 @@ func (c *Checker) checkGoTypes(result *TypeResult) (*TypeResult, error) {
 	if err != nil {
 		// go vet found issues
 		outputStr := string(output)
-		lines := strings.Split(outputStr, "\n")
-
-		for _, line := range lines {
+		for line := range strings.SplitSeq(outputStr, "\n") {
 			line = strings.TrimSpace(line)
 			if line == "" {
 				continue
@@ -147,9 +143,7 @@ func (c *Checker) checkJavaTypes(result *TypeResult) (*TypeResult, error) {
 
 	if err != nil {
 		outputStr := string(output)
-		lines := strings.Split(outputStr, "\n")
-
-		for _, line := range lines {
+		for line := range strings.SplitSeq(outputStr, "\n") {
 			line = strings.TrimSpace(line)
 			if strings.Contains(line, "[ERROR]") {
 				// Parse Maven error format

@@ -51,18 +51,15 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 	}
 
 	// Extract frontmatter (between --- markers)
-	// Do not assume "---" at position 0: use Index to find both delimiters.
 	contentStr := string(content)
-	openDelim := strings.Index(contentStr, "---")
-	if openDelim == -1 {
+	if !strings.HasPrefix(contentStr, "---") {
 		return nil, fmt.Errorf("no frontmatter found in %s", wsPath)
 	}
-	afterOpen := openDelim + 3 // skip "---"
-	closeDelim := strings.Index(contentStr[afterOpen:], "---")
-	if closeDelim == -1 {
+	afterOpen := strings.TrimPrefix(contentStr, "---")
+	frontmatter, _, ok := strings.Cut(afterOpen, "---")
+	if !ok {
 		return nil, fmt.Errorf("no frontmatter found in %s", wsPath)
 	}
-	frontmatter := contentStr[afterOpen : afterOpen+closeDelim]
 
 	// Parse frontmatter fields
 	data := &WorkstreamData{
@@ -86,13 +83,13 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 		// Parse key-value pairs
 		if strings.Contains(line, ":") && !strings.HasPrefix(line, "-") {
 			inList = false
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) != 2 {
+			key, value, ok := strings.Cut(line, ":")
+			if !ok {
 				continue
 			}
 
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(strings.Trim(parts[1], `"'`))
+			key = strings.TrimSpace(key)
+			value = strings.TrimSpace(strings.Trim(value, `"'`))
 
 			switch key {
 			case "ws_id":
@@ -113,11 +110,13 @@ func (p *Parser) ParseWSFile(wsPath string) (*WorkstreamData, error) {
 				inList = true
 				currentList = &data.VerificationCommands
 			}
-		} else if inList && strings.HasPrefix(line, "-") {
+		} else if inList {
 			// Parse list items
-			value := strings.TrimSpace(strings.TrimPrefix(line, "-"))
-			value = strings.Trim(value, `"'`)
-			*currentList = append(*currentList, value)
+			if value, ok := strings.CutPrefix(line, "-"); ok {
+				value = strings.TrimSpace(value)
+				value = strings.Trim(value, `"'`)
+				*currentList = append(*currentList, value)
+			}
 		}
 	}
 

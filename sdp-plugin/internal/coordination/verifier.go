@@ -2,6 +2,7 @@ package coordination
 
 import (
 	"context"
+	"slices"
 )
 
 // VerificationResult represents the result of a verification rule (AC3)
@@ -72,20 +73,14 @@ func (p *VerificationPipeline) Run(ctx context.Context, spec *WorkstreamSpec, co
 
 // HasErrors returns true if any rule failed with error severity
 func (p *VerificationPipeline) HasErrors(results []VerificationResult) bool {
-	for _, r := range results {
-		if r.Status == "fail" && r.Severity == "error" {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(results, func(r VerificationResult) bool {
+		return r.Status == "fail" && r.Severity == "error"
+	})
 }
 
 // HasWarnings returns true if any rule failed with warning severity
 func (p *VerificationPipeline) HasWarnings(results []VerificationResult) bool {
-	for _, r := range results {
-		if r.Status == "fail" && r.Severity == "warning" {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(results, func(r VerificationResult) bool {
+		return r.Status == "fail" && r.Severity == "warning"
+	})
 }

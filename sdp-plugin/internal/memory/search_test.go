@@ -301,7 +301,7 @@ func TestSearcher_Performance(t *testing.T) {
 	defer store.Close()
 
 	// 200 artifacts: enough to validate FTS scale, fast enough for CI
-	for i := 0; i < 200; i++ {
+	for i := range 200 {
 		a := &Artifact{
 			ID:        fmt.Sprintf("doc-%d", i),
 			Path:      fmt.Sprintf("docs/doc%d.md", i),

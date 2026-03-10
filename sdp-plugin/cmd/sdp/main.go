@@ -22,22 +22,37 @@ func main() {
 		Short: "Spec-Driven Protocol - AI workflow tools",
 		Long: `SDP provides convenience commands for Spec-Driven Protocol:
 
-  init       Initialize project with SDP prompts
-  doctor     Check environment (Git, Claude Code, .claude/)
-  hooks      Manage Git hooks for SDP
-  watch      Watch files for quality violations
-  checkpoint Manage checkpoints for long-running features
-  completion Generate shell completion script
+	  init       Initialize project with SDP prompts
+	  doctor     Check environment and setup health
+	  plan       Decompose a feature into workstreams
+	  apply      Execute ready workstreams from the terminal
+	  status     Show current project state
+	  next       Recommend the next action to take
+	  log        Inspect the evidence log
+	  demo       Run a guided first-success walkthrough
+	  guard      Enforce workstream scope and context
+	  completion Generate shell completion script
 
 These commands are optional convenience tools. The core SDP functionality
 is provided by the Claude Plugin prompts in .claude/.`,
 		Example: `  # Initialize SDP in a project
   sdp init .
 
-  # Check environment setup
+	  # Plan and execute a feature from the CLI
+	  sdp plan "Add auth"
+	  sdp apply
+
+	  # Inspect state and get the next action
+	  sdp status --text
+	  sdp next --json
+
+	  # Check environment setup
   sdp doctor
 
-  # Generate shell completion
+	  # Run a guided demo
+	  sdp demo
+
+	  # Generate shell completion
   sdp completion bash > ~/.bash_completion.d/sdp
   sdp completion zsh > ~/.zsh/completion/_sdp
 
@@ -138,6 +153,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 	rootCmd.AddCommand(healthCmd())
 	rootCmd.AddCommand(diagnoseCmd)
 	rootCmd.AddCommand(nextCmd())
+	rootCmd.AddCommand(demoCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		// Track command failure

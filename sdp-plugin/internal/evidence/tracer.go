@@ -36,11 +36,11 @@ func FilterBySearch(events []Event, query string) []Event {
 	return out
 }
 
-func dataContains(data interface{}, q string) bool {
+func dataContains(data any, q string) bool {
 	if data == nil {
 		return false
 	}
-	m, ok := data.(map[string]interface{})
+	m, ok := data.(map[string]any)
 	if !ok {
 		return false
 	}
@@ -108,7 +108,7 @@ func keyData(e Event) string {
 	if e.Data == nil {
 		return ""
 	}
-	m, ok := e.Data.(map[string]interface{})
+	m, ok := e.Data.(map[string]any)
 	if !ok {
 		return ""
 	}

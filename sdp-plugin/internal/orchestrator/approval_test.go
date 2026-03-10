@@ -493,7 +493,7 @@ func TestConcurrentAccessApproval(t *testing.T) {
 	am.CreateGate(gate)
 
 	// Launch 10 goroutines approving
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()

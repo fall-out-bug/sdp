@@ -29,15 +29,15 @@ func isValidEventType(t string) bool {
 
 // AgentEvent represents an agent coordination event (AC2)
 type AgentEvent struct {
-	ID        string                 `json:"id"`
-	Type      string                 `json:"type"`
-	AgentID   string                 `json:"agent_id"`
-	Role      string                 `json:"role"`
-	TaskID    string                 `json:"task_id,omitempty"`
-	Timestamp time.Time              `json:"timestamp"`
-	Payload   map[string]interface{} `json:"payload,omitempty"`
-	PrevHash  string                 `json:"prev_hash,omitempty"`
-	Hash      string                 `json:"hash,omitempty"`
+	ID        string         `json:"id"`
+	Type      string         `json:"type"`
+	AgentID   string         `json:"agent_id"`
+	Role      string         `json:"role"`
+	TaskID    string         `json:"task_id,omitempty"`
+	Timestamp time.Time      `json:"timestamp"`
+	Payload   map[string]any `json:"payload,omitempty"`
+	PrevHash  string         `json:"prev_hash,omitempty"`
+	Hash      string         `json:"hash,omitempty"`
 }
 
 // Validate validates the agent event

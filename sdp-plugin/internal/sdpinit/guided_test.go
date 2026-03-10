@@ -16,12 +16,12 @@ func TestRunGuided_AllStepsPass(t *testing.T) {
 	}
 
 	// Initialize git repo for the test
-	if err := os.WriteFile("go.mod", []byte("module test"), 0644); err != nil {
+	if err := os.WriteFile("go.mod", []byte("module test"), 0o644); err != nil {
 		t.Fatalf("create go.mod: %v", err)
 	}
 
 	// Create .git directory to simulate git repo
-	if err := os.MkdirAll(".git", 0755); err != nil {
+	if err := os.MkdirAll(".git", 0o755); err != nil {
 		t.Fatalf("create .git: %v", err)
 	}
 
@@ -97,7 +97,7 @@ func TestRunGuided_UnknownProjectType(t *testing.T) {
 	}
 
 	// Create .git but no project files
-	if err := os.MkdirAll(".git", 0755); err != nil {
+	if err := os.MkdirAll(".git", 0o755); err != nil {
 		t.Fatalf("create .git: %v", err)
 	}
 
@@ -127,7 +127,7 @@ func TestRunGuided_AutoFix(t *testing.T) {
 	}
 
 	// Create go.mod for project detection
-	if err := os.WriteFile("go.mod", []byte("module test"), 0644); err != nil {
+	if err := os.WriteFile("go.mod", []byte("module test"), 0o644); err != nil {
 		t.Fatalf("create go.mod: %v", err)
 	}
 
@@ -177,7 +177,7 @@ func TestCheckGitRepoStep(t *testing.T) {
 	}
 
 	// Test with .git
-	if err := os.MkdirAll(".git", 0755); err != nil {
+	if err := os.MkdirAll(".git", 0o755); err != nil {
 		t.Fatalf("create .git: %v", err)
 	}
 
@@ -250,7 +250,7 @@ func TestCheckProjectTypeStep(t *testing.T) {
 			}
 
 			if tt.createFile != "" {
-				if err := os.WriteFile(tt.createFile, []byte("test"), 0644); err != nil {
+				if err := os.WriteFile(tt.createFile, []byte("test"), 0o644); err != nil {
 					t.Fatalf("create file: %v", err)
 				}
 			}

@@ -152,7 +152,7 @@ func splitLinesHelper(data []byte, delimiter byte) [][]byte {
 	var lines [][]byte
 	start := 0
 
-	for i := 0; i < len(data); i++ {
+	for i := range len(data) {
 		if data[i] == delimiter {
 			lines = append(lines, data[start:i])
 			start = i + 1

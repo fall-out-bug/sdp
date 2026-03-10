@@ -52,8 +52,8 @@ func TestFilterByType(t *testing.T) {
 
 func TestFilterBySearch(t *testing.T) {
 	events := []Event{
-		{ID: "e1", Type: "decision", Data: map[string]interface{}{"question": "Auth?", "choice": "JWT", "rationale": "Stateless"}},
-		{ID: "e2", Type: "decision", Data: map[string]interface{}{"question": "DB?", "choice": "Postgres", "rationale": "ACID"}},
+		{ID: "e1", Type: "decision", Data: map[string]any{"question": "Auth?", "choice": "JWT", "rationale": "Stateless"}},
+		{ID: "e2", Type: "decision", Data: map[string]any{"question": "DB?", "choice": "Postgres", "rationale": "ACID"}},
 	}
 	got := FilterBySearch(events, "jwt")
 	if len(got) != 1 {
@@ -111,7 +111,7 @@ func TestFormatJSON(t *testing.T) {
 
 func TestFormatHuman_KeyDataGateName(t *testing.T) {
 	events := []Event{
-		{Type: "verification", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04", Data: map[string]interface{}{"gate_name": "coverage"}},
+		{Type: "verification", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04", Data: map[string]any{"gate_name": "coverage"}},
 	}
 	out := FormatHuman(events)
 	if !strings.Contains(out, "gate: coverage") {
@@ -121,7 +121,7 @@ func TestFormatHuman_KeyDataGateName(t *testing.T) {
 
 func TestFormatHuman_KeyDataModelID(t *testing.T) {
 	events := []Event{
-		{Type: "generation", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04", Data: map[string]interface{}{"model_id": "claude-sonnet"}},
+		{Type: "generation", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-04", Data: map[string]any{"model_id": "claude-sonnet"}},
 	}
 	out := FormatHuman(events)
 	if !strings.Contains(out, "claude-sonnet") {
@@ -131,7 +131,7 @@ func TestFormatHuman_KeyDataModelID(t *testing.T) {
 
 func TestFormatHuman_KeyDataDecisionChoice(t *testing.T) {
 	events := []Event{
-		{Type: "decision", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-10", Data: map[string]interface{}{"choice": "JWT with refresh tokens"}},
+		{Type: "decision", Timestamp: "2026-02-09T12:00:00Z", WSID: "00-054-10", Data: map[string]any{"choice": "JWT with refresh tokens"}},
 	}
 	out := FormatHuman(events)
 	if !strings.Contains(out, "JWT") {

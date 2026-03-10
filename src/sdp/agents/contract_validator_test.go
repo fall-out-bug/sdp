@@ -293,7 +293,7 @@ paths:
       summary: Test endpoint
 `)
 
-	var result map[string]interface{}
+	var result map[string]any
 	err := safeYAMLUnmarshal(validYAML, &result)
 	if err != nil {
 		t.Fatalf("Failed to parse valid YAML: %v", err)
@@ -312,7 +312,7 @@ func TestSafeYAMLUnmarshal_RejectsLargeFile(t *testing.T) {
 		largeYAML[i] = 'x'
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	err := safeYAMLUnmarshal(largeYAML, &result)
 	if err == nil {
 		t.Fatal("Expected error for oversized YAML file")
@@ -335,8 +335,8 @@ paths:
 `)
 
 	type StrictContract struct {
-		OpenAPI string                 `yaml:"openapi"`
-		Paths   map[string]interface{} `yaml:"paths"`
+		OpenAPI string         `yaml:"openapi"`
+		Paths   map[string]any `yaml:"paths"`
 	}
 
 	var result StrictContract
@@ -771,7 +771,7 @@ func TestWriteReport_ErrorHandling(t *testing.T) {
 // TestIsSensitivePath verifies sensitive path detection
 func TestIsSensitivePath(t *testing.T) {
 	tests := []struct {
-		path               string
+		path              string
 		shouldBeSensitive bool
 	}{
 		{"/api/v1/users", false},

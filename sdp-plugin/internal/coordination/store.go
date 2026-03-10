@@ -57,7 +57,7 @@ func (s *Store) Append(event *AgentEvent) error {
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
-	f, err := os.OpenFile(s.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(s.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open log: %w", err)
 	}

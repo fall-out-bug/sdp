@@ -107,7 +107,7 @@ func TestMessageRouter_SendCommand(t *testing.T) {
 	router := NewMessageRouter()
 	router.Register("agent-1")
 
-	err := router.SendCommand("agent-1", "pause", map[string]interface{}{})
+	err := router.SendCommand("agent-1", "pause", map[string]any{})
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -219,7 +219,7 @@ func TestMessageRouter_ConcurrentAccess(t *testing.T) {
 
 	// Send messages concurrently
 	done := make(chan bool)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		go func(idx int) {
 			router.SendProgress("agent-1", float64(idx*10), fmt.Sprintf("Message %d", idx))
 			done <- true
@@ -227,7 +227,7 @@ func TestMessageRouter_ConcurrentAccess(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 

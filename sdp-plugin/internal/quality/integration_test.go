@@ -15,7 +15,7 @@ func TestNewCheckerAllTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpPy)
-	if err := os.WriteFile(filepath.Join(tmpPy, "pyproject.toml"), []byte("[tool.pytest]"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpPy, "pyproject.toml"), []byte("[tool.pytest]"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	checkerPy, err := NewChecker(tmpPy)
@@ -32,7 +32,7 @@ func TestNewCheckerAllTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpGo)
-	if err := os.WriteFile(filepath.Join(tmpGo, "go.mod"), []byte("module test\n\ngo 1.21"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpGo, "go.mod"), []byte("module test\n\ngo 1.21"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	checkerGo, err := NewChecker(tmpGo)
@@ -49,7 +49,7 @@ func TestNewCheckerAllTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpJava)
-	if err := os.WriteFile(filepath.Join(tmpJava, "pom.xml"), []byte("<project></project>"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpJava, "pom.xml"), []byte("<project></project>"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	checkerJava, err := NewChecker(tmpJava)
@@ -69,7 +69,7 @@ func TestAllCheckersNoCrash(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

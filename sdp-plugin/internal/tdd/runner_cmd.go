@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 )
 
 // buildTestCommand constructs the test command for the current language
@@ -54,12 +55,7 @@ func isAllowedTestCommand(testCmd string) bool {
 		"flutter test",
 	}
 
-	for _, allowed := range allowedCommands {
-		if testCmd == allowed {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(allowedCommands, testCmd)
 }
 
 // NewRunner creates a new Runner for the specified language

@@ -287,7 +287,7 @@ func TestTask_Interface(t *testing.T) {
 		t.Error("string should be valid Task")
 	}
 
-	task = map[string]interface{}{"key": "value"}
+	task = map[string]any{"key": "value"}
 	if task == nil {
 		t.Error("map should be valid Task")
 	}

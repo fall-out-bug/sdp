@@ -108,20 +108,20 @@ func runContractLockInternal(featureName, gitSHA, contractPath, lockPath string,
 	}
 
 	// Try to parse contract to extract metadata
-	var contract map[string]interface{}
+	var contract map[string]any
 	if err := yaml.Unmarshal(contractContent, &contract); err == nil {
 		// Extract metadata if available
-		if _, ok := contract["info"].(map[string]interface{}); ok {
+		if _, ok := contract["info"].(map[string]any); ok {
 			lock.Metadata.Feature = featureName
 			lock.Metadata.Version = "1.0.0"
 		}
 
 		// Count endpoints and schemas
-		if paths, ok := contract["paths"].(map[string]interface{}); ok {
+		if paths, ok := contract["paths"].(map[string]any); ok {
 			lock.Metadata.Endpoints = len(paths)
 		}
-		if schemas, ok := contract["components"].(map[string]interface{}); ok {
-			if s, ok := schemas["schemas"].(map[string]interface{}); ok {
+		if schemas, ok := contract["components"].(map[string]any); ok {
+			if s, ok := schemas["schemas"].(map[string]any); ok {
 				lock.Metadata.Schemas = len(s)
 			}
 		}
@@ -134,7 +134,7 @@ func runContractLockInternal(featureName, gitSHA, contractPath, lockPath string,
 	}
 
 	// Write lock file
-	if err := os.WriteFile(lockPath, lockData, 0644); err != nil {
+	if err := os.WriteFile(lockPath, lockData, 0o644); err != nil {
 		return fmt.Errorf("failed to write lock file: %w", err)
 	}
 

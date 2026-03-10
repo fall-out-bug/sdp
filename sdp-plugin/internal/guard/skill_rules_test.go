@@ -68,7 +68,7 @@ func TestCheckMaxFileLOC(t *testing.T) {
 				ID:       "max-file-loc",
 				Enabled:  true,
 				Severity: tt.severity,
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					"max_lines": tt.maxLines,
 				},
 			}
@@ -111,7 +111,7 @@ func TestCheckMaxFileLOCDefaultLimit(t *testing.T) {
 		ID:       "max-file-loc",
 		Enabled:  true,
 		Severity: "error",
-		Config:   map[string]interface{}{},
+		Config:   map[string]any{},
 	}
 
 	// 201 lines should trigger finding
@@ -217,7 +217,7 @@ func TestCheckCommentedCode(t *testing.T) {
 				ID:       "no-commented-code",
 				Enabled:  true,
 				Severity: tt.severity,
-				Config:   map[string]interface{}{},
+				Config:   map[string]any{},
 			}
 
 			findings := skill.checkCommentedCode(tt.fileName, []byte(tt.content), rule)
@@ -321,7 +321,7 @@ func TestCheckOrphanedTODOs(t *testing.T) {
 				ID:       "no-orphaned-todos",
 				Enabled:  true,
 				Severity: tt.severity,
-				Config:   map[string]interface{}{},
+				Config:   map[string]any{},
 			}
 
 			findings := skill.checkOrphanedTODOs("test.go", []byte(tt.content), rule)
@@ -370,7 +370,7 @@ func TestApplyGuardRules(t *testing.T) {
 						ID:       "max-file-loc",
 						Enabled:  true,
 						Severity: "error",
-						Config:   map[string]interface{}{"max_lines": 200},
+						Config:   map[string]any{"max_lines": 200},
 					},
 				},
 			},
@@ -386,7 +386,7 @@ func TestApplyGuardRules(t *testing.T) {
 						ID:       "max-file-loc",
 						Enabled:  true,
 						Severity: "error",
-						Config:   map[string]interface{}{"max_lines": 10},
+						Config:   map[string]any{"max_lines": 10},
 					},
 				},
 			},
@@ -402,7 +402,7 @@ func TestApplyGuardRules(t *testing.T) {
 						ID:       "max-file-loc",
 						Enabled:  false,
 						Severity: "error",
-						Config:   map[string]interface{}{"max_lines": 10},
+						Config:   map[string]any{"max_lines": 10},
 					},
 				},
 			},
@@ -446,7 +446,7 @@ func TestApplyGuardRules(t *testing.T) {
 			skill := NewSkill(configDir)
 
 			// Create test files and build absolute paths list
-			absFiles := []string{}
+			absFiles := make([]string, 0, len(tt.files))
 			for _, fileName := range tt.files {
 				var content string
 				switch fileName {
@@ -460,7 +460,7 @@ func TestApplyGuardRules(t *testing.T) {
 					content = "package main\n"
 				}
 				absPath := filepath.Join(configDir, fileName)
-				if err := os.WriteFile(absPath, []byte(content), 0644); err != nil {
+				if err := os.WriteFile(absPath, []byte(content), 0o644); err != nil {
 					t.Fatalf("Failed to create test file: %v", err)
 				}
 				absFiles = append(absFiles, absPath)
@@ -499,7 +499,7 @@ func TestApplyGuardRulesSkipsCoverageAndComplexity(t *testing.T) {
 	// Create test file
 	content := "package main\n\nfunc main() {}\n"
 	absPath := filepath.Join(configDir, "test.go")
-	if err := os.WriteFile(absPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(absPath, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
@@ -513,8 +513,8 @@ func TestApplyGuardRulesSkipsCoverageAndComplexity(t *testing.T) {
 
 // Helper function to generate a file with a specific number of lines
 func generateLines(n int) string {
-	var lines []string
-	for i := 0; i < n; i++ {
+	lines := make([]string, 0, n)
+	for i := range n {
 		lines = append(lines, "// Line "+string(rune('A'+(i%26))))
 	}
 	return strings.Join(lines, "\n")

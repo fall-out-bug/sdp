@@ -7,13 +7,13 @@ import (
 
 // HookEvent represents a lifecycle event in the system.
 type HookEvent struct {
-	Type      string                 // Event type (e.g., "command:pre", "session:start")
-	Timestamp time.Time              // When the event occurred
-	Payload   map[string]interface{} // Event-specific data
+	Type      string         // Event type (e.g., "command:pre", "session:start")
+	Timestamp time.Time      // When the event occurred
+	Payload   map[string]any // Event-specific data
 }
 
 // NewEvent creates a new hook event with the current timestamp.
-func NewEvent(eventType string, payload map[string]interface{}) HookEvent {
+func NewEvent(eventType string, payload map[string]any) HookEvent {
 	return HookEvent{
 		Type:      eventType,
 		Timestamp: time.Now(),

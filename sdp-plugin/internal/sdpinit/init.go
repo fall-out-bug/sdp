@@ -33,7 +33,7 @@ type Config struct {
 func Run(cfg Config) error {
 	// Create .claude/ directory
 	claudeDir := ".claude"
-	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
 		return fmt.Errorf("create .claude/: %w", err)
 	}
 
@@ -44,7 +44,7 @@ func Run(cfg Config) error {
 		"validators",
 	}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(filepath.Join(claudeDir, dir), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(claudeDir, dir), 0o755); err != nil {
 			return fmt.Errorf("create %s: %w", dir, err)
 		}
 	}
@@ -115,7 +115,7 @@ func handlePromptPath(promptsDir, promptsAbs, destDir, path string, info os.File
 		return nil
 	}
 
-	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
 		return err
 	}
 
@@ -126,7 +126,7 @@ func ensurePromptDir(destDir, relPath, destPath string) error {
 	if isSymlink(pathJoinClean(destDir, relPath)) {
 		return filepath.SkipDir
 	}
-	return os.MkdirAll(destPath, 0755)
+	return os.MkdirAll(destPath, 0o755)
 }
 
 func shouldCopyPromptFile(srcPath, destPath, promptsAbs string) (bool, error) {
@@ -243,7 +243,7 @@ func createSettings(claudeDir string, cfg Config) error {
 	return os.WriteFile(
 		filepath.Join(claudeDir, "settings.json"),
 		[]byte(settings),
-		0600,
+		0o600,
 	)
 }
 
@@ -252,14 +252,15 @@ func formatStringsAsJSON(items []string) string {
 	if len(items) == 0 {
 		return "[]"
 	}
-	result := "[\n"
+	var result strings.Builder
+	result.WriteString("[\n")
 	for i, item := range items {
-		result += fmt.Sprintf("    \"%s\"", item)
+		result.WriteString(fmt.Sprintf("    \"%s\"", item))
 		if i < len(items)-1 {
-			result += ","
+			result.WriteString(",")
 		}
-		result += "\n"
+		result.WriteString("\n")
 	}
-	result += "  ]"
-	return result
+	result.WriteString("  ]")
+	return result.String()
 }

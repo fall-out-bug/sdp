@@ -17,7 +17,7 @@ func TestNewChecker(t *testing.T) {
 
 	// Create pyproject.toml to detect as Python
 	tomlContent := "[tool.pytest]\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte(tomlContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte(tomlContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -75,7 +75,7 @@ func TestDetectProjectTypePython(t *testing.T) {
 
 	// Test with pyproject.toml
 	tomlContent := "[tool.pytest]\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte(tomlContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte(tomlContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -100,7 +100,7 @@ func TestDetectProjectTypeGo(t *testing.T) {
 
 	// Test with go.mod
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -124,7 +124,7 @@ func TestCheckCoveragePython(t *testing.T) {
 
 	// Create pytest.ini
 	iniContent := "[pytest]\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "pytest.ini"), []byte(iniContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pytest.ini"), []byte(iniContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -316,7 +316,7 @@ func TestCheckFileSizeWithViolations(t *testing.T) {
 		lines[i] = "line " + string(rune('0'+i%10))
 	}
 	content := strings.Join(lines, "\n")
-	if err := os.WriteFile(filepath.Join(tmpDir, "large.py"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "large.py"), []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -432,8 +432,8 @@ func TestDetectProjectTypeByExtensions(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create .py files
-	for i := 0; i < 3; i++ {
-		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py"), []byte("print('hello')"), 0644); err != nil {
+	for i := range 3 {
+		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".py"), []byte("print('hello')"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}

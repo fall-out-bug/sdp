@@ -50,7 +50,7 @@ func TestStore_AppendAndRead(t *testing.T) {
 			Role:      "implementer",
 			TaskID:    "task-1",
 			Timestamp: time.Date(2026, 2, 12, 10, 0, 0, 0, time.UTC),
-			Payload:   map[string]interface{}{"ws_id": "00-051-01"},
+			Payload:   map[string]any{"ws_id": "00-051-01"},
 		},
 		{
 			ID:        "evt-2",
@@ -59,7 +59,7 @@ func TestStore_AppendAndRead(t *testing.T) {
 			Role:      "implementer",
 			TaskID:    "task-1",
 			Timestamp: time.Date(2026, 2, 12, 10, 5, 0, 0, time.UTC),
-			Payload:   map[string]interface{}{"action": "code_generation"},
+			Payload:   map[string]any{"action": "code_generation"},
 		},
 		{
 			ID:        "evt-3",
@@ -68,7 +68,7 @@ func TestStore_AppendAndRead(t *testing.T) {
 			Role:      "implementer",
 			TaskID:    "task-1",
 			Timestamp: time.Date(2026, 2, 12, 10, 30, 0, 0, time.UTC),
-			Payload:   map[string]interface{}{"result": "success"},
+			Payload:   map[string]any{"result": "success"},
 		},
 	}
 

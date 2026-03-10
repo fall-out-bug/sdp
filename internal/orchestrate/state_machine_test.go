@@ -9,6 +9,7 @@ import (
 func TestComputeNextAction(t *testing.T) {
 	workstreams := []string{"00-004-01", "00-004-02"}
 	projectRoot := "."
+	prNumber := 42
 
 	tests := []struct {
 		name    string
@@ -79,7 +80,7 @@ func TestComputeNextAction(t *testing.T) {
 			name: "ci with PRNumber returns ci-loop",
 			cp: &orchestrate.Checkpoint{
 				FeatureID: "F004", Phase: orchestrate.PhaseCI,
-				PRNumber: intPtr(42),
+				PRNumber: &prNumber,
 			},
 			wantAct: "ci-loop",
 			wantPR:  42,
@@ -131,8 +132,6 @@ func TestComputeNextAction(t *testing.T) {
 		})
 	}
 }
-
-func intPtr(n int) *int { return &n }
 
 func TestAdvanceFullLifecycle(t *testing.T) {
 	workstreams := []string{"00-004-01", "00-004-02"}
@@ -265,8 +264,8 @@ func TestAdvanceInitToBuild(t *testing.T) {
 
 func TestAdvanceBuildToReview(t *testing.T) {
 	cp := &orchestrate.Checkpoint{
-		FeatureID:   "F004",
-		Phase:       orchestrate.PhaseBuild,
+		FeatureID: "F004",
+		Phase:     orchestrate.PhaseBuild,
 		Workstreams: []orchestrate.WSStatus{
 			{ID: "00-004-01", Status: "done"},
 			{ID: "00-004-02", Status: "done"},

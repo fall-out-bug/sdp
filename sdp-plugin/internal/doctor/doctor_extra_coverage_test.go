@@ -10,7 +10,7 @@ import (
 func TestCheckDrift_CheckedCountZero(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -40,13 +40,13 @@ func TestFindProjectRootForDrift_TraversesUp(t *testing.T) {
 
 	// Create nested directory structure
 	nestedDir := filepath.Join(tmpDir, "a", "b", "c", "d")
-	if err := os.MkdirAll(nestedDir, 0755); err != nil {
+	if err := os.MkdirAll(nestedDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
 	// Create .beads at root level
 	beadsDir := filepath.Join(tmpDir, ".beads")
-	if err := os.MkdirAll(beadsDir, 0755); err != nil {
+	if err := os.MkdirAll(beadsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func TestFindProjectRootForDrift_TraversesUp(t *testing.T) {
 func TestFindRecentWorkstreamsForDrift_InProgress(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "in_progress")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -95,12 +95,12 @@ func TestFindRecentWorkstreamsForDrift_InProgress(t *testing.T) {
 func TestFindRecentWorkstreamsForDrift_Limit(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
 	// Create 10 workstreams
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wsFile := filepath.Join(wsDir, "00-050-"+string(rune('0'+i/10))+string(rune('0'+i%10))+".md")
 		if err := os.WriteFile(wsFile, []byte("# Test\n"), 0644); err != nil {
 			t.Fatalf("WriteFile: %v", err)
@@ -123,7 +123,7 @@ func TestFindRecentWorkstreamsForDrift_Limit(t *testing.T) {
 func TestFindRecentWorkstreamsForDrift_EmptyDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -141,7 +141,7 @@ func TestFindRecentWorkstreamsForDrift_EmptyDir(t *testing.T) {
 func TestCheckDrift_NoRecentWorkstreams(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -162,7 +162,7 @@ func TestCheckDrift_NoRecentWorkstreams(t *testing.T) {
 func TestCheckDrift_WithWarnings(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -202,15 +202,15 @@ func TestFindRecentWorkstreamsForDrift_NonexistentDir(t *testing.T) {
 func TestFindRecentWorkstreamsForDrift_WithDirectoriesOnly(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
 	// Create subdirectories (not files)
-	if err := os.Mkdir(filepath.Join(wsDir, "00-001-01"), 0755); err != nil {
+	if err := os.Mkdir(filepath.Join(wsDir, "00-001-01"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.Mkdir(filepath.Join(wsDir, "00-002-01"), 0755); err != nil {
+	if err := os.Mkdir(filepath.Join(wsDir, "00-002-01"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -229,7 +229,7 @@ func TestFindRecentWorkstreamsForDrift_WithDirectoriesOnly(t *testing.T) {
 func TestFindRecentWorkstreamsForDrift_NonMarkdownFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -256,7 +256,7 @@ func TestFindRecentWorkstreamsForDrift_NonMarkdownFiles(t *testing.T) {
 func TestFindRecentWorkstreamsForDrift_MixedFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "completed")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -271,7 +271,7 @@ func TestFindRecentWorkstreamsForDrift_MixedFiles(t *testing.T) {
 		t.Fatalf("WriteFile: %v", err)
 	}
 	// Subdirectory should be ignored
-	if err := os.Mkdir(filepath.Join(wsDir, "00-004-01"), 0755); err != nil {
+	if err := os.Mkdir(filepath.Join(wsDir, "00-004-01"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
@@ -292,7 +292,7 @@ func TestFindProjectRootForDrift_InSdpPlugin(t *testing.T) {
 
 	// Create sdp-plugin subdirectory with go.mod
 	pluginDir := filepath.Join(tmpDir, "sdp-plugin")
-	if err := os.MkdirAll(pluginDir, 0755); err != nil {
+	if err := os.MkdirAll(pluginDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(pluginDir, "go.mod"), []byte("module test"), 0644); err != nil {
@@ -300,7 +300,7 @@ func TestFindProjectRootForDrift_InSdpPlugin(t *testing.T) {
 	}
 
 	// Create docs directory at parent level
-	if err := os.Mkdir(filepath.Join(tmpDir, "docs"), 0755); err != nil {
+	if err := os.Mkdir(filepath.Join(tmpDir, "docs"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 

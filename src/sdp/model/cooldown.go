@@ -108,10 +108,7 @@ func (c *CooldownManager) Backoff(model string) {
 	}
 
 	// Double the cooldown, capped at max
-	newCooldown := current * 2
-	if newCooldown > c.config.MaxBackoff {
-		newCooldown = c.config.MaxBackoff
-	}
+	newCooldown := min(current*2, c.config.MaxBackoff)
 
 	c.cooldown[model] = newCooldown
 }

@@ -11,6 +11,8 @@ type Workstream struct {
 	Parent     string
 	Feature    string
 	Status     string
+	Priority   int
+	DependsOn  []string
 	Size       string
 	ProjectID  string
 	Goal       string
@@ -49,13 +51,15 @@ func (ws *Workstream) Validate() error {
 
 // frontmatter represents the YAML frontmatter structure
 type frontmatter struct {
-	WSID      string `yaml:"ws_id"`
-	Parent    string `yaml:"parent"`
-	Feature   string `yaml:"feature"`              // Legacy field name (backward compat)
-	FeatureID string `yaml:"feature_id,omitempty"` // Preferred field name
-	Status    string `yaml:"status"`
-	Size      string `yaml:"size"`
-	ProjectID string `yaml:"project_id"`
+	WSID      string   `yaml:"ws_id"`
+	Parent    string   `yaml:"parent"`
+	Feature   string   `yaml:"feature"`              // Legacy field name (backward compat)
+	FeatureID string   `yaml:"feature_id,omitempty"` // Preferred field name
+	Status    string   `yaml:"status"`
+	Priority  int      `yaml:"priority"`
+	DependsOn []string `yaml:"depends_on,omitempty"`
+	Size      string   `yaml:"size"`
+	ProjectID string   `yaml:"project_id"`
 }
 
 // getFeature returns the feature ID, preferring feature_id over feature
