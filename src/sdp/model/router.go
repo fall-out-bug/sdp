@@ -1,7 +1,7 @@
 package model
 
 import (
-	"sort"
+	"slices"
 )
 
 // Profile represents a model configuration
@@ -15,11 +15,11 @@ type Profile struct {
 
 // RoutingRule defines when to use a specific profile
 type RoutingRule struct {
-	TaskType    string // Type of task (e.g., "planning", "code", "review")
-	MinComplex  int    // Minimum complexity (0-10)
-	MaxComplex  int    // Maximum complexity (0-10)
-	Profile     string // Profile to use
-	Priority    int    // Rule priority (higher = more important)
+	TaskType   string // Type of task (e.g., "planning", "code", "review")
+	MinComplex int    // Minimum complexity (0-10)
+	MaxComplex int    // Maximum complexity (0-10)
+	Profile    string // Profile to use
+	Priority   int    // Rule priority (higher = more important)
 }
 
 // Router handles model selection
@@ -71,8 +71,15 @@ func (r *Router) AddProfile(p Profile) {
 func (r *Router) AddRule(rule RoutingRule) {
 	r.rules = append(r.rules, rule)
 	// Sort by priority descending
-	sort.Slice(r.rules, func(i, j int) bool {
-		return r.rules[i].Priority > r.rules[j].Priority
+	slices.SortFunc(r.rules, func(a, b RoutingRule) int {
+		switch {
+		case a.Priority > b.Priority:
+			return -1
+		case a.Priority < b.Priority:
+			return 1
+		default:
+			return 0
+		}
 	})
 }
 

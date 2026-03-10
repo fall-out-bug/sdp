@@ -55,7 +55,7 @@ func TestCollectorRecord(t *testing.T) {
 	event := Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"command": "init",
 			"args":    []string{},
 		},
@@ -85,7 +85,7 @@ func TestCollectorOptOut(t *testing.T) {
 	event := Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{},
+		Data:      map[string]any{},
 	}
 
 	err = collector.Record(event)
@@ -114,12 +114,12 @@ func TestCollectorExportJSON(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now().Add(-time.Hour),
-			Data:      map[string]interface{}{"command": "init"},
+			Data:      map[string]any{"command": "init"},
 		},
 		{
 			Type:      EventTypeCommandComplete,
 			Timestamp: time.Now(),
-			Data:      map[string]interface{}{"command": "init", "success": true},
+			Data:      map[string]any{"command": "init", "success": true},
 		},
 	}
 
@@ -155,7 +155,7 @@ func TestCollectorExportCSV(t *testing.T) {
 	event := Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{"command": "doctor"},
+		Data:      map[string]any{"command": "doctor"},
 	}
 
 	if err := collector.Record(event); err != nil {
@@ -211,11 +211,11 @@ func TestCollectorEventCount(t *testing.T) {
 	}
 
 	// Record multiple events
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		event := Event{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now(),
-			Data:      map[string]interface{}{"count": i},
+			Data:      map[string]any{"count": i},
 		}
 		if err := collector.Record(event); err != nil {
 			t.Fatalf("Failed to record event: %v", err)
@@ -244,7 +244,7 @@ func TestCollectorDisabled(t *testing.T) {
 	event := Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{},
+		Data:      map[string]any{},
 	}
 
 	err = collector.Record(event)
@@ -287,7 +287,7 @@ func TestCollectorEnable(t *testing.T) {
 	event := Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{},
+		Data:      map[string]any{},
 	}
 
 	err = collector.Record(event)
@@ -322,7 +322,7 @@ func TestCollectorRecordInvalidEvent(t *testing.T) {
 	event := Event{
 		Type:      EventType("invalid_type"),
 		Timestamp: time.Now(),
-		Data:      map[string]interface{}{},
+		Data:      map[string]any{},
 	}
 
 	err = collector.Record(event)
@@ -379,12 +379,12 @@ func TestCollectorReadExistingEvents(t *testing.T) {
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now(),
-			Data:      map[string]interface{}{"command": "test1"},
+			Data:      map[string]any{"command": "test1"},
 		},
 		{
 			Type:      EventTypeCommandStart,
 			Timestamp: time.Now(),
-			Data:      map[string]interface{}{"command": "test2"},
+			Data:      map[string]any{"command": "test2"},
 		},
 	}
 

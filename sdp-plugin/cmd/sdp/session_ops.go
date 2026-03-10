@@ -127,14 +127,14 @@ func runGitCmd(args ...string) (string, error) {
 
 // extractFeatureID extracts the feature ID from a branch name.
 func extractFeatureID(branch string) string {
-	if strings.HasPrefix(branch, "feature/") {
-		return strings.TrimPrefix(branch, "feature/")
+	if suffix, ok := strings.CutPrefix(branch, "feature/"); ok {
+		return suffix
 	}
-	if strings.HasPrefix(branch, "bugfix/") {
-		return strings.TrimPrefix(branch, "bugfix/")
+	if suffix, ok := strings.CutPrefix(branch, "bugfix/"); ok {
+		return suffix
 	}
-	if strings.HasPrefix(branch, "hotfix/") {
-		return strings.TrimPrefix(branch, "hotfix/")
+	if suffix, ok := strings.CutPrefix(branch, "hotfix/"); ok {
+		return suffix
 	}
 	return ""
 }

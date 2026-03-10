@@ -31,11 +31,11 @@ func designCmd() *cobra.Command {
 			if wsID == "" {
 				wsID = "00-000-00"
 			}
-			metadata := make(map[string]interface{})
+			metadata := make(map[string]any)
 			for _, p := range metadataPairs {
-				kv := strings.SplitN(p, "=", 2)
-				if len(kv) == 2 {
-					metadata[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+				key, value, ok := strings.Cut(p, "=")
+				if ok {
+					metadata[strings.TrimSpace(key)] = strings.TrimSpace(value)
 				}
 			}
 			if evidence.Enabled() {

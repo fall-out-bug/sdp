@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -58,8 +58,8 @@ func (a *App) workstreamsFromControlTower(data *controltower.Data) map[string][]
 	}
 
 	for group, items := range grouped {
-		sort.Slice(items, func(i, j int) bool {
-			return nextstep.ComparePriority(items[i], items[j]) < 0
+		slices.SortFunc(items, func(a, b nextstep.WorkstreamStatus) int {
+			return nextstep.ComparePriority(a, b)
 		})
 		for _, ws := range items {
 			summaries[group] = append(summaries[group], WorkstreamSummary{
@@ -109,8 +109,15 @@ func (a *App) fetchIdeas() []IdeaSummary {
 	}
 
 	// Sort by date (newest first)
-	sort.Slice(ideas, func(i, j int) bool {
-		return ideas[i].Date.After(ideas[j].Date)
+	slices.SortFunc(ideas, func(a, b IdeaSummary) int {
+		switch {
+		case a.Date.After(b.Date):
+			return -1
+		case a.Date.Before(b.Date):
+			return 1
+		default:
+			return 0
+		}
 	})
 
 	return ideas

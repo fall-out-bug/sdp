@@ -34,7 +34,7 @@ func TestMetricsAcceptanceRate(t *testing.T) {
 	collector := NewMetricsCollector()
 
 	// Record 10 events: 8 accepted, 2 rejected
-	for i := 0; i < 8; i++ {
+	for range 8 {
 		collector.Record(MetricEvent{
 			Type: MetricAccepted,
 			Recommendation: Recommendation{
@@ -45,7 +45,7 @@ func TestMetricsAcceptanceRate(t *testing.T) {
 			Timestamp: time.Now(),
 		})
 	}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		collector.Record(MetricEvent{
 			Type: MetricRejected,
 			Recommendation: Recommendation{
@@ -69,13 +69,13 @@ func TestMetricsCorrectionRate(t *testing.T) {
 	collector := NewMetricsCollector()
 
 	// Record events: 6 accepted, 2 refined (corrected), 2 rejected
-	for i := 0; i < 6; i++ {
+	for range 6 {
 		collector.Record(MetricEvent{Type: MetricAccepted, Timestamp: time.Now()})
 	}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		collector.Record(MetricEvent{Type: MetricRefined, Timestamp: time.Now()})
 	}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		collector.Record(MetricEvent{Type: MetricRejected, Timestamp: time.Now()})
 	}
 
@@ -163,10 +163,10 @@ func TestMetricsQualityCheckFails(t *testing.T) {
 	thresholds.MinAcceptanceRate = 0.9 // Require 90% acceptance
 
 	// Record events with only 70% acceptance
-	for i := 0; i < 7; i++ {
+	for range 7 {
 		collector.Record(MetricEvent{Type: MetricAccepted, Timestamp: time.Now()})
 	}
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		collector.Record(MetricEvent{Type: MetricRejected, Timestamp: time.Now()})
 	}
 

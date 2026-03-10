@@ -16,7 +16,7 @@ func (c *Creator) CreateIssue(task *Task) (*Issue, error) {
 	}
 
 	// Ensure directory exists
-	if err := os.MkdirAll(c.config.IssuesDir, 0755); err != nil {
+	if err := os.MkdirAll(c.config.IssuesDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create issues dir: %w", err)
 	}
 
@@ -29,7 +29,7 @@ func (c *Creator) CreateIssue(task *Task) (*Issue, error) {
 	path := filepath.Join(c.config.IssuesDir, issueID+".md")
 
 	// Write file
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		return nil, fmt.Errorf("failed to write issue: %w", err)
 	}
 
@@ -146,7 +146,7 @@ func (c *Creator) generateIssueContent(issueID string, task *Task) string {
 
 // updateIndex appends entry to issues index
 func (c *Creator) updateIndex(issueID string, task *Task, path string) error {
-	if err := os.MkdirAll(filepath.Dir(c.config.IndexFile), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(c.config.IndexFile), 0o755); err != nil {
 		return err
 	}
 
@@ -160,7 +160,7 @@ func (c *Creator) updateIndex(issueID string, task *Task, path string) error {
 		File:     relPath,
 	}
 
-	f, err := os.OpenFile(c.config.IndexFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(c.config.IndexFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}

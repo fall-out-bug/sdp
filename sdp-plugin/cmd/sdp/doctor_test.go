@@ -11,7 +11,7 @@ import (
 func TestDoctorCmd(t *testing.T) {
 	// Create .claude directory for doctor checks
 	tmpDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", "skills"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", "skills"), 0o755); err != nil {
 		t.Fatalf("Failed to create .claude dir: %v", err)
 	}
 
@@ -45,7 +45,7 @@ func TestDoctorCmd(t *testing.T) {
 func TestDoctorCmdWithDriftFlag(t *testing.T) {
 	// Create .claude directory for doctor checks
 	tmpDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", "skills"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", "skills"), 0o755); err != nil {
 		t.Fatalf("Failed to create .claude dir: %v", err)
 	}
 
@@ -87,16 +87,16 @@ func TestDoctorHooksProvenanceSubcommandExists(t *testing.T) {
 func TestDoctorHooksProvenanceRunE(t *testing.T) {
 	tmpDir := t.TempDir()
 	hooksDir := filepath.Join(tmpDir, ".git", "hooks")
-	if err := os.MkdirAll(hooksDir, 0755); err != nil {
+	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
 		t.Fatalf("mkdir hooks: %v", err)
 	}
 
 	commitMsg := filepath.Join(hooksDir, "commit-msg")
 	postCommit := filepath.Join(hooksDir, "post-commit")
-	if err := os.WriteFile(commitMsg, []byte("#!/bin/sh\n# SDP-Agent\n# SDP-Model\n# SDP-Task\n"), 0755); err != nil {
+	if err := os.WriteFile(commitMsg, []byte("#!/bin/sh\n# SDP-Agent\n# SDP-Model\n# SDP-Task\n"), 0o755); err != nil {
 		t.Fatalf("write commit-msg: %v", err)
 	}
-	if err := os.WriteFile(postCommit, []byte("#!/bin/sh\nsdp skill record\n# commit_sha\n# agent\n# model\n"), 0755); err != nil {
+	if err := os.WriteFile(postCommit, []byte("#!/bin/sh\nsdp skill record\n# commit_sha\n# agent\n# model\n"), 0o755); err != nil {
 		t.Fatalf("write post-commit: %v", err)
 	}
 
@@ -116,12 +116,12 @@ func TestDoctorHooksProvenanceRunE(t *testing.T) {
 func TestDoctorHooksProvenanceRunE_MissingHook(t *testing.T) {
 	tmpDir := t.TempDir()
 	hooksDir := filepath.Join(tmpDir, ".git", "hooks")
-	if err := os.MkdirAll(hooksDir, 0755); err != nil {
+	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
 		t.Fatalf("mkdir hooks: %v", err)
 	}
 
 	commitMsg := filepath.Join(hooksDir, "commit-msg")
-	if err := os.WriteFile(commitMsg, []byte("#!/bin/sh\n# SDP-Agent\n# SDP-Model\n# SDP-Task\n"), 0755); err != nil {
+	if err := os.WriteFile(commitMsg, []byte("#!/bin/sh\n# SDP-Agent\n# SDP-Model\n# SDP-Task\n"), 0o755); err != nil {
 		t.Fatalf("write commit-msg: %v", err)
 	}
 

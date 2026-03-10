@@ -51,7 +51,7 @@ func TestGovernanceMetaCheck_WithApproval(t *testing.T) {
 
 	// Create approval file
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatalf("Failed to create .sdp dir: %v", err)
 	}
 
@@ -64,7 +64,7 @@ approvals:
     expires_at: ""
 `
 	approvalPath := filepath.Join(sdpDir, "policy-approvals.yml")
-	if err := os.WriteFile(approvalPath, []byte(approvalContent), 0644); err != nil {
+	if err := os.WriteFile(approvalPath, []byte(approvalContent), 0o644); err != nil {
 		t.Fatalf("Failed to write approval file: %v", err)
 	}
 

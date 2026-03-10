@@ -56,7 +56,7 @@ func doctorHooksProvenanceCmd() *cobra.Command {
 					}
 				}
 
-				notExecutable := check.requiredX && info.Mode().Perm()&0111 == 0
+				notExecutable := check.requiredX && info.Mode().Perm()&0o111 == 0
 				if len(missing) > 0 || notExecutable {
 					fmt.Printf("✗ %s\n", check.name)
 					if len(missing) > 0 {

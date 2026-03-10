@@ -38,7 +38,7 @@ func SetLevel(level Level) {
 }
 
 // Debug logs a debug message.
-func Debug(format string, args ...interface{}) {
+func Debug(format string, args ...any) {
 	if logLevel <= LevelDebug {
 		initLogger()
 		logger.Printf("[DEBUG] "+format, args...)
@@ -46,7 +46,7 @@ func Debug(format string, args ...interface{}) {
 }
 
 // Info logs an info message.
-func Info(format string, args ...interface{}) {
+func Info(format string, args ...any) {
 	if logLevel <= LevelInfo {
 		initLogger()
 		logger.Printf("[INFO] "+format, args...)
@@ -54,7 +54,7 @@ func Info(format string, args ...interface{}) {
 }
 
 // Warn logs a warning message.
-func Warn(format string, args ...interface{}) {
+func Warn(format string, args ...any) {
 	if logLevel <= LevelWarn {
 		initLogger()
 		logger.Printf("[WARN] "+format, args...)
@@ -62,7 +62,7 @@ func Warn(format string, args ...interface{}) {
 }
 
 // Error logs an error message.
-func Error(format string, args ...interface{}) {
+func Error(format string, args ...any) {
 	if logLevel <= LevelError {
 		initLogger()
 		logger.Printf("[ERROR] "+format, args...)

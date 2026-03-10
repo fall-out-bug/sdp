@@ -2,6 +2,7 @@ package collision
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 )
 
@@ -86,12 +87,7 @@ func buildFileToFeatures(features []FeatureScope) map[string][]string {
 
 // stringSliceContains checks if a string slice contains a value.
 func stringSliceContains(slice []string, value string) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, value)
 }
 
 // BoundaryToJSON converts a SharedBoundary to JSON string.

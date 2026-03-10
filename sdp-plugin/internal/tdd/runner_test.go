@@ -206,7 +206,7 @@ func TestDetectLanguageByAbsolutePath(t *testing.T) {
 	// Create temporary directory with go.mod
 	tmpDir := t.TempDir()
 	goModPath := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModPath, []byte("module test\n"), 0644)
+	err := os.WriteFile(goModPath, []byte("module test\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}

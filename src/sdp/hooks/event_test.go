@@ -12,22 +12,22 @@ func TestHookEvent(t *testing.T) {
 	tests := []struct {
 		name      string
 		eventType string
-		payload   map[string]interface{}
+		payload   map[string]any
 	}{
 		{
 			name:      "command pre event",
 			eventType: "command:pre",
-			payload:   map[string]interface{}{"command": "build", "args": []string{"--verbose"}},
+			payload:   map[string]any{"command": "build", "args": []string{"--verbose"}},
 		},
 		{
 			name:      "session start event",
 			eventType: "session:start",
-			payload:   map[string]interface{}{"session_id": "abc123"},
+			payload:   map[string]any{"session_id": "abc123"},
 		},
 		{
 			name:      "gateway response event",
 			eventType: "gateway:response",
-			payload:   map[string]interface{}{"model": "claude", "tokens": 100},
+			payload:   map[string]any{"model": "claude", "tokens": 100},
 		},
 		{
 			name:      "empty payload",
@@ -85,7 +85,7 @@ func TestHookRegistry_Publish(t *testing.T) {
 
 	registry.Subscribe("command:pre", handler, 0)
 
-	event := NewEvent("command:pre", map[string]interface{}{"test": true})
+	event := NewEvent("command:pre", map[string]any{"test": true})
 	err := registry.Publish(event)
 
 	if err != nil {
@@ -247,24 +247,20 @@ func TestHookRegistry_ConcurrentAccess(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// Concurrent subscriptions
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 10 {
+		wg.Go(func() {
 			registry.Subscribe("test", func(event HookEvent) error {
 				return nil
 			}, 0)
-		}()
+		})
 	}
 
 	// Concurrent publishes
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 10 {
+		wg.Go(func() {
 			event := NewEvent("test", nil)
 			registry.Publish(event)
-		}()
+		})
 	}
 
 	wg.Wait()

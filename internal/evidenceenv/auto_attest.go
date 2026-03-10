@@ -93,7 +93,7 @@ func AutoAttest(opts AutoAttestOptions) (CodingWorkflowStatement, error) {
 		},
 		Boundary: boundary,
 		Provenance: Provenance{
-			RunID:        fmt.Sprintf("ci-auto-%s-%s", opts.PRNumber, headSHA[:minLen(len(headSHA), 8)]),
+			RunID:        fmt.Sprintf("ci-auto-%s-%s", opts.PRNumber, headSHA[:min(len(headSHA), 8)]),
 			Orchestrator: "github-actions",
 			Runtime:      "ci",
 			CapturedAt:   time.Now().UTC().Format(time.RFC3339),
@@ -186,7 +186,7 @@ func collectTestResults(repoRoot string) ([]GateResult, float64) {
 	totalCoverage := 0.0
 	coverageCount := 0
 
-	for _, line := range strings.Split(string(out), "\n") {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
@@ -378,7 +378,7 @@ func matchesAnyPrefix(file string, prefixes []string) bool {
 
 func countNonEmptyLines(s string) int {
 	count := 0
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		if strings.TrimSpace(line) != "" {
 			count++
 		}
@@ -413,13 +413,6 @@ func firstOrEmpty(s []string) string {
 		return s[0]
 	}
 	return ""
-}
-
-func minLen(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // WriteAutoAttestationReport writes a human-readable summary JSON alongside the attestation.

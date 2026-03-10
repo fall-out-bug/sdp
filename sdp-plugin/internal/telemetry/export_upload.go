@@ -41,10 +41,10 @@ func PackForUpload(telemetryFile, outputPath, format string) (*UploadResult, err
 func packAsJSON(events []Event, outputPath string) (*UploadResult, error) {
 	// Create upload structure
 	uploadData := struct {
-		Metadata map[string]interface{} `json:"metadata"`
-		Events   []Event                `json:"events"`
+		Metadata map[string]any `json:"metadata"`
+		Events   []Event        `json:"events"`
 	}{
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"version":      "1.0",
 			"generated_at": time.Now().Format(time.RFC3339),
 			"event_count":  len(events),

@@ -130,6 +130,7 @@ New project?
 | `@protocol-consistency` | Audit consistency across docs/CLI/CI |
 | `@guard` | Pre-edit gate enforcing WS scope |
 | `@tdd` | TDD enforcement (called by @build) |
+| `@go-modern` | Modern Go style and review rules |
 
 ### Beads Integration
 
@@ -248,6 +249,7 @@ sdp/
 - Explicit error handling
 - Clean architecture boundaries
 - Conventional commits
+- For Go, use modern stdlib idioms that match the repo's Go version
 
 ---
 

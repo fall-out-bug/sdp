@@ -17,7 +17,7 @@ func TestCheckPythonCoverageParseOutput(t *testing.T) {
 
 	// Create pytest.ini
 	iniContent := "[pytest]\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "pytest.ini"), []byte(iniContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pytest.ini"), []byte(iniContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -42,7 +42,7 @@ func TestCheckPythonTypes_NoMypy(t *testing.T) {
 
 	// Create a simple Python file
 	pyFile := filepath.Join(tmpDir, "test.py")
-	if err := os.WriteFile(pyFile, []byte("def hello(): pass\n"), 0644); err != nil {
+	if err := os.WriteFile(pyFile, []byte("def hello(): pass\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -68,7 +68,7 @@ func TestCheckJavaTypes_NoMvn(t *testing.T) {
 
 	// Create a simple Java file structure
 	javaFile := filepath.Join(tmpDir, "Test.java")
-	if err := os.WriteFile(javaFile, []byte("public class Test {}"), 0644); err != nil {
+	if err := os.WriteFile(javaFile, []byte("public class Test {}"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -94,13 +94,13 @@ func TestCheckGoTypes_ValidProject(t *testing.T) {
 
 	// Create go.mod
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a simple Go file
 	goFile := filepath.Join(tmpDir, "test.go")
-	if err := os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -127,7 +127,7 @@ func TestCheckPythonComplexity_NoRadon(t *testing.T) {
 	// Create Python files
 	pyFile := filepath.Join(tmpDir, "complex.py")
 	content := strings.Repeat("def func(): pass\n", 30)
-	if err := os.WriteFile(pyFile, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(pyFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -149,14 +149,14 @@ func TestCheckGoComplexity_NoGocyclo(t *testing.T) {
 
 	// Create go.mod
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create Go files
 	goFile := filepath.Join(tmpDir, "simple.go")
 	content := strings.Repeat("// line\n", 50)
-	if err := os.WriteFile(goFile, []byte("package main\n\n"+content), 0644); err != nil {
+	if err := os.WriteFile(goFile, []byte("package main\n\n"+content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -208,7 +208,7 @@ func TestNewChecker_DetectByFileExtensions(t *testing.T) {
 
 			// Create files
 			for _, f := range tt.files {
-				if err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644); err != nil {
+				if err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0o644); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -230,7 +230,7 @@ func TestNewChecker_PythonBySetupPy(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create setup.py
-	if err := os.WriteFile(filepath.Join(tmpDir, "setup.py"), []byte("from setuptools import setup"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "setup.py"), []byte("from setuptools import setup"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -249,7 +249,7 @@ func TestNewChecker_PythonByRequirements(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create requirements.txt
-	if err := os.WriteFile(filepath.Join(tmpDir, "requirements.txt"), []byte("pytest>=7.0"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "requirements.txt"), []byte("pytest>=7.0"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -272,7 +272,7 @@ func TestNewChecker_JavaByPom(t *testing.T) {
 <project>
 	<modelVersion>4.0.0</modelVersion>
 </project>`
-	if err := os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte(pomContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte(pomContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -291,7 +291,7 @@ func TestCheckFileSize_EmptyProject(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create go.mod but no Go files
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -313,7 +313,7 @@ func TestCheckCoverage_PythonProject(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create pyproject.toml
-	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "pyproject.toml"), []byte("[tool.pytest]"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -352,23 +352,23 @@ func TestBasicGoComplexity_SkipFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create go.mod
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create large test file (should be skipped)
 	largeTest := strings.Repeat("// line\n", 300)
-	if err := os.WriteFile(filepath.Join(tmpDir, "large_test.go"), []byte("package main\n\n"+largeTest), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "large_test.go"), []byte("package main\n\n"+largeTest), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create large generated file (should be skipped)
-	if err := os.WriteFile(filepath.Join(tmpDir, "generated_code.go"), []byte("package main\n\n"+largeTest), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "generated_code.go"), []byte("package main\n\n"+largeTest), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a small normal file
-	if err := os.WriteFile(filepath.Join(tmpDir, "normal.go"), []byte("package main\n\nfunc main() {}\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "normal.go"), []byte("package main\n\nfunc main() {}\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -391,13 +391,13 @@ func TestBasicGoComplexity_ComplexFile(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create go.mod
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a large file that exceeds threshold (250 lines -> CC 25 > 10)
 	largeContent := strings.Repeat("// comment line\n", 250)
-	if err := os.WriteFile(filepath.Join(tmpDir, "complex.go"), []byte("package main\n\n"+largeContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "complex.go"), []byte("package main\n\n"+largeContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -428,17 +428,17 @@ func TestBasicPythonComplexity_SkipFiles(t *testing.T) {
 
 	// Create large test file (should be skipped)
 	largeTest := strings.Repeat("# line\n", 300)
-	if err := os.WriteFile(filepath.Join(tmpDir, "test_main.py"), []byte(largeTest), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "test_main.py"), []byte(largeTest), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create large generated file (should be skipped)
-	if err := os.WriteFile(filepath.Join(tmpDir, "generated_api.py"), []byte(largeTest), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "generated_api.py"), []byte(largeTest), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a small normal file
-	if err := os.WriteFile(filepath.Join(tmpDir, "main.py"), []byte("def hello(): pass\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "main.py"), []byte("def hello(): pass\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -461,7 +461,7 @@ func TestBasicPythonComplexity_ComplexFile(t *testing.T) {
 
 	// Create a large file that exceeds threshold (250 lines -> CC 25 > 10)
 	largeContent := strings.Repeat("# comment line\n", 250)
-	if err := os.WriteFile(filepath.Join(tmpDir, "complex.py"), []byte(largeContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "complex.py"), []byte(largeContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -491,13 +491,13 @@ func TestCheckFileSize_StrictMode(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create go.mod
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\n\ngo 1.21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a large file
 	largeContent := strings.Repeat("// line\n", 250)
-	if err := os.WriteFile(filepath.Join(tmpDir, "large.go"), []byte("package main\n\n"+largeContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "large.go"), []byte("package main\n\n"+largeContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -632,7 +632,7 @@ func TestCheckPythonTypesWithMypy(t *testing.T) {
 
 	// Create mypy.ini
 	iniContent := "[mypy]\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "mypy.ini"), []byte(iniContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "mypy.ini"), []byte(iniContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -659,7 +659,7 @@ func TestCheckGoTypesNoVet(t *testing.T) {
 
 	// Initialize go module
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -708,8 +708,8 @@ func TestDetectProjectTypeGoExtension(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create .go files
-	for i := 0; i < 3; i++ {
-		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go"), []byte("package main\n"), 0644); err != nil {
+	for i := range 3 {
+		if err := os.WriteFile(filepath.Join(tmpDir, "test"+string(rune('0'+i))+".go"), []byte("package main\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -734,8 +734,8 @@ func TestDetectProjectTypeJavaExtension(t *testing.T) {
 	checker := &Checker{projectPath: tmpDir}
 
 	// Create .java files
-	for i := 0; i < 3; i++ {
-		if err := os.WriteFile(filepath.Join(tmpDir, "Test"+string(rune('0'+i))+".java"), []byte("public class Test {}"), 0644); err != nil {
+	for i := range 3 {
+		if err := os.WriteFile(filepath.Join(tmpDir, "Test"+string(rune('0'+i))+".java"), []byte("public class Test {}"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -763,7 +763,7 @@ func TestCheckFileSizeWithSmallFile(t *testing.T) {
 		lines[j] = "line content"
 	}
 	content := strings.Join(lines, "\n")
-	if err := os.WriteFile(filepath.Join(tmpDir, "file.py"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "file.py"), []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -829,7 +829,7 @@ func TestCheckPythonCoverage_WithCoverageFile(t *testing.T) {
 
 	// Create .coverage file
 	covFile := filepath.Join(tmpDir, ".coverage")
-	if err := os.WriteFile(covFile, []byte(""), 0644); err != nil {
+	if err := os.WriteFile(covFile, []byte(""), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -840,7 +840,7 @@ func TestCheckPythonCoverage_WithCoverageFile(t *testing.T) {
 		"totals": {"percent_covered": 85.5}
 	}`
 	jsonFile := filepath.Join(tmpDir, "coverage.json")
-	if err := os.WriteFile(jsonFile, []byte(jsonContent), 0644); err != nil {
+	if err := os.WriteFile(jsonFile, []byte(jsonContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -871,7 +871,7 @@ func TestCheckJavaCoverage_WithJacocoCsv(t *testing.T) {
 
 	// Create target directory with jacoco.csv
 	targetDir := filepath.Join(tmpDir, "target", "site", "jacoco")
-	if err := os.MkdirAll(targetDir, 0755); err != nil {
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -880,7 +880,7 @@ func TestCheckJavaCoverage_WithJacocoCsv(t *testing.T) {
 Total,,-,100,400,10,40,10,40,5,15,2,8,0,1
 `
 	jacocoFile := filepath.Join(targetDir, "jacoco.csv")
-	if err := os.WriteFile(jacocoFile, []byte(csvContent), 0644); err != nil {
+	if err := os.WriteFile(jacocoFile, []byte(csvContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -912,18 +912,21 @@ func TestCheckComplexity_GoFiles(t *testing.T) {
 
 	// Create go.mod
 	modContent := "module test\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(modContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create Go files with various complexity
-	for i := 0; i < 3; i++ {
-		content := "package main\n\nfunc test" + string(rune('A'+i)) + "() {\n"
-		for j := 0; j < 10; j++ {
-			content += "\tprintln(\"line\")\n"
+	for i := range 3 {
+		var content strings.Builder
+		content.WriteString("package main\n\nfunc test")
+		content.WriteString(string(rune('A' + i)))
+		content.WriteString("() {\n")
+		for range 10 {
+			content.WriteString("\tprintln(\"line\")\n")
 		}
-		content += "}\n"
-		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go"), []byte(content), 0644); err != nil {
+		content.WriteString("}\n")
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('A'+i))+".go"), []byte(content.String()), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -950,12 +953,15 @@ func TestCheckComplexity_PythonFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create Python files
-	for i := 0; i < 3; i++ {
-		content := "def test_" + string(rune('a'+i)) + "():\n"
-		for j := 0; j < 10; j++ {
-			content += "    print('line')\n"
+	for i := range 3 {
+		var content strings.Builder
+		content.WriteString("def test_")
+		content.WriteString(string(rune('a' + i)))
+		content.WriteString("():\n")
+		for range 10 {
+			content.WriteString("    print('line')\n")
 		}
-		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('a'+i))+".py"), []byte(content), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "file"+string(rune('a'+i))+".py"), []byte(content.String()), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}

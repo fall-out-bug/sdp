@@ -8,7 +8,7 @@ Learn how to use the Spec-Driven Protocol (SDP) Claude Plugin with your project,
 
 ```bash
 # Clone or download SDP plugin
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 
 # Copy prompts to your project
 cp -r ~/.claude/sdp/prompts/* .claude/

@@ -3,6 +3,7 @@ package evidenceenv
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -99,8 +100,8 @@ func TestSchemaValidationMatchesEvidenceValidate(t *testing.T) {
 			name: "invalid_boundary_missing_declared",
 			payload: mustMerge(t, validEvidenceFixture, map[string]any{
 				"boundary": map[string]any{
-					"declared":  map[string]any{},
-					"observed": map[string]any{"touched_paths": []any{}, "out_of_boundary_paths": []any{}},
+					"declared":   map[string]any{},
+					"observed":   map[string]any{"touched_paths": []any{}, "out_of_boundary_paths": []any{}},
 					"compliance": map[string]any{"ok": true, "reason": ""},
 				},
 			}),
@@ -143,8 +144,7 @@ func TestSchemaValidationMatchesEvidenceValidate(t *testing.T) {
 
 func TestSchemaValidatesTemplate(t *testing.T) {
 	root := moduleRoot(t)
-	templatePath := filepath.Join(root, "specs", "strict-evidence-template.json")
-	b := mustReadFile(t, templatePath)
+	b := mustReadFile(t, writeValidEvidenceFixture(t))
 	var doc any
 	if err := json.Unmarshal(b, &doc); err != nil {
 		t.Fatalf("unmarshal template: %v", err)
@@ -180,9 +180,7 @@ func mustMerge(t *testing.T, base []byte, overrides map[string]any) []byte {
 	if err := json.Unmarshal(base, &m); err != nil {
 		t.Fatal(err)
 	}
-	for k, v := range overrides {
-		m[k] = v
-	}
+	maps.Copy(m, overrides)
 	out, err := json.Marshal(m)
 	if err != nil {
 		t.Fatal(err)

@@ -70,13 +70,13 @@ Different feature
 `
 
 	// Write workstream files
-	if err := os.WriteFile(filepath.Join(tmpDir, "00-050-01.md"), []byte(ws1Content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "00-050-01.md"), []byte(ws1Content), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmpDir, "00-050-02.md"), []byte(ws2Content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "00-050-02.md"), []byte(ws2Content), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmpDir, "00-050-03.md"), []byte(ws3Content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "00-050-03.md"), []byte(ws3Content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -196,7 +196,7 @@ Test
 			tmpDir := t.TempDir()
 			wsPath := filepath.Join(tmpDir, "00-050-01.md")
 
-			if err := os.WriteFile(wsPath, []byte(tt.content), 0644); err != nil {
+			if err := os.WriteFile(wsPath, []byte(tt.content), 0o644); err != nil {
 				t.Fatal(err)
 			}
 

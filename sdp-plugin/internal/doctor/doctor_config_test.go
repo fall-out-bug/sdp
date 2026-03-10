@@ -25,7 +25,7 @@ func TestCheckProjectConfig_NoConfig(t *testing.T) {
 	// Change to temp directory with .sdp but no config
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -49,7 +49,7 @@ func TestCheckProjectConfig_WithValidConfig(t *testing.T) {
 	// Create temp directory with valid config
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -79,7 +79,7 @@ func TestCheckProjectConfig_WithInvalidConfig(t *testing.T) {
 	// Create temp directory with invalid config
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

@@ -11,7 +11,7 @@ import (
 // checkBeadsIntegrity validates Beads database is healthy
 func checkBeadsIntegrity() DeepCheckResult {
 	start := getTime()
-	details := make(map[string]interface{})
+	details := make(map[string]any)
 
 	beadsDB := ".beads/beads.db"
 	if _, err := os.Stat(beadsDB); os.IsNotExist(err) {
@@ -63,7 +63,7 @@ func checkBeadsIntegrity() DeepCheckResult {
 // checkConfigVersion validates config version is compatible
 func checkConfigVersion() DeepCheckResult {
 	start := getTime()
-	details := make(map[string]interface{})
+	details := make(map[string]any)
 
 	configPath := ".sdp/config.yml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {

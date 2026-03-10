@@ -101,8 +101,7 @@ func (cs *ContractSynthesizer) parseInlineFields(line, prefix string, schema *Sc
 	pattern := prefix + `\s*\{([^}]{1,500})\}`
 	inlineRe := regexp.MustCompile(pattern)
 	if inlineMatches := inlineRe.FindStringSubmatch(line); len(inlineMatches) > 1 {
-		fields := strings.Split(inlineMatches[1], ",")
-		for _, f := range fields {
+		for f := range strings.SplitSeq(inlineMatches[1], ",") {
 			f = strings.TrimSpace(f)
 			if f != "" {
 				sanitized, err := sanitizeFieldName(f)

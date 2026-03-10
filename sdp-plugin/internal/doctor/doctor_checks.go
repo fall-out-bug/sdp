@@ -45,13 +45,13 @@ func checkFilePermissions() CheckResult {
 				}
 
 				// Check permissions (should be 0600 for files)
-				if fileInfo.Mode().Perm()&0077 != 0 {
+				if fileInfo.Mode().Perm()&0o077 != 0 {
 					insecureFiles = append(insecureFiles, fullPath)
 				}
 			}
 		} else {
 			// Check single file permissions
-			if info.Mode().Perm()&0077 != 0 {
+			if info.Mode().Perm()&0o077 != 0 {
 				insecureFiles = append(insecureFiles, path)
 			}
 		}

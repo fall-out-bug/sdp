@@ -103,7 +103,7 @@ os.WriteFile(filename, data, 0755)  // Git hooks
 **Protected files:**
 - `.beads/beads.db` - Issue tracker data
 - `.oneshot` - Execution state
-- `~/.sdp/telemetry.jsonl` - Usage telemetry
+- `~/.config/sdp/telemetry.jsonl` - Usage telemetry
 - Checkpoint files - Feature execution state
 
 **Doctor check:**

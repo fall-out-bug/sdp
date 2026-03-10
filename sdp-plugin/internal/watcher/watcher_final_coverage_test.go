@@ -51,7 +51,7 @@ func TestQualityWatcher_AllQualityChecks(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -69,13 +69,13 @@ func TestQualityWatcher_AllQualityChecks(t *testing.T) {
 	largeFile := filepath.Join(tmpDir, "large.go")
 	var largeContent strings.Builder
 	largeContent.WriteString("package test\n\nfunc Large() {\n")
-	for i := 0; i < 250; i++ {
+	for i := range 250 {
 		largeContent.WriteString("    var x int = ")
 		largeContent.WriteString(fmt.Sprintf("%d\n", i))
 	}
 	largeContent.WriteString("}\n")
 
-	err = os.WriteFile(largeFile, []byte(largeContent.String()), 0644)
+	err = os.WriteFile(largeFile, []byte(largeContent.String()), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write large file: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -153,7 +153,7 @@ func TestQualityWatcher_PatternMatching(t *testing.T) {
 
 	for _, fname := range files {
 		fpath := filepath.Join(tmpDir, fname)
-		err = os.WriteFile(fpath, []byte("package test\n"), 0644)
+		err = os.WriteFile(fpath, []byte("package test\n"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to write %s: %v", fname, err)
 		}
@@ -216,7 +216,7 @@ func TestQualityWatcher_ConcurrentAccess(t *testing.T) {
 
 	// Create go.mod
 	modFile := filepath.Join(tmpDir, "go.mod")
-	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0644)
+	err = os.WriteFile(modFile, []byte("module test\n\ngo 1.21\n"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
@@ -234,7 +234,7 @@ func TestQualityWatcher_ConcurrentAccess(t *testing.T) {
 
 	// Goroutine 1: Add violations
 	go func() {
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			qw.addViolation(Violation{
 				File:     fmt.Sprintf("file%d.go", i),
 				Check:    "test",
@@ -247,7 +247,7 @@ func TestQualityWatcher_ConcurrentAccess(t *testing.T) {
 
 	// Goroutine 2: Get violations
 	go func() {
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			_ = qw.GetViolations()
 			time.Sleep(time.Millisecond)
 		}
@@ -256,7 +256,7 @@ func TestQualityWatcher_ConcurrentAccess(t *testing.T) {
 
 	// Goroutine 3: Clear violations
 	go func() {
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			qw.clearViolations(fmt.Sprintf("file%d.go", i))
 			time.Sleep(time.Millisecond)
 		}

@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"slices"
 	"strings"
 	"testing"
 )
@@ -23,15 +24,7 @@ func TestExecutor_ParseWorkstreamDependencies(t *testing.T) {
 	}
 
 	// 00-054-02 should depend on 00-054-01
-	hasDep01 := false
-	for _, dep := range deps {
-		if dep == "00-054-01" {
-			hasDep01 = true
-			break
-		}
-	}
-
-	if !hasDep01 {
+	if !slices.Contains(deps, "00-054-01") {
 		t.Error("Expected 00-054-02 to depend on 00-054-01")
 	}
 }
@@ -57,9 +50,9 @@ func TestExecutor_TopologicalSort(t *testing.T) {
 	}
 
 	// Verify order: 00-054-01 should come before 00-054-02, which should come before 00-054-03
-	pos01 := indexOf(sorted, "00-054-01")
-	pos02 := indexOf(sorted, "00-054-02")
-	pos03 := indexOf(sorted, "00-054-03")
+	pos01 := slices.Index(sorted, "00-054-01")
+	pos02 := slices.Index(sorted, "00-054-02")
+	pos03 := slices.Index(sorted, "00-054-03")
 
 	if pos01 >= pos02 {
 		t.Error("00-054-01 should come before 00-054-02")
@@ -92,14 +85,4 @@ func TestExecutor_CyclicDependencies(t *testing.T) {
 	if !strings.Contains(err.Error(), "cycle") {
 		t.Errorf("Expected cycle error, got: %v", err)
 	}
-}
-
-// Helper function
-func indexOf(slice []string, item string) int {
-	for i, s := range slice {
-		if s == item {
-			return i
-		}
-	}
-	return -1
 }

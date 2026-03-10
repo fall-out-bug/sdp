@@ -41,7 +41,7 @@ func validateSchemaPathsInFile(t *testing.T, baseDir, path string) {
 		if line == "" {
 			continue
 		}
-		var obj map[string]interface{}
+		var obj map[string]any
 		if err := json.Unmarshal([]byte(line), &obj); err != nil {
 			continue
 		}

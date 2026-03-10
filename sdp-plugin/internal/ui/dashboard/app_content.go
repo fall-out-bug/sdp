@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -12,8 +13,8 @@ func (a *App) renderWorkstreams() string {
 		return "Workstreams\n\nNo workstreams found"
 	}
 
-	var content string
-	content += matrixBaseStyle.Render("Workstreams\n\n")
+	var content strings.Builder
+	content.WriteString(matrixBaseStyle.Render("Workstreams\n\n"))
 
 	statusOrder := []string{"open", "in_progress", "completed", "blocked"}
 	statusLabels := map[string]string{
@@ -47,7 +48,8 @@ func (a *App) renderWorkstreams() string {
 			statusHeader = statusBlockedMatrixStyle.Render(fmt.Sprintf("%s (%d)", label, len(wss)))
 		}
 
-		content += statusHeader + "\n"
+		content.WriteString(statusHeader)
+		content.WriteString("\n")
 
 		for _, ws := range wss {
 			priority := ws.Priority
@@ -79,17 +81,18 @@ func (a *App) renderWorkstreams() string {
 				wsLine += a.renderPriorityMatrix(priority)
 			}
 
-			content += wsLine + "\n"
+			content.WriteString(wsLine)
+			content.WriteString("\n")
 			globalIndex++
 		}
 
-		content += "\n"
+		content.WriteString("\n")
 		totalCount += len(wss)
 	}
 
-	content += matrixBaseStyle.Render(fmt.Sprintf("Total: %d workstream(s)\n", totalCount))
+	content.WriteString(matrixBaseStyle.Render(fmt.Sprintf("Total: %d workstream(s)\n", totalCount)))
 
-	return content
+	return content.String()
 }
 
 // renderPriorityMatrix renders priority with matrix colors
@@ -114,8 +117,8 @@ func (a *App) renderIdeas() string {
 		return matrixBaseStyle.Render("Ideas\n\nNo ideas found")
 	}
 
-	var content string
-	content += matrixBaseStyle.Render(fmt.Sprintf("Ideas (%d)\n\n", len(a.state.Ideas)))
+	var content strings.Builder
+	content.WriteString(matrixBaseStyle.Render(fmt.Sprintf("Ideas (%d)\n\n", len(a.state.Ideas))))
 
 	for i, idea := range a.state.Ideas {
 		// Format date
@@ -131,24 +134,31 @@ func (a *App) renderIdeas() string {
 			prefix = "  "
 		}
 
-		content += prefix + idea.Title + "\n"
-		content += "    " + idea.Path + "\n"
-		content += "    " + matrixBaseStyle.Render("Last modified: "+dateStr) + "\n\n"
+		content.WriteString(prefix)
+		content.WriteString(idea.Title)
+		content.WriteString("\n")
+		content.WriteString("    ")
+		content.WriteString(idea.Path)
+		content.WriteString("\n")
+		content.WriteString("    ")
+		content.WriteString(matrixBaseStyle.Render("Last modified: " + dateStr))
+		content.WriteString("\n\n")
 	}
 
-	return content
+	return content.String()
 }
 
 // renderTests renders the tests tab
 func (a *App) renderTests() string {
-	content := matrixBaseStyle.Render("Tests\n\n")
+	var content strings.Builder
+	content.WriteString(matrixBaseStyle.Render("Tests\n\n"))
 
 	tr := a.state.TestResults
-	content += matrixBaseStyle.Render(fmt.Sprintf("Coverage: %s\n", tr.Coverage))
-	content += matrixBaseStyle.Render(fmt.Sprintf("Tests: %d/%d passing\n", tr.Passing, tr.Total))
-	content += matrixBaseStyle.Render(fmt.Sprintf("Last run: %s\n\n", tr.LastRun.Format("2006-01-02 15:04:05")))
+	content.WriteString(matrixBaseStyle.Render(fmt.Sprintf("Coverage: %s\n", tr.Coverage)))
+	content.WriteString(matrixBaseStyle.Render(fmt.Sprintf("Tests: %d/%d passing\n", tr.Passing, tr.Total)))
+	content.WriteString(matrixBaseStyle.Render(fmt.Sprintf("Last run: %s\n\n", tr.LastRun.Format("2006-01-02 15:04:05"))))
 
-	content += matrixBaseStyle.Render("Quality Gates:\n")
+	content.WriteString(matrixBaseStyle.Render("Quality Gates:\n"))
 	for i, gate := range tr.QualityGates {
 		isSelected := (i == a.state.CursorPos)
 
@@ -169,10 +179,14 @@ func (a *App) renderTests() string {
 			prefix = "  "
 		}
 
-		content += prefix + statusStyle.Render(status) + " " + gate.Name + "\n"
+		content.WriteString(prefix)
+		content.WriteString(statusStyle.Render(status))
+		content.WriteString(" ")
+		content.WriteString(gate.Name)
+		content.WriteString("\n")
 	}
 
-	return content
+	return content.String()
 }
 
 // renderActivity renders the activity tab

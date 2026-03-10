@@ -2,6 +2,7 @@ package security
 
 import (
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -233,10 +234,5 @@ func TestArgumentsContainInjection(t *testing.T) {
 
 // argumentsContainInjection checks if any argument contains injection patterns
 func argumentsContainInjection(args []string) bool {
-	for _, arg := range args {
-		if hasInjectionPattern(arg) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(args, hasInjectionPattern)
 }

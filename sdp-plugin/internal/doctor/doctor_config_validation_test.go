@@ -10,7 +10,7 @@ import (
 func TestCheckProjectConfig_WithValidationErrors(t *testing.T) {
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,7 +39,7 @@ func TestCheckProjectConfig_WithValidationErrors(t *testing.T) {
 func TestCheckProjectConfig_WithValidFullConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	sdpDir := filepath.Join(tmpDir, ".sdp")
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

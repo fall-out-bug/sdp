@@ -15,11 +15,11 @@ func TestLogger_Log_Concurrent(t *testing.T) {
 	numGoroutines := 10
 	decisionsPerGoroutine := 5
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			for j := 0; j < decisionsPerGoroutine; j++ {
+			for range decisionsPerGoroutine {
 				d := decision.Decision{
 					Question:  "Test",
 					Decision:  "Yes",
@@ -49,7 +49,7 @@ func TestLogger_LogBatch_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 	numGoroutines := 5
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()

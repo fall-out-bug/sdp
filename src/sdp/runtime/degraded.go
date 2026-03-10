@@ -12,7 +12,7 @@ type DegradedMode struct {
 	active      bool
 	reason      string
 	since       time.Time
-	cachedItems map[string]interface{}
+	cachedItems map[string]any
 }
 
 // GlobalDegradedMode is the global degraded mode instance
@@ -21,7 +21,7 @@ var GlobalDegradedMode = NewDegradedMode()
 // NewDegradedMode creates a new degraded mode tracker
 func NewDegradedMode() *DegradedMode {
 	return &DegradedMode{
-		cachedItems: make(map[string]interface{}),
+		cachedItems: make(map[string]any),
 	}
 }
 
@@ -79,14 +79,14 @@ func (d *DegradedMode) Exit() {
 }
 
 // SetCache stores a value in cache
-func (d *DegradedMode) SetCache(key string, value interface{}) {
+func (d *DegradedMode) SetCache(key string, value any) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.cachedItems[key] = value
 }
 
 // GetCache retrieves a value from cache
-func (d *DegradedMode) GetCache(key string) (interface{}, bool) {
+func (d *DegradedMode) GetCache(key string) (any, bool) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	val, ok := d.cachedItems[key]
@@ -97,7 +97,7 @@ func (d *DegradedMode) GetCache(key string) (interface{}, bool) {
 func (d *DegradedMode) ClearCache() {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	d.cachedItems = make(map[string]interface{})
+	d.cachedItems = make(map[string]any)
 }
 
 // CachedKeys returns all cached keys

@@ -13,9 +13,9 @@ func TestRunDeepChecks(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// Create minimal structure
-	os.MkdirAll(".git/hooks", 0755)
-	os.MkdirAll(".claude/skills", 0755)
-	os.MkdirAll("docs/workstreams/backlog", 0755)
+	os.MkdirAll(".git/hooks", 0o755)
+	os.MkdirAll(".claude/skills", 0o755)
+	os.MkdirAll("docs/workstreams/backlog", 0o755)
 
 	results := RunDeepChecks()
 
@@ -50,15 +50,15 @@ func TestCheckGitHooks(t *testing.T) {
 	}
 
 	// Test 2: Git repo without hooks
-	os.MkdirAll(".git/hooks", 0755)
+	os.MkdirAll(".git/hooks", 0o755)
 	result = checkGitHooks()
 	if result.Status != "warning" {
 		t.Errorf("Expected warning when hooks missing, got %s", result.Status)
 	}
 
 	// Test 3: Git repo with hooks
-	os.WriteFile(".git/hooks/pre-commit", []byte("#!/bin/bash\necho test"), 0755)
-	os.WriteFile(".git/hooks/pre-push", []byte("#!/bin/bash\necho test"), 0755)
+	os.WriteFile(".git/hooks/pre-commit", []byte("#!/bin/bash\necho test"), 0o755)
+	os.WriteFile(".git/hooks/pre-push", []byte("#!/bin/bash\necho test"), 0o755)
 	result = checkGitHooks()
 	if result.Status != "ok" {
 		t.Errorf("Expected ok when hooks present, got %s: %s", result.Status, result.Message)
@@ -85,7 +85,7 @@ func TestCheckSkillsSyntax(t *testing.T) {
 	}
 
 	// Test 2: Skills directory with valid skill
-	os.MkdirAll(".claude/skills/test-skill", 0755)
+	os.MkdirAll(".claude/skills/test-skill", 0o755)
 	os.WriteFile(".claude/skills/test-skill/SKILL.md", []byte("---\nname: test\n---\n# Test Skill"), 0644)
 	result = checkSkillsSyntax()
 	if result.Status != "ok" {
@@ -93,7 +93,7 @@ func TestCheckSkillsSyntax(t *testing.T) {
 	}
 
 	// Test 3: Skills directory with invalid skill (no frontmatter)
-	os.MkdirAll(".claude/skills/bad-skill", 0755)
+	os.MkdirAll(".claude/skills/bad-skill", 0o755)
 	os.WriteFile(".claude/skills/bad-skill/SKILL.md", []byte("# No frontmatter"), 0644)
 	result = checkSkillsSyntax()
 	if result.Status != "warning" {
@@ -101,7 +101,7 @@ func TestCheckSkillsSyntax(t *testing.T) {
 	}
 
 	// Test 4: Skills directory with missing SKILL.md
-	os.MkdirAll(".claude/skills/empty-skill", 0755)
+	os.MkdirAll(".claude/skills/empty-skill", 0o755)
 	result = checkSkillsSyntax()
 	if result.Status != "warning" {
 		t.Errorf("Expected warning with missing SKILL.md, got %s", result.Status)
@@ -121,7 +121,7 @@ func TestCheckWorkstreamCircularDeps(t *testing.T) {
 	}
 
 	// Test 2: Workstreams without dependencies
-	os.MkdirAll("docs/workstreams/backlog", 0755)
+	os.MkdirAll("docs/workstreams/backlog", 0o755)
 	os.WriteFile("docs/workstreams/backlog/00-001-01.md", []byte("# WS\n**Depends on**: -"), 0644)
 	os.WriteFile("docs/workstreams/backlog/00-001-02.md", []byte("# WS\n**Depends on**: -"), 0644)
 	result = checkWorkstreamCircularDeps()
@@ -150,7 +150,7 @@ func TestCheckBeadsIntegrity(t *testing.T) {
 	}
 
 	// Test 2: Empty beads database
-	os.MkdirAll(".beads", 0755)
+	os.MkdirAll(".beads", 0o755)
 	os.WriteFile(".beads/beads.db", []byte{}, 0644)
 	result = checkBeadsIntegrity()
 	if result.Status != "warning" {
@@ -178,7 +178,7 @@ func TestCheckConfigVersion(t *testing.T) {
 	}
 
 	// Test 2: Config without version
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("foo: bar"), 0644)
 	result = checkConfigVersion()
 	if result.Status != "warning" {
@@ -242,7 +242,7 @@ func TestCheckWorkstreamCircularDeps_WithCycle(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.MkdirAll("docs/workstreams/backlog", 0755)
+	os.MkdirAll("docs/workstreams/backlog", 0o755)
 
 	// Create circular dependency: a -> b -> a
 	os.WriteFile("docs/workstreams/backloop/00-001-01.md", []byte("# WS A\n**Depends on**: 00-001-02"), 0644)
@@ -273,7 +273,7 @@ func TestCheckBeadsIntegrity_ReadError(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.MkdirAll(".beads", 0755)
+	os.MkdirAll(".beads", 0o755)
 	os.WriteFile(".beads/beads.db", []byte("test"), 0000) // No read permissions
 
 	result := checkBeadsIntegrity()
@@ -288,7 +288,7 @@ func TestCheckConfigVersion_ReadError(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	os.MkdirAll(".sdp", 0755)
+	os.MkdirAll(".sdp", 0o755)
 	os.WriteFile(".sdp/config.yml", []byte("test"), 0000) // No read permissions
 
 	result := checkConfigVersion()

@@ -106,8 +106,7 @@ func (ca *CodeAnalyzer) AnalyzePythonSDK(filePath string) ([]ExtractedMethod, er
 			var parameters []string
 			if paramsStr != "" {
 				paramsStr = strings.TrimPrefix(paramsStr, ",")
-				params := strings.Split(paramsStr, ",")
-				for _, p := range params {
+				for p := range strings.SplitSeq(paramsStr, ",") {
 					p = strings.TrimSpace(p)
 					if p != "" && len(p) <= 100 {
 						parts := strings.Fields(p)

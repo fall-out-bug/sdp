@@ -92,10 +92,10 @@ func (r *Resolver) parseFrontmatter(path string) (map[string]string, error) {
 
 		if inFrontmatter {
 			// Parse key: value
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) == 2 {
-				key := strings.TrimSpace(parts[0])
-				value := strings.TrimSpace(parts[1])
+			key, value, ok := strings.Cut(line, ":")
+			if ok {
+				key = strings.TrimSpace(key)
+				value = strings.TrimSpace(value)
 				// Remove quotes if present
 				value = strings.Trim(value, "\"'")
 				frontmatter[key] = value

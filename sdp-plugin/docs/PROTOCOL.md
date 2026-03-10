@@ -12,7 +12,7 @@
 
 ```bash
 # Install plugin (no Python required)
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 cp -r ~/.claude/sdp/prompts/* .claude/
 
 # Create feature (interactive)
@@ -93,7 +93,7 @@ Every workstream must pass quality gates. **Commands are language-specific:**
 |----------|---------|
 | **Python** | `ruff check src/` |
 | **Java** | `mvn checkstyle:check` or `gradle checkstyleMain` |
-| **Go** | `golint ./...` or `staticcheck ./...` |
+| **Go** | `golangci-lint run ./...` or `staticcheck ./...` |
 
 ### File Size <200 LOC
 
@@ -145,14 +145,16 @@ pip install pytest pytest-cov mypy ruff
 
 ```bash
 # Prerequisites
-# Go 1.21+ with go tool cover, go vet, golint
+# Go 1.21+ with go tool cover, go vet, golangci-lint
 
 # Workflow
 @feature "Add REST API"
 @design feature-rest-api
 @build 00-001-01
 # Runs: go test ./...
-# Quality: go tool cover -func=coverage.out (≥80%), go vet ./..., golint ./...
+# Quality: go tool cover -func=coverage.out (≥80%), go vet ./..., golangci-lint run ./...
+
+# Style: prefer modern stdlib idioms such as slices.SortFunc and strings.Cut
 ```
 
 ---

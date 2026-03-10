@@ -5,7 +5,7 @@ func GenerationEvent(wsID string, filesChanged []string) *Event {
 	return &Event{
 		Type: "generation",
 		WSID: wsID,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"model_id":      ModelID(),
 			"model_version": "",
 			"prompt_hash":   "",
@@ -21,7 +21,7 @@ func VerificationEvent(wsID string, passed bool, gateName string, coverage float
 
 // VerificationEventWithFindings builds a verification event with reviewer output (F056).
 func VerificationEventWithFindings(wsID string, passed bool, gateName string, coverage float64, findings string) *Event {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"passed":    passed,
 		"gate_name": gateName,
 		"coverage":  coverage,
@@ -38,7 +38,7 @@ func VerificationEventWithFindings(wsID string, passed bool, gateName string, co
 
 // ApprovalEvent builds an approval event (F056: deploy).
 func ApprovalEvent(wsID, targetBranch, commitSHA, approvedBy string) *Event {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"target_branch": targetBranch,
 		"commit_sha":    commitSHA,
 		"approved_by":   approvedBy,
@@ -51,9 +51,9 @@ func ApprovalEvent(wsID, targetBranch, commitSHA, approvedBy string) *Event {
 }
 
 // SkillEvent builds a thin evidence event for a skill (F056-03). Non-blocking use: Emit(SkillEvent(...)).
-func SkillEvent(skillName, eventType, wsID string, data map[string]interface{}) *Event {
+func SkillEvent(skillName, eventType, wsID string, data map[string]any) *Event {
 	if data == nil {
-		data = make(map[string]interface{})
+		data = make(map[string]any)
 	}
 	data["skill"] = skillName
 	return &Event{

@@ -14,25 +14,25 @@ func (e *Executor) generateEvidenceEvents(wsID string) []EvidenceEvent {
 			Type:      "plan",
 			WSID:      wsID,
 			Timestamp: now,
-			Data:      map[string]interface{}{"action": "execution_plan"},
+			Data:      map[string]any{"action": "execution_plan"},
 		},
 		{
 			Type:      "generation",
 			WSID:      wsID,
 			Timestamp: now,
-			Data:      map[string]interface{}{"action": "code_generation"},
+			Data:      map[string]any{"action": "code_generation"},
 		},
 		{
 			Type:      "verification",
 			WSID:      wsID,
 			Timestamp: now,
-			Data:      map[string]interface{}{"action": "test_verification"},
+			Data:      map[string]any{"action": "test_verification"},
 		},
 		{
 			Type:      "approval",
 			WSID:      wsID,
 			Timestamp: now,
-			Data:      map[string]interface{}{"action": "auto_approval"},
+			Data:      map[string]any{"action": "auto_approval"},
 		},
 	}
 }

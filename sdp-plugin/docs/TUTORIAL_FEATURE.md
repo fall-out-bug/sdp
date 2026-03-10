@@ -25,7 +25,7 @@
 
 ```bash
 # Clone plugin
-git clone https://github.com/ai-masters/sdp-plugin.git ~/.claude/sdp
+git clone https://github.com/fall-out-bug/sdp.git ~/.claude/sdp
 
 # Copy skills to Claude Code
 cp -r ~/.claude/sdp/prompts/* .claude/
@@ -635,8 +635,8 @@ Skip phases with flags:
 
 ### Contribute
 
-- GitHub: https://github.com/ai-masters/sdp-plugin
-- Issues: https://github.com/ai-masters/sdp-plugin/issues
+- GitHub: https://github.com/fall-out-bug/sdp
+- Issues: https://github.com/fall-out-bug/sdp/issues
 
 ---
 

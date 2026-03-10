@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -114,18 +115,19 @@ func (a *App) renderHeader() string {
 // renderTabs renders the tab bar
 func (a *App) renderTabs() string {
 	tabs := []TabType{TabWorkstreams, TabIdeas, TabTests, TabActivity}
-	var rendered string
+	var rendered strings.Builder
 
 	for i, tab := range tabs {
 		tabName := fmt.Sprintf("%d. %s", i+1, tab.String())
 		if i == a.state.ActiveTab {
-			rendered += matrixActiveTabStyle.Render(tabName) + " "
+			rendered.WriteString(matrixActiveTabStyle.Render(tabName))
 		} else {
-			rendered += matrixInactiveTabStyle.Render(tabName) + " "
+			rendered.WriteString(matrixInactiveTabStyle.Render(tabName))
 		}
+		rendered.WriteString(" ")
 	}
 
-	return rendered
+	return rendered.String()
 }
 
 // renderContent renders the active tab content

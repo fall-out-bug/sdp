@@ -35,7 +35,7 @@ Parse workstream markdown files
 
 - internal/parser/workstream.go
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -85,7 +85,7 @@ Test feature_id field parsing
 
 - [ ] AC1: Parse feature_id
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -121,7 +121,7 @@ Test feature field fallback
 
 - [ ] AC1: Parse feature as fallback
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -158,7 +158,7 @@ Test feature_id precedence
 
 - [ ] AC1: feature_id takes precedence
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -214,7 +214,7 @@ status: backlog
 ---
 # Test
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -229,7 +229,7 @@ func TestParseEmptyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsPath := filepath.Join(tmpDir, "00-050-01.md")
 
-	err := os.WriteFile(wsPath, []byte(""), 0644)
+	err := os.WriteFile(wsPath, []byte(""), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -251,7 +251,7 @@ feature: F050
 ---
 # Test
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -271,7 +271,7 @@ func TestParseMissingFrontmatter(t *testing.T) {
 feature: F050
 # Test
 `
-	err := os.WriteFile(wsPath, []byte(content), 0644)
+	err := os.WriteFile(wsPath, []byte(content), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -304,7 +304,7 @@ Test workstream for validation
 
 - [ ] AC1: Valid workstream
 `
-	os.WriteFile(validPath, []byte(content), 0644)
+	os.WriteFile(validPath, []byte(content), 0o644)
 
 	// Test valid file
 	issues, err := ValidateFile(validPath)
@@ -337,7 +337,7 @@ status: backlog
 ---
 # Test
 `
-	os.WriteFile(invalidPath, []byte(invalidContent), 0644)
+	os.WriteFile(invalidPath, []byte(invalidContent), 0o644)
 
 	issues, err = ValidateFile(invalidPath)
 	if err != nil {
@@ -402,7 +402,7 @@ func TestSchemaRegistryLoads(t *testing.T) {
 			t.Errorf("schema file %s: %v", s.Path, err)
 			continue
 		}
-		var js map[string]interface{}
+		var js map[string]any
 		if err := json.Unmarshal(body, &js); err != nil {
 			t.Errorf("schema %s invalid JSON: %v", s.Path, err)
 		}

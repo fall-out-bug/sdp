@@ -29,7 +29,7 @@ func TestStagedCheck(t *testing.T) {
 	// Create a test file and commit it (base)
 	testFile := "test.go"
 	content := "package main\n\nfunc main() {}\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to create test file: %v", err)
 	}
 
@@ -45,7 +45,7 @@ func TestStagedCheck(t *testing.T) {
 
 	// Modify the file and stage changes
 	newContent := "package main\n\nfunc modified() {}\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(newContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(newContent), 0o644); err != nil {
 		t.Fatalf("failed to modify test file: %v", err)
 	}
 
@@ -130,7 +130,7 @@ func TestStagedCheckWithActiveWS(t *testing.T) {
 	// Create a test file and commit
 	testFile := "allowed.go"
 	content := "package main\n\nfunc allowed() {}\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to create test file: %v", err)
 	}
 
@@ -158,7 +158,7 @@ func TestStagedCheckWithActiveWS(t *testing.T) {
 
 	// Modify and stage file
 	newContent := "package main\n\nfunc modified() {}\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(newContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(newContent), 0o644); err != nil {
 		t.Fatalf("failed to modify test file: %v", err)
 	}
 
@@ -214,7 +214,7 @@ func TestStagedCheckOutsideScope(t *testing.T) {
 	// Create and stage a different file
 	testFile := "outside.go"
 	content := "package main\n\nfunc outside() {}\n"
-	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, testFile), []byte(content), 0o644); err != nil {
 		t.Fatalf("failed to create test file: %v", err)
 	}
 

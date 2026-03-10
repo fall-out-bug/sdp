@@ -38,3 +38,5 @@ func (v *V) IsValid(s string) bool { return strings.Contains(s, "@") }
 
 // REFACTOR: improve, tests still pass
 ```
+
+For Go refactors, prefer modern stdlib idioms from `@go-modern` when they preserve behavior.

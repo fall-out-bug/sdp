@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 )
 
 // Exit codes for headless mode.
@@ -112,10 +113,8 @@ func (h *HeadlessRunner) validate() error {
 	}
 
 	// Check for critical conflicts
-	for _, conflict := range h.preflight.Conflicts {
-		if conflict == ".claude/settings.json" && !h.config.Force {
-			return fmt.Errorf("conflict: %s exists (use --force to overwrite)", conflict)
-		}
+	if !h.config.Force && slices.Contains(h.preflight.Conflicts, ".claude/settings.json") {
+		return fmt.Errorf("conflict: %s exists (use --force to overwrite)", ".claude/settings.json")
 	}
 
 	return nil

@@ -56,7 +56,7 @@ func TestFindWorktree_WithWorktreePath(t *testing.T) {
 
 	// Create the workstreams directory to test that error path
 	wsPath := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsPath, 0755); err != nil {
+	if err := os.MkdirAll(wsPath, 0o755); err != nil {
 		t.Fatalf("Failed to create workstreams dir: %v", err)
 	}
 

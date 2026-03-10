@@ -91,8 +91,8 @@ func fixFilePermissions(path string) error {
 	}
 
 	// Only fix if world or group readable
-	if info.Mode().Perm()&0077 != 0 {
-		return os.Chmod(path, 0600)
+	if info.Mode().Perm()&0o077 != 0 {
+		return os.Chmod(path, 0o600)
 	}
 	return nil
 }
@@ -105,8 +105,8 @@ func fixFilePermissionsTracked(path string) (bool, error) {
 	}
 
 	// Only fix if world or group readable
-	if info.Mode().Perm()&0077 != 0 {
-		if err := os.Chmod(path, 0600); err != nil {
+	if info.Mode().Perm()&0o077 != 0 {
+		if err := os.Chmod(path, 0o600); err != nil {
 			return false, err
 		}
 		return true, nil

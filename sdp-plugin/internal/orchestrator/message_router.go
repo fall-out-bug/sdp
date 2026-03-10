@@ -19,12 +19,12 @@ const (
 
 // Message represents a message between orchestrator and agents
 type Message struct {
-	ID        string                 `json:"id"`
-	Type      MessageType            `json:"type"`
-	From      string                 `json:"from"`
-	To        string                 `json:"to"`
-	Timestamp time.Time              `json:"timestamp"`
-	Content   map[string]interface{} `json:"content"`
+	ID        string         `json:"id"`
+	Type      MessageType    `json:"type"`
+	From      string         `json:"from"`
+	To        string         `json:"to"`
+	Timestamp time.Time      `json:"timestamp"`
+	Content   map[string]any `json:"content"`
 }
 
 // MessageRouter handles message routing between orchestrator and agents
@@ -118,7 +118,7 @@ func (mr *MessageRouter) SendProgress(from string, progress float64, message str
 		Type: MessageTypeProgress,
 		From: from,
 		To:   "orchestrator",
-		Content: map[string]interface{}{
+		Content: map[string]any{
 			"progress": progress,
 			"message":  message,
 		},
@@ -133,7 +133,7 @@ func (mr *MessageRouter) SendError(from string, errMsg string) error {
 		Type: MessageTypeError,
 		From: from,
 		To:   "orchestrator",
-		Content: map[string]interface{}{
+		Content: map[string]any{
 			"error": errMsg,
 		},
 	}
@@ -141,13 +141,13 @@ func (mr *MessageRouter) SendError(from string, errMsg string) error {
 }
 
 // SendCommand sends a command from orchestrator to agent
-func (mr *MessageRouter) SendCommand(to string, command string, args map[string]interface{}) error {
+func (mr *MessageRouter) SendCommand(to string, command string, args map[string]any) error {
 	msg := Message{
 		ID:   generateMessageID(),
 		Type: MessageTypeCommand,
 		From: "orchestrator",
 		To:   to,
-		Content: map[string]interface{}{
+		Content: map[string]any{
 			"command": command,
 			"args":    args,
 		},

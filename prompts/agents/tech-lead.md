@@ -21,6 +21,7 @@ Technical decisions, code review, team unblocking, mentoring
 - Team coordination
 - Technical debt management
 - Mentoring
+- Modern Go style for repos that track recent Go releases
 
 ## Key Questions
 1. Technically sound? (architecture)
@@ -49,6 +50,14 @@ Technical decisions, code review, team unblocking, mentoring
 ✅ Clean code
 ✅ Tests adequate
 ✅ Documentation sufficient
+✅ Modern stdlib usage when behavior stays the same
+
+### Go Review Checks
+- Prefer `slices.SortFunc` over `sort.Slice`
+- Prefer `strings.Cut` or `strings.CutPrefix` over split or trim chains
+- Prefer `slices.Contains`, `maps.Copy`, and `maps.Clone` over handwritten loops
+- Prefer `any` over `interface{}` where it does not change public contracts
+- Replace stale `golint` guidance with `golangci-lint` or `staticcheck`
 
 ### Team Coordination
 **Blockers:** {what's blocking}

@@ -9,12 +9,12 @@ import (
 )
 
 func TestHydrate(t *testing.T) {
-	root := findProjectRoot(t)
+	root := writeHydrateProjectRoot(t)
 	cp := &Checkpoint{
-		Schema:     "1.0",
-		FeatureID:  "F022",
-		Branch:     "feature/F022-context-pre-hydration",
-		Phase:      PhaseBuild,
+		Schema:      "1.0",
+		FeatureID:   "F022",
+		Branch:      "feature/F022-context-pre-hydration",
+		Phase:       PhaseBuild,
 		Workstreams: []WSStatus{{ID: "00-022-01", Status: "pending"}},
 	}
 	pkt, err := Hydrate(root, "F022", "00-022-01", cp)
@@ -46,16 +46,7 @@ func TestHydrate(t *testing.T) {
 }
 
 func TestHydrate_WritesFile(t *testing.T) {
-	root := findProjectRoot(t)
-	tmpDir := t.TempDir()
-	// Copy minimal structure for Hydrate to work
-	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	// Use real project root for read, but write to tmpDir - actually Hydrate writes to projectRoot
-	// So we need projectRoot to have the workstream. Let's use real root.
-	root = findProjectRoot(t)
+	root := writeHydrateProjectRoot(t)
 	cp := &Checkpoint{FeatureID: "F022", Phase: PhaseBuild}
 	pkt, err := Hydrate(root, "F022", "00-022-01", cp)
 	if err != nil {
@@ -118,4 +109,39 @@ func findProjectRoot(t *testing.T) string {
 	}
 	t.Fatal("project root not found")
 	return ""
+}
+
+func writeHydrateProjectRoot(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	wsDir := filepath.Join(root, "docs", "workstreams", "backlog")
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	workstream := `---
+ws_id: 00-022-01
+feature_id: F022
+depends_on: []
+---
+
+# 00-022-01: Test hydrate fixture
+
+## Acceptance Criteria
+
+- [ ] First criterion
+- [x] Second criterion
+
+## Scope Files
+
+- ` + "`internal/orchestrate/hydrate.go`" + `
+- ` + "`internal/orchestrate/state_machine.go`" + `
+`
+	if err := os.WriteFile(filepath.Join(wsDir, "00-022-01.md"), []byte(workstream), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	agents := "# Agent Instructions\n\n## Quality Gates\n\nBefore pushing:\n\n```bash\ngo build ./...\n```\n"
+	if err := os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte(agents), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return root
 }

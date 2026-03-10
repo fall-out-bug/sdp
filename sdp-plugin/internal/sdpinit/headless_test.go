@@ -3,6 +3,7 @@ package sdpinit
 import (
 	"encoding/json"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -102,14 +103,7 @@ func TestHeadlessRunner_TrackCreatedFiles(t *testing.T) {
 	// Check expected files
 	expectedFiles := []string{".claude/", ".claude/settings.json"}
 	for _, expected := range expectedFiles {
-		found := false
-		for _, created := range runner.output.Created {
-			if created == expected {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(runner.output.Created, expected) {
 			t.Errorf("Expected created file: %s", expected)
 		}
 	}
@@ -126,7 +120,7 @@ func TestHeadlessRunner_Run_DryRun(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("mkdir prompts: %v", err)
 	}
 
@@ -163,7 +157,7 @@ func TestHeadlessRunner_Run_Actual(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("mkdir prompts: %v", err)
 	}
 
@@ -286,7 +280,7 @@ func TestRunHeadless(t *testing.T) {
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("mkdir prompts: %v", err)
 	}
 
@@ -316,15 +310,15 @@ func TestHeadlessRunner_WithConflict(t *testing.T) {
 	}
 
 	// Create existing .claude/settings.json
-	if err := os.MkdirAll(".claude", 0755); err != nil {
+	if err := os.MkdirAll(".claude", 0o755); err != nil {
 		t.Fatalf("mkdir .claude: %v", err)
 	}
-	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
 		t.Fatalf("write settings: %v", err)
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("mkdir prompts: %v", err)
 	}
 
@@ -353,15 +347,15 @@ func TestHeadlessRunner_ForceWithConflict(t *testing.T) {
 	}
 
 	// Create existing .claude/settings.json
-	if err := os.MkdirAll(".claude", 0755); err != nil {
+	if err := os.MkdirAll(".claude", 0o755); err != nil {
 		t.Fatalf("mkdir .claude: %v", err)
 	}
-	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
 		t.Fatalf("write settings: %v", err)
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("mkdir prompts: %v", err)
 	}
 
@@ -395,12 +389,12 @@ func TestHeadlessRunner_DetectProjectType(t *testing.T) {
 	}
 
 	// Create go.mod to detect go project
-	if err := os.WriteFile("go.mod", []byte("module test"), 0644); err != nil {
+	if err := os.WriteFile("go.mod", []byte("module test"), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
 
 	// Create prompts directory
-	if err := os.MkdirAll("prompts/skills", 0755); err != nil {
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
 		t.Fatalf("mkdir prompts: %v", err)
 	}
 

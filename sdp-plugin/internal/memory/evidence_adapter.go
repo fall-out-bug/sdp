@@ -2,6 +2,8 @@ package memory
 
 import (
 	"encoding/json"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
@@ -106,13 +108,9 @@ func joinFiles(files []string) string {
 		return ""
 	}
 	if len(files) > 3 {
-		return files[0] + "," + files[1] + " and " + string(rune(len(files)-2)) + " more"
+		return files[0] + "," + files[1] + " and " + strconv.Itoa(len(files)-2) + " more"
 	}
-	result := files[0]
-	for i := 1; i < len(files); i++ {
-		result += "," + files[i]
-	}
-	return result
+	return strings.Join(files, ",")
 }
 
 // extractFeatureFromWSID extracts feature ID from workstream ID (PP-FFF-SS -> FFF)
@@ -121,25 +119,9 @@ func extractFeatureFromWSID(wsid string) string {
 		return ""
 	}
 	// Format: PP-FFF-SS (e.g., 00-050-01)
-	parts := splitWSID(wsid)
+	parts := strings.Split(wsid, "-")
 	if len(parts) >= 2 {
 		return "F" + parts[1]
 	}
 	return ""
-}
-
-// splitWSID splits a workstream ID into its components
-func splitWSID(wsid string) []string {
-	var parts []string
-	start := 0
-	for i := 0; i < len(wsid); i++ {
-		if wsid[i] == '-' {
-			parts = append(parts, wsid[start:i])
-			start = i + 1
-		}
-	}
-	if start < len(wsid) {
-		parts = append(parts, wsid[start:])
-	}
-	return parts
 }

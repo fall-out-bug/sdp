@@ -38,7 +38,7 @@ func NewGatewayEvent(model, promptHash string, inputTokens, outputTokens int, la
 
 // ToHookEvent converts a GatewayEvent to a HookEvent.
 func (e GatewayEvent) ToHookEvent(eventType string) HookEvent {
-	return NewEvent(eventType, map[string]interface{}{
+	return NewEvent(eventType, map[string]any{
 		"model":         e.Model,
 		"prompt_hash":   e.PromptHash,
 		"input_tokens":  e.InputTokens,

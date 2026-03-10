@@ -11,7 +11,7 @@ import (
 func TestPlanExecution_AC4(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,
@@ -84,7 +84,7 @@ func TestWorkstreamFilename(t *testing.T) {
 func TestCreateWorkstreamFiles_ErrorCases(t *testing.T) {
 	tempDir := t.TempDir()
 	backlogDir := filepath.Join(tempDir, "backlog")
-	os.MkdirAll(backlogDir, 0755)
+	os.MkdirAll(backlogDir, 0o755)
 
 	p := &Planner{
 		BacklogDir:  backlogDir,

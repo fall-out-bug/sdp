@@ -25,7 +25,7 @@ func (t *Tracker) TrackCommandStart(command string, args []string) error {
 	telemetryEvent := Event{
 		Type:      EventTypeCommandStart,
 		Timestamp: event.StartTime,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"command": event.Command,
 			"args":    event.Args,
 		},
@@ -52,7 +52,7 @@ func (t *Tracker) TrackCommandComplete(success bool, errMsg string) error {
 	telemetryEvent := Event{
 		Type:      EventTypeCommandComplete,
 		Timestamp: t.currentCommand.EndTime,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"command":  t.currentCommand.Command,
 			"args":     t.currentCommand.Args,
 			"duration": t.currentCommand.Duration.Milliseconds(),
@@ -78,7 +78,7 @@ func (t *Tracker) TrackWorkstreamStart(wsID string) error {
 	event := Event{
 		Type:      EventTypeWSStart,
 		Timestamp: time.Now(),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"ws_id": wsID,
 		},
 	}
@@ -95,7 +95,7 @@ func (t *Tracker) TrackWorkstreamComplete(wsID string, success bool, duration ti
 	event := Event{
 		Type:      EventTypeWSComplete,
 		Timestamp: time.Now(),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"ws_id":    wsID,
 			"success":  success,
 			"duration": duration.Milliseconds(),
@@ -114,7 +114,7 @@ func (t *Tracker) TrackQualityGateResult(gateName string, passed bool, score flo
 	event := Event{
 		Type:      EventTypeQualityGateResult,
 		Timestamp: time.Now(),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"gate":   gateName,
 			"passed": passed,
 			"score":  score,

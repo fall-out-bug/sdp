@@ -73,14 +73,13 @@ func (c *Client) Show(beadsID string) (*Task, error) {
 	}
 
 	task := &Task{ID: beadsID}
-	lines := strings.Split(output, "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "Title:") {
-			task.Title = strings.TrimSpace(strings.TrimPrefix(line, "Title:"))
-		} else if strings.HasPrefix(line, "Status:") {
-			task.Status = strings.TrimSpace(strings.TrimPrefix(line, "Status:"))
-		} else if strings.HasPrefix(line, "Priority:") {
-			task.Priority = strings.TrimSpace(strings.TrimPrefix(line, "Priority:"))
+	for line := range strings.SplitSeq(output, "\n") {
+		if value, ok := strings.CutPrefix(line, "Title:"); ok {
+			task.Title = strings.TrimSpace(value)
+		} else if value, ok := strings.CutPrefix(line, "Status:"); ok {
+			task.Status = strings.TrimSpace(value)
+		} else if value, ok := strings.CutPrefix(line, "Priority:"); ok {
+			task.Priority = strings.TrimSpace(value)
 		}
 	}
 
@@ -172,9 +171,8 @@ func (c *Client) readMapping() ([]mappingEntry, error) {
 // parseTaskList parses the output of "bd ready"
 func (c *Client) parseTaskList(output string) []Task {
 	var tasks []Task
-	lines := strings.Split(output, "\n")
 
-	for _, line := range lines {
+	for line := range strings.SplitSeq(output, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || !strings.Contains(line, "sdp-") {
 			continue

@@ -10,7 +10,7 @@ func TestResolveCmd_Workstream(t *testing.T) {
 	// Create temp directory with workstream
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -23,7 +23,7 @@ status: backlog
 ## Goal
 Test goal
 `
-	if err := os.WriteFile(filepath.Join(wsDir, "00-064-01.md"), []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(wsDir, "00-064-01.md"), []byte(wsContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -46,7 +46,7 @@ func TestResolveCmd_JSON(t *testing.T) {
 	// Create temp directory with workstream
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,7 +57,7 @@ title: "Test"
 ## Goal
 Test
 `
-	if err := os.WriteFile(filepath.Join(wsDir, "00-064-01.md"), []byte(wsContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(wsDir, "00-064-01.md"), []byte(wsContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -78,7 +78,7 @@ Test
 func TestResolveCmd_NotFound(t *testing.T) {
 	tmpDir := t.TempDir()
 	wsDir := filepath.Join(tmpDir, "docs", "workstreams", "backlog")
-	if err := os.MkdirAll(wsDir, 0755); err != nil {
+	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 

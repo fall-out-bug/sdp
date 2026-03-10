@@ -126,7 +126,7 @@ func TestDriftAdapter_GetLatestDriftReport(t *testing.T) {
 
 	// Save multiple reports with distinct timestamps
 	baseTime := time.Date(2026, 2, 13, 10, 0, 0, 0, time.UTC)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		report := &drift.DriftReport{
 			WorkstreamID: "00-051-03",
 			Timestamp:    baseTime.Add(time.Duration(i) * time.Hour),

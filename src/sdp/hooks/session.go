@@ -14,11 +14,11 @@ const (
 
 // SessionEvent represents a session lifecycle event.
 type SessionEvent struct {
-	SessionID   string    // Unique session identifier
-	StartTime   time.Time // When session started
-	EndTime     time.Time // When session ended (zero if active)
-	WorkDone    []string  // List of completed work items
-	TokensUsed  int       // Total tokens consumed
+	SessionID  string    // Unique session identifier
+	StartTime  time.Time // When session started
+	EndTime    time.Time // When session ended (zero if active)
+	WorkDone   []string  // List of completed work items
+	TokensUsed int       // Total tokens consumed
 }
 
 // NewSessionEvent creates a new session event.
@@ -34,7 +34,7 @@ func NewSessionEvent(sessionID string, startTime, endTime time.Time, workDone []
 
 // ToHookEvent converts a SessionEvent to a HookEvent.
 func (e SessionEvent) ToHookEvent(eventType string) HookEvent {
-	return NewEvent(eventType, map[string]interface{}{
+	return NewEvent(eventType, map[string]any{
 		"session_id":  e.SessionID,
 		"start_time":  e.StartTime,
 		"end_time":    e.EndTime,

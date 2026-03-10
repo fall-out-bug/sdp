@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -195,11 +196,8 @@ func (w *Wizard) promptProjectType() (string, error) {
 
 	// Use detected type as default
 	if w.preflight != nil {
-		for i, opt := range options {
-			if opt == w.preflight.ProjectType {
-				defaultIdx = i
-				break
-			}
+		if idx := slices.Index(options, w.preflight.ProjectType); idx >= 0 {
+			defaultIdx = idx
 		}
 	}
 
@@ -236,11 +234,8 @@ func (w *Wizard) promptSkills(projectType string) ([]string, error) {
 
 	for i, skill := range allSkills {
 		marker := " "
-		for _, def := range defaults.Skills {
-			if def == skill {
-				marker = "*"
-				break
-			}
+		if slices.Contains(defaults.Skills, skill) {
+			marker = "*"
 		}
 		fmt.Fprintf(w.writer, "  %d) %s %s\n", i+1, marker, skill)
 	}
@@ -258,8 +253,7 @@ func (w *Wizard) promptSkills(projectType string) ([]string, error) {
 
 	// Parse comma-separated numbers
 	selected := []string{}
-	parts := strings.Split(input, ",")
-	for _, part := range parts {
+	for part := range strings.SplitSeq(input, ",") {
 		part = strings.TrimSpace(part)
 		if idx, err := strconv.Atoi(part); err == nil {
 			if idx >= 1 && idx <= len(allSkills) {

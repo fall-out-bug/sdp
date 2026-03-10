@@ -191,7 +191,7 @@ Every WS must pass:
 You work with **any language** — @build skill is language-agnostic:
 
 - **Python**: pytest, mypy, ruff
-- **Go**: go test, go vet, golint
+- **Go**: go test, go vet, golangci-lint
 - **Java**: mvn test, checkstyle
 - **JavaScript/TypeScript**: jest, eslint, tsc
 

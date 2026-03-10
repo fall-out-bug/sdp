@@ -84,7 +84,7 @@ func Load(projectRoot string) (*Session, error) {
 func (s *Session) Save(projectRoot string) error {
 	sdpDir := filepath.Join(projectRoot, SDPDir)
 
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
+	if err := os.MkdirAll(sdpDir, 0o755); err != nil {
 		return fmt.Errorf("create .sdp directory: %w", err)
 	}
 
@@ -96,7 +96,7 @@ func (s *Session) Save(projectRoot string) error {
 	}
 
 	sessionPath := filepath.Join(sdpDir, SessionFileName)
-	if err := os.WriteFile(sessionPath, data, 0644); err != nil {
+	if err := os.WriteFile(sessionPath, data, 0o644); err != nil {
 		return fmt.Errorf("write session file: %w", err)
 	}
 

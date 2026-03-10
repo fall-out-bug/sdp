@@ -4,7 +4,7 @@ import "strings"
 
 // DecisionEvent builds a decision event (AC6, AC7). reverses links to a previous decision being overturned.
 func DecisionEvent(wsID, question, choice, rationale string, alternatives []string, confidence float64, tags []string, reverses *string) *Event {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"question":   question,
 		"choice":     choice,
 		"rationale":  rationale,
@@ -32,7 +32,7 @@ func LessonEvent(lesson Lesson) *Event {
 	if outcome == "passed" {
 		outcome = "worked"
 	}
-	data := map[string]interface{}{
+	data := map[string]any{
 		"category":     lesson.Category,
 		"insight":      lessonInsight(lesson),
 		"source_ws_id": lesson.WSID,

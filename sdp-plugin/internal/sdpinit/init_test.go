@@ -16,21 +16,21 @@ func TestRun(t *testing.T) {
 	agentsDir := filepath.Join(promptsDir, "agents")
 
 	// Create test prompts structure
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+	if err := os.MkdirAll(agentsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
 	// Create test files
 	testSkill := filepath.Join(skillsDir, "test.md")
-	if err := os.WriteFile(testSkill, []byte("# Test Skill"), 0644); err != nil {
+	if err := os.WriteFile(testSkill, []byte("# Test Skill"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
 	testAgent := filepath.Join(agentsDir, "test.md")
-	if err := os.WriteFile(testAgent, []byte("# Test Agent"), 0644); err != nil {
+	if err := os.WriteFile(testAgent, []byte("# Test Agent"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -101,7 +101,7 @@ func TestRun(t *testing.T) {
 	}
 
 	perm := info.Mode().Perm()
-	if perm != 0600 {
+	if perm != 0o600 {
 		t.Errorf("settings.json has wrong permissions: got %o, want 0600", perm)
 	}
 }
@@ -139,12 +139,12 @@ func TestRun_PromptsInSdpSubdirectory(t *testing.T) {
 	promptsDir := filepath.Join(tmpDir, "sdp", "prompts")
 	skillsDir := filepath.Join(promptsDir, "skills")
 
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
 	testSkill := filepath.Join(skillsDir, "test.md")
-	if err := os.WriteFile(testSkill, []byte("# Test Skill"), 0644); err != nil {
+	if err := os.WriteFile(testSkill, []byte("# Test Skill"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -175,22 +175,22 @@ func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
 	skillsDir := filepath.Join(promptsDir, "skills")
 	agentsDir := filepath.Join(promptsDir, "agents")
 
-	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
 		t.Fatalf("mkdir skills: %v", err)
 	}
-	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+	if err := os.MkdirAll(agentsDir, 0o755); err != nil {
 		t.Fatalf("mkdir agents: %v", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(skillsDir, "test.md"), []byte("# skill"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(skillsDir, "test.md"), []byte("# skill"), 0o644); err != nil {
 		t.Fatalf("write skill: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(agentsDir, "test.md"), []byte("# agent"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(agentsDir, "test.md"), []byte("# agent"), 0o644); err != nil {
 		t.Fatalf("write agent: %v", err)
 	}
 
 	claudeDir := filepath.Join(tmpDir, ".claude")
-	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
 		t.Fatalf("mkdir .claude: %v", err)
 	}
 
@@ -215,10 +215,10 @@ func TestRun_WithSymlinkedClaudeDirs(t *testing.T) {
 func TestResolvePromptsDir_FromEnvSourceDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	sourcePrompts := filepath.Join(tmpDir, "external-prompts")
-	if err := os.MkdirAll(filepath.Join(sourcePrompts, "skills"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(sourcePrompts, "skills"), 0o755); err != nil {
 		t.Fatalf("mkdir skills: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(sourcePrompts, "skills", "test.md"), []byte("# env source"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sourcePrompts, "skills", "test.md"), []byte("# env source"), 0o644); err != nil {
 		t.Fatalf("write test prompt: %v", err)
 	}
 
@@ -247,7 +247,7 @@ func TestResolvePromptsDir_FromEnvSourceDir(t *testing.T) {
 func TestResolvePromptsDir_EnvSourceDirMissingSkills(t *testing.T) {
 	tmpDir := t.TempDir()
 	badSource := filepath.Join(tmpDir, "bad-prompts")
-	if err := os.MkdirAll(badSource, 0755); err != nil {
+	if err := os.MkdirAll(badSource, 0o755); err != nil {
 		t.Fatalf("mkdir bad source: %v", err)
 	}
 
@@ -285,7 +285,7 @@ func TestRun_CreateDirError(t *testing.T) {
 	}
 
 	// Create a file named .claude (not a directory)
-	if err := os.WriteFile(".claude", []byte("not a directory"), 0644); err != nil {
+	if err := os.WriteFile(".claude", []byte("not a directory"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -346,7 +346,7 @@ func TestCreateSettings(t *testing.T) {
 	}
 
 	perm := info.Mode().Perm()
-	if perm != 0600 {
+	if perm != 0o600 {
 		t.Errorf("Wrong permissions: got %o, want 0600", perm)
 	}
 }
