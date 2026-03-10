@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "sync:skills": "node scripts/sync-skills-to-commands.js",
-    "bd:sync": "bd sync",
+    "bd:sync": "./scripts/beads_export.sh",
     "bd:onboard": "bd onboard",
     "bd:ready": "bd ready"
   },

@@ -58,7 +58,7 @@ Task tracking works without Go tools:
 ```bash
 bd create --title="Fix bug" --priority=1
 bd close sdp-xxx
-bd sync
+./scripts/beads_export.sh
 ```
 
 Skills reference beads IDs directly: `@build sdp-xxx`

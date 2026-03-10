@@ -411,7 +411,8 @@ Run test coverage tool with verbose output to identify gaps
 4. **PUSH TO REMOTE:**
    ```bash
    git pull --rebase
-   bd sync
+   ./scripts/beads_import_only.sh   # if .beads/issues.jsonl changed after pull
+   ./scripts/beads_export.sh        # if you changed beads in this session
    git push
    git status  # MUST show "up to date with origin"
    ```
