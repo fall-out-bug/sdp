@@ -61,7 +61,7 @@ Error Rate = (Failed Commands / Total Commands) × 100%
 ### Telemetry Opt-In Rate
 **Metric:** Users enabling telemetry
 **Target:** >20% (stretch goal)
-**Measurement:** `~/.sdp/telemetry.jsonl` file exists
+**Measurement:** `~/.config/sdp/telemetry.jsonl` file exists
 **Rationale:** Enough data to detect issues
 
 **Data Source:** Cannot measure without privacy violation. Estimate based on support requests.

@@ -293,7 +293,7 @@ type Timeline struct {
 
 **Rationale:**
 1. **Consistency with Beads** - Beads uses Git-backed storage (`.beads/` directory)
-2. **Consistency with Existing** - Telemetry uses `~/.sdp/telemetry.jsonl`, decisions use `docs/decisions/decisions.jsonl`
+2. **Consistency with Existing** - Telemetry uses `~/.config/sdp/telemetry.jsonl`, decisions use `docs/decisions/decisions.jsonl`
 3. **Built-in Versioning** - Git provides history, branching, merging
 4. **Simplicity** - No database server, no migration scripts
 5. **Code-Reviewed Memory** - Decisions reviewed alongside code in PRs
@@ -335,7 +335,7 @@ project-root/
 
 **Migration Strategy:**
 - Existing `docs/decisions/decisions.jsonl` will be symlinked to `.sdp-memory/decisions/decisions.jsonl`
-- Telemetry (`~/.sdp/telemetry.jsonl`) remains user-local (not project-specific)
+- Telemetry (`~/.config/sdp/telemetry.jsonl`) remains user-local (not project-specific)
 - New `.sdp-memory/` directory committed to Git (configurable via `.sdp/memory.gitignore`)
 
 ---

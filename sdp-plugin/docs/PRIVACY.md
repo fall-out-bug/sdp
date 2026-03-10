@@ -63,8 +63,8 @@ Collected telemetry is used **exclusively** for:
 All telemetry data is stored **locally** on your machine:
 
 ```
-~/.sdp/telemetry.jsonl  # Event log
-~/.sdp/telemetry.json   # Configuration
+~/.config/sdp/telemetry.jsonl  # Event log
+~/.config/sdp/telemetry.json   # Configuration
 ```
 
 ### File Format
@@ -83,7 +83,7 @@ Telemetry is stored in **JSONL format** (one JSON object per line):
 Old telemetry events are automatically deleted after 90 days. You can configure this:
 
 ```json
-// ~/.sdp/telemetry.json
+// ~/.config/sdp/telemetry.json
 {
   "enabled": true,
   "retention_days": 90
@@ -156,17 +156,12 @@ sdp telemetry status
 
 **Method 1: Configuration file**
 ```bash
-echo '{"enabled": false}' > ~/.sdp/telemetry.json
+echo '{"enabled": false}' > ~/.config/sdp/telemetry.json
 ```
 
 **Method 2: Environment variable**
 ```bash
 export SDP_TELEMETRY_ENABLED=false
-```
-
-**Method 3: Command-line flag**
-```bash
-sdp --no-telemetry
 ```
 
 ### Verify Telemetry Status
@@ -181,21 +176,21 @@ Telemetry Status
 ================
 Enabled: No
 Event Count: 0
-File Path: /home/user/.sdp/telemetry.jsonl
+File Path: /home/user/.config/sdp/telemetry.jsonl
 ```
 
-### Clear Telemetry Data
+### Remove Telemetry Data
 
 ```bash
-sdp telemetry clear
+rm ~/.config/sdp/telemetry.json ~/.config/sdp/telemetry.jsonl
 ```
 
-**Warning:** This permanently deletes all locally stored telemetry data.
+This permanently deletes locally stored telemetry data and resets consent.
 
 ### Export Telemetry Data
 
 ```bash
-sdp telemetry export /tmp/my-telemetry.jsonl
+sdp telemetry export json
 ```
 
 You can review your telemetry data before sharing or analyzing it.
@@ -214,9 +209,9 @@ SDP telemetry is:
 
 If you choose to share telemetry data with the SDP team (e.g., for bug reports):
 
-1. **Export your data:** `sdp telemetry export telemetry.jsonl`
-2. **Review the file:** Ensure no sensitive information is included
-3. **Submit voluntarily:** Attach to GitHub issue or email
+1. **Export your data:** `sdp telemetry export json`
+2. **Review the exported file:** Ensure no sensitive information is included
+3. **Submit voluntarily:** Attach the export to a GitHub issue or share it directly
 
 **We will only use voluntarily submitted data** for the purpose stated in your submission (e.g., debugging a specific issue).
 
@@ -238,7 +233,7 @@ Since telemetry data is stored locally and never transmitted, there is no risk o
 
 - Attackers could access anonymized usage data
 - Data does NOT contain PII, credentials, or sensitive content
-- To completely remove data: `sdp telemetry clear`
+- To completely remove local telemetry: `rm ~/.config/sdp/telemetry.json ~/.config/sdp/telemetry.jsonl`
 
 ## Compliance
 
@@ -286,10 +281,10 @@ To access, export, or delete your telemetry data:
 
 ```bash
 # Access/Export
-sdp telemetry export my-telemetry.jsonl
+sdp telemetry export json
 
-# Delete
-sdp telemetry clear
+# Delete local telemetry files
+rm ~/.config/sdp/telemetry.json ~/.config/sdp/telemetry.jsonl
 ```
 
 ### Opt-Out Requests
@@ -302,7 +297,7 @@ See "Your Privacy Options" above for instructions on disabling telemetry.
 
 ```bash
 # View raw telemetry log
-cat ~/.sdp/telemetry.jsonl
+cat ~/.config/sdp/telemetry.jsonl
 
 # View summarized statistics
 sdp telemetry analyze
@@ -314,7 +309,7 @@ All telemetry operations are logged locally:
 
 ```bash
 # View what SDP has been tracking
-tail -f ~/.sdp/telemetry.jsonl
+tail -f ~/.config/sdp/telemetry.jsonl
 ```
 
 ## Summary
