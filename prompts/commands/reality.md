@@ -1,32 +1,28 @@
 ---
-description: Codebase analysis and architecture validation - what's actually there vs documented
+description: Reconstruct a single-repo reality baseline from local evidence and emit open reality artifacts
 agent: builder
 ---
 
-# /reality — Reality
+# /reality - Reality
 
 ## Overview
 
-This command implements the reality skill from the SDP workflow.
+This command runs the OSS `@reality` baseline. It is local, evidence-first, and single-repo scoped.
 
-See `/prompts/skills/reality/SKILL.md` for complete documentation.
-
-## Usage
+## Runtime
 
 ```bash
-/reality [arguments]
+sdp reality emit-oss [--quick|--deep|--bootstrap-sdp] [--focus=architecture|quality|testing|docs|security]
 ```
 
-## Implementation
+## Behavior
 
-The command delegates to the `reality` skill, which provides:
-
-- Systematic workflow
-- Quality gates
-- Proper error handling
-- Documentation
+- Scans code, tests, configs, manifests, and in-repo docs.
+- Emits `.sdp/reality/*.json` and `docs/reality/*.md`.
+- Runs a heuristic cross-check pass inside the same repository.
+- Does not spawn subagents or claim `reality-pro` behavior.
 
 ## Related
 
-- Skills: `prompts/skills/reality/SKILL.md`
-- Agents: `prompts/agents/builder.md`
+- Skill: `prompts/skills/reality/SKILL.md`
+- Spec: `docs/specs/reality/OSS-SPEC.md`

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -57,13 +58,60 @@ func TestRealityEmitOSSCmd_WithRoot(t *testing.T) {
 	}
 }
 
+func TestRealityEmitOSSCmd_WithQuickFocus(t *testing.T) {
+	tmpDir := t.TempDir()
+	seedRealityProject(t, tmpDir)
+	writeRealityFile(t, filepath.Join(tmpDir, "configs", "app.yaml"), "database: postgres\ncache: redis\n")
+
+	cmd := realityCmd()
+	cmd.SetArgs([]string{"emit-oss", "--root", tmpDir, "--quick", "--focus", "docs"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("reality emit-oss quick/docs failed: %v", err)
+	}
+
+	summaryPath := filepath.Join(tmpDir, ".sdp", "reality", "reality-summary.json")
+	data, err := os.ReadFile(summaryPath)
+	if err != nil {
+		t.Fatalf("read summary: %v", err)
+	}
+
+	var summary map[string]any
+	if err := json.Unmarshal(data, &summary); err != nil {
+		t.Fatalf("parse summary: %v", err)
+	}
+
+	scope, ok := summary["scope"].(map[string]any)
+	if !ok {
+		t.Fatalf("summary scope missing or invalid: %#v", summary["scope"])
+	}
+	if scope["mode"] != "quick" {
+		t.Fatalf("unexpected mode: %v", scope["mode"])
+	}
+	if scope["focus"] != "docs" {
+		t.Fatalf("unexpected focus: %v", scope["focus"])
+	}
+}
+
+func TestRealityEmitOSSCmd_RejectsConflictingModes(t *testing.T) {
+	tmpDir := t.TempDir()
+	seedRealityProject(t, tmpDir)
+
+	cmd := realityCmd()
+	cmd.SetArgs([]string{"emit-oss", "--root", tmpDir, "--quick", "--deep"})
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected conflicting modes to fail")
+	}
+}
+
 func seedRealityProject(t *testing.T, root string) {
 	t.Helper()
 
 	writeRealityFile(t, filepath.Join(root, "cmd", "demo", "main.go"), "package main\n\nfunc main() {}\n")
 	writeRealityFile(t, filepath.Join(root, "internal", "module", "service.go"), "package module\n\nfunc Enabled() bool { return true }\n")
 	writeRealityFile(t, filepath.Join(root, "internal", "module", "service_test.go"), "package module\n\nimport \"testing\"\n\nfunc TestEnabled(t *testing.T) {\n\tif !Enabled() {\n\t\tt.Fatal(\"expected true\")\n\t}\n}\n")
-	writeRealityFile(t, filepath.Join(root, "docs", "specs", "reality", "ARTIFACT-CONTRACT.md"), "# contract\n")
+	writeRealityFile(t, filepath.Join(root, "docs", "specs", "reality", "ARTIFACT-CONTRACT.md"), "# contract\nSee `internal/module/service.go`.\n")
 }
 
 func writeRealityFile(t *testing.T, path, body string) {
