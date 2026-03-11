@@ -37,12 +37,14 @@
 # Debounce interval for auto-flush (can also use BEADS_FLUSH_DEBOUNCE)
 # flush-debounce: "5s"
 
-# Git branch for beads commits (bd sync will commit to this branch)
-# IMPORTANT: Set this for team projects so all clones use the same sync branch.
+# Git branch for exported beads snapshots in this repo.
+# IMPORTANT: Set this for team projects so all clones use the same branch default.
 # This setting persists across clones (unlike database config which is gitignored).
 # Can also use BEADS_SYNC_BRANCH env var for local override.
-# If not set, bd sync will require you to run 'bd config set sync.branch <branch>'.
-# sync-branch: "beads-sync"
+# For beads >=0.59, repo workflows use ./scripts/beads_import_only.sh and
+# ./scripts/beads_export.sh instead of `bd sync`.
+# Public sdp work targets main by default.
+sync-branch: "main"
 
 # Multi-repo configuration (experimental - bd-307)
 # Allows hydrating from multiple repositories and routing writes to the correct JSONL
