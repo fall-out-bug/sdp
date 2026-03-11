@@ -40,7 +40,7 @@ func RunDeepChecks() []DeepCheckResult {
 	// Check 3: Workstream circular dependencies
 	results = append(results, checkWorkstreamCircularDeps())
 
-	// Check 4: Beads database integrity
+	// Check 4: Beads state integrity
 	results = append(results, checkBeadsIntegrity())
 
 	// Check 5: Config version compatibility

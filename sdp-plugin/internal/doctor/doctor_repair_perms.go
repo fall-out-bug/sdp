@@ -10,7 +10,7 @@ import (
 func repairFilePermissions() RepairAction {
 	sensitiveFiles := []string{
 		filepath.Join(os.Getenv("HOME"), ".sdp", "telemetry.jsonl"),
-		".beads/beads.db",
+		beadsDir,
 	}
 
 	fixed := []string{}
