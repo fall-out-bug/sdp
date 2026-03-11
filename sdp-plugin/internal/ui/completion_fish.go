@@ -52,6 +52,7 @@ complete -c sdp -n "__fish_use_subcommand" -a beads -d "Interact with Beads task
 complete -c sdp -n "__fish_use_subcommand" -a tdd -d "Run TDD cycle"
 complete -c sdp -n "__fish_use_subcommand" -a drift -d "Detect code drift"
 complete -c sdp -n "__fish_use_subcommand" -a quality -d "Check code quality gates"
+complete -c sdp -n "__fish_use_subcommand" -a reality -d "Emit reality/reality-pro baseline artifacts"
 complete -c sdp -n "__fish_use_subcommand" -a watch -d "Watch files for quality violations"
 complete -c sdp -n "__fish_use_subcommand" -a telemetry -d "Manage telemetry data"
 complete -c sdp -n "__fish_use_subcommand" -a checkpoint -d "Manage checkpoints"
