@@ -27,6 +27,7 @@ _sdp() {
 		'tdd:Run TDD cycle (Red-Green-Refactor)'
 		'drift:Detect code drift from specification'
 		'quality:Check code quality gates'
+		'reality:Emit reality/reality-pro baseline artifacts'
 		'watch:Watch files for quality violations'
 		'telemetry:Manage telemetry data'
 		'checkpoint:Manage checkpoints for long-running features'
