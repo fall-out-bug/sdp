@@ -3,6 +3,7 @@ package beads
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -51,6 +52,9 @@ func (c *Client) Ready() ([]Task, error) {
 
 	output, err := c.runBeadsCommand("ready")
 	if err != nil {
+		if errors.Is(err, ErrNoBeadsDatabase) {
+			return []Task{}, nil
+		}
 		return []Task{}, fmt.Errorf("bd ready failed: %w", err)
 	}
 
