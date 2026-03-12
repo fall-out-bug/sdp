@@ -9,6 +9,7 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 ## Contents
 
 - [Commands](#commands)
+- [Reality OSS](#reality-oss)
 - [Quality Gates](#quality-gates)
 - [Configuration](#configuration)
 - [Pipeline Hooks Security](#pipeline-hooks-security)
@@ -39,6 +40,19 @@ Quick lookup guides for SDP commands, configuration, and quality standards.
 - `@bugfix` - Quality fix (P1/P2)
 
 **See:** [../CLI_REFERENCE.md](../CLI_REFERENCE.md) — SDP CLI commands
+
+---
+
+## Reality OSS
+
+Local single-repo reality baseline for OSS users:
+
+- `sdp reality emit-oss`
+- `sdp reality validate`
+- `docs/specs/reality/OSS-SPEC.md`
+- `docs/specs/reality/ARTIFACT-CONTRACT.md`
+
+**See:** [reality-oss.md](reality-oss.md) — command surface, outputs, and publish checklist
 
 ---
 
@@ -192,6 +206,7 @@ Structured errors with:
 | Need | Doc |
 |------|-----|
 | Command syntax | [../CLI_REFERENCE.md](../CLI_REFERENCE.md) |
+| Reality OSS usage and checklist | [reality-oss.md](reality-oss.md) |
 | Quality standards | [build-spec.md](build-spec.md) |
 | Hook security rules | [pipeline-hooks-security.md](pipeline-hooks-security.md) |
 | Schema map | [schema-registry.md](schema-registry.md) |

@@ -2,6 +2,15 @@
 
 All notable changes to the Spec-Driven Protocol (SDP).
 
+## [Unreleased]
+
+### Reality OSS Publication Polish
+
+- Published open `reality` schemas under `schema/reality/`
+- Added `sdp reality validate` for emitted OSS artifact checks
+- Aligned CLI/help/completions with the actual OSS `reality` baseline
+- Added public `reality` spec docs and a focused OSS reference/checklist
+
 ## [0.9.8] - 2026-02-26
 
 ### Skills Sync, Beads Integration

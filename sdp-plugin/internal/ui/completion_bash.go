@@ -47,7 +47,7 @@ _sdp_completion() {
 			return
 			;;
 		reality)
-			COMPREPLY=($(compgen -W "emit-oss" -- "${cur}"))
+			COMPREPLY=($(compgen -W "emit-oss validate" -- "${cur}"))
 			return
 			;;
 		checkpoint)

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/reality/intent-gap-report/v1",
+  "title": "RealityIntentGapReport",
+  "description": "Plan-vs-implementation gap report for reality-pro.",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "generated_at",
+    "gaps"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "gap_id",
+          "title",
+          "expected_state",
+          "observed_state",
+          "gap_type",
+          "severity",
+          "status"
+        ],
+        "properties": {
+          "gap_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "gap_type": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "partial",
+              "contradicted",
+              "ambiguous"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "triaged",
+              "accepted",
+              "resolved"
+            ]
+          },
+          "supporting_claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "affected_repos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "recommended_actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "claim.schema.json"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "source.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

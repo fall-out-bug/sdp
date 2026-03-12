@@ -27,7 +27,7 @@ func main() {
 	  plan       Decompose a feature into workstreams
 	  apply      Execute ready workstreams from the terminal
 	  status     Show current project state
-	  reality    Emit reality/reality-pro baseline artifacts
+	  reality    Emit and validate OSS reality baseline artifacts
 	  next       Recommend the next action to take
 	  log        Inspect the evidence log
 	  demo       Run a guided first-success walkthrough

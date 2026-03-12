@@ -8,7 +8,7 @@ Quick reference for using SDP CLI v0.9.8 with Claude Code.
 
 ```bash
 @vision "AI-powered task manager"    # Strategic planning
-@reality --quick                     # Codebase analysis
+@reality --quick                     # Local codebase baseline
 @feature "Add user authentication"   # Plan feature
 @build 00-001-01                     # Execute workstream
 @review <feature-id>                 # Quality check
@@ -67,7 +67,7 @@ New project?
 | Level | Orchestrator | Purpose | Output |
 |-------|-------------|---------|--------|
 | **Strategic** | @vision (7 agents) | Product planning | VISION, PRD, ROADMAP |
-| **Analysis** | @reality (8 agents) | Codebase analysis | Reality report |
+| **Analysis** | @reality (single-repo baseline) | Local codebase analysis | Reality artifacts |
 | **Feature** | @feature (roadmap pre-check + @discovery + @idea + @ux + @design) | Requirements + WS | Workstreams |
 | **Execution** | @oneshot (@build) | Parallel execution | Implemented code |
 
@@ -75,7 +75,7 @@ New project?
 
 **@vision** — New project, major pivot, quarterly strategic review
 
-**@reality** — New to project, before @feature, track tech debt, quarterly review
+**@reality** — New to project, before @feature, establish a local baseline, track tech debt, quarterly review
 
 **@feature** — Feature idea but no workstreams, need interactive planning (full discovery flow)
 
@@ -96,7 +96,7 @@ New project?
 | Skill | Purpose | Phase |
 |-------|---------|-------|
 | `@vision` | Strategic product planning (7 expert agents) | Strategic |
-| `@reality` | Codebase analysis (8 expert agents) | Analysis |
+| `@reality` | Local single-repo baseline scan | Analysis |
 | `@feature` | Planning orchestrator (roadmap pre-check + discovery + idea + ux + design) | Planning |
 | `@discovery` | Product discovery gate (roadmap check, research loop) | Planning |
 | `@idea` | Requirements gathering (AskUserQuestion) | Planning |
@@ -152,6 +152,7 @@ New project?
 
 # 2. Codebase analysis
 @reality --quick
+sdp reality emit-oss --quick
 
 # 3. Feature planning (per feature)
 @feature "User can reset password via email"

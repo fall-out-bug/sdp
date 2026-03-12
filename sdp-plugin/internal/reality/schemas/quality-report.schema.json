@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/reality/quality-report/v1",
+  "title": "QualityReport",
+  "description": "Quality and test posture baseline from a reality run.",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "generated_at",
+    "findings"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "analysis_mode": {
+      "type": "string"
+    },
+    "analysis_focus": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "title",
+          "severity",
+          "claim_ids"
+        ],
+        "properties": {
+          "finding_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "claim_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "hotspot_ranking": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "score"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "claim.schema.json"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "source.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -19,11 +19,12 @@ func realityCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "reality",
-		Short: "Generate reality/reality-pro baseline artifacts",
-		Long: `Generate reality/reality-pro baseline artifacts.
+		Short: "Emit and validate OSS reality baseline artifacts",
+		Long: `Emit and validate OSS reality baseline artifacts.
 
 OSS command set:
-  emit-oss    Emit the required OSS artifact set into docs/reality and .sdp/reality`,
+  emit-oss    Emit the required OSS artifact set into docs/reality and .sdp/reality
+  validate    Validate emitted OSS artifacts against the published reality schema contract`,
 	}
 
 	emitOSSCmd := &cobra.Command{
@@ -85,12 +86,48 @@ OSS command set:
 		},
 	}
 
+	validateCmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate emitted OSS reality artifacts",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projectRoot := root
+			if projectRoot == "" {
+				detectedRoot, err := config.FindProjectRoot()
+				if err != nil {
+					return fmt.Errorf("find project root: %w", err)
+				}
+				projectRoot = detectedRoot
+			}
+
+			absRoot, err := filepath.Abs(projectRoot)
+			if err != nil {
+				return fmt.Errorf("resolve project root: %w", err)
+			}
+
+			validated, err := realityemitter.ValidateOSS(absRoot)
+			if err != nil {
+				for _, issue := range validated {
+					fmt.Fprintf(cmd.ErrOrStderr(), "  - %s\n", issue)
+				}
+				return fmt.Errorf("validate reality OSS artifacts: %w", err)
+			}
+
+			ui.SuccessLine("Validated %d reality OSS artifact(s) in %s", len(validated), absRoot)
+			for _, path := range validated {
+				fmt.Printf("  - %s\n", path)
+			}
+			return nil
+		},
+	}
+
 	emitOSSCmd.Flags().StringVar(&root, "root", "", "Project root path (default: auto-detect from current directory)")
 	emitOSSCmd.Flags().BoolVar(&quick, "quick", false, "Run the fast baseline mode with reduced detail")
 	emitOSSCmd.Flags().BoolVar(&deep, "deep", false, "Run the full single-repo baseline mode (default)")
 	emitOSSCmd.Flags().BoolVar(&bootstrapSDP, "bootstrap-sdp", false, "Prioritize SDP bootstrap recommendations in the emitted artifacts")
 	emitOSSCmd.Flags().StringVar(&focus, "focus", "", "Optional analysis focus: architecture, quality, testing, docs, security")
+	validateCmd.Flags().StringVar(&root, "root", "", "Project root path (default: auto-detect from current directory)")
 	cmd.AddCommand(emitOSSCmd)
+	cmd.AddCommand(validateCmd)
 
 	return cmd
 }
