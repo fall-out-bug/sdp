@@ -11,6 +11,8 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 | [CLI_REFERENCE.md](CLI_REFERENCE.md) | SDP CLI commands |
 | [MANIFESTO.md](MANIFESTO.md) | Vision, evidence, what exists |
 | [ROADMAP.md](ROADMAP.md) | Where SDP is going, user-facing orientation |
+| [specs/reality/OSS-SPEC.md](specs/reality/OSS-SPEC.md) | OSS reality product scope |
+| [specs/reality/ARTIFACT-CONTRACT.md](specs/reality/ARTIFACT-CONTRACT.md) | Open reality artifact contract |
 
 ## Reference
 
@@ -27,6 +29,7 @@ Protocol specification and reference for SDP (Spec-Driven Protocol).
 | [reference/schema-registry.md](reference/schema-registry.md) | Schema families: contracts, findings, handoffs |
 | [reference/integration-contracts.md](reference/integration-contracts.md) | How to apply contracts, findings, handoffs, provenance in integrations |
 | [reference/skills.md](reference/skills.md) | Skill catalog |
+| [reference/reality-oss.md](reference/reality-oss.md) | OSS reality command, outputs, checklist |
 | [reference/pipeline-hooks-security.md](reference/pipeline-hooks-security.md) | Hook execution hardening |
 
 ## Schemas & Attestation

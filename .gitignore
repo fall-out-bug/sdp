@@ -61,8 +61,8 @@ archive/
 .sdp/checkpoints/
 !.sdp/evidence/
 !.sdp/checkpoints/
-.sdp/log/events.jsonl
-sdp-plugin/.sdp/log/events.jsonl
+.sdp/log/
+sdp-plugin/.sdp/log/
 **/events.jsonl
 
 # Build output

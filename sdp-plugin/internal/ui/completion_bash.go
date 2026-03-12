@@ -10,7 +10,7 @@ _sdp_completion() {
 	local cur prev words cword
 	_init_completion || return
 
-	local commands="init doctor status next demo hooks plan apply build verify log guard parse beads tdd drift quality watch telemetry checkpoint orchestrate contract health diagnose memory decisions"
+	local commands="init doctor status next demo hooks plan apply build verify log guard parse beads tdd drift quality reality watch telemetry checkpoint orchestrate contract health diagnose memory decisions"
 	local checkpoint_commands="create resume list clean"
 	local orchestrate_commands="start status stop"
 	local log_commands="show export stats trace"
@@ -44,6 +44,10 @@ _sdp_completion() {
 			;;
 		quality)
 			COMPREPLY=($(compgen -W "coverage complexity size types all" -- "${cur}"))
+			return
+			;;
+		reality)
+			COMPREPLY=($(compgen -W "emit-oss validate" -- "${cur}"))
 			return
 			;;
 		checkpoint)
