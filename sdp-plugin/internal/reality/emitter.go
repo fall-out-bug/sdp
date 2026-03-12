@@ -103,6 +103,16 @@ type docReferenceDrift struct {
 	ObservationNote string
 }
 
+type scanAccumulator struct {
+	skipDirs     map[string]bool
+	sourceExt    map[string]bool
+	modules      map[string]bool
+	entrypoints  map[string]bool
+	hotspots     []hotspot
+	integrations map[string]integrationObservation
+	drifts       []docReferenceDrift
+}
+
 // EmitOSS writes the OSS reality artifact set to docs/reality and .sdp/reality.
 func EmitOSS(projectRoot string) ([]string, error) {
 	return EmitOSSWithOptions(projectRoot, Options{})
@@ -303,121 +313,158 @@ func scanProject(root string) (scanResult, error) {
 		RepoName: filepath.Base(root),
 	}
 	scan.GeneratedAt = deterministicGeneratedAt(root)
-
-	skipDirs := map[string]bool{
-		".git":         true,
-		".sdp":         true,
-		".beads":       true,
-		"node_modules": true,
-		"vendor":       true,
-	}
-	sourceExt := map[string]bool{
-		".go":   true,
-		".py":   true,
-		".js":   true,
-		".ts":   true,
-		".java": true,
-		".rs":   true,
-		".sh":   true,
-	}
-
-	modules := map[string]bool{}
-	entrypoints := map[string]bool{}
-	hotspots := make([]hotspot, 0)
-	integrations := map[string]integrationObservation{}
-	drifts := make([]docReferenceDrift, 0)
+	acc := newScanAccumulator()
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-		if path == root {
-			return nil
-		}
-		name := d.Name()
-		if d.IsDir() && skipDirs[name] {
-			return filepath.SkipDir
-		}
-		if d.IsDir() {
-			return nil
-		}
-		info, err := d.Info()
-		if err != nil || !info.Mode().IsRegular() {
-			return nil
-		}
-
-		rel, err := filepath.Rel(root, path)
-		if err != nil {
-			return nil
-		}
-		rel = filepath.ToSlash(rel)
-		if strings.HasPrefix(rel, "docs/reality/") {
-			// Ignore generated human-readable artifacts so reruns are deterministic.
-			return nil
-		}
-		scan.TotalFiles++
-
-		ext := strings.ToLower(filepath.Ext(rel))
-		if strings.HasPrefix(rel, "docs/") && ext == ".md" {
-			scan.DocFiles++
-			for _, drift := range scanDocReferenceDrift(root, rel, path) {
-				drifts = append(drifts, drift)
-			}
-		}
-		if kind, ok := classifyConfigOrManifest(rel); ok {
-			if kind == "config" {
-				scan.ConfigFiles++
-			} else {
-				scan.ManifestFiles++
-			}
-		}
-		if sourceExt[ext] {
-			scan.SourceFiles++
-			module := topModule(rel)
-			modules[module] = true
-			if strings.HasSuffix(rel, "/main.go") || rel == "main.go" {
-				entrypoints[rel] = true
-			}
-			if isTestFile(rel) {
-				scan.TestsFiles++
-			}
-			lines := countLines(path)
-			if lines >= hotspotLineThreshold {
-				hotspots = append(hotspots, hotspot{Path: rel, Lines: lines})
-			}
-		}
-		if shouldScanForIntegrations(rel, ext) {
-			content := readFileForScan(path)
-			for _, detected := range detectIntegrations(rel, content) {
-				mergeIntegration(integrations, detected)
-			}
-		}
-		return nil
+		return walkProject(&scan, acc, root, path, d, walkErr)
 	})
 	if err != nil {
 		return scan, err
 	}
 
-	for m := range modules {
-		scan.Modules = append(scan.Modules, m)
-	}
-	sort.Strings(scan.Modules)
-	for ep := range entrypoints {
-		scan.Entrypoints = append(scan.Entrypoints, ep)
-	}
-	sort.Strings(scan.Entrypoints)
-	sort.Slice(hotspots, func(i, j int) bool {
-		if hotspots[i].Lines == hotspots[j].Lines {
-			return hotspots[i].Path < hotspots[j].Path
-		}
-		return hotspots[i].Lines > hotspots[j].Lines
-	})
-	scan.HotspotFiles = hotspots
-	scan.Integrations = flattenIntegrations(integrations)
-	scan.DocReferenceDrifts = drifts
+	finalizeScan(&scan, acc)
 	scan.RepoType = classifyRepoType(scan)
 
 	return scan, nil
+}
+
+func newScanAccumulator() *scanAccumulator {
+	return &scanAccumulator{
+		skipDirs: map[string]bool{
+			".git":         true,
+			".sdp":         true,
+			".beads":       true,
+			"node_modules": true,
+			"vendor":       true,
+		},
+		sourceExt: map[string]bool{
+			".go":   true,
+			".py":   true,
+			".js":   true,
+			".ts":   true,
+			".java": true,
+			".rs":   true,
+			".sh":   true,
+		},
+		modules:      map[string]bool{},
+		entrypoints:  map[string]bool{},
+		hotspots:     make([]hotspot, 0),
+		integrations: map[string]integrationObservation{},
+		drifts:       make([]docReferenceDrift, 0),
+	}
+}
+
+func walkProject(scan *scanResult, acc *scanAccumulator, root, path string, d fs.DirEntry, walkErr error) error {
+	if walkErr != nil {
+		return walkErr
+	}
+	if path == root {
+		return nil
+	}
+	if d.IsDir() {
+		if acc.skipDirs[d.Name()] {
+			return filepath.SkipDir
+		}
+		return nil
+	}
+	info, err := d.Info()
+	if err != nil || !info.Mode().IsRegular() {
+		return nil
+	}
+
+	rel, err := relativeScanPath(root, path)
+	if err != nil || shouldIgnoreScanPath(rel) {
+		return nil
+	}
+	scan.TotalFiles++
+
+	ext := strings.ToLower(filepath.Ext(rel))
+	collectDocDrift(scan, acc, root, rel, path, ext)
+	collectConfigAndManifest(scan, rel)
+	collectSourceSignals(scan, acc, rel, path, ext)
+	collectIntegrations(acc, rel, path, ext)
+	return nil
+}
+
+func relativeScanPath(root, path string) (string, error) {
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return "", err
+	}
+	return filepath.ToSlash(rel), nil
+}
+
+func shouldIgnoreScanPath(rel string) bool {
+	return strings.HasPrefix(rel, "docs/reality/")
+}
+
+func collectDocDrift(scan *scanResult, acc *scanAccumulator, root, rel, path, ext string) {
+	if !strings.HasPrefix(rel, "docs/") || ext != ".md" {
+		return
+	}
+	scan.DocFiles++
+	acc.drifts = append(acc.drifts, scanDocReferenceDrift(root, rel, path)...)
+}
+
+func collectConfigAndManifest(scan *scanResult, rel string) {
+	kind, ok := classifyConfigOrManifest(rel)
+	if !ok {
+		return
+	}
+	if kind == "config" {
+		scan.ConfigFiles++
+		return
+	}
+	scan.ManifestFiles++
+}
+
+func collectSourceSignals(scan *scanResult, acc *scanAccumulator, rel, path, ext string) {
+	if !acc.sourceExt[ext] {
+		return
+	}
+	scan.SourceFiles++
+	module := topModule(rel)
+	acc.modules[module] = true
+	if strings.HasSuffix(rel, "/main.go") || rel == "main.go" {
+		acc.entrypoints[rel] = true
+	}
+	if isTestFile(rel) {
+		scan.TestsFiles++
+	}
+	lines := countLines(path)
+	if lines >= hotspotLineThreshold {
+		acc.hotspots = append(acc.hotspots, hotspot{Path: rel, Lines: lines})
+	}
+}
+
+func collectIntegrations(acc *scanAccumulator, rel, path, ext string) {
+	if !shouldScanForIntegrations(rel, ext) {
+		return
+	}
+	content := readFileForScan(path)
+	for _, detected := range detectIntegrations(rel, content) {
+		mergeIntegration(acc.integrations, detected)
+	}
+}
+
+func finalizeScan(scan *scanResult, acc *scanAccumulator) {
+	for module := range acc.modules {
+		scan.Modules = append(scan.Modules, module)
+	}
+	sort.Strings(scan.Modules)
+	for entrypoint := range acc.entrypoints {
+		scan.Entrypoints = append(scan.Entrypoints, entrypoint)
+	}
+	sort.Strings(scan.Entrypoints)
+	sort.Slice(acc.hotspots, func(i, j int) bool {
+		if acc.hotspots[i].Lines == acc.hotspots[j].Lines {
+			return acc.hotspots[i].Path < acc.hotspots[j].Path
+		}
+		return acc.hotspots[i].Lines > acc.hotspots[j].Lines
+	})
+	scan.HotspotFiles = acc.hotspots
+	scan.Integrations = flattenIntegrations(acc.integrations)
+	scan.DocReferenceDrifts = acc.drifts
 }
 
 func deterministicGeneratedAt(root string) string {
