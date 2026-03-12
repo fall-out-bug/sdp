@@ -173,7 +173,7 @@ func EmitOSSWithOptions(projectRoot string, opts Options) ([]string, error) {
 				"status":             featureStatus(scan),
 				"evidence_claim_ids": topFindingIDs,
 				"confidence":         confidenceFromScan(scan),
-				"mapped_components":  scan.Modules,
+				"mapped_components":  stringSliceOrEmpty(scan.Modules),
 			},
 		},
 		"claims":  claims,
@@ -944,6 +944,13 @@ func modulePath(module string) string {
 		return "."
 	}
 	return module
+}
+
+func stringSliceOrEmpty(values []string) []string {
+	if values == nil {
+		return []string{}
+	}
+	return values
 }
 
 func topModule(rel string) string {

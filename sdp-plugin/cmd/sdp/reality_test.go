@@ -15,14 +15,20 @@ func TestRealityCmd(t *testing.T) {
 	}
 
 	foundEmitOSS := false
+	foundValidate := false
 	for _, sub := range cmd.Commands() {
 		if sub.Name() == "emit-oss" {
 			foundEmitOSS = true
-			break
+		}
+		if sub.Name() == "validate" {
+			foundValidate = true
 		}
 	}
 	if !foundEmitOSS {
 		t.Fatal("realityCmd() missing emit-oss subcommand")
+	}
+	if !foundValidate {
+		t.Fatal("realityCmd() missing validate subcommand")
 	}
 }
 
@@ -102,6 +108,43 @@ func TestRealityEmitOSSCmd_RejectsConflictingModes(t *testing.T) {
 
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("expected conflicting modes to fail")
+	}
+}
+
+func TestRealityValidateCmd_WithRoot(t *testing.T) {
+	tmpDir := t.TempDir()
+	seedRealityProject(t, tmpDir)
+
+	emit := realityCmd()
+	emit.SetArgs([]string{"emit-oss", "--root", tmpDir})
+	if err := emit.Execute(); err != nil {
+		t.Fatalf("reality emit-oss failed: %v", err)
+	}
+
+	validate := realityCmd()
+	validate.SetArgs([]string{"validate", "--root", tmpDir})
+	if err := validate.Execute(); err != nil {
+		t.Fatalf("reality validate failed: %v", err)
+	}
+}
+
+func TestRealityValidateCmd_FailsOnCorruptArtifact(t *testing.T) {
+	tmpDir := t.TempDir()
+	seedRealityProject(t, tmpDir)
+
+	emit := realityCmd()
+	emit.SetArgs([]string{"emit-oss", "--root", tmpDir})
+	if err := emit.Execute(); err != nil {
+		t.Fatalf("reality emit-oss failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, ".sdp", "reality", "quality-report.json"), []byte("{bad json"), 0o644); err != nil {
+		t.Fatalf("corrupt quality report: %v", err)
+	}
+
+	validate := realityCmd()
+	validate.SetArgs([]string{"validate", "--root", tmpDir})
+	if err := validate.Execute(); err == nil {
+		t.Fatal("expected reality validate to fail on corrupt artifact")
 	}
 }
 

@@ -25,6 +25,7 @@ Skills load from `sdp/.claude/skills/` (Claude) or `sdp/.cursor/skills/` (Cursor
 
 ```bash
 sdp init --auto
+@reality --quick
 @feature "Your feature"
 @oneshot <feature-id>
 @review <feature-id>
@@ -58,6 +59,7 @@ sdp init --auto
 | Skill | Purpose |
 |-------|---------|
 | `@vision` | Strategic planning |
+| `@reality` | Local codebase baseline and SDP readiness scan |
 | `@feature` | Feature planning (→ workstreams) |
 | `@oneshot` | Autonomous execution |
 | `@build` | Single workstream (TDD) |
@@ -67,7 +69,7 @@ sdp init --auto
 
 ## Optional
 
-**CLI:** `sdp doctor`, `sdp status`, `sdp next`, `sdp guard activate`, `sdp log show`, `sdp demo`
+**CLI:** `sdp doctor`, `sdp status`, `sdp next`, `sdp guard activate`, `sdp log show`, `sdp demo`, `sdp reality emit-oss`, `sdp reality validate`
 
 **Beads:** `brew tap beads-dev/tap && brew install beads` — task tracking for multi-session work.
 
@@ -84,6 +86,7 @@ sdp init --auto
 | [ROADMAP.md](docs/ROADMAP.md) | Where SDP is going |
 | [PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
 | [reference/](docs/reference/) | Principles, glossary, specs |
+| [reference/reality-oss.md](docs/reference/reality-oss.md) | OSS reality command, outputs, checklist |
 
 ## License
 

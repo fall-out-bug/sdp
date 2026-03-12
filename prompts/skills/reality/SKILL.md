@@ -38,6 +38,7 @@ Primary command:
 
 ```bash
 sdp reality emit-oss [--quick|--deep|--bootstrap-sdp] [--focus=architecture|quality|testing|docs|security]
+sdp reality validate
 ```
 
 Mode rules:
@@ -102,4 +103,5 @@ sdp reality emit-oss --bootstrap-sdp --focus=architecture
 
 - `docs/specs/reality/OSS-SPEC.md`
 - `docs/specs/reality/ARTIFACT-CONTRACT.md`
+- `docs/reference/reality-oss.md`
 - `prompts/commands/reality.md`

@@ -13,6 +13,7 @@ This command runs the OSS `@reality` baseline. It is local, evidence-first, and 
 
 ```bash
 sdp reality emit-oss [--quick|--deep|--bootstrap-sdp] [--focus=architecture|quality|testing|docs|security]
+sdp reality validate
 ```
 
 ## Behavior
@@ -26,3 +27,4 @@ sdp reality emit-oss [--quick|--deep|--bootstrap-sdp] [--focus=architecture|qual
 
 - Skill: `prompts/skills/reality/SKILL.md`
 - Spec: `docs/specs/reality/OSS-SPEC.md`
+- Reference: `docs/reference/reality-oss.md`
