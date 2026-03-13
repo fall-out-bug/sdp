@@ -97,3 +97,7 @@ sdp-plugin/**/.sdp/
 # Demo project (created by vhs demo.tape)
 demo-beads-viz/
 demo-project/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
