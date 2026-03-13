@@ -95,14 +95,31 @@ func HydrateForReview(projectRoot, featureID string, cp *Checkpoint, workstreams
 	if err != nil {
 		return nil, err
 	}
-	for i := 1; i < len(workstreams); i++ {
-		if err := sdputil.ValidateWSID(workstreams[i]); err != nil {
+	pkt.Workstream = ""
+	pkt.AcceptanceCriteria = nil
+	pkt.ScopeFiles = nil
+	seenAcceptance := make(map[string]struct{}, len(workstreams)*2)
+	seenScope := make(map[string]struct{}, len(workstreams)*2)
+	for _, wsID := range workstreams {
+		if err := sdputil.ValidateWSID(wsID); err != nil {
 			return nil, err
 		}
-		p := filepath.Join(projectRoot, "docs", "workstreams", "backlog", workstreams[i]+".md")
-		if b, err := os.ReadFile(p); err == nil {
-			pkt.Workstream += "\n\n---\n\n" + string(b)
+		p := filepath.Join(projectRoot, "docs", "workstreams", "backlog", wsID+".md")
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return nil, fmt.Errorf("read review workstream %s: %w", p, err)
 		}
+		if pkt.Workstream != "" {
+			pkt.Workstream += "\n\n---\n\n"
+		}
+		content := string(b)
+		pkt.Workstream += content
+		acceptance, scope := parseWorkstreamSections(content)
+		pkt.AcceptanceCriteria = appendUniqueStrings(pkt.AcceptanceCriteria, seenAcceptance, acceptance)
+		pkt.ScopeFiles = appendUniqueStrings(pkt.ScopeFiles, seenScope, scope)
+	}
+	if err := WriteContextPacket(filepath.Join(projectRoot, contextPacketPath), pkt); err != nil {
+		return nil, err
 	}
 	return pkt, nil
 }
@@ -169,4 +186,19 @@ func (p *ContextPacket) FormatForPrompt() string {
 		b.WriteString("(clean)\n")
 	}
 	return b.String()
+}
+
+func appendUniqueStrings(dst []string, seen map[string]struct{}, values []string) []string {
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		dst = append(dst, value)
+	}
+	return dst
 }

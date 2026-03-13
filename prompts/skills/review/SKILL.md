@@ -2,8 +2,9 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 14.3.0
+version: 14.4.0
 changes:
+  - "14.4.0: Make review read-only and scope-bound; docs/promptops issues outside feature scope are non-blocking"
   - "14.3.0: Add @go-modern checks for Go review surfaces"
   - "14.2.0: Handoff block when CHANGES_REQUESTED"
   - "14.1.0: Language-agnostic (platform-agnostic spawn, agents/ path)"
@@ -16,6 +17,8 @@ changes:
 
 Comprehensive multi-agent quality review.
 
+**Review is read-only.** Reviewers may create findings, verdict artifacts, and notes. They must not edit product code, docs, prompts, or workstream files to make the review pass.
+
 ---
 
 ## EXECUTE THIS NOW
@@ -24,6 +27,8 @@ When user invokes `@review F{XX}`:
 
 1. **Run CLI:** `sdp quality all`
 2. **Spawn 7 subagents IN PARALLEL** (use your platform's subagent spawn). **DO NOT skip.** CLI is basic; full review needs subagents.
+
+**Scope discipline:** Review touched feature scope first. Repo-wide drift outside the changed scope can be noted, but it is non-blocking unless the current feature introduced it.
 
 **Roles:** qa, security, devops, sre, techlead, docs, promptops
 
@@ -43,9 +48,9 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 
 **Role files:** `agents/qa.md`, `agents/security.md`, `agents/devops.md`, `agents/sre.md`, `agents/tech-lead.md`. Docs and PromptOps: inline (see below).
 
-**Docs expert:** Check drift (`sdp drift detect`), AC coverage (jq `.ac_evidence|length` vs WS file). Labels: `review-finding,F{XX},round-1,docs`
+**Docs expert:** Check drift (`sdp drift detect`) and AC coverage only for changed docs, workstream specs, and user-facing/help text touched by the feature. Unrelated repo-wide docs drift is P2/non-blocking. Labels: `review-finding,F{XX},round-1,docs`
 
-**PromptOps expert:** Review sdp/prompts/skills, agents, commands. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`. Output `checks` array: `[{"check_id":"language-agnostic","status":"pass","note":"..."},{"check_id":"no-phantom-cli","status":"pass"},...]` per schema/review-verdict.schema.json.
+**PromptOps expert:** Review `sdp/prompts/skills`, agents, and commands only when this feature changed them or when the active workflow path is the direct source of failure. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`. Output `checks` array: `[{"check_id":"language-agnostic","status":"pass","note":"..."},{"check_id":"no-phantom-cli","status":"pass"},...]` per schema/review-verdict.schema.json.
 
 ---
 

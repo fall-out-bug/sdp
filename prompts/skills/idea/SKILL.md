@@ -58,7 +58,7 @@ Read existing project files to understand context:
 - Integration points?
 
 **Cycle 4 - UI/UX & Quality (3 questions):**
-- UI/UX requirements?
+- UI/UX requirements? If this is admin/dashboard/backoffice work: who uses it, what actions matter, what permissions differ?
 - Performance targets?
 - Security considerations?
 
