@@ -129,6 +129,11 @@ func TestCreator_CreateWorkstreamWithBeads(t *testing.T) {
 	if err := os.MkdirAll(wsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
+	oldWd, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
 
 	c := NewCreator(CreatorConfig{
 		WorkstreamDir: wsDir,

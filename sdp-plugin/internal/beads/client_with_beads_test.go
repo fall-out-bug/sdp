@@ -111,6 +111,70 @@ fi
 	}
 }
 
+func TestCreateWithFakeBeads(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	bdScript := `#!/bin/bash
+if [ "$1" = "create" ]; then
+	echo "Created issue: sdp-new1"
+	exit 0
+fi
+`
+	bdPath := filepath.Join(tmpDir, "bd")
+	if err := os.WriteFile(bdPath, []byte(bdScript), 0755); err != nil {
+		t.Fatalf("Failed to create fake bd: %v", err)
+	}
+
+	oldPath := os.Getenv("PATH")
+	t.Cleanup(func() { os.Setenv("PATH", oldPath) })
+	os.Setenv("PATH", tmpDir+string(os.PathListSeparator)+oldPath)
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	beadsID, err := client.Create("Test Task", CreateOptions{
+		Type:     "task",
+		Priority: "1",
+		Labels:   []string{"review-finding", "qa"},
+		Silent:   true,
+	})
+	if err != nil {
+		t.Fatalf("Create() failed: %v", err)
+	}
+	if beadsID != "sdp-new1" {
+		t.Fatalf("expected sdp-new1, got %s", beadsID)
+	}
+}
+
+func TestCloseWithFakeBeads(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	bdScript := `#!/bin/bash
+if [ "$1" = "close" ]; then
+	exit 0
+fi
+`
+	bdPath := filepath.Join(tmpDir, "bd")
+	if err := os.WriteFile(bdPath, []byte(bdScript), 0755); err != nil {
+		t.Fatalf("Failed to create fake bd: %v", err)
+	}
+
+	oldPath := os.Getenv("PATH")
+	t.Cleanup(func() { os.Setenv("PATH", oldPath) })
+	os.Setenv("PATH", tmpDir+string(os.PathListSeparator)+oldPath)
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	if err := client.Close("sdp-abc", "WS completed"); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+}
+
 // TestShowWithInvalidOutput tests Show with invalid output from beads
 func TestShowWithInvalidOutput(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary that returns invalid output
@@ -321,6 +385,39 @@ fi
 	}
 }
 
+func TestReadyWithoutDatabaseReturnsEmptySlice(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	bdScript := `#!/bin/bash
+if [ "$1" = "ready" ]; then
+	echo "Error: no beads database found" >&2
+	echo "Hint: run 'bd init' to create a database in the current directory" >&2
+	exit 1
+fi
+`
+	bdPath := filepath.Join(tmpDir, "bd")
+	if err := os.WriteFile(bdPath, []byte(bdScript), 0755); err != nil {
+		t.Fatalf("Failed to create fake bd: %v", err)
+	}
+
+	oldPath := os.Getenv("PATH")
+	t.Cleanup(func() { os.Setenv("PATH", oldPath) })
+	os.Setenv("PATH", tmpDir+string(os.PathListSeparator)+oldPath)
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	tasks, err := client.Ready()
+	if err != nil {
+		t.Fatalf("Ready() should treat missing database as empty, got: %v", err)
+	}
+	if len(tasks) != 0 {
+		t.Fatalf("Expected 0 tasks, got %d", len(tasks))
+	}
+}
+
 // TestNewClientWithFakeBeads tests NewClient detects fake beads
 func TestNewClientWithFakeBeads(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary
@@ -448,9 +545,12 @@ func TestReadMappingErrorHandling(t *testing.T) {
 		mappingPath: "/nonexistent/file.jsonl",
 	}
 
-	_, err := client.readMapping()
-	if err == nil {
-		t.Error("Expected error when reading nonexistent file")
+	entries, err := client.readMapping()
+	if err != nil {
+		t.Fatalf("expected missing mapping file to return empty entries, got: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("expected no entries for missing mapping file, got %d", len(entries))
 	}
 }
 
@@ -531,9 +631,20 @@ fi
 func TestSyncWithFakeBeads(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary
 	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(oldWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
 
 	bdScript := `#!/bin/bash
 if [ "$1" = "sync" ]; then
+	echo 'unknown command "sync"' >&2
+	exit 1
+fi
+if [ "$1" = "export" ] && [ "$2" = "-o" ]; then
+	mkdir -p "$(dirname "$3")"
+	printf '{"id":"sdp-1"}\n' > "$3"
 	exit 0
 fi
 `
@@ -555,16 +666,28 @@ fi
 	if err != nil {
 		t.Errorf("Sync() failed: %v", err)
 	}
+	if _, err := os.Stat(filepath.Join(".beads", "issues.jsonl")); err != nil {
+		t.Fatalf("expected export fallback to create .beads/issues.jsonl: %v", err)
+	}
 }
 
 // TestSyncWithError tests Sync when beads command fails
 func TestSyncWithError(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary
 	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(oldWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
 
 	bdScript := `#!/bin/bash
 if [ "$1" = "sync" ]; then
-	echo "Sync failed" >&2
+	echo 'unknown command "sync"' >&2
+	exit 1
+fi
+if [ "$1" = "export" ]; then
+	echo "Export failed" >&2
 	exit 1
 fi
 `
@@ -585,5 +708,8 @@ fi
 	err = client.Sync()
 	if err == nil {
 		t.Error("Expected error when sync fails")
+	}
+	if err != nil && !strings.Contains(err.Error(), "export fallback failed") {
+		t.Fatalf("expected export fallback error, got: %v", err)
 	}
 }

@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/beadscli"
 	"github.com/fall-out-bug/sdp/internal/ciloop"
 	"github.com/fall-out-bug/sdp/internal/orchestrate"
 )
@@ -63,10 +63,11 @@ func main() {
 		}
 		title := fmt.Sprintf("CI BLOCKED: %s (PR #%d)", strings.Join(names, ", "), *prNum)
 		slog.Warn("escalating", "title", title, "checks", names, "pr", *prNum)
-		cmd := exec.Command("bd", "create", "--title", title, "--priority", "0", "--labels", fmt.Sprintf("ci-finding,%s", ciloop.SanitizeLabel(*feature)))
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
+		if err := beadscli.CreateAndSync(beadscli.CreateOptions{
+			Title:    title,
+			Priority: "0",
+			Labels:   []string{"ci-finding", ciloop.SanitizeLabel(*feature)},
+		}); err != nil {
 			slog.Warn("bd create failed", "error", err, "title", title)
 			return err
 		}
@@ -87,10 +88,10 @@ func main() {
 	)
 
 	innerFixer := ciloop.NewFixer(ciloop.FixerOptions{
-		PRNumber:  *prNum,
-		FeatureID: *feature,
-		Ctx:       ctx,
-		Committer: &ciloop.GitCommitter{},
+		PRNumber:   *prNum,
+		FeatureID:  *feature,
+		Ctx:        ctx,
+		Committer:  &ciloop.GitCommitter{},
 		LogFetcher: &ciloop.GhLogFetcher{Runner: runner},
 		DecisionLogger: func(decision, rationale string) error {
 			fmt.Printf("DECISION: %s — %s\n", decision, rationale)
@@ -107,12 +108,15 @@ func main() {
 	}
 
 	fixer := &ciloop.DeterministicFirstFixer{
-		ProjectRoot:   projectRoot,
-		Registry:      ciloop.NewAutofixerRegistry(projectRoot),
-		Runner:        runner,
-		Committer:     &ciloop.AllFilesCommitter{},
-		LogFetcher:    &ciloop.GhLogFetcher{Runner: runner},
-		DecisionLog:   func(decision, rationale string) error { fmt.Printf("DECISION: %s — %s\n", decision, rationale); return nil },
+		ProjectRoot: projectRoot,
+		Registry:    ciloop.NewAutofixerRegistry(projectRoot),
+		Runner:      runner,
+		Committer:   &ciloop.AllFilesCommitter{},
+		LogFetcher:  &ciloop.GhLogFetcher{Runner: runner},
+		DecisionLog: func(decision, rationale string) error {
+			fmt.Printf("DECISION: %s — %s\n", decision, rationale)
+			return nil
+		},
 		RunFileLogger: runFileLogger,
 		Inner:         innerFixer,
 		PRNumber:      *prNum,

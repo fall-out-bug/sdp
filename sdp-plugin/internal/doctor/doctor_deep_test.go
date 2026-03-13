@@ -2,6 +2,7 @@ package doctor
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -143,25 +144,43 @@ func TestCheckBeadsIntegrity(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	// Test 1: No beads database
+	// Test 1: No Beads state
 	result := checkBeadsIntegrity()
 	if result.Status != "warning" {
 		t.Errorf("Expected warning when beads missing, got %s", result.Status)
 	}
 
-	// Test 2: Empty beads database
+	// Test 2: Empty canonical snapshot
 	os.MkdirAll(".beads", 0o755)
-	os.WriteFile(".beads/beads.db", []byte{}, 0644)
+	os.WriteFile(".beads/issues.jsonl", []byte{}, 0644)
 	result = checkBeadsIntegrity()
 	if result.Status != "warning" {
 		t.Errorf("Expected warning when beads empty, got %s", result.Status)
 	}
 
-	// Test 3: Valid beads database
-	os.WriteFile(".beads/beads.db", []byte("test data"), 0644)
+	// Test 3: Valid canonical snapshot
+	os.WriteFile(".beads/issues.jsonl", []byte("{}\n"), 0644)
 	result = checkBeadsIntegrity()
 	if result.Status != "ok" {
 		t.Errorf("Expected ok with valid beads, got %s: %s", result.Status, result.Message)
+	}
+}
+
+func TestCheckBeadsIntegrity_LegacyDBFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	os.MkdirAll(".beads", 0o755)
+	os.WriteFile(".beads/beads.db", []byte("legacy data"), 0644)
+
+	result := checkBeadsIntegrity()
+	if result.Status != "ok" {
+		t.Errorf("Expected ok with legacy beads.db fallback, got %s: %s", result.Status, result.Message)
+	}
+	if !strings.Contains(result.Message, "Legacy local DB") {
+		t.Errorf("Expected legacy message, got %q", result.Message)
 	}
 }
 
@@ -274,7 +293,7 @@ func TestCheckBeadsIntegrity_ReadError(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	os.MkdirAll(".beads", 0o755)
-	os.WriteFile(".beads/beads.db", []byte("test"), 0000) // No read permissions
+	os.WriteFile(".beads/issues.jsonl", []byte("{}\n"), 0000) // No read permissions
 
 	result := checkBeadsIntegrity()
 	if result.Status != "error" {

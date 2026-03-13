@@ -66,7 +66,7 @@ Each level is independently valuable. Upgrade path is additive.
 - Protocol spec with 12 skills (v0.9.8, 18 releases)
 - Evidence log with hash-chain provenance
 - CLI: `sdp doctor`, `sdp guard`, `sdp log`, `sdp status`
-- Multi-agent review (6 agents), strategic planning (7 agents), codebase analysis (8 agents)
+- Multi-agent review (6 agents), strategic planning (7 agents), OSS reality baseline analysis
 - Install script with auto-detect for Claude Code, Cursor, OpenCode
 - 1,004 commits, 16 stars, MIT license
 

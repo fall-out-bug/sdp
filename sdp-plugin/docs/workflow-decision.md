@@ -7,8 +7,10 @@ Use this guide when choosing between direct CLI execution and Beads-backed task 
 Choose this path when work spans multiple sessions, contributors, or explicit dependencies.
 
 - `sdp beads ready` - inspect available tasks
+- `sdp beads create --title "..." --type task` - create a tracked task and persist it
 - `sdp beads show <id>` - inspect task detail
 - `sdp beads update <id>` - update task state
+- `sdp beads close <id> --reason "..."` - close a task and persist it
 - `sdp beads sync` - persist tracker state to the repo
 - `sdp build <ws-id>` or `@build 00-001-01` - execute the claimed workstream
 

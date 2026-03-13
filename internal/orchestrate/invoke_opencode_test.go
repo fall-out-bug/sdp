@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -65,10 +66,14 @@ type fakeLLMInvoker struct {
 	output   string
 	exitCode int
 	invoked  bool
+	agent    string
+	prompt   string
 }
 
 func (f *fakeLLMInvoker) Invoke(ctx context.Context, dir, agent, prompt string) (string, int, error) {
 	f.invoked = true
+	f.agent = agent
+	f.prompt = prompt
 	return f.output, f.exitCode, nil
 }
 
@@ -132,5 +137,45 @@ func TestWritePromptProvenance(t *testing.T) {
 	}
 	if len(b) == 0 {
 		t.Error("expected non-empty file")
+	}
+}
+
+func TestRunReviewPhase_UsesReadOnlyPrompt(t *testing.T) {
+	fake := &fakeLLMInvoker{
+		output:   "APPROVED",
+		exitCode: 0,
+	}
+	approved, err := RunReviewPhase(context.Background(), t.TempDir(), "F053", fake)
+	if err != nil {
+		t.Fatalf("RunReviewPhase: %v", err)
+	}
+	if !approved {
+		t.Fatal("expected approved review result")
+	}
+	if fake.agent != "reviewer" {
+		t.Fatalf("agent = %q, want reviewer", fake.agent)
+	}
+	if fake.prompt == "" {
+		t.Fatal("expected prompt to be captured")
+	}
+	if prompt := fake.prompt; strings.Contains(prompt, "Fix P0/P1 findings") {
+		t.Fatalf("prompt should not ask reviewer to fix findings: %q", prompt)
+	}
+	if !strings.Contains(fake.prompt, "Do not modify code, docs, prompts, or workstream files") {
+		t.Fatalf("prompt should enforce read-only review: %q", fake.prompt)
+	}
+}
+
+func TestRunReviewPhase_ChangesRequestedIsNotApproved(t *testing.T) {
+	fake := &fakeLLMInvoker{
+		output:   "CHANGES_REQUESTED\nmissing test coverage",
+		exitCode: 0,
+	}
+	approved, err := RunReviewPhase(context.Background(), t.TempDir(), "F053", fake)
+	if err != nil {
+		t.Fatalf("RunReviewPhase: %v", err)
+	}
+	if approved {
+		t.Fatal("expected CHANGES_REQUESTED output to be treated as not approved")
 	}
 }

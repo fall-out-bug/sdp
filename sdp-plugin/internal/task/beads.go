@@ -4,18 +4,44 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
+
+	beadscli "github.com/fall-out-bug/sdp/internal/beads"
 )
 
 // BeadsIntegration handles beads CLI operations for tasks
 type BeadsIntegration struct {
+	client  *beadscli.Client
 	enabled bool
 }
 
 // NewBeadsIntegration creates a new beads integration
 func NewBeadsIntegration() *BeadsIntegration {
-	return &BeadsIntegration{enabled: detectBeads()}
+	return newBeadsIntegration(".")
+}
+
+func newBeadsIntegration(startDir string) *BeadsIntegration {
+	projectRoot := findBeadsProjectRoot(startDir)
+	oldWd, err := os.Getwd()
+	if err != nil {
+		return &BeadsIntegration{}
+	}
+	if err := os.Chdir(projectRoot); err != nil {
+		return &BeadsIntegration{}
+	}
+	defer func() { _ = os.Chdir(oldWd) }()
+
+	client, err := beadscli.NewClient()
+	if err != nil {
+		return &BeadsIntegration{}
+	}
+	return &BeadsIntegration{
+		client:  client,
+		enabled: detectBeads(projectRoot),
+	}
 }
 
 // IsEnabled returns whether beads is available
@@ -28,7 +54,17 @@ func (b *BeadsIntegration) CreateBeadsIssue(t *Task) (string, error) {
 	if !b.enabled {
 		return "", nil
 	}
-	return generateBeadsID(t.Title), nil
+	beadsID, err := b.client.Create(t.Title, beadscli.CreateOptions{
+		Type:     taskTypeToIssueType(t.Type),
+		Priority: strconv.Itoa(int(t.Priority)),
+	})
+	if err != nil {
+		return "", err
+	}
+	if err := b.client.Sync(); err != nil {
+		return "", err
+	}
+	return beadsID, nil
 }
 
 // LinkWorkstreamToBeads updates workstream frontmatter with beads_id
@@ -83,14 +119,12 @@ func insertBeadsID(content, beadsID string) string {
 }
 
 // detectBeads checks if beads CLI is available
-func detectBeads() bool {
-	if _, err := os.Stat(".beads"); err == nil {
-		return true
+func detectBeads(projectRoot string) bool {
+	if _, err := exec.LookPath("bd"); err != nil {
+		return false
 	}
-	if path, err := filepath.Abs("bd"); err == nil && path != "" {
-		return true
-	}
-	return false
+	info, err := os.Stat(filepath.Join(projectRoot, ".beads"))
+	return err == nil && info.IsDir()
 }
 
 // generateBeadsID creates a beads-style ID from title
@@ -116,7 +150,7 @@ func (c *Creator) CreateWorkstreamWithBeads(task *Task) (*Workstream, error) {
 		return nil, err
 	}
 
-	beads := NewBeadsIntegration()
+	beads := newBeadsIntegration(c.projectRoot())
 	if beads.IsEnabled() && task.BeadsID == "" {
 		beadsID, err := beads.CreateBeadsIssue(task)
 		if err != nil {
@@ -125,10 +159,62 @@ func (c *Creator) CreateWorkstreamWithBeads(task *Task) (*Workstream, error) {
 			if err := beads.LinkWorkstreamToBeads(ws.Path, beadsID); err != nil {
 				fmt.Fprintf(os.Stderr, "warning: failed to link beads: %v\n", err)
 			}
+			if err := beads.UpdateMapping(ws.WSID, beadsID); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to update beads mapping: %v\n", err)
+			}
 			ws.BeadsID = beadsID
 		}
 	}
 	return ws, nil
+}
+
+func (c *Creator) projectRoot() string {
+	return findBeadsProjectRoot(c.config.WorkstreamDir)
+}
+
+func findBeadsProjectRoot(startDir string) string {
+	if startDir == "" {
+		startDir = "."
+	}
+	absStart, err := filepath.Abs(startDir)
+	if err != nil {
+		absStart = startDir
+	}
+	current := absStart
+	for {
+		for _, marker := range []string{".beads", ".sdp", ".git"} {
+			if _, err := os.Stat(filepath.Join(current, marker)); err == nil {
+				return current
+			}
+		}
+		parent := filepath.Dir(current)
+		if parent == current {
+			break
+		}
+		current = parent
+	}
+	if info, err := os.Stat(absStart); err == nil && !info.IsDir() {
+		return filepath.Dir(absStart)
+	}
+	return absStart
+}
+
+func (b *BeadsIntegration) UpdateMapping(wsID, beadsID string) error {
+	if !b.enabled || b.client == nil || beadsID == "" {
+		return nil
+	}
+	return b.client.UpdateMapping(wsID, beadsID)
+}
+
+func taskTypeToIssueType(t Type) string {
+	switch t {
+	case TypeBug:
+		return "bug"
+	case TypeHotfix:
+		return "bug"
+	default:
+		return "task"
+	}
 }
 
 // ReadBeadsMapping reads the beads mapping file

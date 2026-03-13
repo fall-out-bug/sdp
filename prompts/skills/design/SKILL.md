@@ -1,7 +1,7 @@
 ---
 name: design
 description: System design with progressive disclosure, produces workstream files
-version: 2.1.0
+version: 2.2.0
 ---
 
 # @design
@@ -28,7 +28,9 @@ After @idea, or directly from a feature description. Creates workstream files wi
 ### 2. Progressive discovery — unless --quiet
 
 3-5 discovery blocks, 2-3 questions each:
+- **Topology**: Which services/apps/packages change? Which language/runtime owns each boundary?
 - **Architecture**: What components change? What's the data model?
+- **Product/UX**: For admin/dashboard/user-facing work, what roles, actions, permissions, and edge states matter?
 - **Security**: Any auth, crypto, or boundary concerns?
 - **Operations**: Any monitoring, logging, or CI concerns?
 
@@ -36,9 +38,14 @@ After each block: Continue / Skip / Done
 
 ### 3. Generate workstream files
 
-**When source is beads (review findings):** For each bead, run `bd show <id>` and grep the codebase for the fix. If already fixed, run `bd close <id>` and remove from scope. Do not create WS for beads that are already addressed.
+**When source is beads (review findings):** For each bead, run `sdp beads show <id>` and grep the codebase for the fix. If already fixed, run `sdp beads close <id> --reason "Already fixed"` and remove from scope. Do not create WS for beads that are already addressed.
 
 Create `docs/workstreams/backlog/00-FFF-SS.md` for each deliverable.
+
+**Boundary rules:**
+- If the feature spans multiple services, create separate workstreams per service unless one workstream is purely integration glue.
+- If the feature spans multiple languages/runtimes, call that out explicitly in scope and acceptance criteria.
+- If the feature is admin/user-facing and behavior is still ambiguous, stop and ask before writing workstreams.
 
 **Required sections:**
 
@@ -71,14 +78,13 @@ Specific, testable, binary (pass/fail):
 
 - [ ] Criterion 1
 - [ ] Criterion 2
-- [ ] go build ./... passes
-- [ ] go test ./internal/evidence/... passes
+- [ ] Build/test commands for the touched service(s) pass
 ```
 
 ### 4. Create Beads issues
 
 ```bash
-bd create --title="WS FFF-SS: Short title" --type=task
+sdp beads create --title="WS FFF-SS: Short title" --type=task
 ```
 
 Append to `.beads-sdp-mapping.jsonl`:

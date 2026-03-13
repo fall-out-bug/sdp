@@ -53,24 +53,27 @@ echo "4. Checking Beads initialization..."
 if [ -d ".beads" ]; then
     echo "   ✅ Beads initialized (.beads/ exists)"
 
-    # Check database
-    if [ -f ".beads/beads.db" ]; then
-        echo "   ✅ Beads database exists"
-    else
-        echo "   ⚠️  Beads database not found"
-        echo "   Run: bd init"
-    fi
-
-    # Check JSONL
+    # Check canonical repo snapshot
     if [ -f ".beads/issues.jsonl" ]; then
         ISSUES=$(wc -l < .beads/issues.jsonl)
-        echo "   ✅ Beads issues.jsonl ($ISSUES issues)"
+        echo "   ✅ Beads issues.jsonl (${ISSUES} records, canonical repo snapshot)"
+    else
+        echo "   ⚠️  Beads issues.jsonl not found"
+        echo "   Run: ./scripts/beads_export.sh  # or bd init for a fresh repo"
+    fi
+
+    # Check optional local DB artifact
+    if [ -f ".beads/beads.db" ]; then
+        echo "   ℹ️  Local/legacy beads.db exists"
+    elif [ -f ".beads/issues.jsonl" ]; then
+        echo "   ℹ️  beads.db not present (normal for beads >=0.59 repo snapshot workflow)"
     fi
 else
     echo "   ⚠️  Beads not initialized"
     echo ""
     echo "   To initialize Beads:"
     echo "   bd init"
+    echo "   ./scripts/beads_import_only.sh   # if the repo already tracks .beads/issues.jsonl"
     echo ""
 fi
 

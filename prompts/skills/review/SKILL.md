@@ -2,8 +2,9 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 14.3.0
+version: 14.4.0
 changes:
+  - "14.4.0: Make review read-only and scope-bound; docs/promptops issues outside feature scope are non-blocking"
   - "14.3.0: Add @go-modern checks for Go review surfaces"
   - "14.2.0: Handoff block when CHANGES_REQUESTED"
   - "14.1.0: Language-agnostic (platform-agnostic spawn, agents/ path)"
@@ -16,6 +17,8 @@ changes:
 
 Comprehensive multi-agent quality review.
 
+**Review is read-only.** Reviewers may create findings, verdict artifacts, and notes. They must not edit product code, docs, prompts, or workstream files to make the review pass.
+
 ---
 
 ## EXECUTE THIS NOW
@@ -24,6 +27,8 @@ When user invokes `@review F{XX}`:
 
 1. **Run CLI:** `sdp quality all`
 2. **Spawn 7 subagents IN PARALLEL** (use your platform's subagent spawn). **DO NOT skip.** CLI is basic; full review needs subagents.
+
+**Scope discipline:** Review touched feature scope first. Repo-wide drift outside the changed scope can be noted, but it is non-blocking unless the current feature introduced it.
 
 **Roles:** qa, security, devops, sre, techlead, docs, promptops
 
@@ -39,13 +44,13 @@ When user invokes `@review F{XX}`:
 
 For Go files, also check whether the change keeps or improves modern stdlib usage (`slices`, `maps`, `strings.Cut`, `strings.CutPrefix`, `any`) instead of preserving avoidable legacy patterns.
 
-For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
+For each finding: `sdp beads create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
 
 **Role files:** `agents/qa.md`, `agents/security.md`, `agents/devops.md`, `agents/sre.md`, `agents/tech-lead.md`. Docs and PromptOps: inline (see below).
 
-**Docs expert:** Check drift (`sdp drift detect`), AC coverage (jq `.ac_evidence|length` vs WS file). Labels: `review-finding,F{XX},round-1,docs`
+**Docs expert:** Check drift (`sdp drift detect`) and AC coverage only for changed docs, workstream specs, and user-facing/help text touched by the feature. Unrelated repo-wide docs drift is P2/non-blocking. Labels: `review-finding,F{XX},round-1,docs`
 
-**PromptOps expert:** Review sdp/prompts/skills, agents, commands. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`. Output `checks` array: `[{"check_id":"language-agnostic","status":"pass","note":"..."},{"check_id":"no-phantom-cli","status":"pass"},...]` per schema/review-verdict.schema.json.
+**PromptOps expert:** Review `sdp/prompts/skills`, agents, and commands only when this feature changed them or when the active workflow path is the direct source of failure. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`. Output `checks` array: `[{"check_id":"language-agnostic","status":"pass","note":"..."},{"check_id":"no-phantom-cli","status":"pass"},...]` per schema/review-verdict.schema.json.
 
 ---
 
@@ -84,7 +89,7 @@ Run `@design phase4-remediation` with findings to create workstreams.
 
 ## Beads
 
-`bd create --title "{AREA}: {desc}" --priority {0-3} --labels "review-finding,F{XX},round-{N},{role}" --type bug --silent`
+`sdp beads create --title "{AREA}: {desc}" --priority {0-3} --labels "review-finding,F{XX},round-{N},{role}" --type bug --silent`
 
 Replace `F{NNN}` with feature ID, `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
 
@@ -96,19 +101,19 @@ After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 
 
 **Good P0 finding (Security):**
 ```
-bd create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,<feature-id>,round-1,security" --type bug --silent
+sdp beads create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,<feature-id>,round-1,security" --type bug --silent
 ```
 Reason: Exploitable in production; attacker can bypass auth. Include file:line.
 
 **Good P2 finding (style):**
 ```
-bd create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,<feature-id>,round-1,docs" --type bug --silent
+sdp beads create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,<feature-id>,round-1,docs" --type bug --silent
 ```
 Reason: Maintenance debt, not blocking.
 
 **Bad — vague finding (no file:line):**
 ```
-bd create --title "Security: possible vulnerability" --priority 0 ...
+sdp beads create --title "Security: possible vulnerability" --priority 0 ...
 ```
 Reason: P0 requires evidence. Add file:line or downgrade to P2.
 

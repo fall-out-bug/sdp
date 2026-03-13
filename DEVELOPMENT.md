@@ -228,8 +228,11 @@ bd update sdp-xxx --status=in_progress
 # Close when done
 bd close sdp-xxx
 
-# Sync to remote
-bd sync
+# Rebuild local DB from tracked JSONL
+./scripts/beads_import_only.sh
+
+# Export beads DB back to tracked JSONL
+./scripts/beads_export.sh
 ```
 
 ---

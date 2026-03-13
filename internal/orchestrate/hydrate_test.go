@@ -65,6 +65,35 @@ func TestHydrate_WritesFile(t *testing.T) {
 	}
 }
 
+func TestHydrateForReview_AggregatesAcceptanceCriteriaAndScopeFiles(t *testing.T) {
+	root := writeHydrateProjectRoot(t)
+	second := "---\nws_id: 00-022-02\nfeature_id: F022\ndepends_on: [\"00-022-01\"]\n---\n\n" +
+		"# 00-022-02: Review aggregation fixture\n\n" +
+		"## Acceptance Criteria\n\n" +
+		"- [ ] Third criterion\n" +
+		"- [ ] First criterion\n\n" +
+		"## Scope Files\n\n" +
+		"- `internal/orchestrate/invoke_opencode.go`\n" +
+		"- `internal/orchestrate/state_machine.go`\n"
+	if err := os.WriteFile(filepath.Join(root, "docs", "workstreams", "backlog", "00-022-02.md"), []byte(second), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	pkt, err := HydrateForReview(root, "F022", &Checkpoint{FeatureID: "F022", Phase: PhaseReview}, []string{"00-022-01", "00-022-02"})
+	if err != nil {
+		t.Fatalf("HydrateForReview: %v", err)
+	}
+	if len(pkt.AcceptanceCriteria) != 3 {
+		t.Fatalf("acceptance_criteria = %v, want 3 unique entries", pkt.AcceptanceCriteria)
+	}
+	if len(pkt.ScopeFiles) != 3 {
+		t.Fatalf("scope_files = %v, want 3 unique entries", pkt.ScopeFiles)
+	}
+	if !strings.Contains(pkt.Workstream, "00-022-01") || !strings.Contains(pkt.Workstream, "00-022-02") {
+		t.Fatalf("expected aggregated workstream content, got %q", pkt.Workstream)
+	}
+}
+
 func TestHydrate_FailsWhenQualityGateSourceMissing(t *testing.T) {
 	root := t.TempDir()
 	wsDir := filepath.Join(root, "docs", "workstreams", "backlog")

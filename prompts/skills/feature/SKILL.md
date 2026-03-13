@@ -1,9 +1,10 @@
 ---
 name: feature
-description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstreams)
-version: 8.0.0
+description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstreams) with service/language-aware scoping
+version: 8.1.0
 depends_on: "@discovery v1"
 changes:
+  - v8.1: Add multi-service/multi-language discovery and mandatory product clarification for admin/user-facing features
   - v8: Full product discovery flow with @discovery, @ux, impact analysis
   - Added --quick (skip @discovery), --infra (skip @ux)
   - Step 3.5: Impact analysis after @design
@@ -13,7 +14,7 @@ changes:
 
 Orchestrate product discovery, requirements, UX research, and workstream design.
 
-**Phase 0:** This skill targets Go projects (e.g. `go build`/`go test` in acceptance criteria). Language-agnostic expansion is planned.
+**Phase 0:** Infer project topology first. Mixed-language and multi-service repos are first-class. Use the real build/test commands for each touched service instead of defaulting to Go examples.
 
 ## Modes
 
@@ -69,15 +70,15 @@ One paragraph: what this workstream does and why.
 
 - [ ] Specific, testable criterion 1
 - [ ] Specific, testable criterion 2
-- [ ] go build ./... passes (Phase 0: Go; other languages later)
-- [ ] go test ./... passes
+- [ ] Build commands for touched service(s) pass
+- [ ] Test commands for touched service(s) pass
 ```
 
 ### Step C: Create Beads Issues
 
 For each workstream created:
 ```bash
-bd create --title="WS FFF-SS: Short title" --type=task
+sdp beads create --title="WS FFF-SS: Short title" --type=task
 ```
 
 Update `.beads-sdp-mapping.jsonl`:
@@ -116,7 +117,26 @@ Use `@discovery "feature description"` for roadmap pre-check and product researc
 
 ### Step 1: Quick Interview (3-5 questions)
 
-Problem, Users, Success. Gate: if vague (<200 words), ask clarification. If @discovery ran: use its output.
+Problem, Users, Success, Topology. If @discovery ran: use its output.
+
+**Ask clarification whenever any of these are missing:**
+- primary user or operator role
+- success condition / "done" behavior
+- service boundaries or language/runtime boundaries
+- data/auth ownership boundary
+- concrete user-visible behavior for admin, dashboard, backoffice, or other user-facing surfaces
+
+**Important:** Prompt length is not clarity. A long description still requires questions if behavior, actors, or boundaries are unclear.
+
+**Mandatory questions for admin/user-facing features:**
+- Who uses this surface, and what roles/permissions differ?
+- What are the must-have actions/screens/flows?
+- What should happen on empty/error/forbidden states?
+
+**Mandatory questions for multi-service or multi-language repos:**
+- Which services/packages/apps change?
+- Which language/runtime owns each changed surface?
+- Which service is source of truth for writes, reads, auth, and validation?
 
 ### Step 2: @idea
 
@@ -124,13 +144,15 @@ Problem, Users, Success. Gate: if vague (<200 words), ask clarification. If @dis
 
 ### Step 2.5: @ux — unless --infra
 
-Auto-trigger when @idea output has user-facing keywords (ui, user, interface, dashboard, form) and lacks infra (K8s, CRD, CLI-only).
+Auto-trigger when @idea output has user-facing keywords (`ui`, `user`, `interface`, `dashboard`, `form`, `admin`, `backoffice`, `portal`) and lacks infra (`K8s`, `CRD`, `CLI-only`).
 
 ### Step 3: @design
 
 `@design {task_id}` — workstream files in docs/workstreams/backlog/
 
 Produces workstream files using the **Workstream file format** above.
+
+**Decomposition rule:** when a feature crosses service, deployment, or language boundaries, split workstreams explicitly by boundary. Do not hide backend + frontend + ops changes inside one generic workstream.
 
 ### Step 3.5: Impact Analysis
 

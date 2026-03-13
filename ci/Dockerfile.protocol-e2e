@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install beads via go install (avoids libicu version mismatch with prebuilt binary)
-RUN CGO_ENABLED=1 go install github.com/steveyegge/beads/cmd/bd@v0.55.4
+RUN CGO_ENABLED=1 go install github.com/steveyegge/beads/cmd/bd@v0.59.0
 ENV PATH="/usr/local/bin:/go/bin:$PATH"
 
 # Install opencode CLI (for LLM integration phase)
@@ -45,7 +45,7 @@ RUN git config --global user.email "e2e@test" && \
 
 # Init beads in workspace (best-effort; repo .beads may exist)
 RUN bd init 2>/dev/null || true
-RUN bd sync 2>/dev/null || true
+RUN ./scripts/beads_import_only.sh 2>/dev/null || true
 
 # Overlay: when sdp is submodule (sdp_dev), ci lives in sdp/ci
 RUN if [ -d sdp/ci ]; then mkdir -p ci && cp sdp/ci/protocol-e2e-test.sh ci/ && cp -r sdp/ci/protocol-e2e-fixtures ci/; fi

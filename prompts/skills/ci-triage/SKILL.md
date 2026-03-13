@@ -59,7 +59,7 @@ Create a follow-up item when CI is not green:
 ```bash
 bd create --title="CI: <short root cause>" --type=bug --priority=1
 bd dep add <new-id> <parent-feature-id>
-bd sync
+./scripts/beads_export.sh
 ```
 
 ## Output Template

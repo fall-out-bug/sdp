@@ -27,8 +27,10 @@ end
 
 function __sdp_beads_commands
 	echo -e "ready\tList available tasks"
+	echo -e "create\tCreate a task and persist repo snapshot"
 	echo -e "show\tShow task details"
 	echo -e "update\tUpdate task status"
+	echo -e "close\tClose a task and persist repo snapshot"
 	echo -e "sync\tSynchronize Beads state"
 end
 
@@ -37,6 +39,11 @@ function __sdp_quality_commands
 	echo -e "gate\tVerify quality gates pass"
 	echo -e "scan\tScan for quality issues"
 	echo -e "report\tGenerate quality report"
+end
+
+function __sdp_reality_commands
+	echo -e "emit-oss\tEmit the OSS reality artifact set"
+	echo -e "validate\tValidate emitted OSS reality artifacts"
 end
 
 complete -c sdp -f
@@ -52,6 +59,7 @@ complete -c sdp -n "__fish_use_subcommand" -a beads -d "Interact with Beads task
 complete -c sdp -n "__fish_use_subcommand" -a tdd -d "Run TDD cycle"
 complete -c sdp -n "__fish_use_subcommand" -a drift -d "Detect code drift"
 complete -c sdp -n "__fish_use_subcommand" -a quality -d "Check code quality gates"
+complete -c sdp -n "__fish_use_subcommand" -a reality -d "Emit and validate OSS reality baseline artifacts"
 complete -c sdp -n "__fish_use_subcommand" -a watch -d "Watch files for quality violations"
 complete -c sdp -n "__fish_use_subcommand" -a telemetry -d "Manage telemetry data"
 complete -c sdp -n "__fish_use_subcommand" -a checkpoint -d "Manage checkpoints"
@@ -68,6 +76,9 @@ complete -c sdp -n "__fish_seen_subcommand_from beads" -a "(__sdp_beads_commands
 
 # Quality subcommands
 complete -c sdp -n "__fish_seen_subcommand_from quality" -a "(__sdp_quality_commands)"
+
+# Reality subcommands
+complete -c sdp -n "__fish_seen_subcommand_from reality" -a "(__sdp_reality_commands)"
 `, nil
 }
 

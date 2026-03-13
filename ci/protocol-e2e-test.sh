@@ -56,7 +56,7 @@ for cmd in "doctor" "status" "init" "parse" "guard activate" "guard check" "guar
   fi
 done
 
-# Beads (bd --version must succeed; ready/sync may exit 0 or 1)
+# Beads (bd --version must succeed; ready/helper scripts may exit 0 or 1)
 if ! bd --version &>/dev/null; then
   err "beads: bd --version failed"
   echo "beads-debug: bd --version: $(bd --version 2>&1 || true)"
@@ -66,10 +66,15 @@ if [ "$bd_ready_exit" -ne 0 ] && [ "$bd_ready_exit" -ne 1 ]; then
   err "beads: bd ready failed (exit $bd_ready_exit)"
   echo "beads-debug: bd ready: $(bd ready 2>&1 || true)"
 fi
-bd_sync_exit=0; bd sync &>/dev/null || bd_sync_exit=$?
-if [ "$bd_sync_exit" -ne 0 ] && [ "$bd_sync_exit" -ne 1 ]; then
-  err "beads: bd sync failed (exit $bd_sync_exit)"
-  echo "beads-debug: bd sync: $(bd sync 2>&1 || true)"
+bd_import_exit=0; ./scripts/beads_import_only.sh &>/dev/null || bd_import_exit=$?
+if [ "$bd_import_exit" -ne 0 ] && [ "$bd_import_exit" -ne 1 ]; then
+  err "beads: import helper failed (exit $bd_import_exit)"
+  echo "beads-debug: import: $(./scripts/beads_import_only.sh 2>&1 || true)"
+fi
+bd_export_exit=0; ./scripts/beads_export.sh &>/dev/null || bd_export_exit=$?
+if [ "$bd_export_exit" -ne 0 ] && [ "$bd_export_exit" -ne 1 ]; then
+  err "beads: export helper failed (exit $bd_export_exit)"
+  echo "beads-debug: export: $(./scripts/beads_export.sh 2>&1 || true)"
 fi
 
 # Phase 2b: GLOBAL INSTALL + INIT (no local prompts - must fetch or use cache)

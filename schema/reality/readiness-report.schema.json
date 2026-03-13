@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/reality/readiness-report/v1",
+  "title": "ReadinessReport",
+  "description": "Agent-readiness baseline from a reality run.",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "generated_at",
+    "verdict",
+    "dimensions",
+    "justification_claim_ids"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "ready_with_constraints",
+        "not_ready"
+      ]
+    },
+    "dimensions": {
+      "type": "object",
+      "required": [
+        "boundary_clarity",
+        "verification_coverage",
+        "hotspot_concentration",
+        "integration_fragility",
+        "documentation_trust_level"
+      ],
+      "properties": {
+        "boundary_clarity": {
+          "$ref": "#/$defs/dimensionScore"
+        },
+        "verification_coverage": {
+          "$ref": "#/$defs/dimensionScore"
+        },
+        "hotspot_concentration": {
+          "$ref": "#/$defs/dimensionScore"
+        },
+        "integration_fragility": {
+          "$ref": "#/$defs/dimensionScore"
+        },
+        "documentation_trust_level": {
+          "$ref": "#/$defs/dimensionScore"
+        }
+      },
+      "additionalProperties": false
+    },
+    "justification_claim_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_workstreams": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "claim.schema.json"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "source.schema.json"
+      }
+    }
+  },
+  "$defs": {
+    "dimensionScore": {
+      "type": "object",
+      "required": [
+        "score"
+      ],
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -5,57 +5,70 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
-// checkBeadsIntegrity validates Beads database is healthy
+// checkBeadsIntegrity validates the canonical Beads snapshot and tolerates
+// a legacy/local beads.db artifact when no snapshot is present.
 func checkBeadsIntegrity() DeepCheckResult {
 	start := getTime()
 	details := make(map[string]any)
 
-	beadsDB := ".beads/beads.db"
-	if _, err := os.Stat(beadsDB); os.IsNotExist(err) {
+	beadsPath, legacy := findBeadsStateArtifact()
+	if beadsPath == "" {
 		return DeepCheckResult{
 			Check:    "Beads Integrity",
 			Status:   "warning",
 			Duration: since(start),
-			Message:  "Beads database not found",
+			Message:  "Beads snapshot not found",
 			Details:  details,
 		}
 	}
 
-	// Check file can be read
-	content, err := os.ReadFile(beadsDB)
+	artifact := filepath.Base(beadsPath)
+	details["artifact"] = artifact
+	details["legacy"] = legacy
+
+	content, err := os.ReadFile(beadsPath)
 	if err != nil {
 		return DeepCheckResult{
 			Check:    "Beads Integrity",
 			Status:   "error",
 			Duration: since(start),
-			Message:  fmt.Sprintf("Cannot read beads.db: %v", err),
+			Message:  fmt.Sprintf("Cannot read %s: %v", artifact, err),
 			Details:  details,
 		}
 	}
 
-	// Basic integrity: check it's not empty and has expected structure
 	hash := sha256.Sum256(content)
 	details["size"] = len(content)
 	details["hash"] = hex.EncodeToString(hash[:8])
 
 	if len(content) == 0 {
+		message := "Beads snapshot is empty"
+		if legacy {
+			message = "Legacy beads.db is empty"
+		}
 		return DeepCheckResult{
 			Check:    "Beads Integrity",
 			Status:   "warning",
 			Duration: since(start),
-			Message:  "Beads database is empty",
+			Message:  message,
 			Details:  details,
 		}
+	}
+
+	message := fmt.Sprintf("Snapshot OK (%d bytes)", len(content))
+	if legacy {
+		message = fmt.Sprintf("Legacy local DB OK (%d bytes)", len(content))
 	}
 
 	return DeepCheckResult{
 		Check:    "Beads Integrity",
 		Status:   "ok",
 		Duration: since(start),
-		Message:  fmt.Sprintf("Database OK (%d bytes)", len(content)),
+		Message:  message,
 		Details:  details,
 	}
 }

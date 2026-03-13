@@ -14,6 +14,7 @@ _sdp() {
 	local -a orchestrate_commands
 	local -a beads_commands
 	local -a quality_commands
+	local -a reality_commands
 
 	commands=(
 		'init:Initialize project with SDP prompts'
@@ -27,6 +28,7 @@ _sdp() {
 		'tdd:Run TDD cycle (Red-Green-Refactor)'
 		'drift:Detect code drift from specification'
 		'quality:Check code quality gates'
+		'reality:Emit and validate OSS reality baseline artifacts'
 		'watch:Watch files for quality violations'
 		'telemetry:Manage telemetry data'
 		'checkpoint:Manage checkpoints for long-running features'
@@ -48,8 +50,10 @@ _sdp() {
 
 	beads_commands=(
 		'ready:List available tasks'
+		'create:Create a task and persist repo snapshot'
 		'show:Show task details'
 		'update:Update task status'
+		'close:Close a task and persist repo snapshot'
 		'sync:Synchronize Beads state'
 	)
 
@@ -58,6 +62,11 @@ _sdp() {
 		'gate:Verify quality gates pass'
 		'scan:Scan for quality issues'
 		'report:Generate quality report'
+	)
+
+	reality_commands=(
+		'emit-oss:Emit the OSS reality artifact set'
+		'validate:Validate emitted OSS reality artifacts'
 	)
 
 	case $state in
@@ -75,6 +84,9 @@ _sdp() {
 			;;
 		quality)
 			_describe 'quality command' quality_commands
+			;;
+		reality)
+			_describe 'reality command' reality_commands
 			;;
 	esac
 }
@@ -95,6 +107,9 @@ case $line[1] in
 		;;
 	quality)
 		_sdp quality "$words[2,-1]"
+		;;
+	reality)
+		_sdp reality "$words[2,-1]"
 		;;
 	*)
 		_sdp

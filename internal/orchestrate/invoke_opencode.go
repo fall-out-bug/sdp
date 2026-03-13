@@ -156,12 +156,13 @@ func RunReviewPhase(ctx context.Context, dir, featureID string, invoker LLMInvok
 	if invoker == nil {
 		invoker = DefaultLLMInvoker
 	}
-	prompt := buildPromptWithContext(dir, fmt.Sprintf("Execute @review %s. Fix P0/P1 findings. Output APPROVED when done.", featureID))
+	prompt := buildPromptWithContext(dir, fmt.Sprintf("Execute @review %s. Review only. Do not modify code, docs, prompts, or workstream files. Output APPROVED only if the feature passes review as-is; otherwise output CHANGES_REQUESTED with the blocking findings.", featureID))
 	out, code, err := invoker.Invoke(ctx, dir, "reviewer", prompt)
 	if err != nil {
 		return false, err
 	}
-	approved = code == 0 && strings.Contains(strings.ToUpper(out), "APPROVED")
+	upper := strings.ToUpper(out)
+	approved = code == 0 && strings.Contains(upper, "APPROVED") && !strings.Contains(upper, "CHANGES_REQUESTED")
 	return approved, nil
 }
 

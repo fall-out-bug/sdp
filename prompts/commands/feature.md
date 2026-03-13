@@ -1,6 +1,6 @@
 ---
 description: Feature planning orchestrator (idea → design → workstreams)
-agent: builder
+agent: planner
 ---
 
 # /feature — Feature
@@ -21,6 +21,9 @@ See `/prompts/skills/feature/SKILL.md` for complete documentation.
 
 The command delegates to the `feature` skill, which provides:
 
+- Full-description handoff with no truncation or pre-summary
+- Multi-service and multi-language topology discovery before decomposition
+- Mandatory clarification for admin/user-facing behavior when requirements are underspecified
 - Systematic workflow
 - Quality gates
 - Proper error handling

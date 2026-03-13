@@ -20,7 +20,7 @@ End-to-end tests with Beads task tracking.
 
 ### AC3: Git Integration
 - [ ] Commits include Beads metadata
-- [ ] bd sync works
+- [ ] Repo snapshot helpers work (`./scripts/beads_import_only.sh`, `./scripts/beads_export.sh`)
 - [ ] Beads issues linked to commits
 
 ## Scope

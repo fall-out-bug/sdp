@@ -7,7 +7,7 @@ tools:
 
 # SDP Agent Index
 
-12 agents for feature development. Each role has one clear purpose.
+13 agents for feature development. Each role has one clear purpose.
 
 | Agent | Purpose |
 |-------|---------|
@@ -16,6 +16,7 @@ tools:
 | spec-reviewer | @build — specification compliance |
 | reviewer | @review — quality validation |
 | planner | @feature — workstream decomposition |
+| analyst | @idea — requirements clarification |
 | deployer | @deploy — deployment orchestration |
 | qa | @review — quality assurance |
 | security | @review — security review |

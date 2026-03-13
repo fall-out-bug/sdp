@@ -13,7 +13,7 @@ func checkFilePermissions() CheckResult {
 	// List of sensitive files to check
 	sensitiveFiles := []string{
 		filepath.Join(os.Getenv("HOME"), ".sdp", "telemetry.jsonl"),
-		".beads/beads.db",
+		beadsDir,
 		".oneshot",
 	}
 
