@@ -87,6 +87,7 @@ sdp-plugin/cmd/sdp/sdp
 # Beads daemon and temp files
 *.startlock
 daemon-error
+sdp-plugin/cmd/sdp/.beads/
 sdp-plugin/.beads/*.db
 sdp-plugin/.beads/*.db-shm
 sdp-plugin/.beads/*.db-wal

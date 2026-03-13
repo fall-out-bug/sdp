@@ -69,6 +69,7 @@ func TestInitCommand(t *testing.T) {
 // TestBeadsCommand tests the sdp beads command
 func TestBeadsCommand(t *testing.T) {
 	binaryPath := skipIfBinaryNotBuilt(t)
+	tmpDir := t.TempDir()
 
 	tests := []struct {
 		name     string
@@ -97,6 +98,7 @@ func TestBeadsCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cmd := exec.Command(binaryPath, tt.args...)
+			cmd.Dir = tmpDir
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr

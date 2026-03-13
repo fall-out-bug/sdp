@@ -84,6 +84,13 @@ func TestSyncWithBeadsInstalled(t *testing.T) {
 		t.Skip("Beads CLI not installed")
 	}
 
+	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
 	client, err := NewClient()
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
