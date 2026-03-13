@@ -215,8 +215,10 @@ fi
 
 # Install Git hooks (pre-commit, pre-push)
 if [ -f hooks/install-git-hooks.sh ]; then
-    if (cd .. && sh "$SDP_DIR/hooks/install-git-hooks.sh" 2>/dev/null); then
-        echo "✅ Git hooks installed (pre-commit, pre-push)"
+    if (cd .. && sh "$SDP_DIR/hooks/install-git-hooks.sh"); then
+        echo "✅ Git hooks installed (pre-commit, pre-push, post-checkout, post-merge)"
+    else
+        echo "⚠️  Git hooks were not installed. Run: (cd .. && sh $SDP_DIR/hooks/install-git-hooks.sh)"
     fi
 fi
 

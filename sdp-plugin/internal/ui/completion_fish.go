@@ -27,8 +27,10 @@ end
 
 function __sdp_beads_commands
 	echo -e "ready\tList available tasks"
+	echo -e "create\tCreate a task and persist repo snapshot"
 	echo -e "show\tShow task details"
 	echo -e "update\tUpdate task status"
+	echo -e "close\tClose a task and persist repo snapshot"
 	echo -e "sync\tSynchronize Beads state"
 end
 

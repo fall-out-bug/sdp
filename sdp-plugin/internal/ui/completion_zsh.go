@@ -50,8 +50,10 @@ _sdp() {
 
 	beads_commands=(
 		'ready:List available tasks'
+		'create:Create a task and persist repo snapshot'
 		'show:Show task details'
 		'update:Update task status'
+		'close:Close a task and persist repo snapshot'
 		'sync:Synchronize Beads state'
 	)
 

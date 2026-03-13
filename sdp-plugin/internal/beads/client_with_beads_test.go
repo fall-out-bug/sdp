@@ -111,6 +111,70 @@ fi
 	}
 }
 
+func TestCreateWithFakeBeads(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	bdScript := `#!/bin/bash
+if [ "$1" = "create" ]; then
+	echo "Created issue: sdp-new1"
+	exit 0
+fi
+`
+	bdPath := filepath.Join(tmpDir, "bd")
+	if err := os.WriteFile(bdPath, []byte(bdScript), 0755); err != nil {
+		t.Fatalf("Failed to create fake bd: %v", err)
+	}
+
+	oldPath := os.Getenv("PATH")
+	t.Cleanup(func() { os.Setenv("PATH", oldPath) })
+	os.Setenv("PATH", tmpDir+string(os.PathListSeparator)+oldPath)
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	beadsID, err := client.Create("Test Task", CreateOptions{
+		Type:     "task",
+		Priority: "1",
+		Labels:   []string{"review-finding", "qa"},
+		Silent:   true,
+	})
+	if err != nil {
+		t.Fatalf("Create() failed: %v", err)
+	}
+	if beadsID != "sdp-new1" {
+		t.Fatalf("expected sdp-new1, got %s", beadsID)
+	}
+}
+
+func TestCloseWithFakeBeads(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	bdScript := `#!/bin/bash
+if [ "$1" = "close" ]; then
+	exit 0
+fi
+`
+	bdPath := filepath.Join(tmpDir, "bd")
+	if err := os.WriteFile(bdPath, []byte(bdScript), 0755); err != nil {
+		t.Fatalf("Failed to create fake bd: %v", err)
+	}
+
+	oldPath := os.Getenv("PATH")
+	t.Cleanup(func() { os.Setenv("PATH", oldPath) })
+	os.Setenv("PATH", tmpDir+string(os.PathListSeparator)+oldPath)
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	if err := client.Close("sdp-abc", "WS completed"); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+}
+
 // TestShowWithInvalidOutput tests Show with invalid output from beads
 func TestShowWithInvalidOutput(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary that returns invalid output
@@ -481,9 +545,12 @@ func TestReadMappingErrorHandling(t *testing.T) {
 		mappingPath: "/nonexistent/file.jsonl",
 	}
 
-	_, err := client.readMapping()
-	if err == nil {
-		t.Error("Expected error when reading nonexistent file")
+	entries, err := client.readMapping()
+	if err != nil {
+		t.Fatalf("expected missing mapping file to return empty entries, got: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("expected no entries for missing mapping file, got %d", len(entries))
 	}
 }
 

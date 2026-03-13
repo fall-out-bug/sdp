@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,6 +14,9 @@ var ErrNoBeadsDatabase = errors.New("no beads database found")
 // runBeadsCommand executes a Beads CLI command
 func (c *Client) runBeadsCommand(args ...string) (string, error) {
 	cmd := exec.Command("bd", args...)
+	if c.projectRoot != "" {
+		cmd.Dir = c.projectRoot
+	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		trimmed := strings.TrimSpace(string(output))
@@ -49,4 +53,11 @@ func findMappingFile() (string, error) {
 	}
 
 	return "", fmt.Errorf("mapping file not found")
+}
+
+func (c *Client) issuesSnapshotPath() string {
+	if c.projectRoot == "" {
+		return filepath.Join(".beads", "issues.jsonl")
+	}
+	return filepath.Join(c.projectRoot, ".beads", "issues.jsonl")
 }

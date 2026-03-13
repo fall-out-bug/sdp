@@ -78,7 +78,7 @@ One paragraph: what this workstream does and why.
 
 For each workstream created:
 ```bash
-bd create --title="WS FFF-SS: Short title" --type=task
+sdp beads create --title="WS FFF-SS: Short title" --type=task
 ```
 
 Update `.beads-sdp-mapping.jsonl`:

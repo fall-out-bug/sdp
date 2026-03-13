@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,6 +16,9 @@ func (c *Client) Sync() error {
 	}
 
 	cmd := exec.Command("bd", "sync")
+	if c.projectRoot != "" {
+		cmd.Dir = c.projectRoot
+	}
 	output, err := cmd.CombinedOutput()
 	if err == nil {
 		return nil
@@ -24,11 +28,15 @@ func (c *Client) Sync() error {
 		return fmt.Errorf("bd sync failed: %w\nOutput: %s", err, string(output))
 	}
 
-	if err := os.MkdirAll(".beads", 0o755); err != nil {
+	snapshotPath := c.issuesSnapshotPath()
+	if err := os.MkdirAll(filepath.Dir(snapshotPath), 0o755); err != nil {
 		return fmt.Errorf("create .beads directory: %w", err)
 	}
 
-	exportCmd := exec.Command("bd", "export", "-o", ".beads/issues.jsonl")
+	exportCmd := exec.Command("bd", "export", "-o", snapshotPath)
+	if c.projectRoot != "" {
+		exportCmd.Dir = c.projectRoot
+	}
 	exportOutput, exportErr := exportCmd.CombinedOutput()
 	if exportErr != nil {
 		return fmt.Errorf(

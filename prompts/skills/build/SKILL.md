@@ -117,9 +117,11 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 ## Beads Integration
 
-- **Before:** `bd update {beads_id} --status in_progress`
-- **Success:** Run `bd close {beads_id} --reason "WS completed"` for each bead in WS frontmatter (e.g. `Feature: <feature-id> (sdp_dev-hryg)` or `## Beads` list). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from WS body (`Feature: … (beads_id)`, `Bead:`, `Beads:`).
-- **Failure:** `bd update {beads_id} --status blocked`
+- **Before:** `sdp beads update {beads_id} --status in_progress`
+- **Success:** Run `sdp beads close {beads_id} --reason "WS completed"` for each bead in WS frontmatter (e.g. `Feature: <feature-id> (sdp_dev-hryg)` or `## Beads` list). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from WS body (`Feature: … (beads_id)`, `Bead:`, `Beads:`).
+- **Failure:** `sdp beads update {beads_id} --status blocked`
+
+Use the `sdp beads` wrapper for mutations so the repo snapshot is persisted immediately; do not rely on a later manual export.
 
 ---
 

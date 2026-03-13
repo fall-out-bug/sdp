@@ -44,7 +44,7 @@ When user invokes `@review F{XX}`:
 
 For Go files, also check whether the change keeps or improves modern stdlib usage (`slices`, `maps`, `strings.Cut`, `strings.CutPrefix`, `any`) instead of preserving avoidable legacy patterns.
 
-For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
+For each finding: `sdp beads create --silent --labels "review-finding,F{XX},round-1,{role}" --priority={0-3} --type=bug`. Output: `FINDINGS_CREATED: id1 id2` or `FINDINGS_CREATED: (none)`. Output verdict: `PASS` or `FAIL`.
 
 **Role files:** `agents/qa.md`, `agents/security.md`, `agents/devops.md`, `agents/sre.md`, `agents/tech-lead.md`. Docs and PromptOps: inline (see below).
 
@@ -89,7 +89,7 @@ Run `@design phase4-remediation` with findings to create workstreams.
 
 ## Beads
 
-`bd create --title "{AREA}: {desc}" --priority {0-3} --labels "review-finding,F{XX},round-{N},{role}" --type bug --silent`
+`sdp beads create --title "{AREA}: {desc}" --priority {0-3} --labels "review-finding,F{XX},round-{N},{role}" --type bug --silent`
 
 Replace `F{NNN}` with feature ID, `round-{N}` with iteration (e.g. round-1), `{role}` with qa/security/devops/sre/techlead/docs.
 
@@ -101,19 +101,19 @@ After creating findings, include in subagent output: `FINDINGS_CREATED: id1 id2 
 
 **Good P0 finding (Security):**
 ```
-bd create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,<feature-id>,round-1,security" --type bug --silent
+sdp beads create --title "Security: auth bypass via missing role check in API handler" --priority 0 --labels "review-finding,<feature-id>,round-1,security" --type bug --silent
 ```
 Reason: Exploitable in production; attacker can bypass auth. Include file:line.
 
 **Good P2 finding (style):**
 ```
-bd create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,<feature-id>,round-1,docs" --type bug --silent
+sdp beads create --title "Docs: typo in README deployment section" --priority 2 --labels "review-finding,<feature-id>,round-1,docs" --type bug --silent
 ```
 Reason: Maintenance debt, not blocking.
 
 **Bad — vague finding (no file:line):**
 ```
-bd create --title "Security: possible vulnerability" --priority 0 ...
+sdp beads create --title "Security: possible vulnerability" --priority 0 ...
 ```
 Reason: P0 requires evidence. Add file:line or downgrade to P2.
 

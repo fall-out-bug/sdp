@@ -27,7 +27,7 @@ _sdp_completion() {
 			return
 			;;
 		beads)
-			COMPREPLY=($(compgen -W "ready show update sync" -- "${cur}"))
+			COMPREPLY=($(compgen -W "ready create show update close sync" -- "${cur}"))
 			return
 			;;
 		log)

@@ -55,6 +55,6 @@ This reference maps the main Go packages in `sdp-plugin` to the user-visible fun
 | `internal/sdpinit` | Initialize prompts/config layout, interactive bootstrap, and project type detection |
 | `internal/memory` | Long-term memory indexing, search, and stats |
 | `internal/task` | Task creation helpers and workstream-linked task operations |
-| `internal/beads` | Beads integration for ready/show/update/sync flows |
+| `internal/beads` | Beads integration for ready/create/show/update/close/sync flows with repo snapshot persistence |
 | `internal/verify` | Verify workstream completion against protocol expectations |
 | `internal/errors` | Structured error taxonomy and formatted SDP errors |

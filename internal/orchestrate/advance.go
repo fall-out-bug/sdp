@@ -2,9 +2,9 @@ package orchestrate
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
+	"github.com/fall-out-bug/sdp/internal/beadscli"
 	"github.com/fall-out-bug/sdp/internal/guard"
 )
 
@@ -37,8 +37,9 @@ func CreateScopeEscalationBead(wsID string, violations []string) error {
 	if len(title) > 200 {
 		title = title[:197] + "..."
 	}
-	cmd := exec.Command("bd", "create", "--title", title, "--priority", "1", "--labels", "scope-violation")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	return cmd.Run()
+	return beadscli.CreateAndSync(beadscli.CreateOptions{
+		Title:    title,
+		Priority: "1",
+		Labels:   []string{"scope-violation"},
+	})
 }

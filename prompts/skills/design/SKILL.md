@@ -38,7 +38,7 @@ After each block: Continue / Skip / Done
 
 ### 3. Generate workstream files
 
-**When source is beads (review findings):** For each bead, run `bd show <id>` and grep the codebase for the fix. If already fixed, run `bd close <id>` and remove from scope. Do not create WS for beads that are already addressed.
+**When source is beads (review findings):** For each bead, run `sdp beads show <id>` and grep the codebase for the fix. If already fixed, run `sdp beads close <id> --reason "Already fixed"` and remove from scope. Do not create WS for beads that are already addressed.
 
 Create `docs/workstreams/backlog/00-FFF-SS.md` for each deliverable.
 
@@ -84,7 +84,7 @@ Specific, testable, binary (pass/fail):
 ### 4. Create Beads issues
 
 ```bash
-bd create --title="WS FFF-SS: Short title" --type=task
+sdp beads create --title="WS FFF-SS: Short title" --type=task
 ```
 
 Append to `.beads-sdp-mapping.jsonl`:
