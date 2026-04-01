@@ -69,6 +69,7 @@ The protocol is **repo-agnostic**. It defines:
 - Scope can span multiple git roots
 - Path prefix → repo boundary
 - Commit workflow is per-repo (commit in child before parent if submodule)
+- Public repos consumed as submodules should use their canonical remote URL, not a local relative clone path
 
 Concrete repo names (sdp, sdp_dev, opencode, …) live in project config, not in the protocol.
 

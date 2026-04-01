@@ -21,6 +21,8 @@ git submodule add https://github.com/fall-out-bug/sdp.git sdp
 
 Skills load from `sdp/.claude/skills/` (Claude) or `sdp/.cursor/skills/` (Cursor).
 
+If you embed SDP as a submodule inside another repo, use the public GitHub URL above as the source of truth. Do not point `.gitmodules` at a local sibling path such as `../sdp`, or teammates and CI will drift onto commits nobody else can fetch.
+
 **First run:**
 
 ```bash
