@@ -56,7 +56,7 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
       - name: Generate SLSA provenance
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: sdp
           subject-digest: sha256:${{ hashFiles('sdp-plugin/dist/*') }}
