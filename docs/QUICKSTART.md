@@ -23,6 +23,8 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | s
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
 ```
 
+Use the GitHub URL as the canonical submodule source. A local relative URL like `../sdp` is only a private convenience clone and will break reproducibility for other machines and CI.
+
 Skills load from `sdp/.claude/skills/`, `sdp/.cursor/skills/`, or `sdp/.opencode/`.
 
 ## 2. Initialize
