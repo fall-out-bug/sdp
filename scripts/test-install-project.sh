@@ -19,6 +19,8 @@ git clone --bare "$ROOT_DIR" "$SOURCE_BARE" >/dev/null
 git clone "$SOURCE_BARE" "$ADMIN_DIR" >/dev/null
 git -C "$ADMIN_DIR" config user.name "SDP Installer Test"
 git -C "$ADMIN_DIR" config user.email "installer-test@example.com"
+git -C "$ADMIN_DIR" checkout -B main >/dev/null
+git -C "$ADMIN_DIR" push origin HEAD:refs/heads/main >/dev/null
 
 run_install() {
     project_dir="$1"
@@ -66,7 +68,7 @@ update_admin_file() {
 
     perl -0pi -e "s/\Q$from\E/$to/" "$ADMIN_DIR/$file"
     git -C "$ADMIN_DIR" commit -am "$message" >/dev/null
-    git -C "$ADMIN_DIR" push origin HEAD:main >/dev/null
+    git -C "$ADMIN_DIR" push origin HEAD:refs/heads/main >/dev/null
 }
 
 # Cold start / clean install
