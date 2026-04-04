@@ -2,6 +2,15 @@
 
 Get from zero to your first feature in 5 minutes.
 
+Use this doc when your goal is to adopt SDP in your own repo, not to work on `sdp_lab`.
+
+## 0. Choose Your Starting Point
+
+- **Greenfield:** new repo or empty service. Install SDP, run `sdp init --auto`, then start the feature flow.
+- **Brownfield:** existing codebase. Install SDP, prefer `sdp init --guided` so you can inspect defaults, then run `sdp doctor` before trusting the flow.
+
+SDP installs prompts, hooks, and optional CLI helpers. You still configure your model provider and API keys in your IDE or agent runtime.
+
 ## 1. Install
 
 **Full project** (prompts + hooks + optional CLI): default install
@@ -25,6 +34,14 @@ git submodule add https://github.com/fall-out-bug/sdp.git sdp
 
 Use the GitHub URL as the canonical submodule source. A local relative URL like `../sdp` is only a private convenience clone and will break reproducibility for other machines and CI.
 
+Auto-setup today is first-class for:
+
+- `Claude Code`
+- `Cursor`
+- `OpenCode` / `Windsurf`
+
+`Codex` compatibility exists, but setup is still manual today. Use [../.codex/INSTALL.md](../.codex/INSTALL.md).
+
 Skills load from `sdp/.claude/skills/`, `sdp/.cursor/skills/`, or `sdp/.opencode/`.
 
 ## 2. Initialize
@@ -38,6 +55,12 @@ sdp init --guided  # Interactive wizard
 Creates `.sdp/config.yml`, guard rules, and IDE integration.
 
 *If you get "unknown flag: --auto", upgrade the CLI: `curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only`*
+
+Then verify the environment:
+
+```bash
+sdp doctor
+```
 
 ## 3. Create a Feature
 

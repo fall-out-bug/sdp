@@ -2,7 +2,7 @@
 
 **Protocol + evidence layer for AI agent workflows.**
 
-SDP gives your AI agents a structured process (Discovery → Delivery → Evidence) and produces proof of what they actually did. Works with Claude Code, Cursor, OpenCode, or anything that can read markdown.
+SDP gives your AI agents a structured process (Discovery → Delivery → Evidence) and produces proof of what they actually did. Today the smoothest setup path is for `Claude Code`, `Cursor`, and `OpenCode` / `Windsurf`. `Codex` compatibility exists, but the setup path is still more manual.
 
 > [Manifesto](docs/MANIFESTO.md) — what exists, what's coming, why evidence matters.
 
@@ -19,14 +19,21 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | s
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
 ```
 
-Skills load from `sdp/.claude/skills/` (Claude) or `sdp/.cursor/skills/` (Cursor).
+Installer auto-detects `Claude Code`, `Cursor`, and `OpenCode` / `Windsurf`.
+
+`Codex` users should use the manual setup note in [`.codex/INSTALL.md`](.codex/INSTALL.md).
+
+Skills load from `sdp/.claude/skills/` (Claude), `sdp/.cursor/skills/` (Cursor), or `sdp/.opencode/skills/` (OpenCode).
 
 If you embed SDP as a submodule inside another repo, use the public GitHub URL above as the source of truth. Do not point `.gitmodules` at a local sibling path such as `../sdp`, or teammates and CI will drift onto commits nobody else can fetch.
+
+SDP installs prompts, hooks, and optional CLI helpers. You still bring your own model access and provider keys through your IDE or agent runtime.
 
 **First run:**
 
 ```bash
 sdp init --auto
+sdp doctor
 @feature "Your feature"
 @oneshot <feature-id>
 @review <feature-id>
@@ -82,6 +89,7 @@ sdp init --auto
 | File | Content |
 |------|---------|
 | [QUICKSTART.md](docs/QUICKSTART.md) | 5-minute getting started |
+| [.codex/INSTALL.md](.codex/INSTALL.md) | Manual Codex setup |
 | [MANIFESTO.md](docs/MANIFESTO.md) | Vision, evidence, what exists |
 | [ROADMAP.md](docs/ROADMAP.md) | Where SDP is going |
 | [PROTOCOL.md](docs/PROTOCOL.md) | Full specification |
