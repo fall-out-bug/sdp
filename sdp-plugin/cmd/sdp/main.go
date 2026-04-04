@@ -13,9 +13,21 @@ import (
 var version = "dev"
 
 var consentAsked = false // Track if we've asked for consent this session
+var telemetryConsentSkipCommands = map[string]struct{}{
+	"completion": {},
+	"demo":       {},
+	"doctor":     {},
+	"init":       {},
+	"next":       {},
+	"status":     {},
+}
 
 func shouldAskForTelemetryConsent(cmd *cobra.Command) bool {
 	if cmd == nil {
+		return false
+	}
+
+	if _, skip := telemetryConsentSkipCommands[cmd.Name()]; skip {
 		return false
 	}
 
@@ -49,7 +61,8 @@ func main() {
 	  completion Generate shell completion script
 
 These commands are optional convenience tools. The core SDP functionality
-is provided by the Claude Plugin prompts in .claude/.`,
+is provided by the prompts installed into your supported IDE integration
+directory (.claude/, .cursor/, .opencode/, or .codex/).`,
 		Example: `  # Initialize SDP in a project
   sdp init .
 

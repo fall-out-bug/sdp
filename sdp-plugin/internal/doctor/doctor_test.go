@@ -72,12 +72,38 @@ func TestCheckIDEIntegration_Codex(t *testing.T) {
 		t.Fatalf("chdir: %v", err)
 	}
 
-	result := checkIDEIntegration()
+	result := checkIDEIntegration(detectIDEIntegrations())
 	if result.Status != "ok" {
 		t.Fatalf("Expected status ok, got %s: %s", result.Status, result.Message)
 	}
 	if !strings.Contains(result.Message, "Codex") {
 		t.Fatalf("Expected Codex in message, got %s", result.Message)
+	}
+}
+
+func TestRunWithOptions_CodexOnlySkipsClaudeCheck(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".codex", "skills"), 0o755); err != nil {
+		t.Fatalf("mkdir skills: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".codex", "agents"), 0o755); err != nil {
+		t.Fatalf("mkdir agents: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, ".codex", "INSTALL.md"), []byte("codex"), 0o644); err != nil {
+		t.Fatalf("write install: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	results := RunWithOptions(RunOptions{})
+	for _, result := range results {
+		if result.Name == "Claude Code" {
+			t.Fatalf("RunWithOptions() should skip Claude Code check in Codex-only project: %+v", results)
+		}
 	}
 }
 
@@ -199,7 +225,7 @@ func TestRun(t *testing.T) {
 		t.Error("Expected results slice, got nil")
 	}
 
-	// Should have at least 5 checks (Git, Claude Code, Go, IDE integration, File Permissions)
+	// Should have at least 5 checks (Git, Go, IDE integration, File Permissions, .sdp/config.yml)
 	expectedMinChecks := 5
 	if len(results) < expectedMinChecks {
 		t.Errorf("Expected at least %d checks, got %d", expectedMinChecks, len(results))
@@ -230,8 +256,8 @@ func TestRunWithOptions(t *testing.T) {
 		t.Error("Expected results slice, got nil")
 	}
 
-	// Should have 6 checks (no drift: Git, Claude, Go, .claude/, permissions, .sdp/config.yml)
-	expectedChecks := 6
+	// Without a Claude integration in cwd, doctor skips the Claude-specific optional check.
+	expectedChecks := 5
 	if len(results) != expectedChecks {
 		t.Errorf("Expected %d checks without drift, got %d", expectedChecks, len(results))
 	}
@@ -273,8 +299,8 @@ func TestRunWithOptions_WithDrift(t *testing.T) {
 		t.Error("Expected results slice, got nil")
 	}
 
-	// Should have 7 checks (6 standard + drift)
-	expectedChecks := 7
+	// Should have 6 checks (5 standard + drift) without a Claude integration in cwd.
+	expectedChecks := 6
 	if len(results) != expectedChecks {
 		t.Errorf("Expected %d checks with drift, got %d", expectedChecks, len(results))
 	}

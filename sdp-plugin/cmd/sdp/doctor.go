@@ -22,9 +22,9 @@ func doctorCmd() *cobra.Command {
 
 Verifies:
   - Git is installed
-  - Claude Code CLI is available (optional for Claude users)
   - Go compiler is available (for building binary)
   - At least one supported IDE integration exists (.claude, .cursor, .opencode, or .codex)
+  - Tool-specific optional checks for integrations already present in the project
   - Documentation-code drift (with --drift flag)
 
 Modes:

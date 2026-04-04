@@ -9,29 +9,43 @@ import (
 func TestShouldAskForTelemetryConsent(t *testing.T) {
 	tests := []struct {
 		name       string
+		use        string
 		auto       bool
 		headless   bool
 		wantPrompt bool
 	}{
 		{
 			name:       "interactive command prompts",
+			use:        "plan",
 			wantPrompt: true,
 		},
 		{
 			name:       "auto init skips prompt",
+			use:        "init",
 			auto:       true,
 			wantPrompt: false,
 		},
 		{
 			name:       "headless init skips prompt",
+			use:        "init",
 			headless:   true,
+			wantPrompt: false,
+		},
+		{
+			name:       "doctor skips prompt",
+			use:        "doctor",
+			wantPrompt: false,
+		},
+		{
+			name:       "status skips prompt",
+			use:        "status",
 			wantPrompt: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := &cobra.Command{Use: "init"}
+			cmd := &cobra.Command{Use: tt.use}
 			cmd.Flags().Bool("auto", false, "")
 			cmd.Flags().Bool("headless", false, "")
 

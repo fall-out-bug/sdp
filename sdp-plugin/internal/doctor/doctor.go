@@ -22,18 +22,21 @@ type RunOptions struct {
 // RunWithOptions runs doctor checks with the given options
 func RunWithOptions(opts RunOptions) []CheckResult {
 	results := []CheckResult{}
+	integrations := detectIDEIntegrations()
 
 	// Check 1: Git
 	results = append(results, checkGit())
 
-	// Check 2: Claude Code
-	results = append(results, checkClaudeCode())
-
-	// Check 3: Go (for building binary)
+	// Check 2: Go (for building binary)
 	results = append(results, checkGo())
 
-	// Check 4: IDE integration
-	results = append(results, checkIDEIntegration())
+	// Check 3: IDE integration
+	results = append(results, checkIDEIntegration(integrations))
+
+	// Check 4: Tool-specific optional checks for active integrations
+	if hasIntegration(integrations, "Claude") {
+		results = append(results, checkClaudeCode())
+	}
 
 	// Check 5: File permissions on sensitive data
 	results = append(results, checkFilePermissions())
@@ -139,10 +142,42 @@ func checkGo() CheckResult {
 }
 
 func checkClaudeDir() CheckResult {
-	return checkIDEIntegration()
+	return checkIDEIntegration(detectIDEIntegrations())
 }
 
-func checkIDEIntegration() CheckResult {
+func detectIDEIntegrations() []string {
+	checks := []struct {
+		label    string
+		basePath string
+	}{
+		{label: "Claude", basePath: ".claude"},
+		{label: "Cursor", basePath: ".cursor"},
+		{label: "OpenCode", basePath: ".opencode"},
+		{label: "Codex", basePath: ".codex"},
+	}
+
+	found := []string{}
+	for _, check := range checks {
+		info, err := os.Stat(check.basePath)
+		if err != nil || !info.IsDir() {
+			continue
+		}
+		found = append(found, check.label)
+	}
+
+	return found
+}
+
+func hasIntegration(integrations []string, target string) bool {
+	for _, integration := range integrations {
+		if integration == target {
+			return true
+		}
+	}
+	return false
+}
+
+func checkIDEIntegration(found []string) CheckResult {
 	checks := []struct {
 		label    string
 		basePath string
@@ -153,17 +188,21 @@ func checkIDEIntegration() CheckResult {
 		{label: "OpenCode", basePath: ".opencode", required: []string{"skills", "agents"}},
 		{label: "Codex", basePath: ".codex", required: []string{"skills", "agents", "INSTALL.md"}},
 	}
-
-	found := []string{}
 	incomplete := []string{}
 
+	if len(found) == 0 {
+		return CheckResult{
+			Name:    "IDE integration",
+			Status:  "error",
+			Message: "Not found. Run the SDP installer or set up one of .claude/, .cursor/, .opencode/, or .codex/",
+		}
+	}
+
 	for _, check := range checks {
-		info, err := os.Stat(check.basePath)
-		if err != nil || !info.IsDir() {
+		if !hasIntegration(found, check.label) {
 			continue
 		}
 
-		found = append(found, check.label)
 		missing := []string{}
 		for _, required := range check.required {
 			if _, err := os.Stat(filepath.Join(check.basePath, required)); err != nil {
@@ -172,14 +211,6 @@ func checkIDEIntegration() CheckResult {
 		}
 		if len(missing) > 0 {
 			incomplete = append(incomplete, fmt.Sprintf("%s missing %s", check.label, strings.Join(missing, ", ")))
-		}
-	}
-
-	if len(found) == 0 {
-		return CheckResult{
-			Name:    "IDE integration",
-			Status:  "error",
-			Message: "Not found. Run the SDP installer or set up one of .claude/, .cursor/, .opencode/, or .codex/",
 		}
 	}
 
