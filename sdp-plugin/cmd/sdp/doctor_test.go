@@ -11,8 +11,10 @@ import (
 func TestDoctorCmd(t *testing.T) {
 	// Create .claude directory for doctor checks
 	tmpDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", "skills"), 0o755); err != nil {
-		t.Fatalf("Failed to create .claude dir: %v", err)
+	for _, dir := range []string{"skills", "agents", "validators"} {
+		if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", dir), 0o755); err != nil {
+			t.Fatalf("Failed to create .claude dir: %v", err)
+		}
 	}
 
 	originalWd, _ := os.Getwd()
@@ -45,8 +47,10 @@ func TestDoctorCmd(t *testing.T) {
 func TestDoctorCmdWithDriftFlag(t *testing.T) {
 	// Create .claude directory for doctor checks
 	tmpDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", "skills"), 0o755); err != nil {
-		t.Fatalf("Failed to create .claude dir: %v", err)
+	for _, dir := range []string{"skills", "agents", "validators"} {
+		if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", dir), 0o755); err != nil {
+			t.Fatalf("Failed to create .claude dir: %v", err)
+		}
 	}
 
 	originalWd, _ := os.Getwd()

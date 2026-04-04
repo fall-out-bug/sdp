@@ -29,7 +29,7 @@ func TestCheckClaudeDir(t *testing.T) {
 	if result.Status != "ok" {
 		t.Errorf("Expected status ok, got %s", result.Status)
 	}
-	if !strings.Contains(result.Message, "SDP prompts installed") {
+	if !strings.Contains(result.Message, "Claude") {
 		t.Errorf("Wrong message: %s", result.Message)
 	}
 }
@@ -51,6 +51,33 @@ func TestCheckClaudeDir_NotFound(t *testing.T) {
 	}
 	if !strings.Contains(result.Message, "Not found") {
 		t.Errorf("Wrong message: %s", result.Message)
+	}
+}
+
+func TestCheckIDEIntegration_Codex(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".codex", "skills"), 0o755); err != nil {
+		t.Fatalf("mkdir skills: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".codex", "agents"), 0o755); err != nil {
+		t.Fatalf("mkdir agents: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, ".codex", "INSTALL.md"), []byte("codex"), 0o644); err != nil {
+		t.Fatalf("write install: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	result := checkIDEIntegration()
+	if result.Status != "ok" {
+		t.Fatalf("Expected status ok, got %s: %s", result.Status, result.Message)
+	}
+	if !strings.Contains(result.Message, "Codex") {
+		t.Fatalf("Expected Codex in message, got %s", result.Message)
 	}
 }
 
@@ -172,7 +199,7 @@ func TestRun(t *testing.T) {
 		t.Error("Expected results slice, got nil")
 	}
 
-	// Should have at least 5 checks (Git, Claude Code, Go, .claude/, File Permissions)
+	// Should have at least 5 checks (Git, Claude Code, Go, IDE integration, File Permissions)
 	expectedMinChecks := 5
 	if len(results) < expectedMinChecks {
 		t.Errorf("Expected at least %d checks, got %d", expectedMinChecks, len(results))

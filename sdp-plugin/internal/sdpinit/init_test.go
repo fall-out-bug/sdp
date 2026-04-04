@@ -421,3 +421,39 @@ func TestRun_NoEvidenceCreatesDisabledProjectConfig(t *testing.T) {
 		t.Error("project config should disable evidence")
 	}
 }
+
+func TestRun_WithExistingCodexIntegrationDoesNotCreateClaude(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tmpDir, "prompts", "skills"), 0o755); err != nil {
+		t.Fatalf("mkdir skills: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, "prompts", "skills", "test.md"), []byte("# Test"), 0o644); err != nil {
+		t.Fatalf("write skill: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".codex", "skills"), 0o755); err != nil {
+		t.Fatalf("mkdir .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".codex", "agents"), 0o755); err != nil {
+		t.Fatalf("mkdir .codex/agents: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, ".codex", "INSTALL.md"), []byte("codex"), 0o644); err != nil {
+		t.Fatalf("write install: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := Run(Config{ProjectType: "go"}); err != nil {
+		t.Fatalf("Run() failed: %v", err)
+	}
+
+	if _, err := os.Stat(".claude"); !os.IsNotExist(err) {
+		t.Error("Run() should not create .claude when Codex integration already exists")
+	}
+	if _, err := os.Stat(filepath.Join(".sdp", "config.yml")); os.IsNotExist(err) {
+		t.Error("Run() should create .sdp/config.yml")
+	}
+}

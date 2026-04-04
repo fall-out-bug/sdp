@@ -121,17 +121,7 @@ func (h *HeadlessRunner) validate() error {
 }
 
 func (h *HeadlessRunner) trackCreatedFiles() {
-	h.output.Created = []string{
-		".sdp/",
-		".sdp/config.yml",
-		".sdp/guard-rules.yml",
-		".sdp/log/",
-		".claude/",
-		".claude/skills/",
-		".claude/agents/",
-		".claude/validators/",
-		".claude/settings.json",
-	}
+	h.output.Created = PlannedArtifacts()
 }
 
 // RunHeadless is a convenience function for headless initialization.

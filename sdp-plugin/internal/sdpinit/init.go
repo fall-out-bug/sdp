@@ -33,33 +33,21 @@ type Config struct {
 	DryRun bool
 }
 
+type integrationState struct {
+	existing     []string
+	manageClaude bool
+}
+
 func Run(cfg Config) error {
-	// Create .claude/ directory
-	claudeDir := ".claude"
-	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
-		return fmt.Errorf("create .claude/: %w", err)
+	state, err := detectIntegrationState()
+	if err != nil {
+		return fmt.Errorf("detect IDE integration state: %w", err)
 	}
 
-	// Create subdirectories
-	dirs := []string{
-		"skills",
-		"agents",
-		"validators",
-	}
-	for _, dir := range dirs {
-		if err := os.MkdirAll(filepath.Join(claudeDir, dir), 0o755); err != nil {
-			return fmt.Errorf("create %s: %w", dir, err)
+	if state.manageClaude {
+		if err := ensureClaudeIntegration(cfg); err != nil {
+			return err
 		}
-	}
-
-	// Copy prompts from prompts/ directory
-	if err := copyPrompts(claudeDir); err != nil {
-		return fmt.Errorf("copy prompts: %w", err)
-	}
-
-	// Create settings.json
-	if err := createSettings(claudeDir, cfg); err != nil {
-		return fmt.Errorf("create settings: %w", err)
 	}
 
 	if err := createProjectFiles(cfg); err != nil {
@@ -68,15 +56,81 @@ func Run(cfg Config) error {
 
 	// In headless mode, don't print text output
 	if !cfg.Headless {
-		fmt.Println("✓ SDP initialized in .claude/ and .sdp/")
+		if state.manageClaude {
+			fmt.Println("✓ SDP initialized in .claude/ and .sdp/")
+		} else {
+			fmt.Println("✓ SDP initialized in .sdp/")
+			fmt.Printf("  IDE integration: existing %s\n", strings.Join(state.existing, ", "))
+		}
 		fmt.Printf("  Project type: %s\n", cfg.ProjectType)
 		fmt.Println("\nNext steps:")
 		fmt.Println("  1. Review .sdp/config.yml")
-		fmt.Println("  2. Review .claude/settings.json")
-		fmt.Println("  3. Start using SDP prompts in your IDE")
+		if state.manageClaude {
+			fmt.Println("  2. Review .claude/settings.json")
+			fmt.Println("  3. Start using SDP prompts in your IDE")
+		} else {
+			fmt.Println("  2. Start using SDP prompts in your IDE")
+		}
 	}
 
 	return nil
+}
+
+func detectIntegrationState() (integrationState, error) {
+	existing := detectIDEIntegrations()
+	return integrationState{
+		existing:     existing,
+		manageClaude: shouldManageClaude(existing),
+	}, nil
+}
+
+func shouldManageClaude(existing []string) bool {
+	if len(existing) == 0 {
+		return true
+	}
+
+	for _, integration := range existing {
+		if integration == "claude" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PlannedArtifacts() []string {
+	state, err := detectIntegrationState()
+	if err != nil {
+		return []string{
+			".sdp/",
+			".sdp/config.yml",
+			".sdp/guard-rules.yml",
+			".sdp/log/",
+			".claude/",
+			".claude/skills/",
+			".claude/agents/",
+			".claude/validators/",
+			".claude/settings.json",
+		}
+	}
+
+	artifacts := []string{
+		".sdp/",
+		".sdp/config.yml",
+		".sdp/guard-rules.yml",
+		".sdp/log/",
+	}
+	if state.manageClaude {
+		artifacts = append(artifacts,
+			".claude/",
+			".claude/skills/",
+			".claude/agents/",
+			".claude/validators/",
+			".claude/settings.json",
+		)
+	}
+
+	return artifacts
 }
 
 func createProjectFiles(cfg Config) error {
@@ -90,6 +144,34 @@ func createProjectFiles(cfg Config) error {
 
 	if err := createGuardRules(cfg); err != nil {
 		return fmt.Errorf("create guard-rules.yml: %w", err)
+	}
+
+	return nil
+}
+
+func ensureClaudeIntegration(cfg Config) error {
+	claudeDir := ".claude"
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
+		return fmt.Errorf("create .claude/: %w", err)
+	}
+
+	dirs := []string{
+		"skills",
+		"agents",
+		"validators",
+	}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(filepath.Join(claudeDir, dir), 0o755); err != nil {
+			return fmt.Errorf("create %s: %w", dir, err)
+		}
+	}
+
+	if err := copyPrompts(claudeDir); err != nil {
+		return fmt.Errorf("copy prompts: %w", err)
+	}
+
+	if err := createSettings(claudeDir, cfg); err != nil {
+		return fmt.Errorf("create settings: %w", err)
 	}
 
 	return nil

@@ -36,6 +36,8 @@ func metricsReportCmd() *cobra.Command {
 				outputPath = ".sdp/metrics/benchmark-{{QUARTER}}.md"
 			}
 
+			initMetricsDir()
+
 			// Check if metrics exist
 			if _, err := os.Stat(metricsPath); os.IsNotExist(err) {
 				return fmt.Errorf("metrics not found: %s\nRun 'sdp metrics collect' first", metricsPath)

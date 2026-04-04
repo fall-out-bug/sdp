@@ -44,10 +44,13 @@ detect_auto_ide() {
     if [ -d "../.opencode" ] || command -v opencode >/dev/null 2>&1 || command -v windsurf >/dev/null 2>&1; then
         detected="$detected opencode"
     fi
+    if [ -d "../.codex" ] || command -v codex >/dev/null 2>&1; then
+        detected="$detected codex"
+    fi
 
     if [ -z "$detected" ]; then
         echo "No IDE detected from PATH/project; falling back to all integrations." >&2
-        echo "claude cursor opencode"
+        echo "claude cursor opencode codex"
         return
     fi
 
@@ -217,6 +220,14 @@ setup_opencode() {
     sync_tree_files .opencode/commands ../.opencode/commands
 }
 
+setup_codex() {
+    mkdir -p ../.codex/skills
+    sync_link "../../$SDP_DIR/prompts/skills" "../.codex/skills/sdp"
+    sync_link "../$SDP_DIR/prompts/agents" "../.codex/agents"
+    sync_file .codex/INSTALL.md ../.codex/INSTALL.md
+    sync_file .codex/skills/README.md ../.codex/skills/README.md
+}
+
 for ide in $SDP_IDE_LIST; do
     case "$ide" in
         claude|claude-code)
@@ -228,10 +239,14 @@ for ide in $SDP_IDE_LIST; do
         opencode|windsurf)
             setup_opencode
             ;;
+        codex)
+            setup_codex
+            ;;
         all)
             setup_claude
             setup_cursor
             setup_opencode
+            setup_codex
             ;;
         *)
             echo "⚠️  Unknown SDP_IDE value '$ide', skipping"
@@ -251,6 +266,8 @@ if [ -f ../.gitignore ]; then
         echo ".cursor/agents" >> ../.gitignore
         echo ".opencode/skills" >> ../.gitignore
         echo ".opencode/agents" >> ../.gitignore
+        echo ".codex/skills/sdp" >> ../.gitignore
+        echo ".codex/agents" >> ../.gitignore
         echo ".prompts" >> ../.gitignore
         echo "✅ Added entries to .gitignore"
     fi

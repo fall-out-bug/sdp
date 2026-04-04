@@ -2,7 +2,7 @@
 
 **Protocol + evidence layer for AI agent workflows.**
 
-SDP gives your AI agents a structured process (Discovery → Delivery → Evidence) and produces proof of what they actually did. Today the smoothest setup path is for `Claude Code`, `Cursor`, and `OpenCode` / `Windsurf`. `Codex` compatibility exists, but the setup path is still more manual.
+SDP gives your AI agents a structured process (Discovery → Delivery → Evidence) and produces proof of what they actually did. The public install flow now supports `Claude Code`, `Cursor`, `OpenCode` / `Windsurf`, and `Codex`.
 
 > [Manifesto](docs/MANIFESTO.md) — what exists, what's coming, why evidence matters.
 
@@ -19,11 +19,10 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | s
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
 ```
 
-Installer auto-detects `Claude Code`, `Cursor`, and `OpenCode` / `Windsurf`.
+Installer auto-detects `Claude Code`, `Cursor`, `OpenCode` / `Windsurf`, and `Codex`.
+If detection misses your tool, set `SDP_IDE=claude|cursor|opencode|codex` explicitly before running the installer.
 
-`Codex` users should use the manual setup note in [`.codex/INSTALL.md`](.codex/INSTALL.md).
-
-Skills load from `sdp/.claude/skills/` (Claude), `sdp/.cursor/skills/` (Cursor), or `sdp/.opencode/skills/` (OpenCode).
+Skills load from `sdp/.claude/skills/` (Claude), `sdp/.cursor/skills/` (Cursor), `sdp/.opencode/skills/` (OpenCode), or `.codex/skills/sdp/` (Codex).
 
 If you embed SDP as a submodule inside another repo, use the public GitHub URL above as the source of truth. Do not point `.gitmodules` at a local sibling path such as `../sdp`, or teammates and CI will drift onto commits nobody else can fetch.
 
@@ -89,7 +88,7 @@ sdp doctor
 | File | Content |
 |------|---------|
 | [QUICKSTART.md](docs/QUICKSTART.md) | 5-minute getting started |
-| [.codex/INSTALL.md](.codex/INSTALL.md) | Manual Codex setup |
+| [.codex/INSTALL.md](.codex/INSTALL.md) | Codex-specific install notes |
 | [MANIFESTO.md](docs/MANIFESTO.md) | Vision, evidence, what exists |
 | [ROADMAP.md](docs/ROADMAP.md) | Where SDP is going |
 | [PROTOCOL.md](docs/PROTOCOL.md) | Full specification |

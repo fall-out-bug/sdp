@@ -12,6 +12,7 @@ ADMIN_DIR="$TMP_DIR/admin"
 HOME_DIR="$TMP_DIR/home"
 PROJECT_DIR="$TMP_DIR/project"
 FULL_PROJECT_DIR="$TMP_DIR/project-full"
+CODEX_PROJECT_DIR="$TMP_DIR/project-codex"
 
 mkdir -p "$HOME_DIR"
 
@@ -105,5 +106,23 @@ if [ "$before_hash" = "$after_hash" ]; then
     echo "full installer did not refresh CLI binary" >&2
     exit 1
 fi
+
+# Codex install/update should provision project-level Codex surface and refresh managed links.
+mkdir -p "$CODEX_PROJECT_DIR"
+: > "$CODEX_PROJECT_DIR/.gitignore"
+run_install "$CODEX_PROJECT_DIR" "$TMP_DIR/codex-install.log" env SDP_IDE=codex
+test -d "$CODEX_PROJECT_DIR/sdp/.git"
+test -f "$CODEX_PROJECT_DIR/.codex/INSTALL.md"
+test -f "$CODEX_PROJECT_DIR/.codex/skills/README.md"
+test -L "$CODEX_PROJECT_DIR/.codex/skills/sdp"
+test -L "$CODEX_PROJECT_DIR/.codex/agents"
+test ! -e "$CODEX_PROJECT_DIR/.claude"
+assert_contains ".codex/skills/sdp" "$CODEX_PROJECT_DIR/.gitignore"
+
+printf '\n<!-- codex update marker -->\n' >> "$ADMIN_DIR/prompts/skills/build/SKILL.md"
+git -C "$ADMIN_DIR" commit -am "test: update codex skill source" >/dev/null
+git -C "$ADMIN_DIR" push origin HEAD:refs/heads/main >/dev/null
+run_install "$CODEX_PROJECT_DIR" "$TMP_DIR/codex-update.log" env SDP_IDE=codex
+assert_contains "codex update marker" "$CODEX_PROJECT_DIR/.codex/skills/sdp/build/SKILL.md"
 
 echo "install-project regression checks passed"

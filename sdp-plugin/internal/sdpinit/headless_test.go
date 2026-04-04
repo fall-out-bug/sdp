@@ -309,6 +309,33 @@ func TestRunHeadless(t *testing.T) {
 	}
 }
 
+func TestPlannedArtifacts_WithExistingCodexOmitsClaudeFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(".codex/agents", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/agents: %v", err)
+	}
+	if err := os.WriteFile(".codex/INSTALL.md", []byte("codex"), 0o644); err != nil {
+		t.Fatalf("write install: %v", err)
+	}
+
+	created := PlannedArtifacts()
+	if slices.Contains(created, ".claude/") {
+		t.Fatalf("PlannedArtifacts() should not include .claude when Codex integration already exists: %v", created)
+	}
+	if !slices.Contains(created, ".sdp/config.yml") {
+		t.Fatalf("PlannedArtifacts() should include .sdp/config.yml: %v", created)
+	}
+}
+
 func TestHeadlessRunner_WithConflict(t *testing.T) {
 	// Create temp directory with existing settings
 	tmpDir := t.TempDir()

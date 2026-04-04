@@ -16,7 +16,7 @@ SDP installs prompts, hooks, and optional CLI helpers. You still configure your 
 **Full project** (prompts + hooks + optional CLI): default install
 
 ```bash
-# Into your project (auto-detects Claude Code, Cursor, OpenCode)
+# Into your project (auto-detects Claude Code, Cursor, OpenCode, Codex)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 ```
 
@@ -39,10 +39,11 @@ Auto-setup today is first-class for:
 - `Claude Code`
 - `Cursor`
 - `OpenCode` / `Windsurf`
+- `Codex`
 
-`Codex` compatibility exists, but setup is still manual today. Use [../.codex/INSTALL.md](../.codex/INSTALL.md).
+If auto-detect misses your tool, rerun with `SDP_IDE=claude|cursor|opencode|codex`.
 
-Skills load from `sdp/.claude/skills/`, `sdp/.cursor/skills/`, or `sdp/.opencode/`.
+Skills load from `sdp/.claude/skills/`, `sdp/.cursor/skills/`, `sdp/.opencode/`, or `.codex/skills/sdp/`.
 
 ## 2. Initialize
 
@@ -52,7 +53,7 @@ sdp init --auto    # Safe defaults, non-interactive
 sdp init --guided  # Interactive wizard
 ```
 
-Creates `.sdp/config.yml`, guard rules, and IDE integration.
+Creates `.sdp/config.yml`, guard rules, and refreshes the IDE integration already present in the project. If no IDE integration exists yet, `sdp init` falls back to `.claude/`.
 
 *If you get "unknown flag: --auto", upgrade the CLI: `curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only`*
 

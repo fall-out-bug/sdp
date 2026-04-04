@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fall-out-bug/sdp/internal/sdpinit"
 	"github.com/spf13/cobra"
@@ -27,10 +28,10 @@ func initCmd() *cobra.Command {
 		Short: "Initialize project with SDP prompts",
 		Long: `Initialize current project with SDP prompts and configuration.
 
-Creates .claude/ directory structure:
-  skills/     - Claude Code skills
-  agents/     - Multi-agent prompts
-  validators/ - AI-based quality validators
+Creates SDP project scaffold:
+  .sdp/                 - Project config, guard rules, evidence log path
+  Existing IDE dirs     - Refreshes supported integrations already present
+  .claude/ (fallback)   - Created only when no other IDE integration exists yet
 
 Modes:
   Interactive (default): Prompts for configuration options
@@ -155,8 +156,8 @@ func runAutoInit(cfg sdpinit.Config, preflight *sdpinit.PreflightResult) error {
 	if preflight.HasSDP {
 		fmt.Println("Info: .sdp/ already exists")
 	}
-	if !preflight.HasGit {
-		fmt.Println("Warning: Not a git repository (version control recommended)")
+	if len(preflight.Integrations) > 0 {
+		fmt.Printf("Detected IDE integration: %s\n", strings.Join(preflight.Integrations, ", "))
 	}
 
 	for _, conflict := range preflight.Conflicts {
@@ -164,7 +165,7 @@ func runAutoInit(cfg sdpinit.Config, preflight *sdpinit.PreflightResult) error {
 	}
 
 	for _, warning := range preflight.Warnings {
-		fmt.Printf("Note: %s\n", warning)
+		fmt.Printf("Warning: %s\n", warning)
 	}
 
 	// Get defaults
@@ -176,15 +177,9 @@ func runAutoInit(cfg sdpinit.Config, preflight *sdpinit.PreflightResult) error {
 
 	if cfg.DryRun {
 		fmt.Println("\n[DRY RUN] Would create:")
-		fmt.Println("  .sdp/")
-		fmt.Println("  .sdp/config.yml")
-		fmt.Println("  .sdp/guard-rules.yml")
-		fmt.Println("  .sdp/log/")
-		fmt.Println("  .claude/")
-		fmt.Println("  .claude/skills/")
-		fmt.Println("  .claude/agents/")
-		fmt.Println("  .claude/validators/")
-		fmt.Println("  .claude/settings.json")
+		for _, artifact := range sdpinit.PlannedArtifacts() {
+			fmt.Printf("  %s\n", artifact)
+		}
 		return nil
 	}
 

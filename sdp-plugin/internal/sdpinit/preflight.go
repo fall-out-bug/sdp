@@ -8,12 +8,13 @@ import (
 
 // PreflightResult contains preflight check results
 type PreflightResult struct {
-	ProjectType string   // "go", "node", "python", "mixed", "unknown"
-	HasSDP      bool     // .sdp directory exists
-	HasClaude   bool     // .claude directory exists
-	HasGit      bool     // .git directory exists
-	Conflicts   []string // Existing files that would be overwritten
-	Warnings    []string // Non-fatal issues
+	ProjectType  string   // "go", "node", "python", "mixed", "unknown"
+	HasSDP       bool     // .sdp directory exists
+	HasClaude    bool     // .claude directory exists
+	HasGit       bool     // .git directory exists
+	Integrations []string // Existing IDE integrations (.claude/.cursor/.opencode/.codex)
+	Conflicts    []string // Existing files that would be overwritten
+	Warnings     []string // Non-fatal issues
 }
 
 // RunPreflight runs all preflight checks
@@ -29,6 +30,7 @@ func RunPreflight() *PreflightResult {
 	result.HasSDP = dirExists(".sdp")
 	result.HasClaude = dirExists(".claude")
 	result.HasGit = dirExists(".git")
+	result.Integrations = detectIDEIntegrations()
 
 	// Check for conflicts
 	result.Conflicts = checkConflicts()
@@ -139,4 +141,25 @@ func checkConflicts() []string {
 	}
 
 	return conflicts
+}
+
+func detectIDEIntegrations() []string {
+	integrations := []string{}
+	candidates := []struct {
+		name string
+		path string
+	}{
+		{name: "claude", path: ".claude"},
+		{name: "cursor", path: ".cursor"},
+		{name: "opencode", path: ".opencode"},
+		{name: "codex", path: ".codex"},
+	}
+
+	for _, candidate := range candidates {
+		if dirExists(candidate.path) {
+			integrations = append(integrations, candidate.name)
+		}
+	}
+
+	return integrations
 }

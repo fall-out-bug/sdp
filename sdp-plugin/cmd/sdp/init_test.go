@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -295,6 +296,9 @@ func TestInitCmdWithDryRun(t *testing.T) {
 	if _, err := os.Stat(".claude"); !os.IsNotExist(err) {
 		t.Error("Dry-run should not create .claude directory")
 	}
+	if _, err := os.Stat(".sdp"); !os.IsNotExist(err) {
+		t.Error("Dry-run should not create .sdp directory")
+	}
 }
 
 // TestInitCmdWithForce tests init with --force flag
@@ -478,5 +482,47 @@ func TestInitCmdFlags(t *testing.T) {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("Flag %s not found", flag)
 		}
+	}
+}
+
+func TestInitCmdWithExistingCodexKeepsCodexSurface(t *testing.T) {
+	originalWd, _ := os.Getwd()
+	tmpDir := t.TempDir()
+
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
+		t.Fatalf("Failed to create prompts dir: %v", err)
+	}
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
+		t.Fatalf("Failed to create test prompt: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(".codex", "skills"), 0o755); err != nil {
+		t.Fatalf("Failed to create .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(".codex", "agents"), 0o755); err != nil {
+		t.Fatalf("Failed to create .codex/agents: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(".codex", "INSTALL.md"), []byte("codex"), 0o644); err != nil {
+		t.Fatalf("Failed to create .codex/INSTALL.md: %v", err)
+	}
+
+	cmd := initCmd()
+	if err := cmd.Flags().Set("auto", "true"); err != nil {
+		t.Fatalf("Failed to set auto flag: %v", err)
+	}
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("initCmd() failed: %v", err)
+	}
+
+	if _, err := os.Stat(".claude"); !os.IsNotExist(err) {
+		t.Error("initCmd() should not create .claude when Codex integration already exists")
+	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() should create .sdp/config.yml")
 	}
 }

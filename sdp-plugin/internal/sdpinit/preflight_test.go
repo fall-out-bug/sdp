@@ -279,3 +279,26 @@ func TestPreflightResult_Warnings(t *testing.T) {
 		t.Error("Should not have git warning when .git exists")
 	}
 }
+
+func TestPreflightResult_Integrations(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	if len(RunPreflight().Integrations) != 0 {
+		t.Fatal("Expected no integrations in empty temp dir")
+	}
+
+	if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(".codex/agents", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/agents: %v", err)
+	}
+
+	result := RunPreflight()
+	if len(result.Integrations) != 1 || result.Integrations[0] != "codex" {
+		t.Fatalf("Integrations = %v, want [codex]", result.Integrations)
+	}
+}
