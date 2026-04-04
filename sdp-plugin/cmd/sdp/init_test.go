@@ -341,6 +341,80 @@ func TestInitCmdWithForce(t *testing.T) {
 	}
 }
 
+func TestInitCmdWithInstallerManagedClaudeDoesNotWarnConflict(t *testing.T) {
+	originalWd, _ := os.Getwd()
+	tmpDir := t.TempDir()
+
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
+	if err := os.MkdirAll(".claude/hooks", 0o755); err != nil {
+		t.Fatalf("Failed to create hooks dir: %v", err)
+	}
+	if err := os.MkdirAll(".claude/patterns", 0o755); err != nil {
+		t.Fatalf("Failed to create patterns dir: %v", err)
+	}
+	if err := os.MkdirAll("sdp/prompts/skills", 0o755); err != nil {
+		t.Fatalf("Failed to create managed skills dir: %v", err)
+	}
+	if err := os.MkdirAll("sdp/prompts/agents", 0o755); err != nil {
+		t.Fatalf("Failed to create managed agents dir: %v", err)
+	}
+	if err := os.WriteFile(".claude/settings.json", []byte(`{"managed":true}`), 0o644); err != nil {
+		t.Fatalf("Failed to create settings: %v", err)
+	}
+	if err := os.WriteFile(".claude/commands.json", []byte(`{}`), 0o644); err != nil {
+		t.Fatalf("Failed to create commands: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/skills", ".claude/skills"); err != nil {
+		t.Fatalf("Failed to create skills symlink: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/agents", ".claude/agents"); err != nil {
+		t.Fatalf("Failed to create agents symlink: %v", err)
+	}
+
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
+		t.Fatalf("Failed to create prompts dir: %v", err)
+	}
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
+		t.Fatalf("Failed to create test prompt: %v", err)
+	}
+
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	cmd := initCmd()
+	if err := cmd.Flags().Set("auto", "true"); err != nil {
+		w.Close()
+		os.Stdout = oldStdout
+		t.Fatalf("Failed to set auto flag: %v", err)
+	}
+
+	err := cmd.RunE(cmd, []string{})
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	if _, readErr := buf.ReadFrom(r); readErr != nil {
+		t.Fatalf("ReadFrom stdout: %v", readErr)
+	}
+	output := buf.String()
+
+	if err != nil {
+		t.Fatalf("initCmd() failed: %v", err)
+	}
+	if strings.Contains(output, "already exists") {
+		t.Fatalf("managed Claude install should not warn about existing .claude: %s", output)
+	}
+	if strings.Contains(output, "Conflict: .claude/settings.json") {
+		t.Fatalf("managed Claude install should not report settings conflict: %s", output)
+	}
+}
+
 // TestInitCmdWithNoEvidence tests init with --no-evidence flag
 func TestInitCmdWithNoEvidence(t *testing.T) {
 	originalWd, _ := os.Getwd()

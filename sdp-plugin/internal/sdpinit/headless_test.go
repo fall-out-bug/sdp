@@ -373,6 +373,55 @@ func TestHeadlessRunner_WithConflict(t *testing.T) {
 	}
 }
 
+func TestHeadlessRunner_WithManagedClaudeInstallerLayout(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := os.MkdirAll(".claude/hooks", 0o755); err != nil {
+		t.Fatalf("mkdir hooks: %v", err)
+	}
+	if err := os.MkdirAll(".claude/patterns", 0o755); err != nil {
+		t.Fatalf("mkdir patterns: %v", err)
+	}
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write settings: %v", err)
+	}
+	if err := os.WriteFile(".claude/commands.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write commands: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/skills", ".claude/skills"); err != nil {
+		t.Fatalf("symlink skills: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/agents", ".claude/agents"); err != nil {
+		t.Fatalf("symlink agents: %v", err)
+	}
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
+		t.Fatalf("mkdir prompts: %v", err)
+	}
+
+	cfg := Config{
+		ProjectType: "go",
+		DryRun:      true,
+	}
+
+	runner := NewHeadlessRunner(cfg)
+	output, err := runner.Run()
+	if err != nil {
+		t.Fatalf("managed Claude layout should not fail headless init: %v", err)
+	}
+	if !output.Success {
+		t.Fatal("managed Claude layout should succeed")
+	}
+	if output.Preflight == nil || !output.Preflight.ManagedClaudeConfig {
+		t.Fatalf("expected managed Claude preflight metadata, got %+v", output.Preflight)
+	}
+}
+
 func TestHeadlessRunner_ForceWithConflict(t *testing.T) {
 	// Create temp directory with existing settings
 	tmpDir := t.TempDir()

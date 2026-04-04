@@ -150,7 +150,7 @@ func runAutoInit(cfg sdpinit.Config, preflight *sdpinit.PreflightResult) error {
 	fmt.Println("=======================")
 	fmt.Printf("Detected project type: %s\n", preflight.ProjectType)
 
-	if preflight.HasClaude && !cfg.Force {
+	if preflight.HasClaude && !preflight.ManagedClaudeConfig && !cfg.Force {
 		fmt.Println("Warning: .claude/ already exists (use --force to overwrite)")
 	}
 	if preflight.HasSDP {
