@@ -11,22 +11,22 @@ func skillCmd() *cobra.Command {
 		Use:   "skill",
 		Short: "Skill management commands",
 		Long: `Skill management operations for validating and listing
-Claude Code skills.
+project-local SDP skills.
 
 Subcommands:
   validate    - Validate a skill file against standards
-  check-all   - Validate all skills in .claude/skills/
+  check-all   - Validate all skills in the detected project skills directory
   list        - List all available skills
   show        - Show skill file content`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if skillsDir == "" {
-				skillsDir = ".claude/skills"
+				skillsDir = resolveDefaultSkillsDir()
 			}
 			return nil
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&skillsDir, "skills-dir", "", "Skills directory (default: .claude/skills)")
+	cmd.PersistentFlags().StringVar(&skillsDir, "skills-dir", "", "Skills directory (default: first existing project-local skills dir)")
 
 	cmd.AddCommand(skillValidate())
 	cmd.AddCommand(skillCheckAll())
