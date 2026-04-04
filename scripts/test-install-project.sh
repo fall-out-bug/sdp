@@ -13,6 +13,8 @@ HOME_DIR="$TMP_DIR/home"
 PROJECT_DIR="$TMP_DIR/project"
 FULL_PROJECT_DIR="$TMP_DIR/project-full"
 CODEX_PROJECT_DIR="$TMP_DIR/project-codex"
+AUTO_PROJECT_DIR="$TMP_DIR/project-auto"
+NO_IDE_BIN_DIR="$TMP_DIR/no-ide-bin"
 
 mkdir -p "$HOME_DIR"
 
@@ -72,12 +74,26 @@ update_admin_file() {
     git -C "$ADMIN_DIR" push origin HEAD:refs/heads/main >/dev/null
 }
 
+link_tool() {
+    name="$1"
+    src=$(command -v "$name")
+    if [ -z "$src" ]; then
+        echo "required tool '$name' not found in PATH" >&2
+        exit 1
+    fi
+    ln -sf "$src" "$NO_IDE_BIN_DIR/$name"
+}
+
 # Cold start / clean install
 run_install "$PROJECT_DIR" "$TMP_DIR/clean-install.log" env
 test -d "$PROJECT_DIR/sdp/.git"
 test -L "$PROJECT_DIR/.claude/skills"
 test -f "$PROJECT_DIR/.claude/commands.json"
 assert_contains '"version": "1.1.0"' "$PROJECT_DIR/.claude/commands.json"
+assert_contains "Configured integrations:" "$TMP_DIR/clean-install.log"
+assert_contains "Claude (.claude/)" "$TMP_DIR/clean-install.log"
+assert_contains "Next:" "$TMP_DIR/clean-install.log"
+assert_contains "After init, review .sdp/config.yml" "$TMP_DIR/clean-install.log"
 
 # Clean reinstall / update should refresh vendored checkout and managed files.
 update_admin_file ".claude/commands.json" '"version": "1.1.0"' '"version": "9.9.9"' "test: update commands manifest"
@@ -118,11 +134,27 @@ test -L "$CODEX_PROJECT_DIR/.codex/skills/sdp"
 test -L "$CODEX_PROJECT_DIR/.codex/agents"
 test ! -e "$CODEX_PROJECT_DIR/.claude"
 assert_contains ".codex/skills/sdp" "$CODEX_PROJECT_DIR/.gitignore"
+assert_contains "Configured integrations:" "$TMP_DIR/codex-install.log"
+assert_contains "Codex (.codex/)" "$TMP_DIR/codex-install.log"
 
 printf '\n<!-- codex update marker -->\n' >> "$ADMIN_DIR/prompts/skills/build/SKILL.md"
 git -C "$ADMIN_DIR" commit -am "test: update codex skill source" >/dev/null
 git -C "$ADMIN_DIR" push origin HEAD:refs/heads/main >/dev/null
 run_install "$CODEX_PROJECT_DIR" "$TMP_DIR/codex-update.log" env SDP_IDE=codex
 assert_contains "codex update marker" "$CODEX_PROJECT_DIR/.codex/skills/sdp/build/SKILL.md"
+
+# Auto-detect fallback should explain that all integrations were installed.
+mkdir -p "$NO_IDE_BIN_DIR"
+for tool in git sh mkdir cp find ln grep chmod dirname; do
+    link_tool "$tool"
+done
+run_install "$AUTO_PROJECT_DIR" "$TMP_DIR/auto-install.log" env PATH="$NO_IDE_BIN_DIR" SDP_IDE=auto SDP_INSTALL_CLI=0
+assert_contains "No supported IDE detected from PATH/project; installing all supported integrations." "$TMP_DIR/auto-install.log"
+assert_contains "Configured integrations:" "$TMP_DIR/auto-install.log"
+assert_contains "Claude (.claude/)" "$TMP_DIR/auto-install.log"
+assert_contains "Cursor (.cursor/)" "$TMP_DIR/auto-install.log"
+assert_contains "OpenCode (.opencode/)" "$TMP_DIR/auto-install.log"
+assert_contains "Codex (.codex/)" "$TMP_DIR/auto-install.log"
+assert_contains "To install only one surface, rerun with SDP_IDE=claude|cursor|opencode|codex." "$TMP_DIR/auto-install.log"
 
 echo "install-project regression checks passed"

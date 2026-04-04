@@ -14,6 +14,8 @@ SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-0}"
 SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
 SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-0}"
 DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
+SDP_AUTO_FALLBACK_ALL=0
+SDP_CONFIGURED_INTEGRATIONS=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -49,12 +51,48 @@ detect_auto_ide() {
     fi
 
     if [ -z "$detected" ]; then
-        echo "No IDE detected from PATH/project; falling back to all integrations." >&2
+        echo "No supported IDE detected from PATH/project; installing all supported integrations." >&2
         echo "claude cursor opencode codex"
-        return
+        return 10
     fi
 
     echo "$detected"
+    return 0
+}
+
+register_integration() {
+    label="$1"
+    path="$2"
+    entry="$label ($path)"
+
+    case "
+$SDP_CONFIGURED_INTEGRATIONS
+" in
+        *"
+$entry
+"*)
+            return
+            ;;
+    esac
+
+    if [ -n "$SDP_CONFIGURED_INTEGRATIONS" ]; then
+        SDP_CONFIGURED_INTEGRATIONS="$SDP_CONFIGURED_INTEGRATIONS
+$entry"
+    else
+        SDP_CONFIGURED_INTEGRATIONS="$entry"
+    fi
+}
+
+print_configured_integrations() {
+    if [ -z "$SDP_CONFIGURED_INTEGRATIONS" ]; then
+        return
+    fi
+
+    echo "Configured integrations:"
+    printf '%s\n' "$SDP_CONFIGURED_INTEGRATIONS" | while IFS= read -r entry; do
+        [ -n "$entry" ] || continue
+        echo "  - $entry"
+    done
 }
 
 sync_file() {
@@ -187,8 +225,16 @@ fi
 
 # Setup for selected IDE
 if [ "$SDP_IDE" = "auto" ]; then
-    SDP_IDE_LIST=$(detect_auto_ide)
-    echo "🔗 Setting up for auto-detected IDEs: $SDP_IDE_LIST"
+    if SDP_IDE_LIST=$(detect_auto_ide); then
+        echo "🔗 Setting up for auto-detected IDEs: $SDP_IDE_LIST"
+    else
+        status=$?
+        if [ "$status" -ne 10 ]; then
+            exit "$status"
+        fi
+        SDP_AUTO_FALLBACK_ALL=1
+        echo "🔗 Setting up for all supported IDEs: $SDP_IDE_LIST"
+    fi
 else
     SDP_IDE_LIST="$SDP_IDE"
     echo "🔗 Setting up for: $SDP_IDE"
@@ -202,6 +248,7 @@ setup_claude() {
     sync_tree_files .claude/hooks ../.claude/hooks
     sync_tree_files .claude/patterns ../.claude/patterns
     sync_file .claude/settings.json ../.claude/settings.json
+    register_integration "Claude" ".claude/"
 }
 
 setup_cursor() {
@@ -210,6 +257,7 @@ setup_cursor() {
     sync_link "../$SDP_DIR/prompts/agents" "../.cursor/agents"
     mkdir -p ../.cursor/commands
     sync_tree_files .cursor/commands ../.cursor/commands
+    register_integration "Cursor" ".cursor/"
 }
 
 setup_opencode() {
@@ -218,6 +266,7 @@ setup_opencode() {
     sync_link "../$SDP_DIR/prompts/agents" "../.opencode/agents"
     mkdir -p ../.opencode/commands
     sync_tree_files .opencode/commands ../.opencode/commands
+    register_integration "OpenCode" ".opencode/"
 }
 
 setup_codex() {
@@ -226,6 +275,7 @@ setup_codex() {
     sync_link "../$SDP_DIR/prompts/agents" "../.codex/agents"
     sync_file .codex/INSTALL.md ../.codex/INSTALL.md
     sync_file .codex/skills/README.md ../.codex/skills/README.md
+    register_integration "Codex" ".codex/"
 }
 
 for ide in $SDP_IDE_LIST; do
@@ -283,16 +333,43 @@ fi
 echo ""
 echo "✅ SDP project assets installed successfully!"
 echo ""
+print_configured_integrations
+
+if [ "$SDP_AUTO_FALLBACK_ALL" = "1" ]; then
+    echo ""
+    echo "Note: no supported IDE was detected, so SDP installed all supported integrations."
+    echo "To install only one surface, rerun with SDP_IDE=claude|cursor|opencode|codex."
+fi
+
+cli_path=""
+init_cmd=""
+update_cmd="curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only"
+
 if [ -x "${HOME}/.local/bin/sdp" ]; then
-    echo "CLI: ${HOME}/.local/bin/sdp"
-    echo "Try: ${HOME}/.local/bin/sdp init --auto"
-    echo "     (update CLI: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only)"
+    cli_path="${HOME}/.local/bin/sdp"
+    init_cmd="${HOME}/.local/bin/sdp init --auto"
 elif command -v sdp >/dev/null 2>&1; then
     cli_path=$(command -v sdp)
+    init_cmd="sdp init --auto"
+fi
+
+echo ""
+if [ -n "$cli_path" ]; then
     echo "CLI: ${cli_path}"
-    echo "Try: sdp init --auto"
-    echo "     (update CLI: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only)"
+    echo ""
+    echo "Next:"
+    echo "  1. Run ${init_cmd}"
+    echo "  2. After init, review .sdp/config.yml"
+    echo "  3. Open this repo in your IDE"
+    echo ""
+    echo "Update CLI:"
+    echo "  ${update_cmd}"
 else
     echo "CLI not found in PATH. Install binary with:"
-    echo "  curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only"
+    echo "  ${update_cmd}"
+    echo ""
+    echo "Next:"
+    echo "  1. Install the CLI command above"
+    echo "  2. Run sdp init --auto"
+    echo "  3. After init, review .sdp/config.yml"
 fi
