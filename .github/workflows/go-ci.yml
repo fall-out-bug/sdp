@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ../scripts/test-install-project.sh
+          sh ../scripts/test-install-project.sh
 
       - name: Check for contracts
         id: check_contracts
