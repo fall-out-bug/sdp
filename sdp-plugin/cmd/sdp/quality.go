@@ -6,6 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	runQualityCoverageCmd   = runQualityCoverage
+	runQualityComplexityCmd = runQualityComplexity
+	runQualitySizeCmd       = runQualitySize
+	runQualityTypesCmd      = runQualityTypes
+	runQualityAllCmd        = runQualityAll
+)
+
 func qualityCmd() *cobra.Command {
 	var strict bool
 
@@ -35,7 +43,7 @@ Strict Mode (--strict):
 		Use:   "coverage",
 		Short: "Check test coverage",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runQualityCoverage(strict)
+			return runQualityCoverageCmd(strict)
 		},
 	})
 
@@ -43,7 +51,7 @@ Strict Mode (--strict):
 		Use:   "complexity",
 		Short: "Check cyclomatic complexity",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runQualityComplexity(strict)
+			return runQualityComplexityCmd(strict)
 		},
 	})
 
@@ -51,7 +59,7 @@ Strict Mode (--strict):
 		Use:   "size",
 		Short: "Check file sizes",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runQualitySize(strict)
+			return runQualitySizeCmd(strict)
 		},
 	})
 
@@ -59,7 +67,7 @@ Strict Mode (--strict):
 		Use:   "types",
 		Short: "Check type completeness",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runQualityTypes(strict)
+			return runQualityTypesCmd(strict)
 		},
 	})
 
@@ -71,7 +79,7 @@ Strict Mode (--strict):
 			if ctx == nil {
 				ctx = context.Background()
 			}
-			return runQualityAll(ctx, strict)
+			return runQualityAllCmd(ctx, strict)
 		},
 	})
 

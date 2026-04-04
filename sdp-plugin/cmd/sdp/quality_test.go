@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -33,6 +34,20 @@ func TestQualityCmd(t *testing.T) {
 
 // TestQualityCoverageCmd tests the quality coverage command
 func TestQualityCoverageCmd(t *testing.T) {
+	called := false
+	gotStrict := true
+	expectedErr := errors.New("coverage failed")
+
+	originalRunner := runQualityCoverageCmd
+	runQualityCoverageCmd = func(strict bool) error {
+		called = true
+		gotStrict = strict
+		return expectedErr
+	}
+	t.Cleanup(func() {
+		runQualityCoverageCmd = originalRunner
+	})
+
 	cmd := qualityCmd()
 
 	// Find the 'coverage' subcommand
@@ -53,13 +68,16 @@ func TestQualityCoverageCmd(t *testing.T) {
 		t.Errorf("quality coverage command has wrong use: %s", coverageCmd.Use)
 	}
 
-	// Test that command can be executed (will fail due to real quality issues)
+	// Test that command wiring executes the configured coverage runner.
 	err := coverageCmd.RunE(coverageCmd, []string{})
-	// Expected to fail (coverage < 80%, complexity > 10, etc. in real codebase)
-	if err == nil {
-		t.Log("quality coverage command succeeded (codebase quality is good!)")
-	} else {
-		t.Log("quality coverage command failed as expected (real quality issues exist)")
+	if !called {
+		t.Fatal("quality coverage command did not invoke coverage runner")
+	}
+	if gotStrict {
+		t.Fatal("quality coverage command unexpectedly enabled strict mode")
+	}
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("quality coverage command returned %v, want %v", err, expectedErr)
 	}
 }
 
