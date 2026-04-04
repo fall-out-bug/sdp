@@ -176,6 +176,10 @@ func runAutoInit(cfg sdpinit.Config, preflight *sdpinit.PreflightResult) error {
 
 	if cfg.DryRun {
 		fmt.Println("\n[DRY RUN] Would create:")
+		fmt.Println("  .sdp/")
+		fmt.Println("  .sdp/config.yml")
+		fmt.Println("  .sdp/guard-rules.yml")
+		fmt.Println("  .sdp/log/")
 		fmt.Println("  .claude/")
 		fmt.Println("  .claude/skills/")
 		fmt.Println("  .claude/agents/")

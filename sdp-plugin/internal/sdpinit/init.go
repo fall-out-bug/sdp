@@ -6,6 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	projectconfig "github.com/fall-out-bug/sdp/internal/config"
+	"gopkg.in/yaml.v3"
 )
 
 // Config holds initialization configuration options.
@@ -59,13 +62,34 @@ func Run(cfg Config) error {
 		return fmt.Errorf("create settings: %w", err)
 	}
 
+	if err := createProjectFiles(cfg); err != nil {
+		return fmt.Errorf("create project files: %w", err)
+	}
+
 	// In headless mode, don't print text output
 	if !cfg.Headless {
-		fmt.Println("✓ SDP initialized in .claude/")
+		fmt.Println("✓ SDP initialized in .claude/ and .sdp/")
 		fmt.Printf("  Project type: %s\n", cfg.ProjectType)
 		fmt.Println("\nNext steps:")
-		fmt.Println("  1. Review .claude/settings.json")
-		fmt.Println("  2. Start using Claude Code with SDP prompts")
+		fmt.Println("  1. Review .sdp/config.yml")
+		fmt.Println("  2. Review .claude/settings.json")
+		fmt.Println("  3. Start using SDP prompts in your IDE")
+	}
+
+	return nil
+}
+
+func createProjectFiles(cfg Config) error {
+	if err := os.MkdirAll(filepath.Join(".sdp", "log"), 0o755); err != nil {
+		return fmt.Errorf("create .sdp/log: %w", err)
+	}
+
+	if err := createProjectConfig(cfg); err != nil {
+		return fmt.Errorf("create config.yml: %w", err)
+	}
+
+	if err := createGuardRules(cfg); err != nil {
+		return fmt.Errorf("create guard-rules.yml: %w", err)
 	}
 
 	return nil
@@ -245,6 +269,42 @@ func createSettings(claudeDir string, cfg Config) error {
 		[]byte(settings),
 		0o600,
 	)
+}
+
+func createProjectConfig(cfg Config) error {
+	defaults := MergeDefaults(cfg.ProjectType, &cfg)
+	projectCfg := projectconfig.DefaultConfig()
+	projectCfg.Evidence.Enabled = defaults.EvidenceEnabled
+	projectCfg.Acceptance.Command = defaults.TestCommand
+
+	content, err := yaml.Marshal(projectCfg)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+
+	return writeManagedProjectFile(filepath.Join(".sdp", "config.yml"), content, 0o644, cfg.Force)
+}
+
+func createGuardRules(cfg Config) error {
+	rules := projectconfig.DefaultGuardRules()
+	content, err := yaml.Marshal(rules)
+	if err != nil {
+		return fmt.Errorf("marshal guard rules: %w", err)
+	}
+
+	return writeManagedProjectFile(filepath.Join(".sdp", "guard-rules.yml"), content, 0o644, cfg.Force)
+}
+
+func writeManagedProjectFile(path string, content []byte, perm os.FileMode, force bool) error {
+	if !force {
+		if _, err := os.Stat(path); err == nil {
+			return nil
+		} else if !os.IsNotExist(err) {
+			return err
+		}
+	}
+
+	return os.WriteFile(path, content, perm)
 }
 
 // formatStringsAsJSON formats a string slice as a JSON array.

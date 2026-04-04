@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	projectconfig "github.com/fall-out-bug/sdp/internal/config"
 )
 
 func TestRun(t *testing.T) {
@@ -79,6 +81,21 @@ func TestRun(t *testing.T) {
 		t.Fatal("settings.json was not created")
 	}
 
+	configPath := filepath.Join(".sdp", "config.yml")
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		t.Fatal(".sdp/config.yml was not created")
+	}
+
+	guardRulesPath := filepath.Join(".sdp", "guard-rules.yml")
+	if _, err := os.Stat(guardRulesPath); os.IsNotExist(err) {
+		t.Fatal(".sdp/guard-rules.yml was not created")
+	}
+
+	logDirPath := filepath.Join(".sdp", "log")
+	if info, err := os.Stat(logDirPath); err != nil || !info.IsDir() {
+		t.Fatalf(".sdp/log was not created as a directory: %v", err)
+	}
+
 	// Check settings.json content
 	content, err := os.ReadFile(settingsPath)
 	if err != nil {
@@ -92,6 +109,28 @@ func TestRun(t *testing.T) {
 
 	if !strings.Contains(settingsStr, `"skills":`) {
 		t.Errorf("settings.json missing skills: %s", settingsStr)
+	}
+
+	projectCfg, err := projectconfig.Load(tmpDir)
+	if err != nil {
+		t.Fatalf("Load project config: %v", err)
+	}
+	if projectCfg.Acceptance.Command != "go test ./..." {
+		t.Errorf("Acceptance.Command = %q, want %q", projectCfg.Acceptance.Command, "go test ./...")
+	}
+	if !projectCfg.Evidence.Enabled {
+		t.Error("project config should enable evidence")
+	}
+
+	guardRules, err := projectconfig.LoadGuardRules(tmpDir)
+	if err != nil {
+		t.Fatalf("Load guard rules: %v", err)
+	}
+	if len(guardRules.Rules) == 0 {
+		t.Fatal("guard rules should include defaults")
+	}
+	if guardRules.Rules[0].ID != "max-file-loc" {
+		t.Errorf("first guard rule = %q, want %q", guardRules.Rules[0].ID, "max-file-loc")
 	}
 
 	// Check file permissions (0600)
@@ -348,5 +387,37 @@ func TestCreateSettings(t *testing.T) {
 	perm := info.Mode().Perm()
 	if perm != 0o600 {
 		t.Errorf("Wrong permissions: got %o, want 0600", perm)
+	}
+}
+
+func TestRun_NoEvidenceCreatesDisabledProjectConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	promptsDir := filepath.Join(tmpDir, "prompts")
+	if err := os.MkdirAll(filepath.Join(promptsDir, "skills"), 0o755); err != nil {
+		t.Fatalf("mkdir skills: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(promptsDir, "skills", "test.md"), []byte("# Test"), 0o644); err != nil {
+		t.Fatalf("write skill: %v", err)
+	}
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := Run(Config{ProjectType: "python", NoEvidence: true}); err != nil {
+		t.Fatalf("Run() failed: %v", err)
+	}
+
+	projectCfg, err := projectconfig.Load(tmpDir)
+	if err != nil {
+		t.Fatalf("Load project config: %v", err)
+	}
+	if projectCfg.Acceptance.Command != "pytest" {
+		t.Errorf("Acceptance.Command = %q, want %q", projectCfg.Acceptance.Command, "pytest")
+	}
+	if projectCfg.Evidence.Enabled {
+		t.Error("project config should disable evidence")
 	}
 }

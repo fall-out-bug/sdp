@@ -122,6 +122,10 @@ func (h *HeadlessRunner) validate() error {
 
 func (h *HeadlessRunner) trackCreatedFiles() {
 	h.output.Created = []string{
+		".sdp/",
+		".sdp/config.yml",
+		".sdp/guard-rules.yml",
+		".sdp/log/",
 		".claude/",
 		".claude/skills/",
 		".claude/agents/",

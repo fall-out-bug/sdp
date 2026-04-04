@@ -101,7 +101,14 @@ func TestHeadlessRunner_TrackCreatedFiles(t *testing.T) {
 	}
 
 	// Check expected files
-	expectedFiles := []string{".claude/", ".claude/settings.json"}
+	expectedFiles := []string{
+		".sdp/",
+		".sdp/config.yml",
+		".sdp/guard-rules.yml",
+		".sdp/log/",
+		".claude/",
+		".claude/settings.json",
+	}
 	for _, expected := range expectedFiles {
 		if !slices.Contains(runner.output.Created, expected) {
 			t.Errorf("Expected created file: %s", expected)
@@ -181,6 +188,9 @@ func TestHeadlessRunner_Run_Actual(t *testing.T) {
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("Run should create .claude directory")
 	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("Run should create .sdp/config.yml")
+	}
 }
 
 func TestHeadlessOutput_GetExitCode(t *testing.T) {
@@ -227,7 +237,7 @@ func TestHeadlessOutput_OutputJSON(t *testing.T) {
 	output := &HeadlessOutput{
 		Success:     true,
 		ProjectType: "go",
-		Created:     []string{".claude/", ".claude/settings.json"},
+		Created:     []string{".sdp/config.yml", ".claude/", ".claude/settings.json"},
 		Config: &ConfigSummary{
 			Skills:          []string{"feature", "build"},
 			EvidenceEnabled: true,
@@ -247,7 +257,7 @@ func TestHeadlessOutput_JSONMarshaling(t *testing.T) {
 	output := &HeadlessOutput{
 		Success:     true,
 		ProjectType: "go",
-		Created:     []string{".claude/"},
+		Created:     []string{".sdp/", ".claude/"},
 		Preflight: &PreflightResult{
 			ProjectType: "go",
 			HasGit:      true,

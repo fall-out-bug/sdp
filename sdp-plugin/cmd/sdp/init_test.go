@@ -109,6 +109,9 @@ func TestInitCmd(t *testing.T) {
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
 	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .sdp/config.yml")
+	}
 }
 
 // TestInitCmdWithSkipBeads tests init with skip-beads flag
@@ -155,6 +158,9 @@ func TestInitCmdWithSkipBeads(t *testing.T) {
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
 	}
+	if _, err := os.Stat(".sdp/guard-rules.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .sdp/guard-rules.yml")
+	}
 }
 
 // TestInitCmdWithAuto tests init with --auto flag
@@ -187,6 +193,9 @@ func TestInitCmdWithAuto(t *testing.T) {
 
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
+	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .sdp/config.yml")
 	}
 }
 
@@ -367,6 +376,14 @@ func TestInitCmdWithNoEvidence(t *testing.T) {
 
 	if !strings.Contains(string(content), `"enabled": false`) {
 		t.Error("Settings should have evidence disabled")
+	}
+
+	configContent, err := os.ReadFile(".sdp/config.yml")
+	if err != nil {
+		t.Fatalf("Failed to read config: %v", err)
+	}
+	if !strings.Contains(string(configContent), "enabled: false") {
+		t.Error("Config should have evidence disabled")
 	}
 }
 

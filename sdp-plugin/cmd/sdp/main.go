@@ -14,6 +14,21 @@ var version = "dev"
 
 var consentAsked = false // Track if we've asked for consent this session
 
+func shouldAskForTelemetryConsent(cmd *cobra.Command) bool {
+	if cmd == nil {
+		return false
+	}
+
+	for _, flagName := range []string{"auto", "headless"} {
+		flag := cmd.Flags().Lookup(flagName)
+		if flag != nil && flag.Value.String() == "true" {
+			return false
+		}
+	}
+
+	return true
+}
+
 func main() {
 	var noColor bool
 
@@ -67,7 +82,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 			ui.NoColor = noColor
 
 			// Check for first-run consent (only once per session)
-			if !consentAsked && cmd.Name() != "telemetry" {
+			if !consentAsked && cmd.Name() != "telemetry" && shouldAskForTelemetryConsent(cmd) {
 				configDir, err := os.UserConfigDir()
 				if err == nil {
 					configPath := filepath.Join(configDir, "sdp", "telemetry.json")
