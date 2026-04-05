@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -109,6 +110,9 @@ func TestInitCmd(t *testing.T) {
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
 	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .sdp/config.yml")
+	}
 }
 
 // TestInitCmdWithSkipBeads tests init with skip-beads flag
@@ -155,6 +159,9 @@ func TestInitCmdWithSkipBeads(t *testing.T) {
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
 	}
+	if _, err := os.Stat(".sdp/guard-rules.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .sdp/guard-rules.yml")
+	}
 }
 
 // TestInitCmdWithAuto tests init with --auto flag
@@ -187,6 +194,9 @@ func TestInitCmdWithAuto(t *testing.T) {
 
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("initCmd() did not create .claude directory")
+	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() did not create .sdp/config.yml")
 	}
 }
 
@@ -286,6 +296,9 @@ func TestInitCmdWithDryRun(t *testing.T) {
 	if _, err := os.Stat(".claude"); !os.IsNotExist(err) {
 		t.Error("Dry-run should not create .claude directory")
 	}
+	if _, err := os.Stat(".sdp"); !os.IsNotExist(err) {
+		t.Error("Dry-run should not create .sdp directory")
+	}
 }
 
 // TestInitCmdWithForce tests init with --force flag
@@ -328,6 +341,80 @@ func TestInitCmdWithForce(t *testing.T) {
 	}
 }
 
+func TestInitCmdWithInstallerManagedClaudeDoesNotWarnConflict(t *testing.T) {
+	originalWd, _ := os.Getwd()
+	tmpDir := t.TempDir()
+
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
+	if err := os.MkdirAll(".claude/hooks", 0o755); err != nil {
+		t.Fatalf("Failed to create hooks dir: %v", err)
+	}
+	if err := os.MkdirAll(".claude/patterns", 0o755); err != nil {
+		t.Fatalf("Failed to create patterns dir: %v", err)
+	}
+	if err := os.MkdirAll("sdp/prompts/skills", 0o755); err != nil {
+		t.Fatalf("Failed to create managed skills dir: %v", err)
+	}
+	if err := os.MkdirAll("sdp/prompts/agents", 0o755); err != nil {
+		t.Fatalf("Failed to create managed agents dir: %v", err)
+	}
+	if err := os.WriteFile(".claude/settings.json", []byte(`{"managed":true}`), 0o644); err != nil {
+		t.Fatalf("Failed to create settings: %v", err)
+	}
+	if err := os.WriteFile(".claude/commands.json", []byte(`{}`), 0o644); err != nil {
+		t.Fatalf("Failed to create commands: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/skills", ".claude/skills"); err != nil {
+		t.Fatalf("Failed to create skills symlink: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/agents", ".claude/agents"); err != nil {
+		t.Fatalf("Failed to create agents symlink: %v", err)
+	}
+
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
+		t.Fatalf("Failed to create prompts dir: %v", err)
+	}
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
+		t.Fatalf("Failed to create test prompt: %v", err)
+	}
+
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	cmd := initCmd()
+	if err := cmd.Flags().Set("auto", "true"); err != nil {
+		w.Close()
+		os.Stdout = oldStdout
+		t.Fatalf("Failed to set auto flag: %v", err)
+	}
+
+	err := cmd.RunE(cmd, []string{})
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	if _, readErr := buf.ReadFrom(r); readErr != nil {
+		t.Fatalf("ReadFrom stdout: %v", readErr)
+	}
+	output := buf.String()
+
+	if err != nil {
+		t.Fatalf("initCmd() failed: %v", err)
+	}
+	if strings.Contains(output, "already exists") {
+		t.Fatalf("managed Claude install should not warn about existing .claude: %s", output)
+	}
+	if strings.Contains(output, "Conflict: .claude/settings.json") {
+		t.Fatalf("managed Claude install should not report settings conflict: %s", output)
+	}
+}
+
 // TestInitCmdWithNoEvidence tests init with --no-evidence flag
 func TestInitCmdWithNoEvidence(t *testing.T) {
 	originalWd, _ := os.Getwd()
@@ -367,6 +454,14 @@ func TestInitCmdWithNoEvidence(t *testing.T) {
 
 	if !strings.Contains(string(content), `"enabled": false`) {
 		t.Error("Settings should have evidence disabled")
+	}
+
+	configContent, err := os.ReadFile(".sdp/config.yml")
+	if err != nil {
+		t.Fatalf("Failed to read config: %v", err)
+	}
+	if !strings.Contains(string(configContent), "enabled: false") {
+		t.Error("Config should have evidence disabled")
 	}
 }
 
@@ -461,5 +556,47 @@ func TestInitCmdFlags(t *testing.T) {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("Flag %s not found", flag)
 		}
+	}
+}
+
+func TestInitCmdWithExistingCodexKeepsCodexSurface(t *testing.T) {
+	originalWd, _ := os.Getwd()
+	tmpDir := t.TempDir()
+
+	t.Cleanup(func() { os.Chdir(originalWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to chdir: %v", err)
+	}
+
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
+		t.Fatalf("Failed to create prompts dir: %v", err)
+	}
+	if err := os.WriteFile("prompts/skills/test.md", []byte("# Test"), 0o644); err != nil {
+		t.Fatalf("Failed to create test prompt: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(".codex", "skills"), 0o755); err != nil {
+		t.Fatalf("Failed to create .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(".codex", "agents"), 0o755); err != nil {
+		t.Fatalf("Failed to create .codex/agents: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(".codex", "INSTALL.md"), []byte("codex"), 0o644); err != nil {
+		t.Fatalf("Failed to create .codex/INSTALL.md: %v", err)
+	}
+
+	cmd := initCmd()
+	if err := cmd.Flags().Set("auto", "true"); err != nil {
+		t.Fatalf("Failed to set auto flag: %v", err)
+	}
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("initCmd() failed: %v", err)
+	}
+
+	if _, err := os.Stat(".claude"); !os.IsNotExist(err) {
+		t.Error("initCmd() should not create .claude when Codex integration already exists")
+	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("initCmd() should create .sdp/config.yml")
 	}
 }

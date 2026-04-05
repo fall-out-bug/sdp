@@ -13,6 +13,33 @@ import (
 var version = "dev"
 
 var consentAsked = false // Track if we've asked for consent this session
+var telemetryConsentSkipCommands = map[string]struct{}{
+	"completion": {},
+	"demo":       {},
+	"doctor":     {},
+	"init":       {},
+	"next":       {},
+	"status":     {},
+}
+
+func shouldAskForTelemetryConsent(cmd *cobra.Command) bool {
+	if cmd == nil {
+		return false
+	}
+
+	if _, skip := telemetryConsentSkipCommands[cmd.Name()]; skip {
+		return false
+	}
+
+	for _, flagName := range []string{"auto", "headless"} {
+		flag := cmd.Flags().Lookup(flagName)
+		if flag != nil && flag.Value.String() == "true" {
+			return false
+		}
+	}
+
+	return true
+}
 
 func main() {
 	var noColor bool
@@ -34,7 +61,8 @@ func main() {
 	  completion Generate shell completion script
 
 These commands are optional convenience tools. The core SDP functionality
-is provided by the Claude Plugin prompts in .claude/.`,
+is provided by the prompts installed into your supported IDE integration
+directory (.claude/, .cursor/, .opencode/, or .codex/).`,
 		Example: `  # Initialize SDP in a project
   sdp init .
 
@@ -67,7 +95,7 @@ is provided by the Claude Plugin prompts in .claude/.`,
 			ui.NoColor = noColor
 
 			// Check for first-run consent (only once per session)
-			if !consentAsked && cmd.Name() != "telemetry" {
+			if !consentAsked && cmd.Name() != "telemetry" && shouldAskForTelemetryConsent(cmd) {
 				configDir, err := os.UserConfigDir()
 				if err == nil {
 					configPath := filepath.Join(configDir, "sdp", "telemetry.json")

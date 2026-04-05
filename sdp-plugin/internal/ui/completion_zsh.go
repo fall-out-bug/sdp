@@ -17,7 +17,7 @@ _sdp() {
 
 	commands=(
 		'init:Initialize project with SDP prompts'
-		'doctor:Check environment (Git, Claude Code, .claude/)'
+		'doctor:Check environment (Git, Go, IDE integration)'
 		'status:Show current project state'
 		'next:Get next-step recommendation'
 		'demo:Run a guided first-success walkthrough'

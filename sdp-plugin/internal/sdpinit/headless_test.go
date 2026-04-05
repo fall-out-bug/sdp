@@ -101,7 +101,14 @@ func TestHeadlessRunner_TrackCreatedFiles(t *testing.T) {
 	}
 
 	// Check expected files
-	expectedFiles := []string{".claude/", ".claude/settings.json"}
+	expectedFiles := []string{
+		".sdp/",
+		".sdp/config.yml",
+		".sdp/guard-rules.yml",
+		".sdp/log/",
+		".claude/",
+		".claude/settings.json",
+	}
 	for _, expected := range expectedFiles {
 		if !slices.Contains(runner.output.Created, expected) {
 			t.Errorf("Expected created file: %s", expected)
@@ -181,6 +188,9 @@ func TestHeadlessRunner_Run_Actual(t *testing.T) {
 	if _, err := os.Stat(".claude"); os.IsNotExist(err) {
 		t.Error("Run should create .claude directory")
 	}
+	if _, err := os.Stat(".sdp/config.yml"); os.IsNotExist(err) {
+		t.Error("Run should create .sdp/config.yml")
+	}
 }
 
 func TestHeadlessOutput_GetExitCode(t *testing.T) {
@@ -227,7 +237,7 @@ func TestHeadlessOutput_OutputJSON(t *testing.T) {
 	output := &HeadlessOutput{
 		Success:     true,
 		ProjectType: "go",
-		Created:     []string{".claude/", ".claude/settings.json"},
+		Created:     []string{".sdp/config.yml", ".claude/", ".claude/settings.json"},
 		Config: &ConfigSummary{
 			Skills:          []string{"feature", "build"},
 			EvidenceEnabled: true,
@@ -247,7 +257,7 @@ func TestHeadlessOutput_JSONMarshaling(t *testing.T) {
 	output := &HeadlessOutput{
 		Success:     true,
 		ProjectType: "go",
-		Created:     []string{".claude/"},
+		Created:     []string{".sdp/", ".claude/"},
 		Preflight: &PreflightResult{
 			ProjectType: "go",
 			HasGit:      true,
@@ -299,6 +309,33 @@ func TestRunHeadless(t *testing.T) {
 	}
 }
 
+func TestPlannedArtifacts_WithExistingCodexOmitsClaudeFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(".codex/agents", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/agents: %v", err)
+	}
+	if err := os.WriteFile(".codex/INSTALL.md", []byte("codex"), 0o644); err != nil {
+		t.Fatalf("write install: %v", err)
+	}
+
+	created := PlannedArtifacts()
+	if slices.Contains(created, ".claude/") {
+		t.Fatalf("PlannedArtifacts() should not include .claude when Codex integration already exists: %v", created)
+	}
+	if !slices.Contains(created, ".sdp/config.yml") {
+		t.Fatalf("PlannedArtifacts() should include .sdp/config.yml: %v", created)
+	}
+}
+
 func TestHeadlessRunner_WithConflict(t *testing.T) {
 	// Create temp directory with existing settings
 	tmpDir := t.TempDir()
@@ -333,6 +370,55 @@ func TestHeadlessRunner_WithConflict(t *testing.T) {
 	// Should fail due to conflict
 	if err == nil {
 		t.Error("Expected error with conflict")
+	}
+}
+
+func TestHeadlessRunner_WithManagedClaudeInstallerLayout(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { os.Chdir(originalWd) })
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := os.MkdirAll(".claude/hooks", 0o755); err != nil {
+		t.Fatalf("mkdir hooks: %v", err)
+	}
+	if err := os.MkdirAll(".claude/patterns", 0o755); err != nil {
+		t.Fatalf("mkdir patterns: %v", err)
+	}
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write settings: %v", err)
+	}
+	if err := os.WriteFile(".claude/commands.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write commands: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/skills", ".claude/skills"); err != nil {
+		t.Fatalf("symlink skills: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/agents", ".claude/agents"); err != nil {
+		t.Fatalf("symlink agents: %v", err)
+	}
+	if err := os.MkdirAll("prompts/skills", 0o755); err != nil {
+		t.Fatalf("mkdir prompts: %v", err)
+	}
+
+	cfg := Config{
+		ProjectType: "go",
+		DryRun:      true,
+	}
+
+	runner := NewHeadlessRunner(cfg)
+	output, err := runner.Run()
+	if err != nil {
+		t.Fatalf("managed Claude layout should not fail headless init: %v", err)
+	}
+	if !output.Success {
+		t.Fatal("managed Claude layout should succeed")
+	}
+	if output.Preflight == nil || !output.Preflight.ManagedClaudeConfig {
+		t.Fatalf("expected managed Claude preflight metadata, got %+v", output.Preflight)
 	}
 }
 

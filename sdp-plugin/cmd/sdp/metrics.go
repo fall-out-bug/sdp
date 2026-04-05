@@ -76,6 +76,8 @@ func metricsCollectCmd() *cobra.Command {
 				outputPath = ".sdp/metrics/latest.json"
 			}
 
+			initMetricsDir()
+
 			// Evidence log path: .sdp/log/events.jsonl
 			logPath := ".sdp/log/events.jsonl"
 
@@ -115,8 +117,4 @@ func metricsCollectCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&enableWatermark, "watermark", false, "Enable incremental collection using watermark")
 
 	return cmd
-}
-
-func init() {
-	initMetricsDir()
 }

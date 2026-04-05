@@ -2,6 +2,7 @@
 
 This repository uses a single canonical prompt source:
 
+- Commands: `prompts/commands/*.md`
 - Skills: `prompts/skills/*/SKILL.md`
 - Agents: `prompts/agents/*.md`
 

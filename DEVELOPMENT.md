@@ -43,7 +43,7 @@ CGO_ENABLED=0 go build -o sdp ./cmd/sdp
 go test ./...
 
 # Verify installation
-./sdp version
+./sdp --version
 ```
 
 Expected time: **5 minutes**
@@ -57,15 +57,15 @@ sdp/
 ├── sdp-plugin/           # Go CLI implementation
 │   ├── cmd/sdp/          # CLI entry point
 │   └── internal/         # Core logic
-├── prompts/              # Canonical skill/agent definitions
+├── prompts/              # Canonical prompt, skill, and agent definitions
 │   ├── skills/           # AI skill prompts
+│   ├── commands/         # Harness command adapters
 │   └── agents/           # Multi-agent definitions
-├── docs/                 # Documentation
-│   ├── PROTOCOL.md       # Core specification
-│   └── workstreams/      # Feature planning
-└── .claude/              # Claude Code integration
-    ├── skills -> ../prompts/skills
-    └── agents -> ../prompts/agents
+├── docs/                 # Onboarding, protocol, and reference docs
+├── .claude/              # Claude adapter
+├── .cursor/              # Cursor adapter
+├── .opencode/            # OpenCode adapter
+└── .codex/               # Codex adapter
 ```
 
 ---
@@ -180,39 +180,27 @@ Recommended `settings.json`:
 
 ---
 
-## Using SDP Skills
+## Using SDP During Development
 
-SDP includes AI-powered skills for common workflows. See [CLAUDE.md](CLAUDE.md) for full usage.
+SDP currently has two working surfaces:
 
-### Example Workflow
+- **Local Mode:** `sdp init`, `sdp doctor`, `sdp plan`, `sdp apply`, `sdp verify`, `sdp status`, `sdp next`
+- **Prompt surfaces:** harness-native commands installed through `.claude/`, `.cursor/`, `.opencode/`, or `.codex/`
+
+For most contributors, the simplest local check is:
 
 ```bash
-# 1. Create a new feature
-@feature "Add user authentication"
-
-# 2. Design workstreams
-@design idea-auth
-
-# 3. Execute workstreams
-@build 00-001-01
-
-# 4. Review quality
-@review F01
-
-# 5. Deploy
-@deploy F01
+cd sdp-plugin
+go run ./cmd/sdp init --help
+go run ./cmd/sdp doctor --help
+go run ./cmd/sdp plan --help
 ```
 
-### Available Skills
+If you use prompt surfaces while developing:
 
-| Skill | Purpose |
-|-------|---------|
-| `@feature` | Plan new feature |
-| `@build` | Execute workstream |
-| `@review` | Quality review |
-| `@deploy` | Merge to production |
-| `@debug` | Debug issues |
-| `@issue` | Route bugs |
+- edit canonical prompt source in `prompts/`
+- treat Beads-backed queue flows as advanced, not required
+- remember that `sdp deploy` only records approval after merge
 
 ---
 
@@ -223,13 +211,10 @@ SDP includes AI-powered skills for common workflows. See [CLAUDE.md](CLAUDE.md) 
 bd ready
 
 # Start working on issue
-bd update sdp-xxx --status=in_progress
+bd update sdp-xxx --status in_progress
 
 # Close when done
 bd close sdp-xxx
-
-# Sync to remote
-bd sync
 ```
 
 ---

@@ -8,12 +8,14 @@ import (
 
 // PreflightResult contains preflight check results
 type PreflightResult struct {
-	ProjectType string   // "go", "node", "python", "mixed", "unknown"
-	HasSDP      bool     // .sdp directory exists
-	HasClaude   bool     // .claude directory exists
-	HasGit      bool     // .git directory exists
-	Conflicts   []string // Existing files that would be overwritten
-	Warnings    []string // Non-fatal issues
+	ProjectType         string   // "go", "node", "python", "mixed", "unknown"
+	HasSDP              bool     // .sdp directory exists
+	HasClaude           bool     // .claude directory exists
+	ManagedClaudeConfig bool     // .claude layout matches installer-managed SDP integration
+	HasGit              bool     // .git directory exists
+	Integrations        []string // Existing IDE integrations (.claude/.cursor/.opencode/.codex)
+	Conflicts           []string // Existing files that would be overwritten
+	Warnings            []string // Non-fatal issues
 }
 
 // RunPreflight runs all preflight checks
@@ -28,10 +30,12 @@ func RunPreflight() *PreflightResult {
 	// Check for existing SDP structure
 	result.HasSDP = dirExists(".sdp")
 	result.HasClaude = dirExists(".claude")
+	result.ManagedClaudeConfig = isManagedClaudeConfig()
 	result.HasGit = dirExists(".git")
+	result.Integrations = detectIDEIntegrations()
 
 	// Check for conflicts
-	result.Conflicts = checkConflicts()
+	result.Conflicts = checkConflicts(result.ManagedClaudeConfig)
 
 	// Add warnings
 	if !result.HasGit {
@@ -130,13 +134,59 @@ func dirExists(path string) bool {
 	return info.IsDir()
 }
 
-func checkConflicts() []string {
+func checkConflicts(managedClaude bool) []string {
 	conflicts := []string{}
 
 	// Check if .claude would overwrite anything
-	if _, err := os.Stat(".claude/settings.json"); err == nil {
-		conflicts = append(conflicts, ".claude/settings.json")
+	if !managedClaude {
+		if _, err := os.Stat(".claude/settings.json"); err == nil {
+			conflicts = append(conflicts, ".claude/settings.json")
+		}
 	}
 
 	return conflicts
+}
+
+func isManagedClaudeConfig() bool {
+	if !dirExists(".claude") {
+		return false
+	}
+	if !isSymlink(".claude/skills") || !isSymlink(".claude/agents") {
+		return false
+	}
+	if _, err := os.Stat(".claude/settings.json"); err != nil {
+		return false
+	}
+	if _, err := os.Stat(".claude/commands.json"); err != nil {
+		return false
+	}
+	if !dirExists(".claude/hooks") {
+		return false
+	}
+	if !dirExists(".claude/patterns") {
+		return false
+	}
+
+	return true
+}
+
+func detectIDEIntegrations() []string {
+	integrations := []string{}
+	candidates := []struct {
+		name string
+		path string
+	}{
+		{name: "claude", path: ".claude"},
+		{name: "cursor", path: ".cursor"},
+		{name: "opencode", path: ".opencode"},
+		{name: "codex", path: ".codex"},
+	}
+
+	for _, candidate := range candidates {
+		if dirExists(candidate.path) {
+			integrations = append(integrations, candidate.name)
+		}
+	}
+
+	return integrations
 }

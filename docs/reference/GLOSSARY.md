@@ -1,10 +1,12 @@
 # SDP Canonical Glossary
 
+> Historical reference. Terms below include older SDP iterations and may not match the current public CLI or onboarding flow. For current behavior, prefer `sdp <command> --help`, `docs/CLI_REFERENCE.md`, and `docs/PROTOCOL.md`.
+
 **Version:** 1.0
 **Last Updated:** 2026-01-29
 **Maintainer:** SDP Protocol Team
 
-This glossary provides canonical definitions for all SDP (Spec-Driven Protocol) terms, concepts, and conventions. It resolves naming conflicts and serves as the single source of truth for terminology.
+This glossary preserves terminology from older SDP iterations. It is useful for historical context, but it is not the primary source of truth for current CLI semantics or onboarding.
 
 ---
 

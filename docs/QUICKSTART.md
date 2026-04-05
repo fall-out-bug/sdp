@@ -1,112 +1,156 @@
 # SDP Quick Start
 
-Get from zero to your first feature in 5 minutes.
+Get from zero to a real first success in one repo.
+
+Use this guide when you are adopting SDP in your own project. If you are contributing to SDP itself, start with `DEVELOPMENT.md` and `CONTRIBUTING.md`.
+
+## 0. Pick the Right Mode
+
+| Mode | Start here when | Requires |
+|------|-----------------|----------|
+| Local Mode | You want the shortest path to a working setup | Supported IDE integration plus the `sdp` CLI |
+| Operator Mode | You already want a queue-backed workflow across sessions | Beads plus prompt-driven workstreams |
+
+**Start with Local Mode unless you already run Beads.** That is the current public happy path.
 
 ## 1. Install
 
-**Full project** (prompts + hooks + optional CLI): default install
+Default install adds prompts, hooks, and the optional CLI:
 
 ```bash
-# Into your project (auto-detects Claude Code, Cursor, OpenCode)
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 ```
 
-**Binary only** (CLI to ~/.local/bin):
+CLI only:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
 ```
 
-**Or: submodule**
+Vendored as a submodule:
 
 ```bash
 git submodule add https://github.com/fall-out-bug/sdp.git sdp
 ```
 
-Use the GitHub URL as the canonical submodule source. A local relative URL like `../sdp` is only a private convenience clone and will break reproducibility for other machines and CI.
+Supported integrations:
 
-Skills load from `sdp/.claude/skills/`, `sdp/.cursor/skills/`, or `sdp/.opencode/`.
+- `Claude Code`
+- `Cursor`
+- `OpenCode` / `Windsurf`
+- `Codex`
 
-## 2. Initialize
+If auto-detect misses your tool, rerun with `SDP_IDE=claude|cursor|opencode|codex`.
 
-```bash
-sdp init --auto    # Safe defaults, non-interactive
-# or
-sdp init --guided  # Interactive wizard
-```
+Use the public GitHub URL as the canonical submodule source. Do not point `.gitmodules` at a local sibling checkout such as `../sdp`.
 
-Creates `.sdp/config.yml`, guard rules, and IDE integration.
-
-*If you get "unknown flag: --auto", upgrade the CLI: `curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only`*
-
-## 3. Create a Feature
-
-**Discovery (planning):**
-
-```
-@feature "OpenCode plugin for beads visualization"
-```
-
-This runs:
-- `@idea` — Requirements gathering
-- `@design` — Workstream decomposition into `docs/workstreams/backlog/00-XXX-YY.md`
-
-**Delivery (implementation):**
-
-```
-@oneshot <feature-id>      # Autonomous: build all workstreams
-@review <feature-id>       # Multi-agent quality review
-@deploy <feature-id>      # Merge to main
-```
-
-Or step-by-step:
-
-```
-@build 00-001-01   # Single workstream with TDD
-@build 00-001-02
-@review <feature-id>
-@deploy <feature-id>
-```
-
-## 4. Verify
+## 2. Initialize the Project
 
 ```bash
-sdp verify 00-001-01   # Check workstream completion
-sdp status             # Project state
-sdp next               # Recommended next action
-sdp log show           # Evidence log
+sdp init --auto
 ```
 
-For a guided dry run of this flow:
+Interactive setup is also available:
+
+```bash
+sdp init --guided
+```
+
+`sdp init` creates `.sdp/config.yml`, `.sdp/guard-rules.yml`, and refreshes the IDE integration already present in the repo. If no supported integration exists yet, it falls back to `.claude/`.
+
+If your CLI is too old to support `--auto`, reinstall the binary:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
+```
+
+Then verify the environment:
+
+```bash
+sdp doctor
+```
+
+## 3. Get a First Success
+
+The fastest guided proof that your install works:
 
 ```bash
 sdp demo
 ```
 
-## 5. Optional: Beads
+The demo creates a temporary project and walks through:
 
-Task tracking for multi-session work:
+1. `sdp init --guided`
+2. `sdp doctor`
+3. `sdp status --text`
+
+If you want to skip the demo and use your real repo immediately, continue with the local CLI flow below.
+
+## 4. Plan and Execute in Local Mode
+
+Create workstreams from a feature description:
+
+```bash
+sdp plan "Add OAuth2"
+```
+
+Preview without writing:
+
+```bash
+sdp plan "Add OAuth2" --dry-run
+```
+
+Execute ready workstreams:
+
+```bash
+sdp apply --dry-run
+sdp apply
+```
+
+Execute one workstream directly:
+
+```bash
+sdp build 00-001-01
+```
+
+Verify and inspect:
+
+```bash
+sdp verify 00-001-01
+sdp status --text
+sdp next
+sdp log show
+```
+
+## 5. Advanced: Operator Mode with Beads
+
+Use this only if you want a live queue across sessions.
+
+Install Beads:
 
 ```bash
 brew tap beads-dev/tap && brew install beads
-bd ready               # Find available tasks
-bd create --title="..." # Create task
-bd close <id>          # Close task
 ```
 
-## Flow Summary
+Common queue commands:
 
+```bash
+bd ready
+bd create --title="..."
+bd close <id>
 ```
-@feature "X"  →  @oneshot <feature-id>  →  @review <feature-id>  →  @deploy <feature-id>
-     │                  │                │                │
-     ▼                  ▼                ▼                ▼
-  Workstreams      Execute WS       APPROVED?         Merge PR
-```
 
-**Done = @review APPROVED + @deploy completed.**
+Once Beads is in place, SDP also installs prompt surfaces such as `/feature`, `/build`, `/review`, and `/oneshot`. That mode assumes workstreams and operator discipline already exist; it is not required for a first run.
 
-## Next
+Important distinction:
 
-- [PROTOCOL.md](PROTOCOL.md) — Full specification
-- [MANIFESTO.md](MANIFESTO.md) — Vision and evidence
-- [reference/](reference/) — Commands, specs, glossary
+- `/deploy` is a prompt surface in the prompt bundle.
+- `sdp deploy` is a CLI command that records an approval event after merge.
+- `sdp deploy` does not merge branches or deploy infrastructure.
+
+## 6. What to Use Next
+
+- Use [CLI_REFERENCE.md](CLI_REFERENCE.md) for current command behavior.
+- Use [PROTOCOL.md](PROTOCOL.md) for the current protocol overview.
+- Use [reference/README.md](reference/README.md) for the reference index and legacy-doc status.
+- Use [MANIFESTO.md](MANIFESTO.md) for vision and rationale.

@@ -28,6 +28,7 @@ func metricsClassifyCmd() *cobra.Command {
   # Classify single event manually
   sdp metrics classify --id=evt-123 --type=type_error --notes="Missing import"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			initMetricsDir()
 			taxonomyPath := ".sdp/metrics/taxonomy.json"
 			taxonomy := metrics.NewTaxonomy(taxonomyPath)
 

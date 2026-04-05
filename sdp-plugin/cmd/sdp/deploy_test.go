@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,6 +70,19 @@ func TestDeployCmd_ApprovalEvent(t *testing.T) {
 // TestDeployCmd_DefaultValues tests deploy with default values
 func TestDeployCmd_DefaultValues(t *testing.T) {
 	evidence.ResetGlobalWriter()
+	originalResolveSHA := deployResolveSHA
+	originalResolveApprover := deployResolveApprover
+	deployResolveSHA = func() (string, error) {
+		return "deadbeefcafebabe", nil
+	}
+	deployResolveApprover = func() (string, error) {
+		return "Test Runner", nil
+	}
+	t.Cleanup(func() {
+		deployResolveSHA = originalResolveSHA
+		deployResolveApprover = originalResolveApprover
+	})
+
 	originalWd, _ := os.Getwd()
 	tmpDir := t.TempDir()
 
@@ -89,10 +103,15 @@ func TestDeployCmd_DefaultValues(t *testing.T) {
 	}
 
 	cmd := deployCmd()
-	// No flags set - should use defaults
-	// This will fail if git is not available, but we test the logic path
-	_ = cmd.RunE(cmd, []string{})
-	// Don't fail test on error since git may not be available in test env
+	output, err := captureDeployOutput(t, func() error {
+		return cmd.RunE(cmd, []string{})
+	})
+	if err != nil {
+		t.Fatalf("deployCmd() with defaults failed: %v", err)
+	}
+	if !strings.Contains(output, "Approval recorded: deadbee -> main (Test Runner)") {
+		t.Fatalf("deploy output missing resolved defaults:\n%s", output)
+	}
 }
 
 // TestDeployCmd_EvidenceDisabled tests deploy when evidence is disabled
@@ -143,4 +162,28 @@ func containsAll(s string, subs ...string) bool {
 		}
 	}
 	return true
+}
+
+func captureDeployOutput(t *testing.T, run func() error) (string, error) {
+	t.Helper()
+
+	oldStdout := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("pipe: %v", err)
+	}
+	os.Stdout = w
+
+	runErr := run()
+
+	if err := w.Close(); err != nil {
+		t.Fatalf("close writer: %v", err)
+	}
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	if _, err := buf.ReadFrom(r); err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+	return buf.String(), runErr
 }

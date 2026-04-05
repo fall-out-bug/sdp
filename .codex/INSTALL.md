@@ -8,19 +8,31 @@ Project skills source of truth lives in `prompts/skills/` (this repo). Tool fold
 
 ## Quick start
 
-1. Install SDP CLI (from repo root):
+1. Install SDP into your project with Codex integration:
    ```bash
-   cd sdp-plugin && CGO_ENABLED=0 go build -o sdp ./cmd/sdp && mv sdp ../
+   SDP_IDE=codex curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
    ```
-2. Ensure `sdp` is on PATH.
+2. Run project init:
+   ```bash
+   sdp init --auto
+   ```
 3. Use `@build 00-XXX-YY` or `sdp plan`, `sdp apply`, `sdp log trace` per [CLAUDE.md](../CLAUDE.md).
+
+If you want the CLI only, use:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
+```
 
 ## Directory layout
 
 ```
 .codex/
 ├── INSTALL.md   # This file (read by Codex)
-└── skills/      # Project-level symlinks to prompts/skills
+├── agents/      # Project-level agent symlink
+└── skills/
+    ├── README.md
+    └── sdp/     # Project-level skills sourced from prompts/skills
 
 ~/.codex/
 └── skills/      # User-level skills (persistent)
@@ -29,3 +41,7 @@ Project skills source of truth lives in `prompts/skills/` (this repo). Tool fold
 ## Beads (optional)
 
 If Beads is installed (`bd --version`), use `bd ready`, `bd update`, `bd close` for task tracking. See [AGENTS.md](../AGENTS.md).
+
+## Updates
+
+Rerun the same installer command to refresh the vendored `sdp/` checkout and managed Codex links after upstream changes.

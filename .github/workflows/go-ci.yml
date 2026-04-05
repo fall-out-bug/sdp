@@ -90,6 +90,12 @@ jobs:
           set -euo pipefail
           ../scripts/test-root-installer.sh
 
+      - name: Project installer regression check
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh ../scripts/test-install-project.sh
+
       - name: Check for contracts
         id: check_contracts
         run: |

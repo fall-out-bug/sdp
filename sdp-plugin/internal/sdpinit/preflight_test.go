@@ -203,7 +203,7 @@ func TestCheckConflicts(t *testing.T) {
 	defer os.Chdir(oldWd)
 
 	// No conflicts
-	conflicts := checkConflicts()
+	conflicts := checkConflicts(false)
 	if len(conflicts) != 0 {
 		t.Errorf("Expected no conflicts, got %v", conflicts)
 	}
@@ -212,9 +212,44 @@ func TestCheckConflicts(t *testing.T) {
 	os.MkdirAll(".claude", 0o755)
 	os.WriteFile(".claude/settings.json", []byte{}, 0o644)
 
-	conflicts = checkConflicts()
+	conflicts = checkConflicts(false)
 	if len(conflicts) != 1 {
 		t.Errorf("Expected 1 conflict, got %v", conflicts)
+	}
+}
+
+func TestCheckConflicts_ManagedClaudeInstallerLayout(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	if err := os.MkdirAll(".claude/hooks", 0o755); err != nil {
+		t.Fatalf("mkdir hooks: %v", err)
+	}
+	if err := os.MkdirAll(".claude/patterns", 0o755); err != nil {
+		t.Fatalf("mkdir patterns: %v", err)
+	}
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write settings: %v", err)
+	}
+	if err := os.WriteFile(".claude/commands.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write commands: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/skills", ".claude/skills"); err != nil {
+		t.Fatalf("symlink skills: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/agents", ".claude/agents"); err != nil {
+		t.Fatalf("symlink agents: %v", err)
+	}
+
+	if !isManagedClaudeConfig() {
+		t.Fatal("expected managed Claude installer layout to be detected")
+	}
+
+	conflicts := checkConflicts(true)
+	if len(conflicts) != 0 {
+		t.Fatalf("expected no conflicts for managed Claude config, got %v", conflicts)
 	}
 }
 
@@ -277,5 +312,62 @@ func TestPreflightResult_Warnings(t *testing.T) {
 	}
 	if hasGitWarning {
 		t.Error("Should not have git warning when .git exists")
+	}
+}
+
+func TestRunPreflight_ManagedClaudeConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	if err := os.MkdirAll(".claude/hooks", 0o755); err != nil {
+		t.Fatalf("mkdir hooks: %v", err)
+	}
+	if err := os.MkdirAll(".claude/patterns", 0o755); err != nil {
+		t.Fatalf("mkdir patterns: %v", err)
+	}
+	if err := os.WriteFile(".claude/settings.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write settings: %v", err)
+	}
+	if err := os.WriteFile(".claude/commands.json", []byte("{}"), 0o644); err != nil {
+		t.Fatalf("write commands: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/skills", ".claude/skills"); err != nil {
+		t.Fatalf("symlink skills: %v", err)
+	}
+	if err := os.Symlink("../sdp/prompts/agents", ".claude/agents"); err != nil {
+		t.Fatalf("symlink agents: %v", err)
+	}
+
+	result := RunPreflight()
+	if !result.ManagedClaudeConfig {
+		t.Fatal("expected ManagedClaudeConfig=true")
+	}
+	if len(result.Conflicts) != 0 {
+		t.Fatalf("expected no conflicts, got %v", result.Conflicts)
+	}
+}
+
+func TestPreflightResult_Integrations(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	if len(RunPreflight().Integrations) != 0 {
+		t.Fatal("Expected no integrations in empty temp dir")
+	}
+
+	if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/skills: %v", err)
+	}
+	if err := os.MkdirAll(".codex/agents", 0o755); err != nil {
+		t.Fatalf("mkdir .codex/agents: %v", err)
+	}
+
+	result := RunPreflight()
+	if len(result.Integrations) != 1 || result.Integrations[0] != "codex" {
+		t.Fatalf("Integrations = %v, want [codex]", result.Integrations)
 	}
 }
