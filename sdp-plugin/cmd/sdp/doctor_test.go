@@ -1,76 +1,82 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/fall-out-bug/sdp/internal/doctor"
 )
 
 // TestDoctorCmd tests the doctor command
 func TestDoctorCmd(t *testing.T) {
-	// Create .claude directory for doctor checks
-	tmpDir := t.TempDir()
-	for _, dir := range []string{"skills", "agents", "validators"} {
-		if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", dir), 0o755); err != nil {
-			t.Fatalf("Failed to create .claude dir: %v", err)
+	originalRunWithOptions := doctorRunWithOptions
+	doctorRunWithOptions = func(opts doctor.RunOptions) []doctor.CheckResult {
+		if opts.DriftCheck {
+			t.Fatal("doctor command unexpectedly enabled drift checks")
+		}
+		return []doctor.CheckResult{
+			{Name: "Git", Status: "ok", Message: "Installed (git version test)"},
+			{Name: "IDE integration", Status: "ok", Message: "Found: Codex"},
 		}
 	}
-
-	originalWd, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(originalWd) })
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("Failed to chdir: %v", err)
-	}
+	t.Cleanup(func() {
+		doctorRunWithOptions = originalRunWithOptions
+	})
 
 	cmd := doctorCmd()
 
-	// Test command structure
 	if cmd.Use != "doctor" {
 		t.Errorf("doctorCmd() has wrong use: %s", cmd.Use)
 	}
-
-	// Test flag exists
 	if cmd.Flags().Lookup("drift") == nil {
 		t.Error("doctorCmd() missing --drift flag")
 	}
 
-	// Test that command runs without crashing
-	err := cmd.RunE(cmd, []string{})
-	// Should succeed (all required checks should pass with .claude present)
+	output, err := captureCommandOutput(t, func() error {
+		return cmd.RunE(cmd, []string{})
+	})
 	if err != nil {
 		t.Errorf("doctorCmd() failed: %v", err)
+	}
+	for _, snippet := range []string{"SDP Environment Check", "✓ Git", "✓ IDE integration", "All required checks passed!"} {
+		if !strings.Contains(output, snippet) {
+			t.Fatalf("doctor output missing %q:\n%s", snippet, output)
+		}
 	}
 }
 
 // TestDoctorCmdWithDriftFlag tests the doctor command with drift check enabled
 func TestDoctorCmdWithDriftFlag(t *testing.T) {
-	// Create .claude directory for doctor checks
-	tmpDir := t.TempDir()
-	for _, dir := range []string{"skills", "agents", "validators"} {
-		if err := os.MkdirAll(filepath.Join(tmpDir, ".claude", dir), 0o755); err != nil {
-			t.Fatalf("Failed to create .claude dir: %v", err)
+	originalRunWithOptions := doctorRunWithOptions
+	doctorRunWithOptions = func(opts doctor.RunOptions) []doctor.CheckResult {
+		if !opts.DriftCheck {
+			t.Fatal("doctor command did not pass drift flag to runner")
+		}
+		return []doctor.CheckResult{
+			{Name: "Git", Status: "ok", Message: "Installed (git version test)"},
+			{Name: "Drift Detection", Status: "ok", Message: "No recent workstreams to check"},
 		}
 	}
-
-	originalWd, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(originalWd) })
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("Failed to chdir: %v", err)
-	}
+	t.Cleanup(func() {
+		doctorRunWithOptions = originalRunWithOptions
+	})
 
 	cmd := doctorCmd()
-
-	// Set drift flag
 	if err := cmd.Flags().Set("drift", "true"); err != nil {
 		t.Fatalf("Failed to set drift flag: %v", err)
 	}
 
-	// Test that command runs without crashing
-	err := cmd.RunE(cmd, []string{})
-	// Should succeed (all required checks should pass with .claude present)
+	output, err := captureCommandOutput(t, func() error {
+		return cmd.RunE(cmd, []string{})
+	})
 	if err != nil {
 		t.Errorf("doctorCmd() with drift failed: %v", err)
+	}
+	if !strings.Contains(output, "✓ Drift Detection") {
+		t.Fatalf("doctor drift output missing drift result:\n%s", output)
 	}
 }
 
@@ -143,4 +149,28 @@ func TestDoctorHooksProvenanceRunE_MissingHook(t *testing.T) {
 	if !strings.Contains(err.Error(), "failed") {
 		t.Fatalf("unexpected error: %v", err)
 	}
+}
+
+func captureCommandOutput(t *testing.T, run func() error) (string, error) {
+	t.Helper()
+
+	oldStdout := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("pipe: %v", err)
+	}
+	os.Stdout = w
+
+	runErr := run()
+
+	if err := w.Close(); err != nil {
+		t.Fatalf("close writer: %v", err)
+	}
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	if _, err := buf.ReadFrom(r); err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+	return buf.String(), runErr
 }

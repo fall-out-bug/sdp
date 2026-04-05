@@ -7,6 +7,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	doctorRunWithOptions = doctor.RunWithOptions
+	doctorRunWithRepair  = doctor.RunWithRepair
+	doctorRunDeepChecks  = doctor.RunDeepChecks
+	doctorHasUnfixable   = doctor.HasUnfixableErrors
+	doctorMigrate        = doctor.MigrateConfig
+	doctorRollback       = doctor.RollbackMigration
+)
+
 func doctorCmd() *cobra.Command {
 	var driftCheck bool
 	var repair bool
@@ -36,7 +45,7 @@ Modes:
 			// Handle rollback first
 			if rollback != "" {
 				fmt.Println("Rolling back config...")
-				if err := doctor.RollbackMigration(rollback); err != nil {
+				if err := doctorRollback(rollback); err != nil {
 					return fmt.Errorf("rollback failed: %w", err)
 				}
 				fmt.Printf("✓ Config restored from %s\n", rollback)
@@ -46,7 +55,7 @@ Modes:
 			// Handle migration
 			if migrate {
 				fmt.Println("Migrating config...")
-				m, err := doctor.MigrateConfig(dryRun)
+				m, err := doctorMigrate(dryRun)
 				if err != nil {
 					return fmt.Errorf("migration failed: %w", err)
 				}
@@ -66,7 +75,7 @@ Modes:
 			opts := doctor.RunOptions{
 				DriftCheck: driftCheck,
 			}
-			results := doctor.RunWithOptions(opts)
+			results := doctorRunWithOptions(opts)
 
 			// Print results
 			fmt.Println("SDP Environment Check")
@@ -90,7 +99,7 @@ Modes:
 			if repair {
 				fmt.Println("\nRepair Mode")
 				fmt.Println("===========")
-				actions := doctor.RunWithRepair()
+				actions := doctorRunWithRepair()
 				for _, a := range actions {
 					icon := "✓"
 					if a.Status == "failed" || a.Status == "manual" {
@@ -102,7 +111,7 @@ Modes:
 					fmt.Printf("    %s\n\n", a.Message)
 				}
 
-				if doctor.HasUnfixableErrors(actions) {
+				if doctorHasUnfixable(actions) {
 					return fmt.Errorf("some issues require manual intervention")
 				}
 				fmt.Println("All repairable issues fixed!")
@@ -112,7 +121,7 @@ Modes:
 			if deep {
 				fmt.Println("\nDeep Diagnostics")
 				fmt.Println("================")
-				deepResults := doctor.RunDeepChecks()
+				deepResults := doctorRunDeepChecks()
 				for _, r := range deepResults {
 					icon := "✓"
 					if r.Status == "warning" {
