@@ -321,6 +321,39 @@ fi
 	}
 }
 
+func TestReadyWithoutDatabaseReturnsEmptySlice(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	bdScript := `#!/bin/bash
+if [ "$1" = "ready" ]; then
+	echo "Error: no beads database found" >&2
+	echo "Hint: run 'bd init' to create a database in the current directory" >&2
+	exit 1
+fi
+`
+	bdPath := filepath.Join(tmpDir, "bd")
+	if err := os.WriteFile(bdPath, []byte(bdScript), 0755); err != nil {
+		t.Fatalf("Failed to create fake bd: %v", err)
+	}
+
+	oldPath := os.Getenv("PATH")
+	t.Cleanup(func() { os.Setenv("PATH", oldPath) })
+	os.Setenv("PATH", tmpDir+string(os.PathListSeparator)+oldPath)
+
+	client, err := NewClient()
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	tasks, err := client.Ready()
+	if err != nil {
+		t.Fatalf("Ready() should treat missing database as empty, got: %v", err)
+	}
+	if len(tasks) != 0 {
+		t.Fatalf("Expected 0 tasks, got %d", len(tasks))
+	}
+}
+
 // TestNewClientWithFakeBeads tests NewClient detects fake beads
 func TestNewClientWithFakeBeads(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary
