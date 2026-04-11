@@ -86,7 +86,27 @@ The demo creates a temporary project and walks through:
 
 If you want to skip the demo and use your real repo immediately, continue with the local CLI flow below.
 
-## 4. Plan and Execute in Local Mode
+## 4. Two Phases: Discovery and Delivery
+
+SDP works in two phases. Discovery is optional for simple tasks; Delivery is always used.
+
+**Discovery** — research and shape an idea before building:
+
+```bash
+# Research your idea: frame → hypothesize → scan → validate → GO/PIVOT/KILL
+sdp discover "your feature idea"
+
+# For existing codebases (brownfield):
+sdp architect analyze
+```
+
+**Delivery** — implement with gate enforcement:
+
+```bash
+@feature "Add OAuth2"    # or @oneshot for simple tasks
+```
+
+## 5. Plan and Execute in Local Mode
 
 Create workstreams from a feature description:
 

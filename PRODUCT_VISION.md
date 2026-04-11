@@ -1,17 +1,19 @@
 # SDP — Product Vision
 
-> **Updated:** 2026-02-22
-> **Version:** 4.0 (Evidence Layer for the OpenCode Ecosystem)
+> **Updated:** 2026-04-11
+> **Version:** 5.0 (AI PDLC + SDLC)
 
 ## Mission
 
-Add the missing layer to AI agent tooling: **structured evidence**.
-
-The OpenCode ecosystem has orchestration, policy, session management, and parallel execution. It has zero tools for proving what agents did, why, and whether the work was verified. SDP fills that gap.
+Take a software idea from conception to deployed feature through structured AI-driven phases — with agents, gates, and verifiable evidence at every step.
 
 ## What SDP Is
 
-**A protocol and evidence layer**, not a platform.
+**An AI-managed platform for the full development lifecycle** — Product Development (PDLC) + Software Development (SDLC).
+
+Two first-class phases:
+- **Discovery** — research, shaping, scope decision via LLM pipeline → validated spec
+- **Delivery** — implementation through agentloop FSM with gate enforcement → deployed code with evidence
 
 - **The Protocol** — prompts, JSON schemas, shell hooks that structure agent work into phases (Intent → Plan → Execute → Verify → Review → Publish). Language-agnostic. Works with OpenCode, Claude Code, Cursor.
 - **The Evidence Envelope** — a strict 9-section JSON document (intent, plan, execution, verification, review, risk, boundary, provenance, trace) that every agent run produces. Validated by schema. Hash-chained for tamper detection.
