@@ -3,8 +3,9 @@ name: build
 description: Execute ONE workstream with TDD, guard enforcement, and ws-verdict output
 cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
-version: 8.2.0
+version: 8.3.0
 changes:
+  - 8.3.0: Content injection pattern — orchestrator pre-reads scope files, subagents never call Read (fixes GLM hallucination)
   - 8.2.0: Add @go-modern guidance for Go implementation and review
   - Evidence + checkpoint commit step after sdp-orchestrate --advance (step 3b)
   - Post-build bd close for each bead in WS frontmatter; batch syntax /build 00-053-16..25
@@ -59,9 +60,23 @@ fi
 
 When user invokes `@build 00-067-01`:
 
-1. **Setup:**
+1. **Setup + content pre-load:**
 ```bash
 sdp guard activate 00-067-01
+```
+Then **before spawning any subagents**, load scope file contents yourself (Claude foreground reads reliably; subagents on non-Claude runtimes hallucinate `Read` results):
+- Read the WS file: `docs/workstreams/backlog/{ws-id}.md`
+- Extract `## Scope Files` section → list of paths
+- Call `Read` tool on each path → collect real content
+- Build a `<FILE_CONTENTS>` block and pass it into every subagent prompt
+
+```
+<FILE_CONTENTS>
+FILE: internal/foo/bar.go
+```go
+[actual content from Read tool]
+```
+</FILE_CONTENTS>
 ```
 
 2. **TDD cycle** (spawn subagents if available, else do yourself):
@@ -96,9 +111,11 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 
 ## Subagent Tasks (if spawning)
 
-**Implementer:** TDD per AC. Output verdict + evidence.
+**Content rule:** Existing file contents are provided in `<FILE_CONTENTS>` (loaded in step 1). **DO NOT call `Read`** on existing files — it hallucates in non-Claude runtimes. Use `Write`/`Edit`/`Bash` freely for implementation.
 
-**Spec Reviewer:** Verify code matches spec. Output ac_evidence per [ws-verdict.schema.json](../../schema/ws-verdict.schema.json): `{"ac":"AC text","met": true|false,"evidence":"file:line or test name"}`.
+**Implementer:** TDD per AC. Analyse provided `<FILE_CONTENTS>` for existing patterns. Output verdict + evidence.
+
+**Spec Reviewer:** Verify code matches spec. Reference `<FILE_CONTENTS>` for evidence. Output ac_evidence per [ws-verdict.schema.json](../../schema/ws-verdict.schema.json): `{"ac":"AC text","met": true|false,"evidence":"file:line or test name"}`.
 
 **Quality Reviewer:** Coverage >= 80%, LOC <= 200, lint. For Go code, also check modern stdlib usage via `@go-modern`. Output verdict.
 

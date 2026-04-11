@@ -2,8 +2,9 @@
 name: review
 description: Multi-agent quality review (QA + Security + DevOps + SRE + TechLead + Documentation + PromptOps)
 cli: sdp quality all
-version: 14.3.0
+version: 14.4.0
 changes:
+  - "14.4.0: Content injection pattern — orchestrator pre-reads files, subagents never call Read (fixes GLM hallucination)"
   - "14.3.0: Add @go-modern checks for Go review surfaces"
   - "14.2.0: Handoff block when CHANGES_REQUESTED"
   - "14.1.0: Language-agnostic (platform-agnostic spawn, agents/ path)"
@@ -23,15 +24,30 @@ Comprehensive multi-agent quality review.
 When user invokes `@review F{XX}`:
 
 1. **Run CLI:** `sdp quality all`
-2. **Spawn 7 subagents IN PARALLEL** (use your platform's subagent spawn). **DO NOT skip.** CLI is basic; full review needs subagents.
+2. **Load file contents (YOU, before spawning subagents):**
+   Subagents using non-Claude runtimes hallucinate `Read` tool results — they predict plausible-but-wrong file contents based on filenames and context. The orchestrator (Claude foreground) reads reliably.
+   - Find scope: read the WS file(s) for this feature, extract `## Scope Files`
+   - For each file: call the `Read` tool **yourself** (not the subagents)
+   - Format into a `<FILE_CONTENTS>` block; include it verbatim in **every** subagent prompt:
+   ```
+   <FILE_CONTENTS>
+   FILE: internal/foo/bar.go
+   ```go
+   [actual content from Read tool]
+   ```
+   </FILE_CONTENTS>
+   ```
+3. **Spawn 7 subagents IN PARALLEL** (use your platform's subagent spawn). **DO NOT skip.** CLI is basic; full review needs subagents.
 
 **Roles:** qa, security, devops, sre, techlead, docs, promptops
+
+**Content rule for all subagents:** File contents are in `<FILE_CONTENTS>` above. **DO NOT call `Read`** — it hallucates in non-Claude runtimes. Use `Bash` only for commands with real side effects (`go build`, `go test`, `grep`). If Read tool is unavailable, that is expected — analyse the provided content.
 
 **Per-subagent task template** (replace F{XX}, round-N, {role}):
 
 **5-step evaluation structure** — complete in order:
 
-1. **SCOPE:** What files/packages does this feature touch? (list from checkpoint or scope files)
+1. **SCOPE:** Files/packages this feature touches — already listed in `<FILE_CONTENTS>` above.
 2. **RISK MAP:** For your domain ({role}), what are the top 3 risk areas in this scope?
 3. **EVIDENCE:** For each risk area, what did you find? (file:line, test name, config entry)
 4. **SEVERITY:** Classify each finding. P0 = exploitable in production. P1 = breaks on edge case. P2 = maintenance debt. P3 = style.
