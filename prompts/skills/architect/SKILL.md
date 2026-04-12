@@ -16,28 +16,46 @@ The `sdp architect` CLI extracts structural data. **You provide the understandin
 
 Follow these steps in order. Do not skip steps. Each step has a verification gate — do not proceed until the gate passes.
 
-### Step 1: Automated Extraction (2-5 min)
+### Step 1: Structural Extraction (2-5 min)
 
-Run CLI commands to get structural data. Use `--section` to keep output manageable.
+Try `sdp architect` CLI first. If it's unavailable, use the manual fallback — both produce equivalent data.
 
+**Option A — CLI (if `sdp` binary is available):**
 ```bash
-# 1a. Summary — orient yourself first
 sdp architect analyze --no-llm --tier 2 --section summary /path/to/repo
+sdp architect c4 --level 1 /path/to/repo
+sdp architect c4 --level 2 /path/to/repo
+```
+Flags go BEFORE the repo path.
 
-# 1b. C4 diagrams
-sdp architect c4 --level 1 /path/to/repo   # System context (L1)
-sdp architect c4 --level 2 /path/to/repo   # Containers (L2)
+**Option B — Manual fallback (works everywhere):**
+Run these commands via Bash to collect the same structural data:
+```bash
+# File count and LOC
+find /path/to/repo -type f \( -name "*.go" -o -name "*.java" -o -name "*.scala" -o -name "*.py" -o -name "*.ts" -o -name "*.js" -o -name "*.rs" -o -name "*.rb" -o -name "*.c" -o -name "*.cpp" -o -name "*.h" \) | head -20000 | wc -l
+find /path/to/repo -type f \( -name "*.go" -o -name "*.java" -o -name "*.scala" -o -name "*.py" -o -name "*.ts" \) | head -20000 | xargs wc -l 2>/dev/null | tail -1
 
-# 1c. Model data (only if you need container/relationship details)
-sdp architect analyze --no-llm --tier 2 --section model --format json /path/to/repo
+# Language breakdown (top extensions by file count)
+find /path/to/repo -type f -name "*.*" | grep -v node_modules | grep -v vendor | grep -v .git | sed 's/.*\.//' | sort | uniq -c | sort -rn | head -15
 
-# 1d. Report data (patterns, risks, styles)
-sdp architect analyze --no-llm --tier 2 --section report --format json /path/to/repo
+# Build system detection
+ls /path/to/repo/{pom.xml,build.gradle,build.sbt,go.mod,package.json,Cargo.toml,Makefile,CMakeLists.txt,pyproject.toml,setup.py} 2>/dev/null
+
+# Module boundaries (Maven/Gradle subprojects)
+find /path/to/repo -name "pom.xml" -not -path "*/target/*" | head -60
+find /path/to/repo -name "build.gradle" -o -name "build.gradle.kts" | head -30
+find /path/to/repo -name "build.sbt" | head -5
+
+# Infrastructure files
+find /path/to/repo -name "Dockerfile" -o -name "docker-compose*.yml" -o -name "*.tf" | head -20
+find /path/to/repo -path "*/.github/workflows/*.yml" | head -20
+find /path/to/repo -name "*.proto" | head -20
+
+# API specs
+find /path/to/repo -name "openapi*.yaml" -o -name "openapi*.json" -o -name "swagger*.yaml" | head -10
 ```
 
-**Flags go BEFORE the repo path** (Go `flag` requirement).
-
-**Gate**: You have file count, LOC, languages, module count, container count, and at least L1 diagram. If CLI fails or returns empty, fall back to manual exploration in Step 2.
+**Gate**: You have file count, LOC, languages, build system, and module list. If you're missing any, the deep-dive agents in Step 2 will fill gaps.
 
 **Evidence tag**: Everything from this step is `[EXTRACTED]` — machine-verified structural data.
 
@@ -57,15 +75,17 @@ What's the deployment model (library, service, CLI, platform)?
 Report in <10 lines.
 ```
 
-**Agent B — Execution Architecture:**
+**Agent B — Execution Architecture & Structure:**
 ```
-Find the main entry point(s) in /path/to/repo:
-- Look for main(), Application, App, Server, cli, cmd/ directories
-- Trace the startup path: what gets initialized, in what order
-- Identify the core abstractions (3-5 key interfaces/classes that define the domain model)
-- What's the execution model: request/response, pipeline, event-driven, batch, actor?
-Find the 5 largest files by code (not generated): these are likely god objects.
-Report: entry points, core abstractions with file paths, execution model, top 5 largest files.
+In /path/to/repo:
+1. Find main entry point(s): main(), Application, App, Server, cli, cmd/ directories
+2. Trace the startup path: what gets initialized, in what order
+3. Identify core abstractions (3-5 key interfaces/classes that define the domain model)
+4. What's the execution model: request/response, pipeline, event-driven, batch, actor?
+5. Find the 5 largest source files (not generated/vendored) — these are likely god objects.
+   Use: find . -name "*.{go,java,scala,py,ts}" -not -path "*/vendor/*" -not -path "*/node_modules/*" -exec wc -l {} + | sort -rn | head -10
+6. If there are submodules/subprojects, identify inter-module dependencies.
+Report: entry points, core abstractions with file paths, execution model, top 5 largest files with LOC.
 ```
 
 **Agent C — Patterns & Decisions:**
