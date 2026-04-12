@@ -60,12 +60,17 @@ sdp init --auto
 | Skill | Purpose |
 |-------|---------|
 | `@vision` | Strategic planning |
-| `@feature` | Feature planning (→ workstreams) |
+| `@feature` | Feature planning (→ workstream tree) |
 | `@oneshot` | Autonomous execution |
-| `@build` | Single workstream (TDD) |
+| `@build` | Single executable leaf workstream (TDD) |
 | `@review` | Multi-agent quality review |
 | `@deploy` | Merge to main |
 | `@debug` / `@hotfix` / `@bugfix` | Debug flows |
+
+`@build` targets one executable `leaf` workstream. Aggregate/container
+workstreams are planning and roll-up nodes, not direct execution targets.
+`@oneshot` resolves ready leaf workstreams from the feature graph and executes
+them in dependency order.
 
 ## Optional
 

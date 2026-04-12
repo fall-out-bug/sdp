@@ -1,6 +1,6 @@
 ---
 name: feature
-description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstreams)
+description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstream tree)
 version: 8.0.0
 depends_on: "@discovery v1"
 changes:
@@ -43,14 +43,29 @@ For each deliverable in the feature, create a workstream file:
 docs/workstreams/backlog/00-FFF-SS.md
 ```
 
+Use one of two shapes:
+
+- **Leaf workstream** — directly executable contract slice
+- **Aggregate workstream** — non-executable container or roll-up over `2+` leaf workstreams
+
+Only leaf workstreams are direct `@build` targets.
+
 **Workstream file format:**
 
 ```markdown
-# 00-FFF-SS: Feature Name — Step Description
+---
+ws_id: 00-FFF-SS
+feature_id: FFFF
+status: open
+priority: P1
+size: M
+depends_on: []
+ws_kind: leaf|aggregate
+parent_ws_id: null|00-FFF-SS
+dispatch_lifecycle: active
+---
 
-Feature: FFFF (sdp_dev-XXXX)
-Phase: N
-Status: Backlog
+# 00-FFF-SS: Feature Name — Step Description
 
 ## Goal
 
@@ -61,9 +76,10 @@ One paragraph: what this workstream does and why.
 - path/to/file/or/dir (exact files or directory prefixes this WS touches)
 - ...
 
-## Dependencies
+## Beads
 
-- 00-FFF-S1: prior workstream (if any)
+- primary: sdplab-XXXX      # leaf only
+- finding: sdplab-YYYY      # optional on leaf or aggregate
 
 ## Acceptance Criteria
 
@@ -73,9 +89,16 @@ One paragraph: what this workstream does and why.
 - [ ] go test ./... passes
 ```
 
+Rules:
+
+- `aggregate` must not have a `primary` Beads issue
+- `leaf` may have one open `primary`
+- use `parent_ws_id` only when a leaf belongs to an aggregate
+- maximum nesting depth is one aggregate layer
+
 ### Step C: Create Beads Issues
 
-For each workstream created:
+For each executable leaf workstream created:
 ```bash
 bd create --title="WS FFF-SS: Short title" --type=task
 ```
@@ -85,12 +108,15 @@ Update `.beads-sdp-mapping.jsonl`:
 {"sdp_id":"00-FFF-SS","beads_id":"sdp_dev-XXXX","updated_at":"2026-..."}
 ```
 
-### Step D: Validate Counts
+Aggregate workstreams do not get a `primary` execution issue. If an aggregate needs
+tracking for roll-up risk, use a `finding` issue instead.
+
+### Step D: Validate Shapes
 
 ```bash
-echo "Mapping: $(wc -l < .beads-sdp-mapping.jsonl)"
-echo "Backlog:  $(ls docs/workstreams/backlog/*.md | wc -l)"
-# Must be equal
+echo "Leafs with primary: $(rg -l \"^- primary:\" docs/workstreams/backlog/00-FFF-*.md | wc -l)"
+echo "Mappings:           $(rg -c '\"sdp_id\":\"00-FFF-' .beads-sdp-mapping.jsonl)"
+# Primary mappings must match executable leaf workstreams, not total backlog files
 ```
 
 ### Step E: Report
@@ -99,7 +125,7 @@ Output:
 - Feature ID + number of workstreams created
 - Workstream file names
 - Beads issue IDs
-- Ready-to-run command: `@build 00-FFF-01` or `@oneshot F0FF`
+- Ready-to-run command: first leaf `@build 00-FFF-01` or `@oneshot F0FF`
 
 ---
 
@@ -138,7 +164,8 @@ Read scope files. grep/rg for conflicts. Categorize: FILE CONFLICT, DATA BOUNDAR
 
 ### Step 4: Verify Outputs
 
-Check discovery brief, idea spec, ux output, workstreams exist.
+Check discovery brief, idea spec, ux output, workstreams exist, and that direct
+execution targets are leaf workstreams rather than aggregates.
 
 ---
 
@@ -156,5 +183,5 @@ The user is only asked to annotate if they want to (not required).
 - @idea — Requirements
 - @ux — UX research
 - @design — Workstream planning
-- @build — Execute single workstream
-- @oneshot — Execute all workstreams for a feature
+- @build — Execute single executable leaf workstream
+- @oneshot — Execute all ready leaf workstreams for a feature

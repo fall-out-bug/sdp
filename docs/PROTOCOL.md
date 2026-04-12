@@ -1,6 +1,6 @@
 # SDP: Spec-Driven Protocol
 
-**Workstream-driven development** for AI agents with multi-agent coordination.
+**Workstream-driven development** for AI agents with an explicit leaf execution boundary.
 
 ---
 
@@ -43,7 +43,7 @@ SDP is designed as a multi-level product. Each level builds on the previous, but
 Skills are LLM-agnostic descriptions of workflows:
 
 ```
-@build 00-001-01    # Execute workstream with TDD
+@build 00-001-01    # Execute executable leaf workstream with TDD
 @review <feature-id>        # Multi-agent quality review
 @oneshot <feature-id>       # Autonomous feature execution
 @deploy <feature-id>        # Create PR and merge
@@ -61,7 +61,8 @@ bd close sdp-xxx
 bd sync
 ```
 
-Skills reference beads IDs directly: `@build sdp-xxx`
+Skills target workstream IDs. Runtime binds executable leaf workstreams to their
+live Beads issues.
 
 ---
 
@@ -77,7 +78,7 @@ go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
 # Plan workstreams
 @design idea-auth
 
-# Execute workstream
+# Execute executable leaf workstream
 @build 00-001-01
 
 # Or execute all autonomously
@@ -100,7 +101,14 @@ go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
 |-------|-------|------|---------|
 | **Release** | Product milestone | 10-30 Features | R1: Submissions E2E |
 | **Feature** | Major feature | 5-30 Workstreams | F24: Unified Workflow |
-| **Workstream** | Atomic task | SMALL/MEDIUM/LARGE | WS-060: Domain Model |
+| **Aggregate Workstream** | Non-executable container or roll-up | 2+ child leaves | WS-060: API Contract Roll-up |
+| **Leaf Workstream** | Atomic executable task | SMALL/MEDIUM/LARGE | WS-061: Domain Model |
+
+Hard rule:
+
+- only `leaf` workstreams are executable
+- aggregate workstreams exist for decomposition and roll-up, not direct dispatch
+- maximum nesting depth is one aggregate layer
 
 ### Workstream Size
 
@@ -128,7 +136,7 @@ go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
 
 ## Quality Gates
 
-Every workstream must pass:
+Every executable leaf workstream must pass:
 
 ```bash
 # Test coverage ≥80%
@@ -191,7 +199,7 @@ from sdp.unified.agent.spawner import AgentSpawner, AgentConfig
 spawner = AgentSpawner()
 builder = spawner.spawn_agent(AgentConfig(
     name="builder",
-    prompt="Execute workstreams with TDD...",
+    prompt="Execute executable leaf workstreams with TDD...",
 ))
 
 # Send messages
@@ -214,27 +222,22 @@ from sdp.beads.models import BeadsTaskCreate, BeadsStatus
 # Create client
 client = create_beads_client(use_mock=True)
 
-# Create feature
-feature = client.create_task(BeadsTaskCreate(
-    title="User Authentication",
-    description="Add OAuth2 login flow",
+# Create execution issues for leaf workstreams.
+# Workstream topology still lives in the SDP workstream files, not in Beads.
+leaf_issue_1 = client.create_task(BeadsTaskCreate(
+    title="WS-061: Domain model",
+    description="Primary execution issue for executable leaf workstream",
 ))
-
-# Decompose into workstreams
-ws1 = client.create_task(BeadsTaskCreate(
-    title="Domain model",
-    parent_id=feature.id,
-))
-ws2 = client.create_task(BeadsTaskCreate(
-    title="Database schema",
-    parent_id=feature.id,
+leaf_issue_2 = client.create_task(BeadsTaskCreate(
+    title="WS-062: Database schema",
+    description="Primary execution issue for executable leaf workstream",
 ))
 
 # Add dependency
-client.add_dependency(ws2.id, ws1.id, dep_type="blocks")
+client.add_dependency(leaf_issue_2.id, leaf_issue_1.id, dep_type="blocks")
 
 # Update status
-client.update_task_status(ws1.id, BeadsStatus.CLOSED)
+client.update_task_status(leaf_issue_1.id, BeadsStatus.CLOSED)
 
 # Get ready tasks
 ready = client.get_ready_tasks()  # [ws2.id]
@@ -525,10 +528,10 @@ except SpecificError as e:
 # Development
 @feature "title"           # Gather requirements
 @design beads-XXX          # Plan workstreams
-@build 00-XXX-01          # Execute workstream
-@oneshot beads-XXX        # Autonomous execution
-@review beads-XXX         # Quality review
-@deploy beads-XXX         # Production deployment
+@build 00-XXX-01          # Execute executable leaf workstream
+@oneshot FXXX             # Autonomous execution
+@review FXXX              # Quality review
+@deploy FXXX              # Production deployment
 
 # Debugging
 /debug "<issue>"           # Systematic debugging
