@@ -1,37 +1,270 @@
 ---
 name: architect
-description: Reverse-architecture analysis of source code repositories. Produces C4 architecture models (L1/L2/L3), codebase profiles, and architecture reports. Use this skill whenever the user mentions architecture analysis, C4 diagrams, codebase structure extraction, reverse engineering architecture, or wants to understand how a repository is organized. Also use when debugging or extending the architect module itself.
-version: 1.0.0
+description: Reverse-architecture analysis of brownfield repositories. Use this skill whenever the user wants to understand a codebase's architecture, generate C4 diagrams, write architecture reports, or analyze how a repo is organized. This is not just a CLI wrapper — it guides you through a multi-step process of automated extraction + manual deep-dive + synthesis into a report that serves business, tech leads, and new developers. Also use when extending the sdp architect module itself.
+version: 2.0.0
 ---
 
-# @architect — Reverse-Architecture Analysis
+# @architect — Brownfield Architecture Analysis
 
-**Extract C4 architecture models from source code repositories automatically.**
+**Understand a codebase like a real architect would: examine, diagram, critique, recommend.**
 
-Analyzes a repo's file tree, dependencies, infrastructure, import graphs, and language-specific constructs to produce a structured architecture profile and C4 reference model — no manual diagramming required.
+This skill produces architecture reports that answer questions for three audiences:
+- **Business**: what does this system do, what are the risks, what are the alternatives
+- **Tech lead**: how is it built, where is the tech debt, what's dangerous to change
+- **New developer**: where to start, what's where, how things connect
+
+The `sdp architect` CLI does the automated extraction. **You do the thinking.**
 
 ---
 
-## Quick Start
+## Workflow
+
+When the user asks to analyze a repository, follow these steps in order.
+
+### Step 1: Automated Extraction
+
+Run the CLI to get structured data. Use `--section` to avoid huge JSON blobs.
 
 ```bash
-# Full analysis (deterministic, no LLM)
-sdp architect analyze /path/to/repo --no-llm --format json
+# Summary first — orient yourself (compact text, <5KB)
+sdp architect analyze --no-llm --tier 2 --section summary /path/to/repo
 
-# C4 diagrams
-sdp architect c4 /path/to/repo --level L2 --format mermaid
+# C4 diagrams (mermaid)
+sdp architect c4 --level 1 /path/to/repo    # System context
+sdp architect c4 --level 2 /path/to/repo    # Containers
 
-# Evaluate against ground truth
-sdp architect eval /path/to/repo --ground-truth ground-truth.json
+# Deeper data if needed
+sdp architect analyze --no-llm --tier 2 --section model --format json /path/to/repo
+sdp architect analyze --no-llm --tier 2 --section report --format json /path/to/repo
 ```
+
+**Important**: flags go BEFORE the repo path (Go `flag` requirement).
+
+What you get from the CLI:
+- File/LOC/language stats
+- Module boundaries (Maven, Gradle, SBT, npm, Go)
+- Import graph (clusters, edges)
+- Container detection (Docker, K8s, Compose, modules)
+- Dependency graph between modules
+- External systems (from deps and infra)
+- C4 diagrams (L1, L2, L3)
+
+What the CLI **cannot** give you:
+- Architectural patterns and design decisions
+- Business context and purpose
+- Tech debt analysis and risk assessment
+- Quality of code and test coverage insights
+- How execution flows through the system
+- Critical paths and bottlenecks
+- Recommendations
+
+### Step 2: Manual Deep-Dive
+
+The CLI gives you the skeleton. Now you need to understand the body.
+
+**Read these files** (use Read tool or spawn Explore agents in parallel):
+
+1. **README.md / CONTRIBUTING.md** — project purpose, architecture notes
+2. **Entry points** — `main()`, `Application`, `SparkContext`, etc. Follow the startup path
+3. **Core abstractions** — the 3-5 key classes/interfaces that define the system's model
+4. **Config files** — what's configurable tells you what's important
+5. **Key directories** — the 2-3 most-imported packages in the import graph
+
+**Search for signals**:
+- `grep -r "TODO\|FIXME\|HACK\|XXX" --include="*.{go,java,scala,py,ts}" | wc -l` — tech debt volume
+- Look at the biggest files (LOC) — god objects
+- Check test directories — what's tested well, what isn't
+
+**Ask yourself**:
+- What's the main execution model? (request/response? pipeline? event-driven? batch?)
+- What are the key architectural decisions and why were they made?
+- What's the most dangerous thing to change?
+- What's deprecated but not removed?
+- Where are the boundaries between modules? Are they clean?
+
+### Step 3: Write the Report
+
+Use the template below. **Every section is mandatory.** The report should be 500-1500 lines depending on repo size. Write in the language the user communicates in.
+
+---
+
+## Report Template
+
+```markdown
+# {Project Name} — Архитектурный отчёт
+
+> **Дата**: YYYY-MM-DD | **Версия**: X.Y | **Инструмент**: sdp architect
+> **Для кого**: техлид, архитектор, новый разработчик
+
+---
+
+## Зачем читать этот отчёт
+
+{2-3 sentences: what repo is this, how big, why you'd need this report}
+
+---
+
+## 1. Что это такое — в одном абзаце
+
+{Plain language: what does this system do, who uses it, how is it deployed.
+NOT a list of modules. A human explanation.}
+
+---
+
+## 2. Ландшафт — кто с кем разговаривает (L1)
+
+{Mermaid diagram: system context. Users, the system, external systems.
+Show data flows, not just boxes. Use arrows with labels.}
+
+```mermaid
+graph TB
+    ...
+```
+
+{Brief explanation of the diagram — who are the actors, what are the external systems}
+
+---
+
+## 3. Из чего состоит — модульная карта (L2)
+
+{Mermaid diagram: containers/modules grouped by layer or domain}
+
+```mermaid
+graph TD
+    ...
+```
+
+{Table: modules grouped by architectural layer, with LOC estimates and purpose}
+
+| Слой | Модули | LOC (≈) | Назначение |
+|------|--------|---------|------------|
+| ... | ... | ... | ... |
+
+---
+
+## 4. Как работает — архитектура выполнения
+
+### 4.1 Основной путь выполнения
+
+{ASCII or mermaid diagram showing the main execution flow.
+From user input → through processing layers → to output.
+This is the MOST IMPORTANT section — it explains how the system actually works.}
+
+### 4.2 Ключевые подсистемы
+
+{For each major subsystem (2-4): what it does, how it works,
+key files, and why it matters. Not just "Optimizer — optimizes queries"
+but HOW it optimizes: what rules, what strategy, what tradeoffs.}
+
+### 4.3 Новые / стратегические компоненты
+
+{Components that represent the project's future direction.
+E.g. "Spark Connect" for Spark, "Server Components" for React.}
+
+---
+
+## 5. Архитектурные паттерны
+
+### 5.1 Что сделано хорошо
+
+{Table: pattern | where used | why it's good.
+Be specific — name files, classes, interfaces.}
+
+### 5.2 Ключевые архитектурные решения
+
+{List of 3-5 ADRs (Architecture Decision Records) you can infer:
+what decision was made, why (or your best guess), and what it costs.}
+
+---
+
+## 6. Где болит — технический долг и риски
+
+### 6.1 Критические риски
+
+{Table: # | problem | severity | location | impact.
+Be specific — file names, LOC counts, concrete consequences.}
+
+### 6.2 Архитектурный долг
+
+{Things that are wrong structurally: god objects, deprecated-but-not-removed,
+duplicated abstractions, missing boundaries.}
+
+### 6.3 Метрики tech debt
+
+{TODO/FIXME/HACK counts, biggest files, recurring themes in comments.}
+
+---
+
+## 7. Граф зависимостей
+
+```mermaid
+graph TD
+    ...
+```
+
+{Highlight the dependency hubs — modules that everything depends on.
+These are the most dangerous to change.}
+
+---
+
+## 8. Тестирование
+
+{Table: test category | count | format | what it covers.
+What's well-tested, what's not. Strong and weak sides.}
+
+---
+
+## 9. API и контракты
+
+{What public APIs exist (REST, gRPC, SDK, CLI).
+What's stable, what's evolving.}
+
+---
+
+## 10. Рекомендации
+
+### Для техлида
+
+{Table: # | recommendation | priority | reasoning.
+Concrete, actionable. "Don't touch X" is a valid recommendation.}
+
+### Для нового разработчика
+
+{Ordered list: read X first, then Y, then Z. With file paths.}
+
+### Для бизнеса
+
+{3-4 bullet points: maturity, risks, strategic direction, alternatives to consider.}
+
+---
+
+## Приложение: Статистика
+
+{Raw numbers from sdp architect output}
+```
+
+---
+
+## Quality Checklist
+
+Before delivering the report, verify:
+
+- [ ] **Has mermaid diagrams** — at least L1 (system context), L2 (containers), and dependency graph
+- [ ] **Explains HOW it works** — not just WHAT modules exist, but the execution flow
+- [ ] **Identifies god objects** — files >2000 LOC that do too much
+- [ ] **Counts tech debt** — TODO/FIXME/HACK with actual numbers
+- [ ] **Names specific files** — recommendations reference real paths, not abstractions
+- [ ] **Serves three audiences** — business gets risks/maturity, tech lead gets patterns/debt, dev gets entry points
+- [ ] **Has recommendations** — not just description, but opinions and advice
+- [ ] **Goes beyond static analysis** — you read key source files, not just CLI output
+- [ ] **Diagrams have arrows with labels** — data flow, not just boxes
+- [ ] **Written in user's language** — if user speaks Russian, report is in Russian
 
 ---
 
 ## CLI Reference
 
 ### `sdp architect analyze <repo-path>`
-
-Full pipeline run. Produces a codebase profile, architecture report, and C4 reference model.
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -46,181 +279,21 @@ Full pipeline run. Produces a codebase profile, architecture report, and C4 refe
 | `--skip-git` | `false` | Skip git history extractor |
 | `--language` | auto | Force language: `go`, `java`, `python`, `typescript` |
 
-**Important**: flags must come **before** the repo path (Go `flag` package requirement).
-
 ### `sdp architect c4 <repo-path>`
-
-Generate C4 diagrams from analysis results.
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--level` | `L2` | Diagram level: `L1` (context), `L2` (container), `L3` (component) |
-| `--output` | stdout | Output file path |
-| `--format` | `mermaid` | Diagram format: `mermaid`, `plantuml`, `json` |
+| `--level` | all | Diagram level: `1` (context), `2` (container), `3` (component) |
+| `--output` | stdout | Output directory for .mmd files |
+| `--format` | `mermaid` | Output format: `mermaid`, `json` |
 
 ### `sdp architect eval <repo-path>`
-
-Evaluate analysis quality against a ground-truth file.
 
 | Flag | Description |
 |------|-------------|
 | `--ground-truth` | Path to ground-truth JSON |
 
----
-
-## Architecture
-
-### 6-Stage Pipeline
-
-```
-Extract → Assemble → Filter → Enrich → Model → Output
-```
-
-1. **Extract** — 11 extractors run in parallel, each returns a `ProfileFragment`
-2. **Assemble** — `ProfileAssembler` merges fragments into `CodebaseProfile` (tier-gated detail)
-3. **Filter** — Security filter strips secrets, internal paths, sensitive data
-4. **Enrich** — LLM enrichment (Phase 2, optional — skipped with `--no-llm`)
-5. **Model** — `BuildReferenceModelFromProfile` creates C4 `ReferenceModel`
-6. **Output** — Format as text/JSON, render C4 diagrams
-
-### 11 Extractors
-
-| Extractor | What it detects |
-|-----------|----------------|
-| `filetree` | Directory structure, file counts, extension distribution |
-| `deps` | Package manifests (go.mod, pom.xml, package.json, etc.), notable dependencies |
-| `specs` | API specs (OpenAPI, gRPC .proto, GraphQL schemas) |
-| `infra` | Docker, Compose, Kubernetes, Terraform, GitHub Actions, module boundaries (Maven/Gradle/SBT/npm) |
-| `go` | Go packages, interfaces, structs, import graph |
-| `python` | Python modules, classes, imports |
-| `java` | Java/Kotlin/Scala packages, classes, Maven/SBT modules, import graph |
-| `typescript` | TypeScript/JavaScript modules, exports, imports |
-| `git_history` | Commit patterns, active areas, contributor stats |
-| `sql` | SQL schemas, migrations, stored procedures |
-| `generated` | Auto-generated code detection (protobuf, codegen markers) |
-
-### Supported Languages & Build Systems
-
-| Language | Build Systems | Import Graph |
-|----------|--------------|--------------|
-| Go | go.mod | Yes — packages, interfaces |
-| Java/Kotlin/Scala | Maven (pom.xml), Gradle (build.gradle), SBT (build.sbt) | Yes — packages, module slugs |
-| Python | pip (requirements.txt), poetry, setuptools | Yes — modules, classes |
-| TypeScript/JS | npm (package.json), yarn, workspaces | Yes — modules, exports |
-
-### C4 Model Levels
-
-- **L1 — System Context**: Actors, the system, external systems, and their relationships
-- **L2 — Container**: Deployable units (services, databases, message brokers) and connections
-- **L3 — Component**: Internal modules within each container, derived from import graph clusters
-
-### Container Detection Priority
-
-The pipeline discovers containers in this order (first match wins per unit):
-
-1. **Docker/Compose services** — from `docker-compose.yml`, Dockerfiles
-2. **Kubernetes workloads** — Deployments, StatefulSets, DaemonSets
-3. **Service dependencies** — `depends_on` edges in Compose
-4. **Module boundaries** — Maven modules, SBT subprojects, npm workspaces, Go `cmd/` dirs
-5. **Import graph clusters** — fallback when no infra files exist
-6. **Single "Application"** — last resort if nothing else detected
-
-### Phantom Container Filtering
-
-After container detection, insignificant containers are removed. A container is kept if:
-- It comes from a Dockerfile or Compose service
-- It's a Maven/Gradle/SBT module
-- It has at least one relationship edge (service dep, import)
-- It has components assigned from import clusters
-
----
-
-## Key Data Types
-
-```
-CodebaseProfile
-├── Name, Metrics (files, LOC, languages)
-├── FileTree (structure, extensions)
-├── Dependencies (manifests, notable deps, language)
-├── Specs[] (OpenAPI, gRPC, GraphQL artifacts)
-├── Infra
-│   ├── Containers[] (name, type, image, source)
-│   ├── Services[] (from→to dependency edges)
-│   ├── ModuleBoundaries[] (build system, children)
-│   ├── Resources[] (Terraform resources)
-│   ├── ExposedPorts[], BaseImages[]
-│   └── DeploymentType (kubernetes | docker-compose | bare)
-├── ImportGraph
-│   └── Clusters[] (id, packages, internal/external edges)
-└── Git history, SQL schemas, Generated code info
-
-ReferenceModel (C4)
-├── System (name, description)
-├── Containers[] (id, name, technology, components[])
-├── Relationships[] (from, to, description, technology)
-├── Actors[] (id, description)
-├── ExternalSystems[] (id, description, technology)
-└── Confidence scores per element
-```
-
----
-
-## For AI Agents
-
-### Running Analysis
-
-```bash
-# Quick summary (compact text, ideal for agents — no Python/jq needed)
-sdp architect analyze --no-llm --tier 2 --section summary /path/to/repo
-
-# C4 model only as JSON (~90KB vs ~600KB full output)
-sdp architect analyze --no-llm --tier 2 --section model --format json /path/to/repo
-
-# Full analysis (large JSON — avoid unless you need everything)
-sdp architect analyze --no-llm --tier 2 --format json /path/to/repo > profile.json
-
-# Quick scan for CI
-sdp architect analyze --no-llm --tier 1 --timeout 30s /path/to/repo
-```
-
-**Flags go BEFORE the repo path.** `sdp architect analyze /path --section summary` won't work — use `sdp architect analyze --section summary /path`.
-
-### Section Filtering
-
-Use `--section` to avoid parsing huge JSON blobs:
-
-| Section | Content | Use case |
-|---------|---------|----------|
-| `summary` | Compact text overview | Quick orientation, agent context |
-| `profile` | Codebase profile (files, deps, infra, imports) | Deep analysis |
-| `report` | Architecture report (patterns, risks, styles) | Quality review |
-| `model` | C4 reference model (containers, relationships) | Diagram data |
-| `diagrams` | Mermaid/PlantUML diagram code | Visualization |
-
-### Interpreting Results
-
-The full JSON output has three top-level keys:
-- `profile` — raw codebase data (files, deps, infra, imports)
-- `report` — architecture report with patterns and risks
-- `reference_model` — C4 model with containers, relationships, actors
-
-Check `reference_model.containers` for deployable units and `reference_model.relationships` for how they connect. Confidence scores (0.0–1.0) indicate extraction certainty.
-
-### Common Patterns
-
-**Monorepo with build modules** (Maven/SBT/Gradle):
-- Containers come from module boundaries
-- Import graph clusters map to components within those containers
-- Module slugs (e.g., "spark-sql-core") link clusters to containers
-
-**Microservices with Docker Compose**:
-- Each Compose service becomes a container
-- `depends_on` creates relationship edges
-- Database/cache images get typed as "database"/"cache"
-
-**Single-app repos**:
-- One "Application" container with components from import clusters
-- External systems inferred from cloud SDK dependencies
+**Important**: all flags must come **before** the repo path.
 
 ---
 
@@ -228,97 +301,26 @@ Check `reference_model.containers` for deployable units and `reference_model.rel
 
 ### Adding a New Extractor
 
-1. Implement the `Extractor` interface in `internal/architect/extract/`:
+1. Implement `Extractor` interface in `internal/architect/extract/`:
    ```go
    type Extractor interface {
        Name() string
        Extract(ctx context.Context, repoRoot string) (*ProfileFragment, error)
    }
    ```
-2. Return data in the relevant `ProfileFragment` fields
+2. Return data in relevant `ProfileFragment` fields
 3. Register in `internal/architect/extract/registry.go` → `DefaultExtractors()`
 4. Add tests in `tests/architect/`
 
-### Adding a Language Adapter
-
-Language-specific analysis uses adapters in `internal/architect/extract/adapters.go`:
-1. Create an adapter struct implementing the analysis interface
-2. Add file extension detection
-3. Build import graph clusters from language-specific imports
-4. Register the adapter in the appropriate extractor
-
-### Testing
-
-```bash
-# Run all architect tests
-go test ./internal/architect/... ./tests/architect/... -v
-
-# Run specific test
-go test ./tests/architect/ -run TestInfraExtractor_SBTModules -v
-
-# Run with race detector
-go test ./internal/architect/... -race
-```
-
----
-
-## Debugging
-
-### Empty C4 Diagram
-
-If L2/L3 diagrams are empty:
-1. Check `--tier` level (Tier 1 may omit detail)
-2. Run with `--verbose` to see extractor timing — a zero-duration extractor may have skipped
-3. Check if the repo has recognizable infra files (Dockerfile, compose, k8s YAML, pom.xml)
-4. For L3: verify import graph clusters exist — components come from cluster→container mapping
-
-### Wrong Container Detection
-
-Container detection follows priority order. If wrong containers appear:
-1. Check if CI-only containers leak through (they should be filtered by `isCIContainer`)
-2. Verify module boundary detection matches the build system
-3. Run with `--extractors infra` to isolate infrastructure extraction
-
-### Missing Language Analysis
-
-If a language isn't detected:
-1. Check `--language` flag to force detection
-2. Verify the language adapter exists in `extract/adapters.go`
-3. Check file extension mapping in `assembler.go` → `extToLanguage`
-
----
-
-## Evaluation & Quality
-
-### Council Review
-
-For major changes, run a council review with multiple LLM evaluators:
-1. Generate analysis output: `sdp architect analyze <repo> --no-llm --format json > output.json`
-2. Create ground truth or compare against known architecture
-3. Have reviewers score: container accuracy, relationship completeness, technology detection
-
-### Quality Metrics
-
-| Metric | Target |
-|--------|--------|
-| Container detection precision | > 80% |
-| Relationship recall | > 70% |
-| Technology identification | > 90% |
-| Zero false-positive external systems | Yes |
-
----
-
-## Code Map
+### Code Map
 
 ```
 internal/architect/
 ├── pipeline.go          — Pipeline orchestration, BuildReferenceModelFromProfile
 ├── assembler.go         — ProfileAssembler, tier-gated merging
 ├── profile.go           — Data model types (CodebaseProfile, InfraInfo, etc.)
-├── extract_types.go     — ExtractionResult, ProfileFragment
-├── security_filter.go   — Secret/path stripping
 ├── c4/
-│   ├── generator.go     — C4 Generate() (deterministic container/component/relationship creation)
+│   ├── generator.go     — Deterministic C4 model generation
 │   ├── relationship.go  — Relationship inference, package→container mapping
 │   ├── render.go        — Mermaid/PlantUML rendering (L1/L2/L3)
 │   └── scoring.go       — Confidence scoring
@@ -326,14 +328,9 @@ internal/architect/
 │   ├── registry.go      — DefaultExtractors() list
 │   ├── adapters.go      — Language adapters (Go, Java, Python, TS)
 │   ├── infra.go         — InfraExtractor (Docker, K8s, Terraform, SBT, Maven)
-│   ├── deps.go          — DependencyExtractor
-│   ├── specs.go         — SpecExtractor
-│   ├── filetree.go      — FileTreeExtractor
-│   ├── sql_extract.go   — SQLExtractor
-│   ├── generated.go     — GeneratedCodeExtractor
-│   └── git_history.go   — GitHistoryExtractor
+│   └── ...              — Other extractors (deps, specs, filetree, sql, git, generated)
 cmd/sdp/
 └── cmd_architect.go     — CLI entry point (analyze, c4, eval subcommands)
 tests/architect/
-└── infra_test.go        — Integration tests for extractors
+└── infra_test.go        — Integration tests
 ```
