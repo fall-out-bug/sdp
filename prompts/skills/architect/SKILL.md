@@ -1,264 +1,168 @@
 ---
 name: architect
-description: Reverse-architecture analysis of brownfield repositories. Use this skill whenever the user wants to understand a codebase's architecture, generate C4 diagrams, write architecture reports, or analyze how a repo is organized. This is not just a CLI wrapper — it guides you through a multi-step process of automated extraction + manual deep-dive + synthesis into a report that serves business, tech leads, and new developers. Also use when extending the sdp architect module itself.
-version: 2.0.0
+description: Brownfield architecture analysis — understand a codebase like a senior architect would. Produces architecture reports with C4 diagrams, execution flow analysis, tech debt assessment, and actionable recommendations for business, tech leads, and developers. Use this skill whenever the user mentions architecture analysis, codebase understanding, reverse engineering, C4 diagrams, or "what is this repo". This is NOT a CLI wrapper — it orchestrates automated extraction + parallel deep-dive + synthesis.
+version: 3.0.0
 ---
 
 # @architect — Brownfield Architecture Analysis
 
-**Understand a codebase like a real architect would: examine, diagram, critique, recommend.**
+You are a senior architect who just walked into a new codebase. Your job: examine it, understand it, diagram it, critique it, and explain it to three audiences — business, tech lead, and new developer.
 
-This skill produces architecture reports that answer questions for three audiences:
-- **Business**: what does this system do, what are the risks, what are the alternatives
-- **Tech lead**: how is it built, where is the tech debt, what's dangerous to change
-- **New developer**: where to start, what's where, how things connect
-
-The `sdp architect` CLI does the automated extraction. **You do the thinking.**
+The `sdp architect` CLI extracts structural data. **You provide the understanding.**
 
 ---
 
-## Workflow
+## Mandatory Steps
 
-When the user asks to analyze a repository, follow these steps in order.
+Follow these steps in order. Do not skip steps. Each step has a verification gate — do not proceed until the gate passes.
 
-### Step 1: Automated Extraction
+### Step 1: Automated Extraction (2-5 min)
 
-Run the CLI to get structured data. Use `--section` to avoid huge JSON blobs.
+Run CLI commands to get structural data. Use `--section` to keep output manageable.
 
 ```bash
-# Summary first — orient yourself (compact text, <5KB)
+# 1a. Summary — orient yourself first
 sdp architect analyze --no-llm --tier 2 --section summary /path/to/repo
 
-# C4 diagrams (mermaid)
-sdp architect c4 --level 1 /path/to/repo    # System context
-sdp architect c4 --level 2 /path/to/repo    # Containers
+# 1b. C4 diagrams
+sdp architect c4 --level 1 /path/to/repo   # System context (L1)
+sdp architect c4 --level 2 /path/to/repo   # Containers (L2)
 
-# Deeper data if needed
+# 1c. Model data (only if you need container/relationship details)
 sdp architect analyze --no-llm --tier 2 --section model --format json /path/to/repo
+
+# 1d. Report data (patterns, risks, styles)
 sdp architect analyze --no-llm --tier 2 --section report --format json /path/to/repo
 ```
 
-**Important**: flags go BEFORE the repo path (Go `flag` requirement).
+**Flags go BEFORE the repo path** (Go `flag` requirement).
 
-What you get from the CLI:
-- File/LOC/language stats
-- Module boundaries (Maven, Gradle, SBT, npm, Go)
-- Import graph (clusters, edges)
-- Container detection (Docker, K8s, Compose, modules)
-- Dependency graph between modules
-- External systems (from deps and infra)
-- C4 diagrams (L1, L2, L3)
+**Gate**: You have file count, LOC, languages, module count, container count, and at least L1 diagram. If CLI fails or returns empty, fall back to manual exploration in Step 2.
 
-What the CLI **cannot** give you:
-- Architectural patterns and design decisions
-- Business context and purpose
-- Tech debt analysis and risk assessment
-- Quality of code and test coverage insights
-- How execution flows through the system
-- Critical paths and bottlenecks
-- Recommendations
-
-### Step 2: Manual Deep-Dive
-
-The CLI gives you the skeleton. Now you need to understand the body.
-
-**Read these files** (use Read tool or spawn Explore agents in parallel):
-
-1. **README.md / CONTRIBUTING.md** — project purpose, architecture notes
-2. **Entry points** — `main()`, `Application`, `SparkContext`, etc. Follow the startup path
-3. **Core abstractions** — the 3-5 key classes/interfaces that define the system's model
-4. **Config files** — what's configurable tells you what's important
-5. **Key directories** — the 2-3 most-imported packages in the import graph
-
-**Search for signals**:
-- `grep -r "TODO\|FIXME\|HACK\|XXX" --include="*.{go,java,scala,py,ts}" | wc -l` — tech debt volume
-- Look at the biggest files (LOC) — god objects
-- Check test directories — what's tested well, what isn't
-
-**Ask yourself**:
-- What's the main execution model? (request/response? pipeline? event-driven? batch?)
-- What are the key architectural decisions and why were they made?
-- What's the most dangerous thing to change?
-- What's deprecated but not removed?
-- Where are the boundaries between modules? Are they clean?
-
-### Step 3: Write the Report
-
-Use the template below. **Every section is mandatory.** The report should be 500-1500 lines depending on repo size. Write in the language the user communicates in.
+**Evidence tag**: Everything from this step is `[EXTRACTED]` — machine-verified structural data.
 
 ---
 
-## Report Template
+### Step 2: Parallel Deep-Dive (the step agents skip)
 
-```markdown
-# {Project Name} — Архитектурный отчёт
+This is where the real architecture analysis happens. The CLI gives you bones — now you find the muscle, nerves, and scars.
 
-> **Дата**: YYYY-MM-DD | **Версия**: X.Y | **Инструмент**: sdp architect
-> **Для кого**: техлид, архитектор, новый разработчик
+**Spawn 3-4 Explore agents in the SAME message** (parallel, not sequential):
 
----
-
-## Зачем читать этот отчёт
-
-{2-3 sentences: what repo is this, how big, why you'd need this report}
-
----
-
-## 1. Что это такое — в одном абзаце
-
-{Plain language: what does this system do, who uses it, how is it deployed.
-NOT a list of modules. A human explanation.}
-
----
-
-## 2. Ландшафт — кто с кем разговаривает (L1)
-
-{Mermaid diagram: system context. Users, the system, external systems.
-Show data flows, not just boxes. Use arrows with labels.}
-
-```mermaid
-graph TB
-    ...
+**Agent A — Identity & Purpose:**
+```
+Read README.md, CONTRIBUTING.md, and any docs/ folder in /path/to/repo.
+What is this project? Who uses it? What problem does it solve?
+What's the deployment model (library, service, CLI, platform)?
+Report in <10 lines.
 ```
 
-{Brief explanation of the diagram — who are the actors, what are the external systems}
-
----
-
-## 3. Из чего состоит — модульная карта (L2)
-
-{Mermaid diagram: containers/modules grouped by layer or domain}
-
-```mermaid
-graph TD
-    ...
+**Agent B — Execution Architecture:**
+```
+Find the main entry point(s) in /path/to/repo:
+- Look for main(), Application, App, Server, cli, cmd/ directories
+- Trace the startup path: what gets initialized, in what order
+- Identify the core abstractions (3-5 key interfaces/classes that define the domain model)
+- What's the execution model: request/response, pipeline, event-driven, batch, actor?
+Find the 5 largest files by code (not generated): these are likely god objects.
+Report: entry points, core abstractions with file paths, execution model, top 5 largest files.
 ```
 
-{Table: modules grouped by architectural layer, with LOC estimates and purpose}
-
-| Слой | Модули | LOC (≈) | Назначение |
-|------|--------|---------|------------|
-| ... | ... | ... | ... |
-
----
-
-## 4. Как работает — архитектура выполнения
-
-### 4.1 Основной путь выполнения
-
-{ASCII or mermaid diagram showing the main execution flow.
-From user input → through processing layers → to output.
-This is the MOST IMPORTANT section — it explains how the system actually works.}
-
-### 4.2 Ключевые подсистемы
-
-{For each major subsystem (2-4): what it does, how it works,
-key files, and why it matters. Not just "Optimizer — optimizes queries"
-but HOW it optimizes: what rules, what strategy, what tradeoffs.}
-
-### 4.3 Новые / стратегические компоненты
-
-{Components that represent the project's future direction.
-E.g. "Spark Connect" for Spark, "Server Components" for React.}
-
----
-
-## 5. Архитектурные паттерны
-
-### 5.1 Что сделано хорошо
-
-{Table: pattern | where used | why it's good.
-Be specific — name files, classes, interfaces.}
-
-### 5.2 Ключевые архитектурные решения
-
-{List of 3-5 ADRs (Architecture Decision Records) you can infer:
-what decision was made, why (or your best guess), and what it costs.}
-
----
-
-## 6. Где болит — технический долг и риски
-
-### 6.1 Критические риски
-
-{Table: # | problem | severity | location | impact.
-Be specific — file names, LOC counts, concrete consequences.}
-
-### 6.2 Архитектурный долг
-
-{Things that are wrong structurally: god objects, deprecated-but-not-removed,
-duplicated abstractions, missing boundaries.}
-
-### 6.3 Метрики tech debt
-
-{TODO/FIXME/HACK counts, biggest files, recurring themes in comments.}
-
----
-
-## 7. Граф зависимостей
-
-```mermaid
-graph TD
-    ...
+**Agent C — Patterns & Decisions:**
+```
+In /path/to/repo, search for architectural patterns:
+- Plugin/SPI patterns: grep for "interface.*Plugin\|trait.*Provider\|abstract.*Factory"
+- Configuration: what's configurable? (properties files, env vars, CLI flags)
+- Serialization: how does data cross boundaries?
+- Error handling: centralized or scattered?
+- Design patterns: Strategy, Observer, Builder, etc. — evidence, not guesses
+Count TODO/FIXME/HACK/XXX markers: `grep -r "TODO\|FIXME\|HACK\|XXX" --include="*.{go,java,scala,py,ts,js,rs}" /path/to/repo | wc -l`
+Report: patterns found with file paths, tech debt count, top themes.
 ```
 
-{Highlight the dependency hubs — modules that everything depends on.
-These are the most dangerous to change.}
-
----
-
-## 8. Тестирование
-
-{Table: test category | count | format | what it covers.
-What's well-tested, what's not. Strong and weak sides.}
-
----
-
-## 9. API и контракты
-
-{What public APIs exist (REST, gRPC, SDK, CLI).
-What's stable, what's evolving.}
-
----
-
-## 10. Рекомендации
-
-### Для техлида
-
-{Table: # | recommendation | priority | reasoning.
-Concrete, actionable. "Don't touch X" is a valid recommendation.}
-
-### Для нового разработчика
-
-{Ordered list: read X first, then Y, then Z. With file paths.}
-
-### Для бизнеса
-
-{3-4 bullet points: maturity, risks, strategic direction, alternatives to consider.}
-
----
-
-## Приложение: Статистика
-
-{Raw numbers from sdp architect output}
+**Agent D — Testing & API Surface:**
+```
+In /path/to/repo:
+- Count test files by type: unit (*_test.go, *Test.java, *Suite.scala, test_*.py, *.test.ts)
+- What testing frameworks? (testify, JUnit, ScalaTest, pytest, Jest, etc.)
+- Are there integration/e2e tests? Where?
+- What public APIs exist? (REST endpoints, gRPC .proto files, CLI commands, SDK exports)
+- What's the CI setup? (.github/workflows/, Jenkinsfile, .gitlab-ci.yml)
+Report: test counts by category, frameworks, API surface, CI pipeline.
 ```
 
+**Gate**: You have answers from at least 3 of 4 agents. You know: what the project IS, how execution flows, what patterns are used, and what the test/API surface looks like.
+
+**Evidence tags**:
+- Facts from README, config files, test counts → `[EXTRACTED]`
+- Patterns inferred from code structure → `[INFERRED]` (state confidence: high/medium/low)
+- Guesses about purpose or intent → `[AMBIGUOUS]` (flag for reader)
+
 ---
 
-## Quality Checklist
+### Step 3: Synthesis — Write the Report
 
-Before delivering the report, verify:
+Now combine CLI data + deep-dive findings into a coherent architecture report. Use the template in `references/report-template.md` (read it now if you haven't).
 
-- [ ] **Has mermaid diagrams** — at least L1 (system context), L2 (containers), and dependency graph
-- [ ] **Explains HOW it works** — not just WHAT modules exist, but the execution flow
-- [ ] **Identifies god objects** — files >2000 LOC that do too much
-- [ ] **Counts tech debt** — TODO/FIXME/HACK with actual numbers
-- [ ] **Names specific files** — recommendations reference real paths, not abstractions
-- [ ] **Serves three audiences** — business gets risks/maturity, tech lead gets patterns/debt, dev gets entry points
-- [ ] **Has recommendations** — not just description, but opinions and advice
-- [ ] **Goes beyond static analysis** — you read key source files, not just CLI output
-- [ ] **Diagrams have arrows with labels** — data flow, not just boxes
-- [ ] **Written in user's language** — if user speaks Russian, report is in Russian
+**Key rules for synthesis:**
+
+1. **Tell a story, not a data dump.** Start with "what is this" in plain language. Then zoom in.
+2. **Every diagram needs narration.** A mermaid graph without explanation is noise.
+3. **Every claim needs a file path.** "The optimizer uses rule-based approach" → WHERE? Which file?
+4. **Label your evidence.** Use `[EXTRACTED]`, `[INFERRED]`, `[AMBIGUOUS]` so readers know what's certain.
+5. **Recommendations must be actionable.** "Improve test coverage" is useless. "Add integration tests for `sql/catalyst/optimizer/` — currently 0 tests for 44 rule files" is actionable.
+
+**Mermaid diagrams — minimum 3:**
+- L1 system context (actors + system + external systems)
+- L2 module map (containers grouped by architectural layer)
+- Dependency graph (who depends on whom, highlight hubs)
+
+Write additional diagrams for execution flow if the system is complex enough.
+
+**Gate**: Report has all 10 sections from the template, at least 3 mermaid diagrams, identifies god objects, counts tech debt, and has specific recommendations with file paths.
+
+---
+
+## Anti-Rationalization Table
+
+Your natural tendency is to take shortcuts. Here's why each shortcut produces a bad report:
+
+| What you'll want to do | Why it seems reasonable | Why it produces garbage |
+|------------------------|----------------------|----------------------|
+| Skip Step 2, just format CLI output | "The CLI already extracted everything" | CLI gives structure, not understanding. You'll produce a module list, not an architecture report. The user can run the CLI themselves. |
+| Read only README, skip code exploration | "README describes the architecture" | READMEs are aspirational. Code is truth. README says "clean architecture", code has 5000-line god objects. |
+| Write "Catalyst optimizer optimizes queries" | "That's what it does" | This tells the reader nothing. HOW does it optimize? Rule-based? Cost-based? What rules? Which file? |
+| Skip mermaid diagrams | "Text descriptions are enough" | Humans process diagrams 60,000x faster than text. A report without diagrams is a wall of text nobody will read. |
+| List all 48 modules in a flat table | "Completeness is important" | Nobody reads a 48-row table. Group by layer, show relationships. 6 layers with 48 modules > 48 rows. |
+| Write recommendations like "improve test coverage" | "It's true and helpful" | It's true and useless. Which tests? Which modules? What's the current coverage? What specifically should be tested? |
+| Skip tech debt section | "I didn't find any issues" | Every codebase >50K LOC has tech debt. If you found zero, you didn't look. Count TODO/FIXME/HACK. Find the largest files. Check for deprecated APIs. |
+| Use [EXTRACTED] for everything | "I'm confident in my analysis" | If you didn't read the source code, it's [INFERRED]. Be honest — it builds trust. |
+
+---
+
+## Red Flags — You're Going Wrong If:
+
+- Your report is under 200 lines → you skipped the deep-dive
+- You have zero mermaid diagrams → you're writing a text dump
+- No file paths appear in your analysis → you're describing from imagination
+- Your "recommendations" section says "consider" or "could" → too vague
+- All your evidence is [EXTRACTED] → you didn't think, you just reformatted
+- The "how it works" section lists modules instead of explaining execution flow
+- You spent <5 minutes on the whole report → you skipped something
+
+---
+
+## Evidence Tagging
+
+Tag every significant claim in the report:
+
+| Tag | Meaning | Source | Example |
+|-----|---------|--------|---------|
+| `[EXTRACTED]` | Machine-verified fact | CLI output, file counts, grep results | "48 Maven modules [EXTRACTED]" |
+| `[INFERRED]` | Reasoned from evidence | Code reading, pattern recognition | "Rule-based optimizer [INFERRED from 44 rule files in sql/catalyst/optimizer/]" |
+| `[AMBIGUOUS]` | Uncertain, flagged for review | Partial evidence, README claims | "Performance tested via benchmarks [AMBIGUOUS — no benchmark code found in repo]" |
+
+Readers trust transparent analysis more than confident-sounding guesses.
 
 ---
 
@@ -268,24 +172,22 @@ Before delivering the report, verify:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--tier` | `2` | Detail level: 1 (~2K tokens), 2 (~5-15K), 3 (on-demand) |
+| `--tier` | `2` | Detail: 1 (~2K tokens), 2 (~5-15K), 3 (on-demand) |
 | `--format` | `json` | Output: `text`, `json`, `mermaid` |
-| `--section` | all | Output only: `profile`, `report`, `model`, `diagrams`, `summary` |
-| `--extractors` | all | Comma-separated list to run specific extractors only |
-| `--no-llm` | `false` | Deterministic-only mode (no LLM enrichment) |
-| `--allow-external-llm` | `false` | Allow LLM calls (overridden by `--no-llm`) |
+| `--section` | all | Only: `profile`, `report`, `model`, `diagrams`, `summary` |
+| `--no-llm` | `false` | Deterministic-only (no LLM enrichment) |
 | `--timeout` | `5m` | Pipeline timeout |
-| `--verbose` | `false` | Show per-extractor timing |
+| `--verbose` | `false` | Per-extractor timing |
 | `--skip-git` | `false` | Skip git history extractor |
-| `--language` | auto | Force language: `go`, `java`, `python`, `typescript` |
+| `--language` | auto | Force: `go`, `java`, `python`, `typescript` |
 
 ### `sdp architect c4 <repo-path>`
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--level` | all | Diagram level: `1` (context), `2` (container), `3` (component) |
+| `--level` | all | Level: `1` (context), `2` (container), `3` (component) |
 | `--output` | stdout | Output directory for .mmd files |
-| `--format` | `mermaid` | Output format: `mermaid`, `json` |
+| `--format` | `mermaid` | Format: `mermaid`, `json` |
 
 ### `sdp architect eval <repo-path>`
 
@@ -293,44 +195,10 @@ Before delivering the report, verify:
 |------|-------------|
 | `--ground-truth` | Path to ground-truth JSON |
 
-**Important**: all flags must come **before** the repo path.
-
 ---
 
-## Extending the Module
+## For More
 
-### Adding a New Extractor
-
-1. Implement `Extractor` interface in `internal/architect/extract/`:
-   ```go
-   type Extractor interface {
-       Name() string
-       Extract(ctx context.Context, repoRoot string) (*ProfileFragment, error)
-   }
-   ```
-2. Return data in relevant `ProfileFragment` fields
-3. Register in `internal/architect/extract/registry.go` → `DefaultExtractors()`
-4. Add tests in `tests/architect/`
-
-### Code Map
-
-```
-internal/architect/
-├── pipeline.go          — Pipeline orchestration, BuildReferenceModelFromProfile
-├── assembler.go         — ProfileAssembler, tier-gated merging
-├── profile.go           — Data model types (CodebaseProfile, InfraInfo, etc.)
-├── c4/
-│   ├── generator.go     — Deterministic C4 model generation
-│   ├── relationship.go  — Relationship inference, package→container mapping
-│   ├── render.go        — Mermaid/PlantUML rendering (L1/L2/L3)
-│   └── scoring.go       — Confidence scoring
-├── extract/
-│   ├── registry.go      — DefaultExtractors() list
-│   ├── adapters.go      — Language adapters (Go, Java, Python, TS)
-│   ├── infra.go         — InfraExtractor (Docker, K8s, Terraform, SBT, Maven)
-│   └── ...              — Other extractors (deps, specs, filetree, sql, git, generated)
-cmd/sdp/
-└── cmd_architect.go     — CLI entry point (analyze, c4, eval subcommands)
-tests/architect/
-└── infra_test.go        — Integration tests
-```
+- **Report template with section details**: read `references/report-template.md`
+- **Extending the module (adding extractors, adapters)**: read `references/extending.md`
+- **Debugging empty diagrams, wrong containers**: read `references/debugging.md`
