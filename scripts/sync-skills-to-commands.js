@@ -53,6 +53,7 @@ function getAgentForSkill(skillName) {
     'hotfix': 'builder',
     'issue': 'planner',
     'oneshot': 'orchestrator',
+    'strataudit': 'architect',
     'test': 'builder',
     'codereview': 'reviewer'
   };

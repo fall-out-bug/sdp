@@ -59,6 +59,12 @@ This runs:
 @deploy <feature-id>      # Merge to main
 ```
 
+**Discovery utility (corpus audit):**
+
+```
+@strataudit "Audit the strategy corpus in docs/strategy and docs/architecture"
+```
+
 Or step-by-step:
 
 ```

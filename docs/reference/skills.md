@@ -232,6 +232,31 @@ Skills are Claude Code commands that execute specific SDP workflows. They are de
 
 ---
 
+### @strataudit
+
+**Location:** `prompts/skills/strataudit/SKILL.md`
+
+**Purpose:** Evidence-backed strategy traceability audit over a document corpus
+
+**Runtime order:**
+1. Injected host-native runtime
+2. Configured OpenAI-compatible runtime
+3. OpenRouter as default network path
+4. `sdp-strataudit run` as CLI fallback
+
+**Example:**
+```bash
+@strataudit "Audit the strategy corpus in docs/strategy"
+```
+
+**Output:**
+- `.strataudit/report.json`
+- `.strataudit/report.html`
+- `.strataudit/similarity_distribution.json`
+- `.strataudit/strataudit.db`
+
+---
+
 ### /debug
 
 **Location:** `.claude/skills/debug/SKILL.md`
