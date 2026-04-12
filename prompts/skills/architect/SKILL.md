@@ -36,14 +36,17 @@ Full pipeline run. Produces a codebase profile, architecture report, and C4 refe
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--tier` | `2` | Detail level: 1 (~2K tokens), 2 (~5-15K), 3 (on-demand) |
-| `--format` | `text` | Output: `text`, `json` |
+| `--format` | `json` | Output: `text`, `json`, `mermaid` |
+| `--section` | all | Output only: `profile`, `report`, `model`, `diagrams`, `summary` |
 | `--extractors` | all | Comma-separated list to run specific extractors only |
 | `--no-llm` | `false` | Deterministic-only mode (no LLM enrichment) |
 | `--allow-external-llm` | `false` | Allow LLM calls (overridden by `--no-llm`) |
-| `--timeout` | `120s` | Pipeline timeout |
+| `--timeout` | `5m` | Pipeline timeout |
 | `--verbose` | `false` | Show per-extractor timing |
 | `--skip-git` | `false` | Skip git history extractor |
 | `--language` | auto | Force language: `go`, `java`, `python`, `typescript` |
+
+**Important**: flags must come **before** the repo path (Go `flag` package requirement).
 
 ### `sdp architect c4 <repo-path>`
 
@@ -167,18 +170,38 @@ ReferenceModel (C4)
 ### Running Analysis
 
 ```bash
-# Deterministic analysis (recommended for automated pipelines)
-sdp architect analyze /path/to/repo --no-llm --tier 2 --format json > profile.json
+# Quick summary (compact text, ideal for agents — no Python/jq needed)
+sdp architect analyze --no-llm --tier 2 --section summary /path/to/repo
+
+# C4 model only as JSON (~90KB vs ~600KB full output)
+sdp architect analyze --no-llm --tier 2 --section model --format json /path/to/repo
+
+# Full analysis (large JSON — avoid unless you need everything)
+sdp architect analyze --no-llm --tier 2 --format json /path/to/repo > profile.json
 
 # Quick scan for CI
-sdp architect analyze /path/to/repo --no-llm --tier 1 --timeout 30s
+sdp architect analyze --no-llm --tier 1 --timeout 30s /path/to/repo
 ```
+
+**Flags go BEFORE the repo path.** `sdp architect analyze /path --section summary` won't work — use `sdp architect analyze --section summary /path`.
+
+### Section Filtering
+
+Use `--section` to avoid parsing huge JSON blobs:
+
+| Section | Content | Use case |
+|---------|---------|----------|
+| `summary` | Compact text overview | Quick orientation, agent context |
+| `profile` | Codebase profile (files, deps, infra, imports) | Deep analysis |
+| `report` | Architecture report (patterns, risks, styles) | Quality review |
+| `model` | C4 reference model (containers, relationships) | Diagram data |
+| `diagrams` | Mermaid/PlantUML diagram code | Visualization |
 
 ### Interpreting Results
 
-The JSON output has three top-level keys:
+The full JSON output has three top-level keys:
 - `profile` — raw codebase data (files, deps, infra, imports)
-- `report` — architecture report with findings
+- `report` — architecture report with patterns and risks
 - `reference_model` — C4 model with containers, relationships, actors
 
 Check `reference_model.containers` for deployable units and `reference_model.relationships` for how they connect. Confidence scores (0.0–1.0) indicate extraction certainty.
