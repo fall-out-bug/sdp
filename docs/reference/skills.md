@@ -236,13 +236,21 @@ Skills are Claude Code commands that execute specific SDP workflows. They are de
 
 **Location:** `prompts/skills/strataudit/SKILL.md`
 
-**Purpose:** Evidence-backed strategy traceability audit over a document corpus
+**Purpose:** Evidence-backed strategy traceability audit over a document corpus or existing audit artifacts
+
+**Modes:**
+- `corpus-audit`
+- `traceability-audit`
+- `coverage-audit`
+- `evidence-pack`
+- `report-redraft`
 
 **Runtime order:**
 1. Injected host-native runtime
 2. Configured OpenAI-compatible runtime
 3. OpenRouter as default network path
-4. `sdp-strataudit run` as CLI fallback
+4. Artifact-only path when existing outputs are sufficient
+5. `sdp-strataudit run` as CLI fallback
 
 **Example:**
 ```bash
@@ -254,6 +262,13 @@ Skills are Claude Code commands that execute specific SDP workflows. They are de
 - `.strataudit/report.html`
 - `.strataudit/similarity_distribution.json`
 - `.strataudit/strataudit.db`
+- explicit runtime choice or artifact-only path
+- key trust caveats and what is not claimed
+
+**References:**
+- `docs/reference/strataudit-evidence-policy.md`
+- `docs/reference/strataudit-runtime-policy.md`
+- `docs/reference/strataudit-output-modes.md`
 
 ---
 

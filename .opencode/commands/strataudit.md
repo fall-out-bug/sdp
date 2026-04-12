@@ -21,12 +21,15 @@ See `/prompts/skills/strataudit/SKILL.md` for complete documentation.
 
 The command delegates to the `strataudit` skill, which provides:
 
-- document-backed audit flow
+- mode-based document-backed audit flow
 - explicit runtime selection order
 - structured artifact output
-- trust-oriented failure behavior
+- trust-oriented failure and refusal behavior
 
 ## Related
 
 - Skills: `prompts/skills/strataudit/SKILL.md`
+- Reference: `docs/reference/strataudit-evidence-policy.md`
+- Reference: `docs/reference/strataudit-runtime-policy.md`
+- Reference: `docs/reference/strataudit-output-modes.md`
 - Agents: `prompts/agents/architect.md`

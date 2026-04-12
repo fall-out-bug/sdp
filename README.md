@@ -65,7 +65,7 @@ sdp init --auto
 | `@build` | Single executable leaf workstream (TDD) |
 | `@review` | Multi-agent quality review |
 | `@deploy` | Merge to main |
-| `@strataudit` | Evidence-backed strategy traceability audit |
+| `@strataudit` | Evidence-backed strategy traceability and evidence-pack audit |
 | `@debug` / `@hotfix` / `@bugfix` | Debug flows |
 
 `@build` targets one executable `leaf` workstream. Aggregate/container

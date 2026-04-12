@@ -65,6 +65,12 @@ This runs:
 @strataudit "Audit the strategy corpus in docs/strategy and docs/architecture"
 ```
 
+**Evidence-pack from existing artifacts:**
+
+```
+@strataudit "Build an evidence pack from the existing .strataudit artifacts"
+```
+
 Or step-by-step:
 
 ```
