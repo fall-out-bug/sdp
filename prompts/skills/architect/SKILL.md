@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Brownfield architecture analysis — understand a codebase like a senior architect would. Produces architecture reports with C4 diagrams, execution flow analysis, tech debt assessment, and actionable recommendations for business, tech leads, and developers. Use this skill whenever the user mentions architecture analysis, codebase understanding, reverse engineering, C4 diagrams, or "what is this repo". This is NOT a CLI wrapper — it orchestrates automated extraction + parallel deep-dive + synthesis.
-version: 6.0.0
+version: 7.0.0
 ---
 
 # @architect — Brownfield Architecture Analysis
@@ -46,6 +46,47 @@ Mermaid diagrams must render correctly in Obsidian, VS Code, Cursor, and the HTM
 8. **Keep diagrams under 30 nodes** — larger diagrams become unreadable. Split into multiple if needed.
 9. **Dependency graphs: use `graph LR`** (horizontal) with flat structure — no nested subgraphs. Supplement with a fan-in table instead of visual grouping.
 10. **Test mentally**: if you have doubts about a label, simplify it.
+
+---
+
+## Orchestration Model
+
+**This skill is designed for phase-based execution, not single-pass.** Each phase runs in its own agent with focused context. The orchestrating agent manages handoffs.
+
+**Why phases:** Testing showed that a single agent with all instructions + extraction output loses formatting rules (mermaid, C4 syntax) by synthesis time. Splitting into phases keeps each agent's context focused.
+
+### Phase Overview
+
+```
+Phase 1: EXTRACTION (this agent or one sub-agent)
+  → Runs Step 1 + Step 1.5 (JVM)
+  → Output: structured facts (file counts, modules, JVM findings)
+
+Phase 2: DEEP-DIVE (3-4 parallel Explore agents)
+  → Agents A, B, C, D explore code
+  → Output: identity, execution flow, patterns, tests
+
+Phase 3: SYNTHESIS (one sub-agent with FRESH context)
+  → Gets: extraction summary + deep-dive findings (compressed)
+  → Gets: report-template.md + evidence tagging rules
+  → Writes: sections 1-8, 10-11 in prose + ASCII flows
+  → Does NOT write mermaid/C4 — that's Phase 4
+
+Phase 4: DIAGRAMS (one sub-agent with FRESH context)
+  → Gets: module list, component relationships, dependency data
+  → Gets: Mermaid Compatibility rules (10 rules) + C4 canonical syntax
+  → Writes: 6+ mermaid diagrams (3 flowcharts + 3 canonical C4)
+  → Injects diagrams into the report at correct section positions
+
+Phase 5: VALIDATION (orchestrator)
+  → Checks: 11 sections present, 6+ mermaid blocks, C4Context/C4Container/C4Component keywords
+  → Checks: no <br/> in mermaid, no emoji in nodes, evidence tags present
+  → Renders HTML if sdp binary available
+```
+
+**If you are a single agent (not orchestrating):** You MUST still follow the phase separation mentally. Write all prose first, then generate ALL diagrams in one focused pass at the end with the Mermaid rules re-read.
+
+**If you are the orchestrator:** Spawn sub-agents for each phase. Pass only the RELEVANT rules to each sub-agent — do not dump the entire SKILL.md into every prompt.
 
 ---
 
@@ -276,11 +317,60 @@ Section 9 uses **canonical C4 syntax** for formal architecture documentation:
 
 Write additional diagrams for execution flow (ASCII → chains or mermaid) if the system is complex.
 
-**Gate**: Report has all 11 sections from the template (including C4 overview), at least 3 mermaid diagrams, identifies god objects, counts tech debt, and has specific recommendations with file paths. ALL text is in the user's language (except technical terms and evidence tags).
+**Gate**: Report has all 11 sections from the template (including C4 overview), prose is written, evidence tags present, file paths in claims. Diagrams may be placeholders — they're generated in Step 3.5.
 
 ---
 
-### Step 4: HTML Report (optional but recommended)
+### Step 3.5: Diagram Generation (separate pass — CRITICAL for quality)
+
+**Why a separate step:** Testing on 5 JVM repos showed that agents generating prose + diagrams in one pass consistently violate mermaid formatting rules. Generating diagrams in a FRESH context with only diagram rules produces correct output.
+
+**If orchestrating:** Spawn a dedicated diagram agent with:
+- The module list, component relationships, and dependency data from Steps 1-2
+- The Mermaid Compatibility rules (all 10)
+- The C4 canonical syntax examples
+- **Nothing else** — no extraction commands, no report template, no anti-rationalization table
+
+**If single agent:** Re-read the Mermaid Compatibility rules NOW before generating any diagram. Generate ALL diagrams in one focused batch.
+
+**Generate exactly these 6 diagrams:**
+
+1. **Section 3 — L1 Landscape** (`graph LR`): actors → system → external systems. Max 8 nodes.
+2. **Section 4 — L2 Module Map** (`graph TB`): modules grouped in subgraphs by layer. Max 25 nodes.
+3. **Section 8 — Dependency Graph** (`graph LR`, FLAT — no nested subgraphs): module → module arrows. Supplement with fan-in table.
+4. **Section 9.1 — C4 L1** (`C4Context`): `Person()`, `System()`, `System_Ext()`, `Rel()`
+5. **Section 9.2 — C4 L2** (`C4Container`): `Container()` inside `System_Boundary()`, `Rel()`
+6. **Section 9.3 — C4 L3** (`C4Component`): `Component()` inside `Container_Boundary()`, `Rel()`
+
+**HARD RULES for every diagram:**
+- `\n` for line breaks — NEVER `<br/>`, `<br>`, `<br />`
+- NO emoji inside `["..."]` node labels
+- Quote labels with spaces/parens/slashes
+- No colons in labels — use ` — ` instead
+- C4 diagrams MUST start with `C4Context`, `C4Container`, or `C4Component` — NOT `graph`
+- Under 30 nodes per diagram
+
+**Gate**: 6 mermaid blocks in report. `C4Context`, `C4Container`, `C4Component` keywords present. Zero `<br` inside mermaid blocks. Zero emoji inside mermaid blocks.
+
+---
+
+### Step 4: Validation & HTML Report
+
+**Validation checklist (MUST pass before declaring done):**
+```
+[ ] 11 sections present (grep '^## ' | wc -l ≥ 11)
+[ ] 6+ mermaid blocks (grep '```mermaid' | wc -l ≥ 6)
+[ ] C4Context keyword present
+[ ] C4Container keyword present
+[ ] C4Component keyword present
+[ ] Zero <br in mermaid blocks
+[ ] Zero emoji in mermaid blocks
+[ ] Evidence tags present ([ИЗВЛЕЧЕНО] or [EXTRACTED])
+[ ] File paths in sections 5, 6, 7
+[ ] Report >400 lines
+```
+
+**HTML rendering (optional but recommended):**
 
 After writing the markdown report, render it as an interactive HTML page with zoomable diagrams.
 
