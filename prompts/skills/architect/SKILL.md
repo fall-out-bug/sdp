@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Brownfield architecture analysis — understand a codebase like a senior architect would. Produces architecture reports with C4 diagrams, execution flow analysis, tech debt assessment, and actionable recommendations for business, tech leads, and developers. Use this skill whenever the user mentions architecture analysis, codebase understanding, reverse engineering, C4 diagrams, or "what is this repo". This is NOT a CLI wrapper — it orchestrates automated extraction + parallel deep-dive + synthesis.
-version: 7.0.0
+version: 7.1.0
 ---
 
 # @architect — Brownfield Architecture Analysis
@@ -114,6 +114,8 @@ Write architecture report PROSE (no mermaid diagrams) in [language].
 Input: [paste extraction summary]
 Write sections 1-8, 10-11 with evidence tags.
 Insert <!-- DIAGRAM: name --> placeholders where diagrams belong.
+CRITICAL: Verify ALL LOC claims with `wc -l` before writing them.
+  Do NOT copy LOC numbers from README, comments, or memory — run wc -l on actual files.
 Output: /path/to/report-prose.md
 ```
 
@@ -121,6 +123,8 @@ Output: /path/to/report-prose.md
 ```
 Generate 6 mermaid diagrams for [project name].
 Module data: [paste module list + relationships]
+JVM critical facts: [paste verified facts, e.g. "RPC = Pekko 1.4.0 NOT Akka",
+  "classloader = child-first", etc. — these MUST appear correctly in diagram labels]
 RULES: [paste ONLY the 10 Mermaid Compatibility rules + C4 syntax examples]
 Output: /path/to/report-diagrams.md
 ```
@@ -411,6 +415,8 @@ Write additional diagrams for execution flow (ASCII → chains or mermaid) if th
 [ ] Evidence tags present ([ИЗВЛЕЧЕНО] or [EXTRACTED])
 [ ] File paths in sections 5, 6, 7
 [ ] Report >400 lines
+[ ] LOC claims verified with wc -l (not copied from memory/README)
+[ ] RPC framework name verified from actual deps (Pekko vs Akka vs Netty)
 ```
 
 **HTML rendering (optional but recommended):**
@@ -460,6 +466,7 @@ Your natural tendency is to take shortcuts. Here's why each shortcut produces a 
 | Skip shading/relocation in report | "It's a build concern, not architecture" | Shading IS architecture — it determines how dependencies are isolated, how classpath conflicts are resolved, how the project can be embedded. |
 | Write "modules communicate via API" without wire protocol | "API is sufficient" | HOW they communicate matters: binary protocol with JSON schema definitions (Kafka), versioned StreamInput/Output (ES), Pekko remoting (Flink). The wire format IS the contract. |
 | Ignore classloader isolation | "Java has one classpath" | Not in OSGi (DBeaver), not in child-first loaders (Flink), not in JPMS (ES). Classloader isolation is how JVM projects achieve modularity. |
+| Copy LOC from v6 report or README | "I already know the file sizes" | LOC numbers drift between versions. v6 Flink said JobMaster=3400 LOC, reality=1784. Always `wc -l` the actual file. Wrong LOC destroys credibility. |
 
 ---
 
