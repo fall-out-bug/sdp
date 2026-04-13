@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Brownfield architecture analysis — understand a codebase like a senior architect would. Produces architecture reports with C4 diagrams, execution flow analysis, tech debt assessment, and actionable recommendations for business, tech leads, and developers. Use this skill whenever the user mentions architecture analysis, codebase understanding, reverse engineering, C4 diagrams, or "what is this repo". This is NOT a CLI wrapper — it orchestrates automated extraction + parallel deep-dive + synthesis.
-version: 7.1.0
+version: 7.2.0
 ---
 
 # @architect — Brownfield Architecture Analysis
@@ -46,6 +46,8 @@ Mermaid diagrams must render correctly in Obsidian, VS Code, Cursor, and the HTM
 8. **Keep diagrams under 30 nodes** — larger diagrams become unreadable. Split into multiple if needed.
 9. **Dependency graphs: use `graph LR`** (horizontal) with flat structure — no nested subgraphs. Supplement with a fan-in table instead of visual grouping.
 10. **Test mentally**: if you have doubts about a label, simplify it.
+11. **C4 `title` directive: ASCII only.** Use `-` (hyphen), NOT `—` (em-dash) or other Unicode in C4 `title` lines. Em-dash breaks mermaid's C4 parser. Example: `title Apache Flink - System Context (L1)` not `title Apache Flink — System Context (L1)`.
+12. **Section titles for flowchart sections (3, 4, 8): do NOT include "(C4 L1/L2)".** This triggers C4 badge display on non-C4 diagrams, confusing readers. C4 badges belong only on Section 9 canonical diagrams.
 
 ---
 
@@ -467,6 +469,8 @@ Your natural tendency is to take shortcuts. Here's why each shortcut produces a 
 | Write "modules communicate via API" without wire protocol | "API is sufficient" | HOW they communicate matters: binary protocol with JSON schema definitions (Kafka), versioned StreamInput/Output (ES), Pekko remoting (Flink). The wire format IS the contract. |
 | Ignore classloader isolation | "Java has one classpath" | Not in OSGi (DBeaver), not in child-first loaders (Flink), not in JPMS (ES). Classloader isolation is how JVM projects achieve modularity. |
 | Copy LOC from v6 report or README | "I already know the file sizes" | LOC numbers drift between versions. v6 Flink said JobMaster=3400 LOC, reality=1784. Always `wc -l` the actual file. Wrong LOC destroys credibility. |
+| Use em-dash `—` in C4 `title` | "It looks nicer" | Em-dash breaks mermaid's C4 parser. Use ASCII hyphen `-` in all C4 title directives. |
+| Put "(C4 L2)" in flowchart section titles | "Helps reader know the C4 level" | The HTML renderer detects C4 level from title and adds a badge — putting it on a `graph TB` flowchart creates a misleading C4 badge on a non-C4 diagram. |
 
 ---
 

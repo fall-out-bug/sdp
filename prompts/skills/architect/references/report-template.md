@@ -160,7 +160,7 @@ graph LR
 ```markdown
 ```mermaid
 C4Context
-    title System Name — System Context (L1)
+    title System Name - System Context (L1)
     Person(user, "User Role", "What they do")
     System(sys, "System", "What it does, scale")
     System_Ext(ext, "External System", "Why needed")
@@ -176,7 +176,7 @@ Follow with 1 paragraph: key insight at this zoom level.
 ```markdown
 ```mermaid
 C4Container
-    title System Name — Containers (L2)
+    title System Name - Containers (L2)
     Person(user, "User", "Description")
     System_Boundary(sys, "System Name") {
         Container(mod1, "Module", "Language", "Purpose, ~LOC")
@@ -197,7 +197,7 @@ Pick the **most critical module** (usually the one with highest fan-in or god ob
 ```markdown
 ```mermaid
 C4Component
-    title Module Name — Components (L3)
+    title Module Name - Components (L3)
     Container_Boundary(mod, "Module Name") {
         Component(cls1, "ClassName", "Language, LOC", "Responsibility")
         Component(cls2, "ClassName", "Language, LOC", "Responsibility")
