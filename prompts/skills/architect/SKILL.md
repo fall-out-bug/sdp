@@ -53,6 +53,8 @@ Mermaid diagrams must render correctly in Obsidian, VS Code, Cursor, and the HTM
 
 **This skill is designed for phase-based execution, not single-pass.** Each phase runs in its own agent with focused context. The orchestrating agent manages handoffs.
 
+**Tool constraints:** This skill uses ONLY Agent, Bash, Write, Read, Grep, Glob tools. **NO computer-use, NO Chrome MCP, NO browser interaction.** All file I/O is through Write/Bash. All code exploration is through Read/Grep/Glob/Bash. Sub-agents are spawned via Agent tool with focused prompts. The skill must work headlessly on any machine without a display.
+
 **Why phases:** Testing showed that a single agent with all instructions + extraction output loses formatting rules (mermaid, C4 syntax) by synthesis time. Splitting into phases keeps each agent's context focused.
 
 ### Phase Overview
@@ -86,7 +88,48 @@ Phase 5: VALIDATION (orchestrator)
 
 **If you are a single agent (not orchestrating):** You MUST still follow the phase separation mentally. Write all prose first, then generate ALL diagrams in one focused pass at the end with the Mermaid rules re-read.
 
-**If you are the orchestrator:** Spawn sub-agents for each phase. Pass only the RELEVANT rules to each sub-agent — do not dump the entire SKILL.md into every prompt.
+**If you are the orchestrator:** Spawn sub-agents for each phase. Each sub-agent prompt must:
+1. Contain ONLY the rules relevant to that phase (not the entire SKILL.md)
+2. Specify the exact output file path
+3. Use `mode: "bypassPermissions"` or `mode: "auto"` for file writing
+4. **Never include computer-use, browser, or UI instructions**
+
+**Sub-agent prompt templates:**
+
+**Phase 1+2 agent (Extraction + Deep-Dive):**
+```
+Analyze the codebase at /path/to/repo.
+Run these Bash commands: [Step 1 + Step 1.5 commands]
+Then spawn 4 Explore agents for deep-dive.
+Write a STRUCTURED SUMMARY (not a report) to /path/to/extraction-results.md:
+- File counts, LOC, languages, build system
+- Module list with dependencies
+- JVM findings: [list non-empty results from Step 1.5]
+- Deep-dive findings: entry points, execution model, patterns, tests
+```
+
+**Phase 3 agent (Prose synthesis):**
+```
+Write architecture report PROSE (no mermaid diagrams) in [language].
+Input: [paste extraction summary]
+Write sections 1-8, 10-11 with evidence tags.
+Insert <!-- DIAGRAM: name --> placeholders where diagrams belong.
+Output: /path/to/report-prose.md
+```
+
+**Phase 4 agent (Diagrams — CRITICAL: fresh context, short prompt):**
+```
+Generate 6 mermaid diagrams for [project name].
+Module data: [paste module list + relationships]
+RULES: [paste ONLY the 10 Mermaid Compatibility rules + C4 syntax examples]
+Output: /path/to/report-diagrams.md
+```
+
+**Phase 5 (Orchestrator merges + validates):**
+- Read prose file and diagrams file
+- Replace <!-- DIAGRAM --> placeholders with actual mermaid blocks
+- Write final merged report
+- Run validation checklist
 
 ---
 
