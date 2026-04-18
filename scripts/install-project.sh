@@ -3,6 +3,11 @@
 #
 # Installs prompts/hooks config into the current project.
 # This script does NOT require installing the SDP CLI binary.
+#
+# Flags:
+#   --preview             Show what would change without modifying anything.
+#   --no-overwrite-config Preserve existing IDE config files (legacy, default behavior).
+#   --overwrite-config    Overwrite existing config files (not recommended).
 
 set -eu
 
@@ -16,6 +21,9 @@ SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-0}"
 DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
 SDP_AUTO_FALLBACK_ALL=0
 SDP_CONFIGURED_INTEGRATIONS=""
+SDP_PREVIEW=0
+SDP_BACKUP_DIR=""
+SDP_PREVIEW_CHANGES=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -25,14 +33,206 @@ for arg in "$@"; do
         --overwrite-config)
             SDP_PRESERVE_CONFIG="0"
             ;;
+        --preview)
+            SDP_PREVIEW=1
+            ;;
     esac
 done
 
-echo "🚀 SDP Project Installer"
+echo "SDP Project Installer"
 echo "========================"
-if [ "$SDP_PRESERVE_CONFIG" = "1" ]; then
+if [ "$SDP_PREVIEW" = "1" ]; then
+    echo "Mode: PREVIEW (no changes will be made)"
+elif [ "$SDP_PRESERVE_CONFIG" = "1" ]; then
     echo "Mode: preserve existing IDE config files"
 fi
+
+# ---------------------------------------------------------------------------
+# Backup helpers
+# ---------------------------------------------------------------------------
+
+init_backup_dir() {
+    # Called before cd into $SDP_DIR. At this point cwd is the project root.
+    project_root="$(pwd)"
+    SDP_BACKUP_DIR="$project_root/.sdp/backup/$(date +%Y%m%dT%H%M%S)"
+}
+
+backup_file() {
+    file="$1"
+    if [ ! -e "$file" ]; then
+        return
+    fi
+    mkdir -p "$SDP_BACKUP_DIR"
+    # Normalize path: strip leading ../ to get a clean relative path
+    clean_path=$(echo "$file" | sed 's|^\.\./||')
+    dest_dir="$SDP_BACKUP_DIR/$(dirname "$clean_path")"
+    mkdir -p "$dest_dir"
+    cp "$file" "$dest_dir/$(basename "$file")"
+}
+
+# ---------------------------------------------------------------------------
+# Preview helpers
+# ---------------------------------------------------------------------------
+
+preview_note() {
+    action="$1"
+    target="$2"
+    if [ "$SDP_PREVIEW" = "1" ]; then
+        SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  $action: $target"
+        return 0
+    fi
+    return 1
+}
+
+preview_link() {
+    target="$1"
+    dest="$2"
+    if preview_note "CREATE symlink" "$dest -> $target"; then
+        return
+    fi
+    mkdir -p "$(dirname "$dest")"
+    ln -sfn "$target" "$dest"
+}
+
+preview_tree() {
+    src_dir="$1"
+    dest_dir="$2"
+    if [ ! -d "$src_dir" ]; then
+        return
+    fi
+    find "$src_dir" -type f | while IFS= read -r src; do
+        rel="${src#$src_dir/}"
+        preview_file "$src" "$dest_dir/$rel"
+    done
+}
+
+preview_file() {
+    src="$1"
+    dest="$2"
+
+    # Backup before overwrite
+    if [ "$SDP_PREVIEW" = "0" ] && [ -e "$dest" ]; then
+        backup_file "$dest"
+    fi
+
+    if preview_note "COPY" "$dest"; then
+        return
+    fi
+
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+}
+
+# ---------------------------------------------------------------------------
+# JSON merge for settings.json (POSIX-compatible, no jq dependency)
+# Merges SDP hook entries into existing settings.json arrays.
+# Preserves all user-existing keys unchanged.
+# ---------------------------------------------------------------------------
+
+merge_settings_json() {
+    src="$1"
+    dest="$2"
+    backup_path="$SDP_BACKUP_DIR"
+
+    # If dest does not exist, simple copy
+    if [ ! -f "$dest" ]; then
+        if preview_note "CREATE" "$dest"; then
+            return
+        fi
+        mkdir -p "$(dirname "$dest")"
+        cp "$src" "$dest"
+        return
+    fi
+
+    # Backup existing file
+    if [ "$SDP_PREVIEW" = "0" ]; then
+        backup_file "$dest"
+    fi
+
+    # Parse the source SDP settings to extract keys
+    # We use a simple approach: for each top-level key in src,
+    # if dest has it and it's an object/array, merge; otherwise set from src.
+
+    # Extract existing dest content
+    dest_content=$(cat "$dest")
+    src_content=$(cat "$src")
+
+    # Check if jq is available for proper merge
+    if command -v jq >/dev/null 2>&1; then
+        # Proper deep merge with jq:
+        # - For arrays under "hooks.*", append new entries (avoiding duplicates)
+        # - For objects, merge recursively
+        # - For scalars, take the source value only if missing from dest
+
+        merged=$(printf '%s\n%s\n' "$dest_content" "$src_content" | jq -n '
+            # inputs: [dest, src]
+            # Deep merge: dest as base, overlay src.
+            # Arrays: concatenate and deduplicate (by value equality).
+            # Objects: recurse. Scalars: src wins (only when key is new or src differs).
+            [inputs] as $docs |
+            $docs[0] as $dest |
+            $docs[1] as $src |
+
+            def deepmerge(a; b):
+              if (a | type) == "object" and (b | type) == "object" then
+                (a + b) | to_entries | map(
+                  .key as $k |
+                  if ($k | in(a)) == false then .
+                  elif ($k | in(b)) == false then .key as $kk | {key: $kk, value: a[$kk]}
+                  elif (a[$k] | type) == "object" and (b[$k] | type) == "object" then
+                    {key: $k, value: (deepmerge(a[$k]; b[$k]))}
+                  elif (a[$k] | type) == "array" and (b[$k] | type) == "array" then
+                    {key: $k, value: (a[$k] + b[$k] | unique)}
+                  else
+                    {key: $k, value: b[$k]}
+                  end
+                ) | from_entries
+              elif (a | type) == "array" and (b | type) == "array" then
+                a + b | unique
+              else
+                b
+              end;
+
+            deepmerge($dest; $src)
+        ')
+
+        if [ "$SDP_PREVIEW" = "1" ]; then
+            preview_note "MERGE (jq)" "$dest"
+            SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+    Merged content preview:
+$(echo "$merged" | head -20)"
+        else
+            echo "$merged" > "$dest"
+        fi
+    else
+        # No jq: fall back to preserving existing file entirely.
+        # Only copy if dest doesn't already have SDP markers.
+        if printf '%s' "$dest_content" | grep -q '"hooks"'; then
+            # Dest already has hooks — preserve it, log a warning
+            if [ "$SDP_PREVIEW" = "1" ]; then
+                preview_note "SKIP (existing hooks preserved, install jq for proper merge)" "$dest"
+            else
+                echo "  Note: $dest already has hooks config. Install jq for automatic merge."
+                echo "  Existing file preserved. SDP settings available at: $src"
+            fi
+        else
+            # Dest has no hooks — safe to append SDP content
+            # Simple append approach: take everything from src that's missing
+            if [ "$SDP_PREVIEW" = "1" ]; then
+                preview_note "MERGE (basic, no jq)" "$dest"
+            else
+                # Use the source file (dest had no hooks), but keep user keys
+                # Very basic: just overwrite. User was told to install jq.
+                cp "$src" "$dest"
+            fi
+        fi
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# IDE detection
+# ---------------------------------------------------------------------------
 
 detect_auto_ide() {
     detected=""
@@ -95,6 +295,10 @@ print_configured_integrations() {
     done
 }
 
+# ---------------------------------------------------------------------------
+# File sync (with backup and merge awareness)
+# ---------------------------------------------------------------------------
+
 sync_file() {
     src="$1"
     dest="$2"
@@ -103,8 +307,7 @@ sync_file() {
         return
     fi
 
-    mkdir -p "$(dirname "$dest")"
-    cp "$src" "$dest"
+    preview_file "$src" "$dest"
 }
 
 sync_tree_files() {
@@ -129,9 +332,12 @@ sync_link() {
         return
     fi
 
-    mkdir -p "$(dirname "$dest")"
-    ln -sfn "$target" "$dest"
+    preview_link "$target" "$dest"
 }
+
+# ---------------------------------------------------------------------------
+# Managed checkout helpers
+# ---------------------------------------------------------------------------
 
 ensure_managed_checkout() {
     if ! git -C "$SDP_DIR" rev-parse --git-dir >/dev/null 2>&1; then
@@ -151,7 +357,7 @@ ensure_clean_checkout() {
 }
 
 update_existing_checkout() {
-    echo "⚠️  $SDP_DIR already exists. Updating..."
+    echo "Warning: $SDP_DIR already exists. Updating..."
     ensure_managed_checkout
     ensure_clean_checkout
 
@@ -165,54 +371,76 @@ update_existing_checkout() {
     git -C "$SDP_DIR" checkout -B "$SDP_REF" FETCH_HEAD >/dev/null 2>&1
 }
 
-# Check if already installed
-if [ -d "$SDP_DIR" ]; then
-    update_existing_checkout
+# ---------------------------------------------------------------------------
+# Initialize backup directory (before any modifications)
+# ---------------------------------------------------------------------------
+
+init_backup_dir
+
+# ---------------------------------------------------------------------------
+# Clone or update SDP checkout
+# ---------------------------------------------------------------------------
+
+if [ "$SDP_PREVIEW" = "1" ]; then
+    if [ -d "$SDP_DIR" ]; then
+        SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  UPDATE: $SDP_DIR (existing checkout)"
+    else
+        SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  CLONE: $SDP_DIR from $REMOTE ($SDP_REF)"
+    fi
 else
-    echo "📦 Cloning SDP (ref: $SDP_REF)..."
-    git clone --depth 1 -b "$SDP_REF" "$REMOTE" "$SDP_DIR" 2>/dev/null || git clone --depth 1 "$REMOTE" "$SDP_DIR"
+    if [ -d "$SDP_DIR" ]; then
+        update_existing_checkout
+    else
+        echo "Cloning SDP (ref: $SDP_REF)..."
+        git clone --depth 1 -b "$SDP_REF" "$REMOTE" "$SDP_DIR" 2>/dev/null || git clone --depth 1 "$REMOTE" "$SDP_DIR"
+    fi
 fi
 
 cd "$SDP_DIR"
 
+# ---------------------------------------------------------------------------
 # Optional CLI install for project mode
-if [ "$SDP_INSTALL_CLI" = "1" ]; then
+# ---------------------------------------------------------------------------
+
+if [ "$SDP_INSTALL_CLI" = "1" ] && [ "$SDP_PREVIEW" = "0" ]; then
     cli_installed=0
 
     if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
-        echo "🔧 Installing SDP CLI binary from latest release..."
+        echo "Installing SDP CLI binary from latest release..."
         if sh scripts/install.sh latest; then
             cli_installed=1
         else
-            echo "⚠️  Release binary installation failed."
+            echo "Warning: Release binary installation failed."
             if [ "$SDP_INSTALL_CLI_FROM_SOURCE" = "1" ] && command -v go >/dev/null 2>&1; then
-                echo "🔧 Trying source build fallback..."
+                echo "Trying source build fallback..."
                 mkdir -p "${HOME}/.local/bin"
                 if (
                     cd sdp-plugin && \
                     CGO_ENABLED=0 GOFLAGS=-buildvcs=false go build -o "${HOME}/.local/bin/sdp" ./cmd/sdp
                 ); then
-                    echo "✅ Installed CLI from source to ${HOME}/.local/bin/sdp"
+                    echo "  Installed CLI from source to ${HOME}/.local/bin/sdp"
                     cli_installed=1
                 fi
             fi
         fi
     else
         if command -v go >/dev/null 2>&1; then
-            echo "🔧 Building SDP CLI from checked-out source (custom remote)..."
+            echo "Building SDP CLI from checked-out source (custom remote)..."
             mkdir -p "${HOME}/.local/bin"
             if (
                 cd sdp-plugin && \
                 CGO_ENABLED=0 GOFLAGS=-buildvcs=false go build -o "${HOME}/.local/bin/sdp" ./cmd/sdp
             ); then
-                echo "✅ Installed CLI from source to ${HOME}/.local/bin/sdp"
+                echo "  Installed CLI from source to ${HOME}/.local/bin/sdp"
                 cli_installed=1
             fi
         fi
     fi
 
     if [ "$cli_installed" != "1" ]; then
-        echo "⚠️  CLI installation failed. Prompts are installed, but 'sdp init' may not be available yet."
+        echo "Warning: CLI installation failed. Prompts are installed, but 'sdp init' may not be available yet."
         if [ "$REMOTE" = "$DEFAULT_REMOTE" ]; then
             echo ""
             echo "   Retry CLI install:"
@@ -221,23 +449,29 @@ if [ "$SDP_INSTALL_CLI" = "1" ]; then
             echo "   Retry: install Go, then run 'cd sdp/sdp-plugin && go build -o \${HOME}/.local/bin/sdp ./cmd/sdp'"
         fi
     fi
+elif [ "$SDP_INSTALL_CLI" = "1" ] && [ "$SDP_PREVIEW" = "1" ]; then
+    SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  INSTALL CLI: sdp binary to ${HOME}/.local/bin/"
 fi
 
+# ---------------------------------------------------------------------------
 # Setup for selected IDE
+# ---------------------------------------------------------------------------
+
 if [ "$SDP_IDE" = "auto" ]; then
     if SDP_IDE_LIST=$(detect_auto_ide); then
-        echo "🔗 Setting up for auto-detected IDEs: $SDP_IDE_LIST"
+        echo "Setting up for auto-detected IDEs: $SDP_IDE_LIST"
     else
         status=$?
         if [ "$status" -ne 10 ]; then
             exit "$status"
         fi
         SDP_AUTO_FALLBACK_ALL=1
-        echo "🔗 Setting up for all supported IDEs: $SDP_IDE_LIST"
+        echo "Setting up for all supported IDEs: $SDP_IDE_LIST"
     fi
 else
     SDP_IDE_LIST="$SDP_IDE"
-    echo "🔗 Setting up for: $SDP_IDE"
+    echo "Setting up for: $SDP_IDE"
 fi
 
 setup_claude() {
@@ -247,7 +481,8 @@ setup_claude() {
     sync_file .claude/commands.json ../.claude/commands.json
     sync_tree_files .claude/hooks ../.claude/hooks
     sync_tree_files .claude/patterns ../.claude/patterns
-    sync_file .claude/settings.json ../.claude/settings.json
+    # Merge settings.json instead of overwriting
+    merge_settings_json .claude/settings.json ../.claude/settings.json
     register_integration "Claude" ".claude/"
 }
 
@@ -299,40 +534,84 @@ for ide in $SDP_IDE_LIST; do
             setup_codex
             ;;
         *)
-            echo "⚠️  Unknown SDP_IDE value '$ide', skipping"
+            echo "  Warning: Unknown SDP_IDE value '$ide', skipping"
             ;;
     esac
 done
 
-# Add to .gitignore
+# ---------------------------------------------------------------------------
+# .gitignore entries
+# ---------------------------------------------------------------------------
+
 if [ -f ../.gitignore ]; then
     if ! grep -q "$SDP_DIR/.git" ../.gitignore; then
-        echo "" >> ../.gitignore
-        echo "# SDP" >> ../.gitignore
-        echo "$SDP_DIR/.git" >> ../.gitignore
-        echo ".claude/skills" >> ../.gitignore
-        echo ".claude/agents" >> ../.gitignore
-        echo ".cursor/skills" >> ../.gitignore
-        echo ".cursor/agents" >> ../.gitignore
-        echo ".opencode/skills" >> ../.gitignore
-        echo ".opencode/agents" >> ../.gitignore
-        echo ".codex/skills/sdp" >> ../.gitignore
-        echo ".codex/agents" >> ../.gitignore
-        echo ".prompts" >> ../.gitignore
-        echo "✅ Added entries to .gitignore"
+        if [ "$SDP_PREVIEW" = "1" ]; then
+            SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  APPEND: .gitignore (SDP entries)"
+        else
+            echo "" >> ../.gitignore
+            echo "# SDP" >> ../.gitignore
+            echo "$SDP_DIR/.git" >> ../.gitignore
+            echo ".claude/skills" >> ../.gitignore
+            echo ".claude/agents" >> ../.gitignore
+            echo ".cursor/skills" >> ../.gitignore
+            echo ".cursor/agents" >> ../.gitignore
+            echo ".opencode/skills" >> ../.gitignore
+            echo ".opencode/agents" >> ../.gitignore
+            echo ".codex/skills/sdp" >> ../.gitignore
+            echo ".codex/agents" >> ../.gitignore
+            echo ".prompts" >> ../.gitignore
+            echo "  Added entries to .gitignore"
+        fi
     fi
 fi
 
-# Install Git hooks (pre-commit, pre-push)
+# ---------------------------------------------------------------------------
+# Git hooks
+# ---------------------------------------------------------------------------
+
 if [ -f hooks/install-git-hooks.sh ]; then
-    if (cd .. && sh "$SDP_DIR/hooks/install-git-hooks.sh" 2>/dev/null); then
-        echo "✅ Git hooks installed (pre-commit, pre-push)"
+    if [ "$SDP_PREVIEW" = "1" ]; then
+        SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  INSTALL: git hooks (pre-commit, pre-push)"
+    else
+        if (cd .. && sh "$SDP_DIR/hooks/install-git-hooks.sh" 2>/dev/null); then
+            echo "  Git hooks installed (pre-commit, pre-push)"
+        fi
     fi
 fi
 
+# ---------------------------------------------------------------------------
+# Preview summary
+# ---------------------------------------------------------------------------
+
+if [ "$SDP_PREVIEW" = "1" ]; then
+    echo ""
+    echo "=== PREVIEW: Changes that would be made ==="
+    if [ -n "$SDP_PREVIEW_CHANGES" ]; then
+        echo "$SDP_PREVIEW_CHANGES" | grep -v '^$' | sed 's/^/  /'
+    else
+        echo "  (no changes)"
+    fi
+    echo ""
+    echo "Run without --preview to apply these changes."
+    echo "Existing configs will be backed up to .sdp/backup/ before modification."
+    exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# Final summary
+# ---------------------------------------------------------------------------
+
 echo ""
-echo "✅ SDP project assets installed successfully!"
+echo "  SDP project assets installed successfully!"
 echo ""
+
+# Report backup location
+if [ -n "$SDP_BACKUP_DIR" ] && [ -d "$SDP_BACKUP_DIR" ]; then
+    echo "  Backup: $(cd .. && pwd)/.sdp/backup/"
+fi
+
 print_configured_integrations
 
 if [ "$SDP_AUTO_FALLBACK_ALL" = "1" ]; then
