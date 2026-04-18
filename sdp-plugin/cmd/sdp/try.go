@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/telemetry"
 	"github.com/fall-out-bug/sdp/internal/trial"
 	"github.com/spf13/cobra"
 )
@@ -37,6 +38,7 @@ This provides a zero-commitment first experience with SDP.`,
   sdp try "Add tests" --keep`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			startTime := time.Now()
 			taskDescription := args[0]
 			projectPath := "."
 
@@ -44,6 +46,13 @@ This provides a zero-commitment first experience with SDP.`,
 			absPath, err := filepath.Abs(projectPath)
 			if err != nil {
 				return fmt.Errorf("failed to resolve path: %w", err)
+			}
+
+			// Initialize telemetry collector
+			uxMetrics, err := telemetry.NewUXMetricsCollector("")
+			if err != nil {
+				// Don't fail the command if telemetry fails
+				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
 			}
 
 			// Create trial session
@@ -75,6 +84,10 @@ This provides a zero-commitment first experience with SDP.`,
 			fmt.Println("\nExecuting task...")
 			result, err := t.Execute()
 			if err != nil {
+				// Record discard telemetry on execution failure
+				if uxMetrics != nil {
+					_ = uxMetrics.RecordTryDiscard("unknown", "execution_failure", 1)
+				}
 				return fmt.Errorf("execution failed: %w", err)
 			}
 
@@ -82,36 +95,76 @@ This provides a zero-commitment first experience with SDP.`,
 			fmt.Printf("\nExecution completed in %v\n", result.Duration.Round(time.Second))
 			fmt.Printf("Result: %s\n", result.Message)
 
+			// Determine outcome
+			var outcome string
+			var stepNumber int
+
 			// Handle flags
 			if discard {
 				fmt.Println("\nDiscarding trial...")
-				return t.Discard()
-			}
-
-			if keep {
+				outcome = "user_discarded"
+				stepNumber = 2
+				if err := t.Discard(); err != nil {
+					return err
+				}
+			} else if keep {
 				fmt.Println("\nKeeping trial...")
-				return t.Accept()
+				outcome = "user_accepted"
+				stepNumber = 2
+				if err := t.Accept(); err != nil {
+					return err
+				}
+			} else {
+				// Interactive prompt
+				fmt.Println("\nWhat would you like to do?")
+				fmt.Println("  [1] Accept - Keep branch and adopt changes")
+				fmt.Println("  [2] Discard - Delete branch and restore original state")
+				fmt.Print("Choice: ")
+
+				reader := bufio.NewReader(os.Stdin)
+				choice, _ := reader.ReadString('\n')
+				choice = strings.TrimSpace(choice)
+
+				switch choice {
+				case "1", "a", "accept":
+					outcome = "user_accepted"
+					stepNumber = 2
+					if err := t.Accept(); err != nil {
+						return err
+					}
+				case "2", "d", "discard":
+					outcome = "user_discarded"
+					stepNumber = 2
+					if err := t.Discard(); err != nil {
+						return err
+					}
+				default:
+					fmt.Println("Invalid choice. Discarding trial.")
+					outcome = "invalid_choice"
+					stepNumber = 2
+					if err := t.Discard(); err != nil {
+						return err
+					}
+				}
 			}
 
-			// Interactive prompt
-			fmt.Println("\nWhat would you like to do?")
-			fmt.Println("  [1] Accept - Keep branch and adopt changes")
-			fmt.Println("  [2] Discard - Delete branch and restore original state")
-			fmt.Print("Choice: ")
-
-			reader := bufio.NewReader(os.Stdin)
-			choice, _ := reader.ReadString('\n')
-			choice = strings.TrimSpace(choice)
-
-			switch choice {
-			case "1", "a", "accept":
-				return t.Accept()
-			case "2", "d", "discard":
-				return t.Discard()
-			default:
-				fmt.Println("Invalid choice. Discarding trial.")
-				return t.Discard()
+			// Record telemetry
+			if uxMetrics != nil {
+				duration := time.Since(startTime)
+				if outcome == "user_accepted" && result.Success {
+					// Record successful completion
+					if err := uxMetrics.RecordTryComplete("unknown", duration); err != nil {
+						fmt.Fprintf(os.Stderr, "Warning: failed to record telemetry: %v\n", err)
+					}
+				} else {
+					// Record discard
+					if err := uxMetrics.RecordTryDiscard("unknown", outcome, stepNumber); err != nil {
+						fmt.Fprintf(os.Stderr, "Warning: failed to record telemetry: %v\n", err)
+					}
+				}
 			}
+
+			return nil
 		},
 	}
 

@@ -56,9 +56,6 @@ func NewUXMetricsCollector(sdpDir string) (*UXMetricsCollector, error) {
 
 // RecordMetric records a UX metric event
 func (ux *UXMetricsCollector) RecordMetric(event UXMetricEvent) error {
-	ux.mu.Lock()
-	defer ux.mu.Unlock()
-
 	// Validate metric type
 	if !event.MetricType.IsValid() {
 		return fmt.Errorf("invalid UX metric type: %s", event.MetricType)
@@ -92,7 +89,7 @@ func (ux *UXMetricsCollector) RecordMetric(event UXMetricEvent) error {
 		return fmt.Errorf("failed to unmarshal UX metric data: %w", err)
 	}
 
-	// Append to events file
+	// Append to events file (appendEvent handles locking)
 	return ux.appendEvent(teleEvent)
 }
 

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/fall-out-bug/sdp/internal/assess"
+	"github.com/fall-out-bug/sdp/internal/telemetry"
 	"github.com/spf13/cobra"
 )
 
@@ -35,6 +39,8 @@ Outputs recommendations to stdout only. No files are created.`,
   sdp assess --json`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			startTime := time.Now()
+
 			// Determine project path
 			projectPath := "."
 			if len(args) > 0 {
@@ -52,6 +58,13 @@ Outputs recommendations to stdout only. No files are created.`,
 				return fmt.Errorf("path does not exist: %s", absPath)
 			}
 
+			// Initialize telemetry collector
+			uxMetrics, err := telemetry.NewUXMetricsCollector("")
+			if err != nil {
+				// Don't fail the command if telemetry fails
+				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
+			}
+
 			// Run assessment
 			result, err := assess.Assess(absPath)
 			if err != nil {
@@ -60,9 +73,30 @@ Outputs recommendations to stdout only. No files are created.`,
 
 			// Output results
 			if jsonOutput {
-				return printAssessmentJSON(result)
+				if err := printAssessmentJSON(result); err != nil {
+					return err
+				}
+			} else {
+				if err := printAssessment(result, absPath); err != nil {
+					return err
+				}
 			}
-			return printAssessment(result, absPath)
+
+			// Record telemetry
+			if uxMetrics != nil {
+				duration := time.Since(startTime)
+				projectType := result.Language
+				if projectType == "" {
+					projectType = "unknown"
+				}
+
+				if err := uxMetrics.RecordAssessComplete(projectType, duration); err != nil {
+					// Don't fail the command if telemetry fails
+					fmt.Fprintf(os.Stderr, "Warning: failed to record telemetry: %v\n", err)
+				}
+			}
+
+			return nil
 		},
 	}
 
@@ -81,13 +115,17 @@ func printAssessment(result *assess.Assessment, projectPath string) error {
 	fmt.Printf("Language: %s\n", result.Language)
 
 	// Frameworks
-	fmt.Printf("Frameworks: %s\n", fmt.Sprintf("[%s]", fmt.Sprintf("%s", result.Framework)))
+	if len(result.Framework) > 0 {
+		fmt.Printf("Frameworks: %s\n", strings.Join(result.Framework, ", "))
+	} else {
+		fmt.Println("Frameworks: None detected")
+	}
 
 	// Structure
 	if len(result.Structure) > 0 {
-		fmt.Printf("Structure: %s\n", fmt.Sprintf("[%s]", fmt.Sprintf("%s", result.Structure)))
+		fmt.Printf("Structure: %s\n", strings.Join(result.Structure, ", "))
 	} else {
-		fmt.Println("Structure: [standard]")
+		fmt.Println("Structure: standard")
 	}
 
 	// Flags
@@ -119,33 +157,51 @@ func printAssessment(result *assess.Assessment, projectPath string) error {
 }
 
 func printAssessmentJSON(result *assess.Assessment) error {
-	// Simple JSON output (for now - could use json.Marshal later)
-	fmt.Printf(`{
-  "language": "%s",
-  "frameworks": [%s],
-  "structure": [%s],
-  "is_monorepo": %v,
-  "has_tests": %v,
-  "has_ci": %v,
-  "recommendations": [
-`, result.Language, result.Framework, result.Structure, result.IsMonorepo, result.HasTests, result.HasCI)
-
-	for i, rec := range result.Recommendations {
-		comma := ","
-		if i == len(result.Recommendations)-1 {
-			comma = ""
-		}
-		fmt.Printf(`    {
-      "category": "%s",
-      "title": "%s",
-      "message": "%s",
-      "priority": "%s"
-    }%s
-`, rec.Category, rec.Title, rec.Message, rec.Priority, comma)
+	// Define a JSON-serializable structure
+	type JSONRecommendation struct {
+		Category string `json:"category"`
+		Title    string `json:"title"`
+		Message  string `json:"message"`
+		Priority string `json:"priority"`
 	}
 
-	fmt.Println("  ]")
-	fmt.Println("}")
+	type JSONAssessment struct {
+		Language       string              `json:"language"`
+		Frameworks     []string            `json:"frameworks"`
+		Structure      []string            `json:"structure"`
+		IsMonorepo     bool                `json:"is_monorepo"`
+		HasTests       bool                `json:"has_tests"`
+		HasCI          bool                `json:"has_ci"`
+		Recommendations []JSONRecommendation `json:"recommendations"`
+	}
 
+	// Convert recommendations to JSON format
+	jsonRecs := make([]JSONRecommendation, len(result.Recommendations))
+	for i, rec := range result.Recommendations {
+		jsonRecs[i] = JSONRecommendation{
+			Category: rec.Category,
+			Title:    rec.Title,
+			Message:  rec.Message,
+			Priority: rec.Priority,
+		}
+	}
+
+	jsonResult := JSONAssessment{
+		Language:       result.Language,
+		Frameworks:     result.Framework,
+		Structure:      result.Structure,
+		IsMonorepo:     result.IsMonorepo,
+		HasTests:       result.HasTests,
+		HasCI:          result.HasCI,
+		Recommendations: jsonRecs,
+	}
+
+	// Marshal to JSON with proper escaping
+	data, err := json.MarshalIndent(jsonResult, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal assessment to JSON: %w", err)
+	}
+
+	fmt.Println(string(data))
 	return nil
 }

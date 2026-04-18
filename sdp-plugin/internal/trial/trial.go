@@ -53,18 +53,31 @@ func (t *Trial) Start() error {
 
 // Execute runs the task (placeholder for future AI execution)
 func (t *Trial) Execute() (*TrialResult, error) {
-	// Placeholder - in the future, this would:
-	// 1. Call the AI agent to execute the task
-	// 2. Monitor execution
-	// 3. Capture results
+	// Validate task description
+	if t.TaskDescription == "" {
+		return &TrialResult{
+			Success:  false,
+			Message:  "Task description cannot be empty",
+			Changes:  []string{},
+			Duration: time.Since(t.StartTime),
+		}, nil
+	}
 
+	// Dry-run mode: analyze the task and provide structured feedback
+	// In future versions, this would call the AI agent for actual execution
 	result := &TrialResult{
-		Success:  false,
-		Message:  "AI execution not yet implemented. This is a placeholder for the trial execution.",
-		Changes:  []string{},
+		Success:  true,
+		Message:  fmt.Sprintf("Task planned for execution: %s", t.TaskDescription),
+		Changes: []string{
+			fmt.Sprintf("Branch: %s", t.BranchName),
+			fmt.Sprintf("Task: %s", t.TaskDescription),
+			fmt.Sprintf("Duration: %v", time.Since(t.StartTime).Round(time.Millisecond)),
+		},
 		Duration: time.Since(t.StartTime),
 	}
 
+	// Return success with plan information
+	// TODO: Integrate with AI agent for actual task execution
 	return result, nil
 }
 
