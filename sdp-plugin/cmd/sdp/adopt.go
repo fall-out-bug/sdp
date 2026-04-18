@@ -19,12 +19,12 @@ func adoptCmd() *cobra.Command {
 		Use:   "adopt",
 		Short: "Adopt current changes into SDP",
 		Long: `Convert a successful 'sdp try' session into a full SDP setup:
-	  - Creates .sdp/ directory structure (equivalent to 'sdp init')
-	  - Creates .claude/settings.json with SDP skill configuration
-	  - Commits both .sdp/ and .claude/ to git
-	  - Preserves all code changes from the trial
+  - Creates .sdp/ directory structure (equivalent to 'sdp init')
+  - Creates .claude/settings.json with SDP skill configuration
+  - Commits both .sdp/ and .claude/ to git
+  - Preserves all code changes from the trial
 
-	This is the next step after accepting a trial with 'sdp try --keep'.`,
+This is the next step after accepting a trial with 'sdp try --keep'.`,
 		Example: `  # Adopt current changes
   sdp adopt
 
@@ -72,7 +72,13 @@ func adoptCmd() *cobra.Command {
 				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
 			}
 
-			// Run SDP init
+			// Create .sdp/ directory structure before sdpinit (which only creates .claude/)
+			if err := createSDPDirectory(absPath); err != nil {
+				return fmt.Errorf("failed to create .sdp/ directory: %w", err)
+			}
+			fmt.Println("✓ .sdp/ directory created")
+
+			// Run SDP init (creates .claude/ with settings, skills, agents)
 			fmt.Println("Adopting project into SDP...")
 			cfg := sdpinit.Config{
 				ProjectType: "auto",
@@ -85,13 +91,13 @@ func adoptCmd() *cobra.Command {
 
 			fmt.Println("✓ SDP structure created")
 
-			// Commit the .sdp/ structure
-			fmt.Println("\nCommitting .sdp/ structure...")
+			// Commit the .sdp/ and .claude/ structure
+			fmt.Println("\nCommitting SDP structure...")
 			commitSuccess := true
 			if err := commitSDPStructure(); err != nil {
 				commitSuccess = false
-				fmt.Printf("⚠ Warning: failed to commit .sdp/ structure: %v\n", err)
-				fmt.Println("  Please commit manually: git add .sdp/ && git commit -m 'Initialize SDP'")
+				fmt.Printf("⚠ Warning: failed to commit SDP structure: %v\n", err)
+				fmt.Println("  Please commit manually: git add .sdp/ .claude/ && git commit -m 'Initialize SDP'")
 			} else {
 				fmt.Println("✓ SDP structure committed")
 			}
@@ -117,12 +123,58 @@ func adoptCmd() *cobra.Command {
 	return cmd
 }
 
-// commitSDPStructure commits the .sdp/ structure to git
+// createSDPDirectory creates the .sdp/ directory structure with essential config files.
+// This is separate from sdpinit.Run() which only creates .claude/.
+func createSDPDirectory(projectPath string) error {
+	sdpDir := filepath.Join(projectPath, ".sdp")
+
+	// Create .sdp/ subdirectories
+	dirs := []string{
+		filepath.Join(sdpDir, "log"),
+		filepath.Join(sdpDir, "evidence"),
+		filepath.Join(sdpDir, "checkpoints"),
+		filepath.Join(sdpDir, "metrics"),
+	}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("create %s: %w", dir, err)
+		}
+	}
+
+	// Create .sdp/config.yml if it doesn't exist
+	configPath := filepath.Join(sdpDir, "config.yml")
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		configContent := `version: "1.0.0"
+evidence:
+  enabled: true
+  log_path: ".sdp/log/events.jsonl"
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			return fmt.Errorf("create config.yml: %w", err)
+		}
+	}
+
+	// Create .sdp/guard-rules.yml if it doesn't exist
+	guardPath := filepath.Join(sdpDir, "guard-rules.yml")
+	if _, err := os.Stat(guardPath); os.IsNotExist(err) {
+		guardContent := `# SDP Guard Rules
+# Controls which files can be edited per workstream
+version: "1.0.0"
+`
+		if err := os.WriteFile(guardPath, []byte(guardContent), 0644); err != nil {
+			return fmt.Errorf("create guard-rules.yml: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// commitSDPStructure commits the .sdp/ and .claude/ structure to git
 func commitSDPStructure() error {
-	// Add .sdp/ directory
+	// Add .sdp/ and .claude/ directories
 	addCmd := exec.Command("git", "add", ".sdp/", ".claude/")
 	if output, err := addCmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to add .sdp/ to git: %s: %w", string(output), err)
+		return fmt.Errorf("failed to add to git: %s: %w", string(output), err)
 	}
 
 	// Check if there's anything to commit
