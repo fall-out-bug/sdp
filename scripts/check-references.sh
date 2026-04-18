@@ -13,6 +13,10 @@
 #      .opencode/README.md) reference existing skills
 #   6. All symlinks resolve correctly
 #
+# Requirements:
+#   - GNU grep (for grep -oE extended regex). Ubuntu-latest CI ships GNU grep.
+#   - POSIX sh, find, sed, readlink.
+#
 # Usage:
 #   ./scripts/check-references.sh          # from sdp/ root
 #   ./scripts/check-references.sh /path    # explicit root
@@ -26,6 +30,13 @@ fi
 
 ERRORS=0
 WARNINGS=0
+
+# Temp file for symlink collection — cleaned up on EXIT/INT/TERM
+_SYMLINKS_TMP=""
+_cleanup() {
+    [ -n "$_SYMLINKS_TMP" ] && rm -f "$_SYMLINKS_TMP" 2>/dev/null
+}
+trap _cleanup EXIT INT TERM
 
 # --- Helpers ---
 log_error() {
@@ -97,6 +108,9 @@ COMMANDS_JSON="${SDP_ROOT}/.claude/commands.json"
 if [ ! -f "$COMMANDS_JSON" ]; then
     log_warn ".claude/commands.json not found"
 else
+    # NOTE: JSON parsing uses grep+sed for zero-dependency POSIX compat.
+    # Requires commands.json to stay pretty-printed (one value per line).
+    # If JSON is ever minified, add jq or python3 as a CI dependency.
     # Extract "file" values from commands section
     # Using grep+sed for POSIX compatibility (no jq dependency)
     # Pattern: "file": "skills/xxx.md"
@@ -176,8 +190,12 @@ fi
 # ============================================================
 printf "\n%s\n" "--- Checking harness README skill references ---"
 
-# Known skill names — used to filter @-references that are actual skills
-KNOWN_SKILLS="beads bugfix build ci-triage debug deploy design discovery feature go-modern guard hotfix idea init issue oneshot prototype protocol-consistency reality reality-check review strataudit tdd think ux verify-workstream vision"
+# Known skill names — discovered dynamically from prompts/skills/*/SKILL.md
+KNOWN_SKILLS=""
+for _sk_dir in "${SDP_ROOT}"/prompts/skills/*/; do
+    [ -f "${_sk_dir}SKILL.md" ] && KNOWN_SKILLS="${KNOWN_SKILLS} $(basename "${_sk_dir}")"
+done
+KNOWN_SKILLS="${KNOWN_SKILLS# }"
 
 is_known_skill() {
     _s="$1"
@@ -197,7 +215,7 @@ check_harness_readme() {
     fi
 
     # Extract @xxx references from the file
-    for token in $(grep -oE '@[a-zA-Z0-9_-]+' "$_file" 2>/dev/null || true); do
+    for token in $(grep -oE '(^| )@[a-zA-Z0-9_-]+' "$_file" 2>/dev/null | sed 's/^[[:space:]]*//' || true); do
         skill_name="${token#@}"
         if is_known_skill "$skill_name"; then
             if skill_file_exists "$skill_name"; then
@@ -222,8 +240,8 @@ check_harness_readme "${SDP_ROOT}/.codex/skills/README.md" ".codex/skills/README
 printf "\n%s\n" "--- Checking symlink integrity ---"
 
 # Use a temp file to collect symlinks (avoids subshell variable scope issues)
-_symlinks_tmp="${TMPDIR:-/tmp}/sdp-check-refs-$$"
-find "${SDP_ROOT}" -type l ! -path '*/.git/*' 2>/dev/null > "$_symlinks_tmp" || true
+_SYMLINKS_TMP="${TMPDIR:-/tmp}/sdp-check-refs-$$"
+find "${SDP_ROOT}" -type l ! -path '*/.git/*' 2>/dev/null > "$_SYMLINKS_TMP" || true
 
 while read -r link; do
     [ -z "$link" ] && continue
@@ -234,8 +252,7 @@ while read -r link; do
         target=$(readlink "$link")
         log_ok "symlink: ${link##${SDP_ROOT}/} -> ${target}"
     fi
-done < "$_symlinks_tmp"
-rm -f "$_symlinks_tmp"
+done < "$_SYMLINKS_TMP"
 
 # ============================================================
 # 7. Harness symlink directories resolve to prompts/skills

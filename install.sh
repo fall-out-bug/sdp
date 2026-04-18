@@ -41,6 +41,8 @@ detect_ide() {
     elif [ -d ".codex" ]; then echo "codex"
     elif [ -d ".claude" ]; then echo "claude"
     elif [ -d ".opencode" ]; then echo "opencode"
+    elif [ -d ".zed" ] || [ -f ".zed/settings.json" ]; then echo "zed"
+    elif [ -d ".warp" ]; then echo "warp"
     else echo "auto"
     fi
 }
