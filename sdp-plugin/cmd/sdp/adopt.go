@@ -19,11 +19,12 @@ func adoptCmd() *cobra.Command {
 		Use:   "adopt",
 		Short: "Adopt current changes into SDP",
 		Long: `Convert a successful 'sdp try' session into a full SDP setup:
-  - Creates .sdp/ structure equivalent to 'sdp init'
-  - Commits the .sdp/ structure
-  - Preserves all changes from the trial
+	  - Creates .sdp/ directory structure (equivalent to 'sdp init')
+	  - Creates .claude/settings.json with SDP skill configuration
+	  - Commits both .sdp/ and .claude/ to git
+	  - Preserves all code changes from the trial
 
-This is the next step after accepting a trial with 'sdp try --keep'.`,
+	This is the next step after accepting a trial with 'sdp try --keep'.`,
 		Example: `  # Adopt current changes
   sdp adopt
 
@@ -38,13 +39,6 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 			absPath, err := filepath.Abs(projectPath)
 			if err != nil {
 				return fmt.Errorf("failed to resolve path: %w", err)
-			}
-
-			// Initialize telemetry collector
-			uxMetrics, err := telemetry.NewUXMetricsCollector("")
-			if err != nil {
-				// Don't fail the command if telemetry fails
-				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
 			}
 
 			// Check if .sdp already exists and is initialized
@@ -69,6 +63,13 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 			if sdpExists && !force {
 				fmt.Println("⚠ .sdp directory exists but may not be fully initialized")
 				fmt.Println("   Use --force to reinitialize completely")
+			}
+
+			// Initialize telemetry collector (after checks, UX metrics now go to user config dir)
+			uxMetrics, err := telemetry.NewUXMetricsCollector("")
+			if err != nil {
+				// Don't fail the command if telemetry fails
+				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
 			}
 
 			// Run SDP init

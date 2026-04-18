@@ -17,32 +17,26 @@ type UXMetricsCollector struct {
 }
 
 // NewUXMetricsCollector creates a new UX metrics collector
+// UX metrics are stored in the user's config directory (~/.config/sdp/ux-metrics.jsonl)
+// rather than in the project-local .sdp/ directory to avoid polluting assessed repositories.
 func NewUXMetricsCollector(sdpDir string) (*UXMetricsCollector, error) {
-	if sdpDir == "" {
-		// Default to .sdp in current directory
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get working directory: %w", err)
-		}
-		sdpDir = filepath.Join(cwd, ".sdp")
+	// Get user config directory
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user config directory: %w", err)
 	}
 
-	// Ensure .sdp directory exists
-	if err := os.MkdirAll(sdpDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create .sdp directory: %w", err)
+	// Create SDP config directory
+	sdpConfigDir := filepath.Join(configDir, "sdp")
+	if err := os.MkdirAll(sdpConfigDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create SDP config directory: %w", err)
 	}
 
-	// Create log directory
-	logDir := filepath.Join(sdpDir, "log")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create log directory: %w", err)
-	}
+	eventsFile := filepath.Join(sdpConfigDir, "ux-metrics.jsonl")
 
-	eventsFile := filepath.Join(logDir, "events.jsonl")
-
-	// Create empty events file
+	// Create or verify UX metrics file exists
 	if _, err := os.OpenFile(eventsFile, os.O_CREATE|os.O_WRONLY, 0600); err != nil {
-		return nil, fmt.Errorf("failed to create events file: %w", err)
+		return nil, fmt.Errorf("failed to create UX metrics file: %w", err)
 	}
 
 	// Generate session ID

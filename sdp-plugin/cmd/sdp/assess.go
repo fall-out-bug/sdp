@@ -58,14 +58,7 @@ Outputs recommendations to stdout only. No files are created.`,
 				return fmt.Errorf("path does not exist: %s", absPath)
 			}
 
-			// Initialize telemetry collector
-			uxMetrics, err := telemetry.NewUXMetricsCollector("")
-			if err != nil {
-				// Don't fail the command if telemetry fails
-				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
-			}
-
-			// Run assessment
+			// Run assessment (read-only, no clean-state check needed)
 			result, err := assess.Assess(absPath)
 			if err != nil {
 				return fmt.Errorf("assessment failed: %w", err)
@@ -80,6 +73,13 @@ Outputs recommendations to stdout only. No files are created.`,
 				if err := printAssessment(result, absPath); err != nil {
 					return err
 				}
+			}
+
+			// Initialize telemetry collector (after assessment, to avoid creating files in assessed repos)
+			uxMetrics, err := telemetry.NewUXMetricsCollector("")
+			if err != nil {
+				// Don't fail the command if telemetry fails
+				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
 			}
 
 			// Record telemetry

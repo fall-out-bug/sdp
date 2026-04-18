@@ -51,7 +51,9 @@ func (t *Trial) Start() error {
 	return nil
 }
 
-// Execute runs the task (placeholder for future AI execution)
+// Execute runs the task as a dry-run planner
+// It parses the task description and returns a structured execution plan
+// without making actual changes to the codebase
 func (t *Trial) Execute() (*TrialResult, error) {
 	// Validate task description
 	if t.TaskDescription == "" {
@@ -63,22 +65,92 @@ func (t *Trial) Execute() (*TrialResult, error) {
 		}, nil
 	}
 
-	// Dry-run mode: analyze the task and provide structured feedback
-	// In future versions, this would call the AI agent for actual execution
+	// Analyze task description and create execution plan
+	plan := t.createExecutionPlan()
+
 	result := &TrialResult{
 		Success:  true,
-		Message:  fmt.Sprintf("Task planned for execution: %s", t.TaskDescription),
+		Message:  fmt.Sprintf("Dry-run plan created for: %s\n\n%s", t.TaskDescription, plan),
 		Changes: []string{
 			fmt.Sprintf("Branch: %s", t.BranchName),
 			fmt.Sprintf("Task: %s", t.TaskDescription),
+			fmt.Sprintf("Plan:\n%s", plan),
 			fmt.Sprintf("Duration: %v", time.Since(t.StartTime).Round(time.Millisecond)),
 		},
 		Duration: time.Since(t.StartTime),
 	}
 
-	// Return success with plan information
-	// TODO: Integrate with AI agent for actual task execution
 	return result, nil
+}
+
+// createExecutionPlan analyzes the task and creates a structured execution plan
+func (t *Trial) createExecutionPlan() string {
+	// Detect task type from description
+	taskDesc := strings.ToLower(t.TaskDescription)
+
+	var taskType string
+	var steps []string
+
+	// Simple pattern matching for common task types
+	switch {
+	case strings.Contains(taskDesc, "add") || strings.Contains(taskDesc, "create") || strings.Contains(taskDesc, "implement"):
+		taskType = "Feature Addition"
+		steps = []string{
+			"1. Analyze existing codebase structure",
+			"2. Identify relevant files and dependencies",
+			"3. Create/modify implementation files",
+			"4. Add/update tests",
+			"5. Update documentation",
+		}
+	case strings.Contains(taskDesc, "fix") || strings.Contains(taskDesc, "bug"):
+		taskType = "Bug Fix"
+		steps = []string{
+			"1. Reproduce and identify the issue",
+			"2. Locate problematic code",
+			"3. Implement fix",
+			"4. Add regression tests",
+			"5. Verify fix resolves issue",
+		}
+	case strings.Contains(taskDesc, "refactor") || strings.Contains(taskDesc, "clean"):
+		taskType = "Refactoring"
+		steps = []string{
+			"1. Analyze current implementation",
+			"2. Identify refactoring opportunities",
+			"3. Apply refactoring changes",
+			"4. Ensure tests pass",
+			"5. Update documentation if needed",
+		}
+	case strings.Contains(taskDesc, "test"):
+		taskType = "Test Addition"
+		steps = []string{
+			"1. Identify untested code paths",
+			"2. Design test cases",
+			"3. Implement tests",
+			"4. Verify coverage",
+			"5. Document test scenarios",
+		}
+	default:
+		taskType = "General Task"
+		steps = []string{
+			"1. Understand requirements",
+			"2. Analyze affected components",
+			"3. Implement changes",
+			"4. Test and verify",
+			"5. Document changes",
+		}
+	}
+
+	// Build plan string
+	var plan strings.Builder
+	plan.WriteString(fmt.Sprintf("Task Type: %s\n", taskType))
+	plan.WriteString("Proposed Execution Steps:\n")
+	for _, step := range steps {
+		plan.WriteString(fmt.Sprintf("  %s\n", step))
+	}
+	plan.WriteString("\nNote: This is a dry-run plan. No actual changes have been made.")
+	plan.WriteString("\nUse 'sdp adopt' to convert this trial into a full SDP setup.")
+
+	return plan.String()
 }
 
 // Accept keeps the branch and suggests adoption

@@ -48,13 +48,6 @@ This provides a zero-commitment first experience with SDP.`,
 				return fmt.Errorf("failed to resolve path: %w", err)
 			}
 
-			// Initialize telemetry collector
-			uxMetrics, err := telemetry.NewUXMetricsCollector("")
-			if err != nil {
-				// Don't fail the command if telemetry fails
-				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
-			}
-
 			// Create trial session
 			t, err := trial.NewTrial(absPath, taskDescription)
 			if err != nil {
@@ -68,6 +61,13 @@ This provides a zero-commitment first experience with SDP.`,
 			}
 			if !clean {
 				return fmt.Errorf("working directory not clean - commit or stash changes first")
+			}
+
+			// Initialize telemetry collector (after clean-state check, UX metrics now go to user config dir)
+			uxMetrics, err := telemetry.NewUXMetricsCollector("")
+			if err != nil {
+				// Don't fail the command if telemetry fails
+				fmt.Fprintf(os.Stderr, "Warning: failed to initialize telemetry: %v\n", err)
 			}
 
 			// Start trial

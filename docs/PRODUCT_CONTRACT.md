@@ -182,6 +182,18 @@ sdp-evidence gate check
 - Filter by stage, agent, harness
 - Trace hash-chain provenance
 
+### Quickstart Commands (planned)
+
+**CLI-based first experience:**
+
+```bash
+sdp assess [project-path]    # Read-only project assessment
+sdp try "task description"   # Try a task on temporary branch
+sdp adopt                    # Adopt successful trial into SDP
+```
+
+These commands provide a lightweight entry point before full SDP setup. Currently in planning phase.
+
 ---
 
 ## Harness Support Policy
