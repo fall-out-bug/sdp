@@ -468,9 +468,9 @@ func TestRecordSecondSessionReturn(t *testing.T) {
 
 func TestUXMetricTypeValidation(t *testing.T) {
 	tests := []struct {
-		name  string
+		name   string
 		metric UXMetricType
-		valid bool
+		valid  bool
 	}{
 		{"time_to_first_value", UXMetricTimeToFirstValue, true},
 		{"step_abandon_rate", UXMetricStepAbandonRate, true},
