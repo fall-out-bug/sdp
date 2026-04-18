@@ -35,6 +35,37 @@ Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
 
 ---
 
+## Write Plan (F101)
+
+Before the TDD cycle (step 2 of EXECUTE THIS NOW), emit a write plan:
+
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason.
+2. **Flags:**
+   - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
+   - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
+3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+   ```json
+   {"ts":"<ISO-8601>","type":"write_plan","skill":"build","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   ```
+
+**Output format:**
+```
+WRITE PLAN for @build <ws-id>:
+  CREATE: path/to/new/file — <reason>
+  MODIFY: path/to/existing/file — <reason>
+  DELETE: path/to/removed/file — <reason>
+
+Proceed? [y/n]
+```
+
+**Modes:**
+- No flag: Show plan → Confirm → Execute
+- `--dry-run`: Show plan → STOP
+- `--yes`: Show plan → Execute immediately (no prompt)
+
+---
+
 ## Git Safety
 
 **CLI:** `sdp guard activate <ws-id>` runs branch validation before build. Use it in setup (step 1). If guard reports wrong branch, STOP.
