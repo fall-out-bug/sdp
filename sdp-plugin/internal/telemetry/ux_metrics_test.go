@@ -618,4 +618,3 @@ func TestGetUXMetrics(t *testing.T) {
 		t.Errorf("Expected metric type %s, got %v", UXMetricTimeToFirstValue, metricType)
 	}
 }
-
