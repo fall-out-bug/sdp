@@ -89,31 +89,33 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 
 Before writing review output files (verdict, findings), emit a write plan:
 
-1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason.
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason. Covers review_verdict.json and any findings files created by the review process.
 2. **Flags:**
    - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
    - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
 3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
-4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl` (**sanitize file paths** before logging: strip newlines, ensure valid JSON escaping):
    ```json
-   {"ts":"<ISO-8601>","type":"write_plan","skill":"review","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"review"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id>","workstream_id":"<ws-id>"}}
    ```
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
 WRITE PLAN for @review <target>:
-  CREATE: .sdp/review_verdict.json — review verdict and synthesis
-  CREATE: .sdp/review/findings-*.json — per-reviewer finding details
+  CREATE: path/to/new/file — <reason>
+  MODIFY: path/to/existing/file — <reason>
+  DELETE: path/to/removed/file — <reason>
 
 Proceed? [y/n]
 ```
 
-**Modes:**
+**Write-plan flags:**
 - No flag: Show plan → Confirm → Execute
 - `--dry-run`: Show plan → STOP
 - `--yes`: Show plan → Execute immediately (no prompt)
 
----
+> **Note:** `--dry-run` and `--yes` are orthogonal to skill mode flags (`--full`, `--quick`). They can be combined with any mode (e.g. `@review F098 --quick --dry-run`).
 
 ## After All Complete — Synthesis Phase
 
