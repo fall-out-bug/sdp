@@ -17,12 +17,12 @@ type Recommendation struct {
 
 // Assessment represents the complete assessment of a project
 type Assessment struct {
-	Language      string
-	Framework     []string
-	Structure     []string
-	IsMonorepo    bool
-	HasTests      bool
-	HasCI         bool
+	Language        string
+	Framework       []string
+	Structure       []string
+	IsMonorepo      bool
+	HasTests        bool
+	HasCI           bool
 	Recommendations []Recommendation
 }
 
@@ -83,7 +83,11 @@ func detectLanguage(projectPath string) (string, error) {
 	for _, detector := range detectors {
 		for _, file := range detector.files {
 			if strings.Contains(file, "*") {
-				matches, _ := filepath.Glob(filepath.Join(projectPath, file))
+				matches, err := filepath.Glob(filepath.Join(projectPath, file))
+				if err != nil {
+					// If glob fails, skip this pattern
+					continue
+				}
 				if len(matches) > 0 {
 					return detector.language, nil
 				}
@@ -104,70 +108,93 @@ func detectFramework(projectPath, language string) []string {
 
 	switch language {
 	case "Go":
-		goModPath := filepath.Join(projectPath, "go.mod")
-		if content, err := os.ReadFile(goModPath); err == nil {
-			contentStr := string(content)
-			if strings.Contains(contentStr, "github.com/gin-gonic/gin") {
-				frameworks = append(frameworks, "Gin")
-			}
-			if strings.Contains(contentStr, "github.com/gorilla/mux") {
-				frameworks = append(frameworks, "Gorilla Mux")
-			}
-			if strings.Contains(contentStr, "net/http") {
-				frameworks = append(frameworks, "net/http (stdlib)")
-			}
-		}
-
+		frameworks = detectGoFrameworks(projectPath)
 	case "Node.js/TypeScript":
-		packageJsonPath := filepath.Join(projectPath, "package.json")
-		if content, err := os.ReadFile(packageJsonPath); err == nil {
-			contentStr := string(content)
-			if strings.Contains(contentStr, "\"react\"") {
-				frameworks = append(frameworks, "React")
-			}
-			if strings.Contains(contentStr, "\"vue\"") {
-				frameworks = append(frameworks, "Vue")
-			}
-			if strings.Contains(contentStr, "\"next\"") {
-				frameworks = append(frameworks, "Next.js")
-			}
-			if strings.Contains(contentStr, "\"express\"") {
-				frameworks = append(frameworks, "Express")
-			}
-			if strings.Contains(contentStr, "\"@angular\"") {
-				frameworks = append(frameworks, "Angular")
-			}
-		}
-
+		frameworks = detectNodeFrameworks(projectPath)
 	case "Python":
-		requirementsPath := filepath.Join(projectPath, "requirements.txt")
-		pyprojectPath := filepath.Join(projectPath, "pyproject.toml")
-
-		var content []byte
-		var err error
-
-		if content, err = os.ReadFile(requirementsPath); err != nil {
-			content, _ = os.ReadFile(pyprojectPath)
-		}
-
-		if len(content) > 0 {
-			contentStr := string(content)
-			if strings.Contains(contentStr, "django") {
-				frameworks = append(frameworks, "Django")
-			}
-			if strings.Contains(contentStr, "flask") {
-				frameworks = append(frameworks, "Flask")
-			}
-			if strings.Contains(contentStr, "fastapi") {
-				frameworks = append(frameworks, "FastAPI")
-			}
-		}
+		frameworks = detectPythonFrameworks(projectPath)
 	}
 
 	if len(frameworks) == 0 {
 		frameworks = append(frameworks, "None detected")
 	}
 
+	return frameworks
+}
+
+// detectGoFrameworks identifies Go frameworks
+func detectGoFrameworks(projectPath string) []string {
+	frameworks := []string{}
+	goModPath := filepath.Join(projectPath, "go.mod")
+	if content, err := os.ReadFile(goModPath); err == nil {
+		contentStr := string(content)
+		if strings.Contains(contentStr, "github.com/gin-gonic/gin") {
+			frameworks = append(frameworks, "Gin")
+		}
+		if strings.Contains(contentStr, "github.com/gorilla/mux") {
+			frameworks = append(frameworks, "Gorilla Mux")
+		}
+		if strings.Contains(contentStr, "net/http") {
+			frameworks = append(frameworks, "net/http (stdlib)")
+		}
+	}
+	return frameworks
+}
+
+// detectNodeFrameworks identifies Node.js/TypeScript frameworks
+func detectNodeFrameworks(projectPath string) []string {
+	frameworks := []string{}
+	packageJsonPath := filepath.Join(projectPath, "package.json")
+	if content, err := os.ReadFile(packageJsonPath); err == nil {
+		contentStr := string(content)
+		if strings.Contains(contentStr, "\"react\"") {
+			frameworks = append(frameworks, "React")
+		}
+		if strings.Contains(contentStr, "\"vue\"") {
+			frameworks = append(frameworks, "Vue")
+		}
+		if strings.Contains(contentStr, "\"next\"") {
+			frameworks = append(frameworks, "Next.js")
+		}
+		if strings.Contains(contentStr, "\"express\"") {
+			frameworks = append(frameworks, "Express")
+		}
+		if strings.Contains(contentStr, "\"@angular\"") {
+			frameworks = append(frameworks, "Angular")
+		}
+	}
+	return frameworks
+}
+
+// detectPythonFrameworks identifies Python frameworks
+func detectPythonFrameworks(projectPath string) []string {
+	frameworks := []string{}
+	requirementsPath := filepath.Join(projectPath, "requirements.txt")
+	pyprojectPath := filepath.Join(projectPath, "pyproject.toml")
+
+	var content []byte
+	var err error
+
+	if content, err = os.ReadFile(requirementsPath); err != nil {
+		content, err = os.ReadFile(pyprojectPath)
+		if err != nil {
+			// Neither file could be read
+			return frameworks
+		}
+	}
+
+	if len(content) > 0 {
+		contentStr := string(content)
+		if strings.Contains(contentStr, "django") {
+			frameworks = append(frameworks, "Django")
+		}
+		if strings.Contains(contentStr, "flask") {
+			frameworks = append(frameworks, "Flask")
+		}
+		if strings.Contains(contentStr, "fastapi") {
+			frameworks = append(frameworks, "FastAPI")
+		}
+	}
 	return frameworks
 }
 
@@ -223,7 +250,7 @@ func detectTests(projectPath string) bool {
 
 	suffixes := []string{"_test.go", "_test.py", ".test.ts", ".test.js", ".spec.ts", ".spec.js"}
 	found := false
-	filepath.WalkDir(projectPath, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(projectPath, func(path string, d os.DirEntry, err error) error {
 		if err != nil || found {
 			return nil
 		}
@@ -239,6 +266,10 @@ func detectTests(projectPath string) bool {
 		}
 		return nil
 	})
+	if err != nil {
+		// If walk fails, return false (no tests found)
+		return false
+	}
 	return found
 }
 

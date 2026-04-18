@@ -117,10 +117,6 @@ Outputs recommendations to stdout only. No files are created.`,
 	return cmd
 }
 
-func printAssessment(result *assess.Assessment, projectPath string) error {
-	return printAssessmentTo(result, projectPath, os.Stdout)
-}
-
 func printAssessmentTo(result *assess.Assessment, projectPath string, w io.Writer) error {
 	fmt.Fprintln(w, "SDP Project Assessment")
 	fmt.Fprintln(w, "=====================")
@@ -171,10 +167,6 @@ func printAssessmentTo(result *assess.Assessment, projectPath string, w io.Write
 	return nil
 }
 
-func printAssessmentJSON(result *assess.Assessment) error {
-	return printAssessmentJSONTo(result, os.Stdout)
-}
-
 func printAssessmentJSONTo(result *assess.Assessment, w io.Writer) error {
 	// Define a JSON-serializable structure
 	type JSONRecommendation struct {
@@ -185,12 +177,12 @@ func printAssessmentJSONTo(result *assess.Assessment, w io.Writer) error {
 	}
 
 	type JSONAssessment struct {
-		Language       string              `json:"language"`
-		Frameworks     []string            `json:"frameworks"`
-		Structure      []string            `json:"structure"`
-		IsMonorepo     bool                `json:"is_monorepo"`
-		HasTests       bool                `json:"has_tests"`
-		HasCI          bool                `json:"has_ci"`
+		Language        string               `json:"language"`
+		Frameworks      []string             `json:"frameworks"`
+		Structure       []string             `json:"structure"`
+		IsMonorepo      bool                 `json:"is_monorepo"`
+		HasTests        bool                 `json:"has_tests"`
+		HasCI           bool                 `json:"has_ci"`
 		Recommendations []JSONRecommendation `json:"recommendations"`
 	}
 
@@ -206,12 +198,12 @@ func printAssessmentJSONTo(result *assess.Assessment, w io.Writer) error {
 	}
 
 	jsonResult := JSONAssessment{
-		Language:       result.Language,
-		Frameworks:     result.Framework,
-		Structure:      result.Structure,
-		IsMonorepo:     result.IsMonorepo,
-		HasTests:       result.HasTests,
-		HasCI:          result.HasCI,
+		Language:        result.Language,
+		Frameworks:      result.Framework,
+		Structure:       result.Structure,
+		IsMonorepo:      result.IsMonorepo,
+		HasTests:        result.HasTests,
+		HasCI:           result.HasCI,
 		Recommendations: jsonRecs,
 	}
 

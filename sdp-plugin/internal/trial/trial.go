@@ -69,8 +69,8 @@ func (t *Trial) Execute() (*TrialResult, error) {
 	plan := t.createExecutionPlan()
 
 	result := &TrialResult{
-		Success:  true,
-		Message:  fmt.Sprintf("Dry-run plan created for: %s\n\n%s", t.TaskDescription, plan),
+		Success: true,
+		Message: fmt.Sprintf("Dry-run plan created for: %s\n\n%s", t.TaskDescription, plan),
 		Changes: []string{
 			fmt.Sprintf("Branch: %s", t.BranchName),
 			fmt.Sprintf("Task: %s", t.TaskDescription),
