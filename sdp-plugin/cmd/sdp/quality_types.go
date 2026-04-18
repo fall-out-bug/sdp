@@ -29,7 +29,9 @@ func runQualityTypes(strict bool) error {
 	fmt.Printf("Project Type: %s\n", result.ProjectType)
 
 	// In adoption mode: skip enforcement, still log evidence
-	if adoptionModeSkip("types", result.Passed) {
+	if skip, err := adoptionModeSkip("types", result.Passed, 0); err != nil {
+		return err
+	} else if skip {
 		fmt.Printf("Status: SKIP (adoption mode)\n")
 		return nil
 	}
@@ -74,7 +76,10 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	adoptionMode := config.IsAdoptionMode()
+	adoptionMode, configErr := config.IsAdoptionMode()
+	if configErr != nil {
+		fmt.Fprintf(os.Stderr, "warning: %v\n", configErr)
+	}
 	projectPath, err := os.Getwd()
 	if err != nil {
 		projectPath = "." // Fall back to current directory
@@ -98,12 +103,15 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	// Coverage
 	fmt.Println("=== Coverage ===")
 	covResult, err := checker.CheckCoverage(ctx)
+	covCheckErr := err
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning: coverage check failed: %v\n", err)
 		covResult = &quality.CoverageResult{Coverage: 0, Threshold: 80, Passed: false}
 	}
 	fmt.Printf("Coverage: %.1f%% (threshold: %.1f%%) ", covResult.Coverage, covResult.Threshold)
-	if adoptionMode {
+	if covCheckErr != nil && adoptionMode {
+		fmt.Println("ERROR (checker failed)")
+	} else if adoptionMode {
 		fmt.Println("SKIP")
 		if evidence.Enabled() {
 			_ = evidence.EmitSync(evidence.VerificationEvent("", covResult.Passed, "coverage", covResult.Coverage))
@@ -117,12 +125,15 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	// Complexity
 	fmt.Println("\n=== Complexity ===")
 	ccResult, err := checker.CheckComplexity()
+	ccCheckErr := err
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning: complexity check failed: %v\n", err)
 		ccResult = &quality.ComplexityResult{MaxCC: 0, Threshold: 40, Passed: false}
 	}
 	fmt.Printf("Max CC: %d (threshold: %d) ", ccResult.MaxCC, ccResult.Threshold)
-	if adoptionMode {
+	if ccCheckErr != nil && adoptionMode {
+		fmt.Println("ERROR (checker failed)")
+	} else if adoptionMode {
 		fmt.Println("SKIP")
 		if evidence.Enabled() {
 			_ = evidence.EmitSync(evidence.VerificationEvent("", ccResult.Passed, "complexity", 0))
@@ -136,11 +147,14 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	// File Size
 	fmt.Println("\n=== File Size ===")
 	sizeResult, err := checker.CheckFileSize()
+	sizeCheckErr := err
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning: file size check failed: %v\n", err)
 		sizeResult = &quality.FileSizeResult{Threshold: 200, Passed: false}
 	}
-	if adoptionMode {
+	if sizeCheckErr != nil && adoptionMode {
+		fmt.Printf("Threshold: %d LOC -- ERROR (checker failed)\n", sizeResult.Threshold)
+	} else if adoptionMode {
 		fmt.Printf("Threshold: %d LOC -- SKIP\n", sizeResult.Threshold)
 		if evidence.Enabled() {
 			_ = evidence.EmitSync(evidence.VerificationEvent("", sizeResult.Passed, "size", 0))
@@ -160,12 +174,15 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	// Types
 	fmt.Println("\n=== Types ===")
 	typeResult, err := checker.CheckTypes()
+	typeCheckErr := err
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning: type check failed: %v\n", err)
 		typeResult = &quality.TypeResult{Passed: false}
 	}
 	fmt.Printf("Errors: %d ", len(typeResult.Errors))
-	if adoptionMode {
+	if typeCheckErr != nil && adoptionMode {
+		fmt.Println("ERROR (checker failed)")
+	} else if adoptionMode {
 		fmt.Println("SKIP")
 		if evidence.Enabled() {
 			_ = evidence.EmitSync(evidence.VerificationEvent("", typeResult.Passed, "types", 0))

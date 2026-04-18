@@ -11,21 +11,26 @@ import (
 )
 
 // adoptionModeSkip prints a skip message and logs evidence for a gate
-// when adoption mode is active. Returns true if adoption mode is on
+// when adoption mode is active. Returns (true, nil) if adoption mode is on
 // (caller should return nil to skip enforcement).
-func adoptionModeSkip(gateName string, actualPassed bool) bool {
-	if !config.IsAdoptionMode() {
-		return false
+// Returns (false, err) if checking adoption mode failed due to a config error.
+func adoptionModeSkip(gateName string, actualPassed bool, metricValue float64) (bool, error) {
+	on, err := config.IsAdoptionMode()
+	if err != nil {
+		return false, fmt.Errorf("adoption mode check: %w", err)
+	}
+	if !on {
+		return false, nil
 	}
 	fmt.Printf("Adoption mode: skipping %s gate enforcement\n", gateName)
 
 	// Still log evidence (non-blocking)
 	if evidence.Enabled() {
-		if err := evidence.EmitSync(evidence.VerificationEvent("", actualPassed, gateName, 0)); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		if emitErr := evidence.EmitSync(evidence.VerificationEvent("", actualPassed, gateName, metricValue)); emitErr != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", emitErr)
 		}
 	}
-	return true
+	return true, nil
 }
 
 func runQualityCoverage(strict bool) error {
@@ -56,7 +61,9 @@ func runQualityCoverage(strict bool) error {
 	fmt.Printf("Threshold: %.1f%%\n", result.Threshold)
 
 	// In adoption mode: skip enforcement, still log evidence
-	if adoptionModeSkip("coverage", result.Passed) {
+	if skip, err := adoptionModeSkip("coverage", result.Passed, result.Coverage); err != nil {
+		return err
+	} else if skip {
 		fmt.Printf("Status: SKIP (adoption mode)\n")
 		return nil
 	}
@@ -118,7 +125,9 @@ func runQualityComplexity(strict bool) error {
 	fmt.Printf("Threshold: %d\n", result.Threshold)
 
 	// In adoption mode: skip enforcement, still log evidence
-	if adoptionModeSkip("complexity", result.Passed) {
+	if skip, err := adoptionModeSkip("complexity", result.Passed, 0); err != nil {
+		return err
+	} else if skip {
 		fmt.Printf("Status: SKIP (adoption mode)\n")
 		return nil
 	}
@@ -177,7 +186,9 @@ func runQualitySize(strict bool) error {
 	fmt.Printf("Threshold: %d LOC\n", result.Threshold)
 
 	// In adoption mode: skip enforcement, still log evidence
-	if adoptionModeSkip("size", result.Passed) {
+	if skip, err := adoptionModeSkip("size", result.Passed, 0); err != nil {
+		return err
+	} else if skip {
 		fmt.Printf("Mode: SKIP (adoption mode)\n")
 		return nil
 	}

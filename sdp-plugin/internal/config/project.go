@@ -248,18 +248,25 @@ func FindProjectRoot() (string, error) {
 	}
 }
 
-// IsAdoptionMode returns true if the project is in adoption mode (quality gates disabled).
-// Returns false (normal mode) if config cannot be loaded or adoption_mode is unset.
-func IsAdoptionMode() bool {
+// IsAdoptionMode reports whether the project is in adoption mode (quality gates disabled).
+// Returns (false, nil) when config is absent (defaults to normal mode).
+// Returns (false, err) when config exists but cannot be loaded — callers should
+// propagate the error so the user gets a clear diagnostic instead of silent
+// fallback to normal mode.
+func IsAdoptionMode() (bool, error) {
 	root, err := FindProjectRoot()
 	if err != nil {
-		return false
+		return false, nil
+	}
+	cfgPath := filepath.Join(root, configDir, configFile)
+	if _, statErr := os.Stat(cfgPath); os.IsNotExist(statErr) {
+		return false, nil
 	}
 	cfg, err := Load(root)
-	if err != nil || cfg == nil {
-		return false
+	if err != nil {
+		return false, fmt.Errorf("load config for adoption mode check: %w", err)
 	}
-	return cfg.AdoptionMode
+	return cfg.AdoptionMode, nil
 }
 
 // SetAdoptionMode writes the adoption_mode field in .sdp/config.yml.

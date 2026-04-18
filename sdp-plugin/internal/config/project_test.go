@@ -403,7 +403,11 @@ func TestIsAdoptionMode(t *testing.T) {
 	}
 	defer os.Chdir(origWd)
 
-	if !IsAdoptionMode() {
+	on, err := IsAdoptionMode()
+	if err != nil {
+		t.Fatalf("IsAdoptionMode() error: %v", err)
+	}
+	if !on {
 		t.Error("expected IsAdoptionMode() to return true")
 	}
 }
@@ -417,7 +421,11 @@ func TestIsAdoptionMode_NoConfig(t *testing.T) {
 	}
 	defer os.Chdir(origWd)
 
-	if IsAdoptionMode() {
+	on, err := IsAdoptionMode()
+	if err != nil {
+		t.Fatalf("IsAdoptionMode() error: %v", err)
+	}
+	if on {
 		t.Error("expected IsAdoptionMode() to return false with no config")
 	}
 }

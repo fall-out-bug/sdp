@@ -162,7 +162,7 @@ func setFullMode(projectRoot string) error {
 	}
 
 	fmt.Println("ok adoption mode disabled -- all quality gates enabled")
-	fmt.Println("  Gates: coverage, complexity, file size, types, TDD")
+	fmt.Println("  Gates: coverage, complexity, file size, types")
 	return nil
 }
 
