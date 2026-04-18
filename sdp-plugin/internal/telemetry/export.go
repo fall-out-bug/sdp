@@ -85,3 +85,58 @@ func (c *Collector) ExportCSV(exportPath string) error {
 
 	return nil
 }
+
+// ExportUXMetrics exports UX metrics from events.jsonl to a JSON file
+func (c *Collector) ExportUXMetrics(exportPath string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Read all events from file
+	events, err := c.readEvents()
+	if err != nil {
+		return fmt.Errorf("failed to read events: %w", err)
+	}
+
+	// Filter only UX metric events
+	uxEvents := make([]map[string]any, 0)
+	for _, event := range events {
+		if event.Type == EventTypeUXMetric {
+			uxEvents = append(uxEvents, event.Data)
+		}
+	}
+
+	// Marshal to JSON array
+	data, err := json.MarshalIndent(uxEvents, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal UX metrics: %w", err)
+	}
+
+	// Write to export file (restricted permissions for telemetry data)
+	if err := os.WriteFile(exportPath, data, 0600); err != nil {
+		return fmt.Errorf("failed to write export file: %w", err)
+	}
+
+	return nil
+}
+
+// GetUXMetrics retrieves all UX metrics events
+func (c *Collector) GetUXMetrics() ([]map[string]any, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Read all events from file
+	events, err := c.readEvents()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read events: %w", err)
+	}
+
+	// Filter only UX metric events
+	uxEvents := make([]map[string]any, 0)
+	for _, event := range events {
+		if event.Type == EventTypeUXMetric {
+			uxEvents = append(uxEvents, event.Data)
+		}
+	}
+
+	return uxEvents, nil
+}

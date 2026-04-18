@@ -19,6 +19,7 @@
     { "id": "docs-findings", "path": "findings/docs-findings.schema.json", "title": "Documentation Findings Report" },
     { "id": "handoff-analyst", "path": "handoff-analyst.schema.json", "title": "Analyst Handoff" },
     { "id": "handoff-coder", "path": "handoff-coder.schema.json", "title": "Coder Handoff" },
-    { "id": "handoff-reviewer", "path": "handoff-reviewer.schema.json", "title": "Reviewer Handoff" }
+    { "id": "handoff-reviewer", "path": "handoff-reviewer.schema.json", "title": "Reviewer Handoff" },
+    { "id": "ux-metrics", "path": "ux-metrics.schema.json", "title": "SDP UX Metrics" }
   ]
 }
