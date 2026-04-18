@@ -54,7 +54,8 @@ fi
 init_backup_dir() {
     # Called before cd into $SDP_DIR. At this point cwd is the project root.
     project_root="$(pwd)"
-    SDP_BACKUP_DIR="$project_root/.sdp/backup/$(date +%Y%m%dT%H%M%S)-$$_${RANDOM:-0}"
+    _rand=${RANDOM:-$(od -An -N2 -tu2 /dev/urandom 2>/dev/null | tr -d ' ')}
+    SDP_BACKUP_DIR="$project_root/.sdp/backup/$(date +%Y%m%dT%H%M%S)-$$_${_rand:-0}"
 }
 
 backup_file() {
@@ -156,6 +157,20 @@ merge_settings_json() {
 
     # Extract existing dest content
     dest_content=$(cat "$dest")
+
+    # Guard: skip merge if dest is empty or not valid JSON
+    if [ -z "$dest_content" ] || ! printf '%s' "$dest_content" | jq -e . >/dev/null 2>&1; then
+        echo "  Note: $dest is empty or invalid JSON — replacing with SDP defaults."
+        if [ "$SDP_PREVIEW" = "1" ]; then
+            preview_note "REPLACE (invalid JSON)" "$dest"
+            return
+        fi
+        backup_file "$dest"
+        mkdir -p "$(dirname "$dest")"
+        cp "$src" "$dest"
+        return
+    fi
+
     src_content=$(cat "$src")
 
     # Check if jq is available for proper merge
