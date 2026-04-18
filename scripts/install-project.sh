@@ -648,6 +648,7 @@ if [ -f ../.gitignore ]; then
             echo ".prompts" >> ../.gitignore
             echo "# <<< SDP_END <<<" >> ../.gitignore
             echo "  Added entries to .gitignore (with explicit markers)"
+            manifest_record "append" "../.gitignore"
         fi
     fi
 fi
@@ -656,6 +657,9 @@ fi
 # Git hooks
 # ---------------------------------------------------------------------------
 
+# Hooks are installed by a dedicated script that manages its own manifest
+# entries for individual hook files. We record the hook directory here so
+# the uninstaller knows hooks were set up by SDP.
 if [ -f hooks/install-git-hooks.sh ]; then
     if [ "$SDP_PREVIEW" = "1" ]; then
         SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
@@ -663,6 +667,7 @@ if [ -f hooks/install-git-hooks.sh ]; then
     else
         if (cd .. && sh "$SDP_DIR/hooks/install-git-hooks.sh" 2>/dev/null); then
             echo "  Git hooks installed (pre-commit, pre-push)"
+            manifest_record "hooks" ".git/hooks"
         fi
     fi
 fi

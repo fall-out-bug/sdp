@@ -52,6 +52,19 @@ cd "$PROJECT_ROOT"
 # Manifest helpers
 # ---------------------------------------------------------------------------
 
+# is_sdp_symlink PATH — returns 0 if PATH is a symlink whose target contains
+# "sdp" in its resolved path.  Used to guard hook removal so we never delete
+# hooks that belong to another tool.
+is_sdp_symlink() {
+    _path="$1"
+    [ -L "$_path" ] || return 1
+    _target=$(readlink "$_path")
+    case "$_target" in
+        *sdp*) return 0 ;;
+        *)     return 1 ;;
+    esac
+}
+
 MANIFEST_FILE=".sdp/manifest.jsonl"
 HAS_MANIFEST=0
 
@@ -153,10 +166,16 @@ else
     plan_remove_file .codex/skills/README.md
 fi
 
-# Hooks installed by SDP (always checked — not in manifest yet)
+# Git hooks: NOT tracked by the manifest because they live inside .git/hooks/
+# and are managed by a dedicated installer script.  Cleanup is safe because we
+# only remove hooks that are symlinks pointing into an SDP path (checked via
+# is_sdp_symlink / readlink).
 plan_remove_git_hooks
 
-# .gitignore block (always checked)
+# .gitignore: NOT tracked line-by-line in the manifest because it is a shared
+# config file.  Cleanup uses marker-based removal (# >>> SDP_START >>> ...
+# # <<< SDP_END <<<) so only the SDP block is stripped, preserving all other
+# entries.  This is safe by design — markers are unique to SDP installs.
 plan_remove_gitignore_block
 
 # .sdp/backup directory (only in purge mode)
@@ -276,17 +295,14 @@ else
     done
 fi
 
-# Remove git hooks that point to SDP (always — hooks are outside manifest scope)
+# Remove git hooks that point into an SDP checkout.
+# Only removes symlinks whose target contains "sdp" — never deletes hooks
+# that belong to another tool (e.g. husky, lefthook).
 for hook in pre-commit pre-push; do
     hook_path=".git/hooks/$hook"
-    if [ -L "$hook_path" ]; then
-        target=$(readlink "$hook_path")
-        case "$target" in
-            *sdp/hooks/*|*scripts/hooks/*)
-                rm -f "$hook_path"
-                echo "  Removed hook: $hook_path"
-                ;;
-        esac
+    if is_sdp_symlink "$hook_path"; then
+        rm -f "$hook_path"
+        echo "  Removed hook: $hook_path"
     fi
 done
 
@@ -326,16 +342,26 @@ if [ -f .gitignore ] && grep -q "^# SDP" .gitignore; then
     fi
 fi
 
-# Purge mode: remove additional directories
+# Purge mode: remove additional directories.
+# .claude/hooks and .claude/patterns are only removed in purge mode because
+# they may contain user-authored scripts.  The .claude/hooks symlink case is
+# checked first: if it points into SDP we remove it; if it's a real directory
+# we still remove it in purge (user explicitly asked for full cleanup).
 if [ "$PURGE" = "1" ]; then
     # Remove .claude/hooks (SDP-installed hook scripts)
-    if [ -d .claude/hooks ]; then
+    if [ -L .claude/hooks ] && is_sdp_symlink .claude/hooks; then
+        rm -f .claude/hooks
+        echo "  Removed symlink: .claude/hooks/"
+    elif [ -d .claude/hooks ]; then
         rm -rf .claude/hooks
         echo "  Removed: .claude/hooks/"
     fi
 
     # Remove .claude/patterns (SDP-installed patterns)
-    if [ -d .claude/patterns ]; then
+    if [ -L .claude/patterns ] && is_sdp_symlink .claude/patterns; then
+        rm -f .claude/patterns
+        echo "  Removed symlink: .claude/patterns/"
+    elif [ -d .claude/patterns ]; then
         rm -rf .claude/patterns
         echo "  Removed: .claude/patterns/"
     fi
