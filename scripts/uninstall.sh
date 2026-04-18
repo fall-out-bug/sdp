@@ -12,6 +12,12 @@
 #   --dry-run   Show plan without executing
 #   --purge     Remove everything: SDP checkout, backups, all IDE integration dirs
 #   -y          Skip confirmation prompt
+#
+# Cleanup strategy:
+# 1. Manifest-based: remove files listed in .sdp/manifest.jsonl (primary)
+# 2. Marker/symlink-based: remove SDP blocks from .gitignore, SDP hooks by symlink target
+# 3. Legacy fallback: pattern-based removal when no manifest exists (migration path)
+# Directories (.claude/, .cursor/) are not removed unless empty or SDP-owned symlinks
 
 set -eu
 
@@ -150,8 +156,11 @@ if [ "$HAS_MANIFEST" = "1" ]; then
         esac
     done < "$MANIFEST_FILE"
 else
-    echo "WARNING: No install manifest found (.sdp/manifest.jsonl)." >&2
-    echo "  Falling back to pattern-based removal (may remove user-created files)." >&2
+    echo "============================================================" >&2
+    echo "WARNING: Legacy install detected (no .sdp/manifest.jsonl)." >&2
+    echo "Removing SDP artifacts by hardcoded pattern." >&2
+    echo "If this is incorrect, restore from .sdp/backup/." >&2
+    echo "============================================================" >&2
     # Legacy fallback: plan by pattern
     plan_remove_symlink .claude/skills
     plan_remove_symlink .claude/agents
@@ -190,9 +199,18 @@ if [ "$PURGE" = "1" ]; then
 fi
 
 # Full IDE integration directories (only in purge mode)
+# Only plan removal if SDP-owned symlink or empty directory — never blind rm -rf
 if [ "$PURGE" = "1" ]; then
-    plan_remove_dir .claude/hooks
-    plan_remove_dir .claude/patterns
+    if [ -L ".claude/hooks" ] && is_sdp_symlink ".claude/hooks"; then
+        plan_remove_symlink .claude/hooks
+    elif [ -d ".claude/hooks" ] && [ -z "$(ls -A .claude/hooks 2>/dev/null)" ]; then
+        plan_remove_dir .claude/hooks
+    fi
+    if [ -L ".claude/patterns" ] && is_sdp_symlink ".claude/patterns"; then
+        plan_remove_symlink .claude/patterns
+    elif [ -d ".claude/patterns" ] && [ -z "$(ls -A .claude/patterns 2>/dev/null)" ]; then
+        plan_remove_dir .claude/patterns
+    fi
     # Note: we do NOT remove .claude/settings.json even in purge mode
     # because it likely contains user customizations beyond SDP
     UNINSTALL_PLAN="$UNINSTALL_PLAN
@@ -344,26 +362,26 @@ fi
 
 # Purge mode: remove additional directories.
 # .claude/hooks and .claude/patterns are only removed in purge mode because
-# they may contain user-authored scripts.  The .claude/hooks symlink case is
-# checked first: if it points into SDP we remove it; if it's a real directory
-# we still remove it in purge (user explicitly asked for full cleanup).
+# they may contain user-authored scripts.  Removal is guarded:
+# - SDP-owned symlink: always safe to remove
+# - Real directory: only removed if empty (rmdir, not rm -rf)
 if [ "$PURGE" = "1" ]; then
-    # Remove .claude/hooks (SDP-installed hook scripts)
-    if [ -L .claude/hooks ] && is_sdp_symlink .claude/hooks; then
-        rm -f .claude/hooks
+    # Remove .claude/hooks — only if it is an SDP-owned symlink or empty dir
+    if [ -L ".claude/hooks" ] && is_sdp_symlink ".claude/hooks"; then
+        rm -f ".claude/hooks"
         echo "  Removed symlink: .claude/hooks/"
-    elif [ -d .claude/hooks ]; then
-        rm -rf .claude/hooks
-        echo "  Removed: .claude/hooks/"
+    elif [ -d ".claude/hooks" ] && [ -z "$(ls -A .claude/hooks 2>/dev/null)" ]; then
+        rmdir ".claude/hooks"
+        echo "  Removed empty dir: .claude/hooks/"
     fi
 
-    # Remove .claude/patterns (SDP-installed patterns)
-    if [ -L .claude/patterns ] && is_sdp_symlink .claude/patterns; then
-        rm -f .claude/patterns
+    # Remove .claude/patterns — only if it is an SDP-owned symlink or empty dir
+    if [ -L ".claude/patterns" ] && is_sdp_symlink ".claude/patterns"; then
+        rm -f ".claude/patterns"
         echo "  Removed symlink: .claude/patterns/"
-    elif [ -d .claude/patterns ]; then
-        rm -rf .claude/patterns
-        echo "  Removed: .claude/patterns/"
+    elif [ -d ".claude/patterns" ] && [ -z "$(ls -A .claude/patterns 2>/dev/null)" ]; then
+        rmdir ".claude/patterns"
+        echo "  Removed empty dir: .claude/patterns/"
     fi
 
     # Remove .sdp directory (config, backups, manifest, everything)

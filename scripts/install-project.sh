@@ -64,6 +64,8 @@ init_backup_dir() {
     SDP_BACKUP_DIR=$(mktemp -d "$project_root/.sdp/backup/XXXXXX")
 }
 
+# Note: backup files are not manifest-tracked; they live under .sdp/ which
+# is removed wholesale on uninstall (--purge) or left as-is in standard mode.
 backup_file() {
     file="$1"
     if [ ! -e "$file" ]; then
@@ -155,6 +157,8 @@ manifest_record() {
     echo "$entry" >> "$SDP_HOME/.sdp/manifest.jsonl"
 }
 
+# Note: directories are not manifest-tracked; uninstall handles empty-dir
+# cleanup separately (rmdir) and never force-removes populated dirs.
 safe_mkdir() {
     [ "$SDP_PREVIEW" = "1" ] && return 0
     mkdir -p "$1"
