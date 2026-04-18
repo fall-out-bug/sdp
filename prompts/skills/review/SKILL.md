@@ -28,14 +28,23 @@ Risk patterns determine **review depth**, not **reviewer presence**.
 
 ### Risk-Based Depth Allocation
 
-Risk patterns flag which reviewers do **deep review** vs **rubber-stamp review**:
+LOC tiers set baseline depth; risk patterns override for specific files:
 
-| Risk Pattern | Deep Reviewers | Rubber-Stamp Reviewers |
-|--------------|----------------|----------------------|
-| `**/auth/**`, `**/crypto/**` | security, qa | others (light check) |
-| `**/.github/workflows/**`, `**/ci/**` | devops, sre | others (light check) |
-| `**/migrations/**`, `**/db/**` | sre, security | others (light check) |
-| Default | qa, techlead | others (light check) |
+**LOC tiers** (baseline):
+| LOC Range | Deep Reviewers |
+|-----------|---------------|
+| < 50 | qa, techlead |
+| 50–200 | qa, security, techlead |
+| > 200 | all 7 |
+
+**Risk patterns** (additive override by file path):
+| Pattern | Extra Deep Reviewers |
+|---------|---------------------|
+| `**/auth/**`, `**/crypto/**` | security, qa |
+| `**/.github/workflows/**`, `**/ci/**` | devops, sre |
+| `**/migrations/**`, `**/db/**` | sre, security |
+
+Full config: `.sdp/config.yml` under `review` section.
 
 ### Flag Overrides
 
