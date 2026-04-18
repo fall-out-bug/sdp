@@ -10,8 +10,8 @@ import (
 func skillCheckAll() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check-all",
-		Short: "Validate all skills in .claude/skills/",
-		Long: `Validate all skill files in the .claude/skills/ directory
+		Short: "Validate all skills in the selected skills directory",
+		Long: `Validate all skill files in the selected project-local skills directory
 against SDP standards.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			skillsDir, _ := cmd.Flags().GetString("skills-dir") //nolint:errcheck // String flag never errors
@@ -55,6 +55,5 @@ against SDP standards.`,
 		},
 	}
 
-	cmd.Flags().String("skills-dir", "", "Skills directory")
 	return cmd
 }

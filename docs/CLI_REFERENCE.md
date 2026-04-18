@@ -1,31 +1,74 @@
 # SDP CLI Reference
 
-Run `sdp --help` for the full command tree and `sdp <command> --help` for flags and subcommands.
+`sdp <command> --help` is the authoritative source for flags and command semantics. This document summarizes the current surfaces that are already present in the CLI.
 
-## Core command groups
+## Recommended First-Success Path
 
-| Area | Commands | Purpose |
-|------|----------|---------|
-| Setup and project state | `sdp init`, `sdp doctor`, `sdp health`, `sdp status`, `sdp next`, `sdp demo`, `sdp hooks`, `sdp completion` | Bootstrap SDP, inspect current state, and manage local tooling |
-| Planning and execution | `sdp parse`, `sdp plan`, `sdp build`, `sdp apply`, `sdp orchestrate`, `sdp verify`, `sdp tdd`, `sdp deploy` | Parse workstreams, create plans, execute work, verify completion, and record deployment approvals |
-| Guard and context | `sdp guard ...`, `sdp session ...`, `sdp resolve`, `sdp git` | Enforce edit scope, validate context/branch state, resolve task identifiers, and keep session state in sync |
-| Evidence and audit | `sdp log ...`, `sdp decisions ...`, `sdp checkpoint ...`, `sdp coordination ...`, `sdp design record`, `sdp idea record` | Inspect evidence, trace decision history, manage checkpoints, and record design/idea evidence |
-| Quality and diagnostics | `sdp quality {coverage, complexity, size, types, all}`, `sdp drift detect`, `sdp diagnose`, `sdp watch`, `sdp collision check`, `sdp contract ...`, `sdp acceptance run` | Run quality gates, detect drift, inspect failures, watch files, check collisions, validate contracts, and run smoke acceptance checks |
-| Telemetry and metrics | `sdp telemetry {status, consent, enable, disable, analyze, export, upload}`, `sdp metrics {collect, classify, report}` | Manage local opt-in telemetry and derive benchmark/quality metrics |
-| Workflow support | `sdp beads ...`, `sdp task create`, `sdp memory ...`, `sdp prd ...`, `sdp prototype`, `sdp skill ...` | Integrate with Beads, manage memory/search, work with PRDs, prototype features, and inspect skills |
+```bash
+sdp init --auto
+sdp doctor
+sdp demo
+```
 
-## Frequently used commands
+Then continue with:
 
-| Command | Purpose |
-|---------|---------|
-| `sdp init --auto` | Initialize prompts and SDP scaffolding without prompts |
-| `sdp doctor` | Run health checks for hooks, config, telemetry, and repository setup |
-| `sdp build <ws-id>` | Execute a single workstream with guard enforcement and tests |
-| `sdp verify <ws-id>` | Validate workstream completion against evidence and checks |
-| `sdp quality all` | Run all quality gates for the current project |
-| `sdp telemetry status` | Show telemetry consent, event count, and storage path |
-| `sdp telemetry export json` | Export local telemetry to `telemetry_export.json` |
-| `sdp log show` | Show paginated evidence events with filters |
-| `sdp decisions log` | Record a decision in the audit trail |
+```bash
+sdp plan "Add auth"
+sdp apply --dry-run
+sdp apply
+sdp status --text
+sdp next
+```
 
-See [reference/skills.md](reference/skills.md) for the skill catalog and [PROTOCOL.md](PROTOCOL.md) for the full protocol spec.
+## Core Local Workflow
+
+| Command | Current purpose |
+|---------|-----------------|
+| `sdp init` | Create `.sdp/` config and guard rules, refresh existing supported IDE integrations, and fall back to `.claude/` only when no integration exists yet |
+| `sdp doctor` | Check Git, Go, supported IDE integration, and optional drift state |
+| `sdp demo` | Run a temporary first-success walkthrough using `init`, `doctor`, and `status --text` |
+| `sdp plan <description>` | Decompose a feature description into workstreams from the terminal |
+| `sdp apply` | Execute ready workstreams with streaming progress output |
+| `sdp build <ws-id>` | Execute one workstream; for the full agent-driven cycle use `/build` or `sdp orchestrate` |
+| `sdp verify <ws-id>` | Verify workstream completion against outputs, verification commands, and coverage threshold |
+| `sdp status` | Show project state; default output is a TUI, with `--text` and `--json` for scripts |
+| `sdp next` | Recommend the next action based on workstream, git, and config state |
+| `sdp log show` | Inspect evidence log events |
+| `sdp deploy` | Record an approval event after merge; it does not merge branches or deploy infrastructure |
+
+## Common Modes and Flags
+
+| Command | Useful modes |
+|---------|--------------|
+| `sdp init` | `--auto`, `--dry-run`, `--interactive`, `--headless`, `--force` |
+| `sdp doctor` | `--repair`, `--deep`, `--migrate`, `--rollback`, `--drift` |
+| `sdp plan` | `--interactive`, `--auto-apply`, `--dry-run`, `--output=json` |
+| `sdp apply` | `--ws <id>`, `--retry <n>`, `--dry-run`, `--output=json` |
+| `sdp status` | default TUI, `--text`, `--json` |
+| `sdp next` | `--json`, `--alternatives` |
+| `sdp demo` | `--template`, `--verbose`, `--cleanup=false` |
+
+## Broader Command Tree
+
+The top-level help currently exposes these command groups:
+
+| Area | Commands |
+|------|----------|
+| Setup and state | `init`, `doctor`, `health`, `status`, `next`, `demo`, `hooks`, `completion` |
+| Planning and execution | `parse`, `plan`, `build`, `apply`, `orchestrate`, `verify`, `tdd`, `deploy` |
+| Guard and session | `guard`, `session`, `resolve`, `git`, `collision` |
+| Evidence and audit | `log`, `decisions`, `checkpoint`, `coordination`, `design`, `idea` |
+| Quality and diagnostics | `quality`, `drift`, `diagnose`, `watch`, `contract`, `acceptance` |
+| Workflow support | `beads`, `task`, `memory`, `prd`, `prototype`, `skill` |
+| Telemetry and metrics | `telemetry`, `metrics` |
+
+## Relationship to Prompt Surfaces
+
+The CLI is optional. Core SDP prompt surfaces are installed into the supported integration directory in your repo:
+
+- `.claude/`
+- `.cursor/`
+- `.opencode/`
+- `.codex/`
+
+Use [reference/skills.md](reference/skills.md) for the current prompt-surface map and [PROTOCOL.md](PROTOCOL.md) for the current protocol overview.

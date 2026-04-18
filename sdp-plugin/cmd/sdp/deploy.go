@@ -3,12 +3,30 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/spf13/cobra"
 )
 
 const deployWSID = "00-000-00" // repo-level approval
+
+var (
+	deployResolveSHA = func() (string, error) {
+		out, err := exec.Command("git", "rev-parse", "HEAD").Output()
+		if err != nil {
+			return "", err
+		}
+		return strings.TrimSpace(string(out)), nil
+	}
+	deployResolveApprover = func() (string, error) {
+		out, err := exec.Command("git", "config", "user.name").Output()
+		if err != nil {
+			return "", err
+		}
+		return strings.TrimSpace(string(out)), nil
+	}
+)
 
 func deployCmd() *cobra.Command {
 	var targetBranch, sha, who string
@@ -25,22 +43,16 @@ func deployCmd() *cobra.Command {
 				targetBranch = "main"
 			}
 			if sha == "" {
-				out, err := exec.Command("git", "rev-parse", "HEAD").Output()
+				resolvedSHA, err := deployResolveSHA()
 				if err != nil {
 					return fmt.Errorf("git rev-parse HEAD: %w", err)
 				}
-				sha = string(out)
-				if len(sha) > 0 && sha[len(sha)-1] == '\n' {
-					sha = sha[:len(sha)-1]
-				}
+				sha = resolvedSHA
 			}
 			if who == "" {
-				out, err := exec.Command("git", "config", "user.name").Output()
+				resolvedWho, err := deployResolveApprover()
 				if err == nil {
-					who = string(out)
-				}
-				if len(who) > 0 && who[len(who)-1] == '\n' {
-					who = who[:len(who)-1]
+					who = resolvedWho
 				}
 				if who == "" {
 					who = "unknown"

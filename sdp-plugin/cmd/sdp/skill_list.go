@@ -11,7 +11,7 @@ func skillList() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all available skills",
-		Long:  `List all skill directories found in .claude/skills/`,
+		Long:  `List all skill directories found in the selected project-local skills directory.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			skillsDir, _ := cmd.Flags().GetString("skills-dir") //nolint:errcheck // String flag never errors
 

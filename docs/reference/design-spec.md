@@ -1,5 +1,7 @@
 # Design Command Full Specification
 
+> Historical design note. Do not use this file as the source of truth for current CLI behavior or public onboarding. Prefer `sdp <command> --help`, `docs/CLI_REFERENCE.md`, and `docs/PROTOCOL.md`.
+
 This document contains the complete specification for `@design`.
 For quick reference, see [SKILL.md](../../.claude/skills/design/SKILL.md).
 

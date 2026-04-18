@@ -7,6 +7,76 @@ import (
 	"testing"
 )
 
+func TestResolveDefaultSkillsDir(t *testing.T) {
+	tests := []struct {
+		name     string
+		setup    func(t *testing.T)
+		expected string
+	}{
+		{
+			name:     "fallbacks to claude path when nothing exists",
+			setup:    func(t *testing.T) {},
+			expected: ".claude/skills",
+		},
+		{
+			name: "detects cursor skills",
+			setup: func(t *testing.T) {
+				if err := os.MkdirAll(".cursor/skills", 0o755); err != nil {
+					t.Fatalf("mkdir .cursor/skills: %v", err)
+				}
+			},
+			expected: ".cursor/skills",
+		},
+		{
+			name: "detects opencode skills",
+			setup: func(t *testing.T) {
+				if err := os.MkdirAll(".opencode/skills", 0o755); err != nil {
+					t.Fatalf("mkdir .opencode/skills: %v", err)
+				}
+			},
+			expected: ".opencode/skills",
+		},
+		{
+			name: "detects codex skills",
+			setup: func(t *testing.T) {
+				if err := os.MkdirAll(".codex/skills/sdp", 0o755); err != nil {
+					t.Fatalf("mkdir .codex/skills/sdp: %v", err)
+				}
+			},
+			expected: ".codex/skills/sdp",
+		},
+		{
+			name: "uses stable priority when multiple exist",
+			setup: func(t *testing.T) {
+				if err := os.MkdirAll(".claude/skills", 0o755); err != nil {
+					t.Fatalf("mkdir .claude/skills: %v", err)
+				}
+				if err := os.MkdirAll(".codex/skills/sdp", 0o755); err != nil {
+					t.Fatalf("mkdir .codex/skills/sdp: %v", err)
+				}
+			},
+			expected: ".claude/skills",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			originalWd, _ := os.Getwd()
+			t.Cleanup(func() { os.Chdir(originalWd) })
+			if err := os.Chdir(tmpDir); err != nil {
+				t.Fatalf("Failed to chdir: %v", err)
+			}
+
+			tt.setup(t)
+
+			if got := resolveDefaultSkillsDir(); got != tt.expected {
+				t.Fatalf("resolveDefaultSkillsDir() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
 // TestSkillValidateCmd tests the skill validate command
 func TestSkillValidateCmd(t *testing.T) {
 	// Create temp directory with skill file
@@ -168,6 +238,7 @@ func TestSkillCheckAllCmd(t *testing.T) {
 	}
 
 	cmd := skillCheckAll()
+	cmd.Flags().String("skills-dir", "", "Skills directory")
 	if err := cmd.Flags().Set("skills-dir", skillsDir); err != nil {
 		t.Fatalf("Failed to set skills-dir flag: %v", err)
 	}

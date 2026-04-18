@@ -435,9 +435,8 @@ func TestCheckClaudeDirPartialSubdirs(t *testing.T) {
 	result := checkClaudeDir()
 
 	// Should detect partial installation
-	// Name is ".claude/ directory" not "Claude Directory"
-	if result.Name != ".claude/ directory" {
-		t.Errorf("Expected name '.claude/ directory', got '%s'", result.Name)
+	if result.Name != "IDE integration" {
+		t.Errorf("Expected name 'IDE integration', got '%s'", result.Name)
 	}
 
 	// Should be warning since subdirs are missing

@@ -79,6 +79,8 @@ func metricsCollectCmd() *cobra.Command {
 				outputPath = ".sdp/metrics/latest.json"
 			}
 
+			initMetricsDir()
+
 			// Evidence log path: .sdp/log/events.jsonl
 			logPath := ".sdp/log/events.jsonl"
 

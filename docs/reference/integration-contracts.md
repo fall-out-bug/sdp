@@ -1,5 +1,7 @@
 # Integration Contracts Guide
 
+> Historical design note. Do not use this file as the source of truth for current CLI behavior or public onboarding. Prefer `sdp <command> --help`, `docs/CLI_REFERENCE.md`, and `docs/PROTOCOL.md`.
+
 Practical guide for teams integrating SDP protocol artifacts into CI, adapters, status surfaces, and review workflows.
 
 ## What This Covers
