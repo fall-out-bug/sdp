@@ -163,15 +163,16 @@ User sees: feature description → workstreams created → ready to build. Works
 
 Before creating workstream files and docs, emit a write plan:
 
-1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason. Covers workstream files in `docs/workstreams/backlog/`, discovery briefs, idea specs, UX outputs, and beads mappings.
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason. Covers workstream files, discovery briefs, idea specs, UX outputs, and beads mappings.
 2. **Flags:**
    - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
    - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
 3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
-4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl` (**sanitize file paths** before logging: strip newlines, ensure valid JSON escaping):
    ```json
-   {"ts":"<ISO-8601>","type":"write_plan","skill":"feature","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"feature"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id>","workstream_id":"<ws-id>"}}
    ```
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
@@ -183,10 +184,12 @@ WRITE PLAN for @feature <feature-id>:
 Proceed? [y/n]
 ```
 
-**Modes:**
+**Write-plan flags:**
 - No flag: Show plan → Confirm → Execute
 - `--dry-run`: Show plan → STOP
 - `--yes`: Show plan → Execute immediately (no prompt)
+
+> **Note:** `--dry-run` and `--yes` are orthogonal to skill mode flags (`--default`, `--quick`, `--auto`). They can be combined with any mode (e.g. `@feature "X" --quick --dry-run`).
 
 ## See Also
 
