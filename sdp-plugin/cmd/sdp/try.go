@@ -20,9 +20,9 @@ func tryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "try \"task description\"",
 		Short: "Try a task on a temporary branch",
-		Long: `Execute a bounded task on a temporary branch with zero residue:
+		Long: `Plan a bounded task for trial execution (dry-run mode):
   - Creates temporary branch (sdp-try-{timestamp})
-  - Executes one bounded task based on description
+  - Generates a plan for the requested task
   - Shows results for review
   - On accept: keeps branch, suggests 'sdp adopt'
   - On discard: deletes branch, returns to original state

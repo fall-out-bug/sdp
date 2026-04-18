@@ -177,8 +177,18 @@ func TestRecordTryDiscard(t *testing.T) {
 		t.Fatalf("Failed to unmarshal event: %v", err)
 	}
 
-	// Check exit reason
-	exitReason, ok := event.Data["exit_reason"].(string)
+	// Check metric_type
+	metricType, ok := event.Data["metric_type"].(string)
+	if !ok || metricType != "step_abandon_rate" {
+		t.Errorf("Expected metric_type 'step_abandon_rate', got %v", metricType)
+	}
+
+	// Check exit reason in context
+	context, ok := event.Data["context"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected context to be a map, got %T", event.Data["context"])
+	}
+	exitReason, ok := context["exit_reason"].(string)
 	if !ok || exitReason != "user_exited" {
 		t.Errorf("Expected exit reason 'user_exited', got %v", exitReason)
 	}
@@ -256,16 +266,20 @@ func TestRecordReset(t *testing.T) {
 		t.Fatalf("Failed to unmarshal event: %v", err)
 	}
 
-	// Check action
-	action, ok := event.Data["action"].(string)
-	if !ok || action != "reset" {
-		t.Errorf("Expected action 'reset', got %v", action)
-	}
-
 	// Check metric type
 	metricType, ok := event.Data["metric_type"].(string)
 	if !ok || metricType != string(UXMetricResetUninstallFrequency) {
 		t.Errorf("Expected metric type %s, got %v", UXMetricResetUninstallFrequency, metricType)
+	}
+
+	// Check action in context
+	context, ok := event.Data["context"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected context to be a map, got %T", event.Data["context"])
+	}
+	action, ok := context["action"].(string)
+	if !ok || action != "reset" {
+		t.Errorf("Expected action 'reset', got %v", action)
 	}
 }
 
@@ -295,8 +309,12 @@ func TestRecordUninstall(t *testing.T) {
 		t.Fatalf("Failed to unmarshal event: %v", err)
 	}
 
-	// Check action
-	action, ok := event.Data["action"].(string)
+	// Check action in context
+	context, ok := event.Data["context"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected context to be a map, got %T", event.Data["context"])
+	}
+	action, ok := context["action"].(string)
 	if !ok || action != "uninstall" {
 		t.Errorf("Expected action 'uninstall', got %v", action)
 	}
@@ -339,8 +357,12 @@ func TestRecordBrownfieldInitCompletion(t *testing.T) {
 		t.Errorf("Expected project type 'brownfield', got %v", projectType)
 	}
 
-	// Check init phase
-	initPhase, ok := event.Data["init_phase"].(string)
+	// Check init phase in context
+	context, ok := event.Data["context"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected context to be a map, got %T", event.Data["context"])
+	}
+	initPhase, ok := context["init_phase"].(string)
 	if !ok || initPhase != "complete" {
 		t.Errorf("Expected init phase 'complete', got %v", initPhase)
 	}
@@ -351,8 +373,8 @@ func TestRecordBrownfieldInitCompletion(t *testing.T) {
 		t.Errorf("Expected value true, got %v", value)
 	}
 
-	// Check additional details
-	projectSize, ok := event.Data["project_size"].(string)
+	// Check additional details in context
+	projectSize, ok := context["project_size"].(string)
 	if !ok || projectSize != "large" {
 		t.Errorf("Expected project size 'large', got %v", projectSize)
 	}
@@ -384,14 +406,18 @@ func TestRecordRecoveryAttempt(t *testing.T) {
 		t.Fatalf("Failed to unmarshal event: %v", err)
 	}
 
-	// Check recovery type
-	recoveryType, ok := event.Data["recovery_type"].(string)
+	// Check recovery type in context
+	context, ok := event.Data["context"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected context to be a map, got %T", event.Data["context"])
+	}
+	recoveryType, ok := context["recovery_type"].(string)
 	if !ok || recoveryType != "auto_fix" {
 		t.Errorf("Expected recovery type 'auto_fix', got %v", recoveryType)
 	}
 
-	// Check success
-	success, ok := event.Data["success"].(bool)
+	// Check success value
+	success, ok := event.Data["value"].(bool)
 	if !ok || success != true {
 		t.Errorf("Expected success true, got %v", success)
 	}
@@ -423,8 +449,12 @@ func TestRecordSecondSessionReturn(t *testing.T) {
 		t.Fatalf("Failed to unmarshal event: %v", err)
 	}
 
-	// Check days since first session
-	daysSinceFirst, ok := event.Data["days_since_first_session"].(float64)
+	// Check days since first session in context
+	context, ok := event.Data["context"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected context to be a map, got %T", event.Data["context"])
+	}
+	daysSinceFirst, ok := context["days_since_first_session"].(float64)
 	if !ok || int(daysSinceFirst) != 3 {
 		t.Errorf("Expected 3 days since first session, got %v", daysSinceFirst)
 	}
@@ -588,3 +618,4 @@ func TestGetUXMetrics(t *testing.T) {
 		t.Errorf("Expected metric type %s, got %v", UXMetricTimeToFirstValue, metricType)
 	}
 }
+

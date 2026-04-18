@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,12 +66,22 @@ Outputs recommendations to stdout only. No files are created.`,
 			}
 
 			// Output results
+			var outputWriter = os.Stdout
+			if outputPath != "" {
+				f, err := os.Create(outputPath)
+				if err != nil {
+					return fmt.Errorf("failed to create output file: %w", err)
+				}
+				defer f.Close()
+				outputWriter = f
+			}
+
 			if jsonOutput {
-				if err := printAssessmentJSON(result); err != nil {
+				if err := printAssessmentJSONTo(result, outputWriter); err != nil {
 					return err
 				}
 			} else {
-				if err := printAssessment(result, absPath); err != nil {
+				if err := printAssessmentTo(result, absPath, outputWriter); err != nil {
 					return err
 				}
 			}
@@ -107,38 +118,42 @@ Outputs recommendations to stdout only. No files are created.`,
 }
 
 func printAssessment(result *assess.Assessment, projectPath string) error {
-	fmt.Println("SDP Project Assessment")
-	fmt.Println("=====================")
-	fmt.Printf("Project: %s\n\n", projectPath)
+	return printAssessmentTo(result, projectPath, os.Stdout)
+}
+
+func printAssessmentTo(result *assess.Assessment, projectPath string, w io.Writer) error {
+	fmt.Fprintln(w, "SDP Project Assessment")
+	fmt.Fprintln(w, "=====================")
+	fmt.Fprintf(w, "Project: %s\n\n", projectPath)
 
 	// Language
-	fmt.Printf("Language: %s\n", result.Language)
+	fmt.Fprintf(w, "Language: %s\n", result.Language)
 
 	// Frameworks
 	if len(result.Framework) > 0 {
-		fmt.Printf("Frameworks: %s\n", strings.Join(result.Framework, ", "))
+		fmt.Fprintf(w, "Frameworks: %s\n", strings.Join(result.Framework, ", "))
 	} else {
-		fmt.Println("Frameworks: None detected")
+		fmt.Fprintln(w, "Frameworks: None detected")
 	}
 
 	// Structure
 	if len(result.Structure) > 0 {
-		fmt.Printf("Structure: %s\n", strings.Join(result.Structure, ", "))
+		fmt.Fprintf(w, "Structure: %s\n", strings.Join(result.Structure, ", "))
 	} else {
-		fmt.Println("Structure: standard")
+		fmt.Fprintln(w, "Structure: standard")
 	}
 
 	// Flags
-	fmt.Printf("Monorepo: %v\n", result.IsMonorepo)
-	fmt.Printf("Has Tests: %v\n", result.HasTests)
-	fmt.Printf("Has CI: %v\n", result.HasCI)
+	fmt.Fprintf(w, "Monorepo: %v\n", result.IsMonorepo)
+	fmt.Fprintf(w, "Has Tests: %v\n", result.HasTests)
+	fmt.Fprintf(w, "Has CI: %v\n", result.HasCI)
 
 	// Recommendations
-	fmt.Println("\nRecommendations")
-	fmt.Println("--------------")
+	fmt.Fprintln(w, "\nRecommendations")
+	fmt.Fprintln(w, "--------------")
 
 	if len(result.Recommendations) == 0 {
-		fmt.Println("No recommendations - project looks good!")
+		fmt.Fprintln(w, "No recommendations - project looks good!")
 	} else {
 		for _, rec := range result.Recommendations {
 			priorityIcon := "ℹ"
@@ -148,8 +163,8 @@ func printAssessment(result *assess.Assessment, projectPath string) error {
 				priorityIcon = "→"
 			}
 
-			fmt.Printf("%s [%s] %s\n", priorityIcon, rec.Category, rec.Title)
-			fmt.Printf("    %s\n\n", rec.Message)
+			fmt.Fprintf(w, "%s [%s] %s\n", priorityIcon, rec.Category, rec.Title)
+			fmt.Fprintf(w, "    %s\n\n", rec.Message)
 		}
 	}
 
@@ -157,6 +172,10 @@ func printAssessment(result *assess.Assessment, projectPath string) error {
 }
 
 func printAssessmentJSON(result *assess.Assessment) error {
+	return printAssessmentJSONTo(result, os.Stdout)
+}
+
+func printAssessmentJSONTo(result *assess.Assessment, w io.Writer) error {
 	// Define a JSON-serializable structure
 	type JSONRecommendation struct {
 		Category string `json:"category"`
@@ -202,6 +221,6 @@ func printAssessmentJSON(result *assess.Assessment) error {
 		return fmt.Errorf("failed to marshal assessment to JSON: %w", err)
 	}
 
-	fmt.Println(string(data))
+	fmt.Fprintln(w, string(data))
 	return nil
 }
