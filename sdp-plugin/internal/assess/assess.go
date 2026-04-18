@@ -208,7 +208,8 @@ func detectMonorepo(projectPath string) bool {
 	return false
 }
 
-// detectTests checks if the project has tests
+// detectTests checks if the project has tests.
+// Walks the directory tree recursively since filepath.Glob does not support "**".
 func detectTests(projectPath string) bool {
 	testDirs := []string{
 		"tests", "test", "__tests__", "spec",
@@ -220,15 +221,25 @@ func detectTests(projectPath string) bool {
 		}
 	}
 
-	extensions := []string{"_test.go", "_test.py", ".test.ts", ".test.js", ".spec.ts", ".spec.js"}
-	for _, ext := range extensions {
-		matches, _ := filepath.Glob(filepath.Join(projectPath, "**/*"+ext))
-		if len(matches) > 0 {
-			return true
+	suffixes := []string{"_test.go", "_test.py", ".test.ts", ".test.js", ".spec.ts", ".spec.js"}
+	found := false
+	filepath.WalkDir(projectPath, func(path string, d os.DirEntry, err error) error {
+		if err != nil || found {
+			return nil
 		}
-	}
-
-	return false
+		if d.IsDir() {
+			return nil
+		}
+		name := d.Name()
+		for _, suf := range suffixes {
+			if strings.HasSuffix(name, suf) {
+				found = true
+				return filepath.SkipAll
+			}
+		}
+		return nil
+	})
+	return found
 }
 
 // detectCI checks if the project has CI configuration
