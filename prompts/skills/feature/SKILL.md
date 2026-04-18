@@ -7,6 +7,10 @@ changes:
   - v8: Full product discovery flow with @discovery, @ux, impact analysis
   - Added --quick (skip @discovery), --infra (skip @ux)
   - Step 3.5: Impact analysis after @design
+examples:
+  - "@feature 'Add user authentication' --default # Full interactive pipeline"
+  - "@feature 'Add user authentication' --quick # Skip to @design only, 0 questions"
+  - "@feature 'Add payment processing' --auto # Non-interactive, from roadmap/plan docs"
 ---
 
 # @feature
@@ -15,42 +19,41 @@ Orchestrate product discovery, requirements, UX research, and workstream design.
 
 **Phase 0:** This skill targets Go projects (e.g. `go build`/`go test` in acceptance criteria). Language-agnostic expansion is planned.
 
-## Modes
+## Three Explicit Modes (No Auto-Detection)
 
-| Mode | When to use | Steps |
-|------|-------------|-------|
-| `--auto` | Feature already described in roadmap/plan. Generate workstreams directly. | 0, 3, 4 only |
-| `--quick` | User knows what they want. Skip roadmap pre-check. | 1, 2, 3, 4 |
-| Default | New/exploratory feature. Full discovery. | 0, 1, 2, 2.5, 3, 3.5, 4 |
+**Key Principle:** User must explicitly choose the mode. No hidden context detection. Same input + same mode = identical output.
+
+| Mode | When to use | Steps | Questions |
+|------|-------------|-------|-----------|
+| `--default` (or no flag) | New/exploratory feature. Full interactive discovery. | 0, 1, 2, 2.5, 3, 3.5, 4 | Interactive (3-5 questions) |
+| `--quick` | User knows what they want, just needs workstreams. | 3 only | **0 questions** - goes directly to @design |
+| `--auto` | Feature already described in roadmap/plan. Non-interactive. | 0, 3, 4 only | **0 questions** - reads from docs/ROADMAP.md |
+
+### Mode Behavior Guarantee
+
+**Deterministic:** Each mode produces identical behavior given identical input. No context sniffing, no heuristics, no "smart defaults."
+
+- `--default`: Always asks the same questions in the same order
+- `--quick`: Always skips to @design with zero questions
+- `--auto`: Always reads from roadmap/plan docs, never asks questions
 
 ---
 
 ## --auto Mode (Recommended for Roadmap Features)
 
-For features already defined in `docs/roadmap/ROADMAP.md` or `docs/workstreams/INDEX.md`:
+For features already defined in `docs/ROADMAP.md`:
 
-### Step A: Extract from Roadmap
+### Step A: Extract from Roadmap (Non-Interactive)
 
-1. Find the feature in the roadmap: `rg "F0\d\d" docs/roadmap/ROADMAP.md -A 10`
+1. Find the feature in the roadmap: `rg "F0\d\d" docs/ROADMAP.md -A 10`
 2. Extract: feature ID, description, success criteria, listed deliverables
 3. Identify scope: what files/packages this touches (from deliverables and codebase)
 
+**No questions asked.** Read from docs only.
+
 ### Step B: Auto-Generate Workstreams
 
-For each deliverable in the feature, create a workstream file:
-
-```
-docs/workstreams/backlog/00-FFF-SS.md
-```
-
-Use one of two shapes:
-
-- **Leaf workstream** — directly executable contract slice
-- **Aggregate workstream** — non-executable container or roll-up over `2+` leaf workstreams
-
-Only leaf workstreams are direct `@build` targets.
-
-**Workstream file format:**
+For each deliverable, create workstream files using this format:
 
 ```markdown
 ---
@@ -68,37 +71,31 @@ dispatch_lifecycle: active
 # 00-FFF-SS: Feature Name — Step Description
 
 ## Goal
-
 One paragraph: what this workstream does and why.
 
 ## Scope Files
-
-- path/to/file/or/dir (exact files or directory prefixes this WS touches)
+- path/to/file/or/dir (exact files or directory prefixes)
 - ...
 
 ## Beads
-
 - primary: sdplab-XXXX      # leaf only
-- finding: sdplab-YYYY      # optional on leaf or aggregate
+- finding: sdplab-YYYY      # optional
 
 ## Acceptance Criteria
-
 - [ ] Specific, testable criterion 1
 - [ ] Specific, testable criterion 2
-- [ ] go build ./... passes (Phase 0: Go; other languages later)
+- [ ] go build ./... passes
 - [ ] go test ./... passes
 ```
 
-Rules:
-
-- `aggregate` must not have a `primary` Beads issue
-- `leaf` may have one open `primary`
-- use `parent_ws_id` only when a leaf belongs to an aggregate
-- maximum nesting depth is one aggregate layer
+**Rules:**
+- `aggregate` = container, no `primary` issue
+- `leaf` = executable, may have one `primary` issue
+- `parent_ws_id` links leaf to aggregate (max 1 nesting layer)
 
 ### Step C: Create Beads Issues
 
-For each executable leaf workstream created:
+For each leaf workstream:
 ```bash
 bd create --title="WS FFF-SS: Short title" --type=task
 ```
@@ -108,45 +105,37 @@ Update `.beads-sdp-mapping.jsonl`:
 {"sdp_id":"00-FFF-SS","beads_id":"sdp_dev-XXXX","updated_at":"2026-..."}
 ```
 
-Aggregate workstreams do not get a `primary` execution issue. If an aggregate needs
-tracking for roll-up risk, use a `finding` issue instead.
+### Step D: Report
 
-### Step D: Validate Shapes
-
-```bash
-echo "Leafs with primary: $(rg -l \"^- primary:\" docs/workstreams/backlog/00-FFF-*.md | wc -l)"
-echo "Mappings:           $(rg -c '\"sdp_id\":\"00-FFF-' .beads-sdp-mapping.jsonl)"
-# Primary mappings must match executable leaf workstreams, not total backlog files
-```
-
-### Step E: Report
-
-Output:
-- Feature ID + number of workstreams created
-- Workstream file names
-- Beads issue IDs
-- Ready-to-run command: first leaf `@build 00-FFF-01` or `@oneshot F0FF`
+Output: feature ID, workstream count, file names, Beads IDs, ready-to-run command (`@build 00-FFF-01` or `@oneshot F0FF`).
 
 ---
 
-## Default/Interactive Mode
+## --quick Mode (@design Only, Zero Questions)
 
-### Step 0: Roadmap Pre-Check — unless --quick
+For users who know what they want and just need workstreams. Zero questions, deterministic.
 
-Use `@discovery "feature description"` for roadmap pre-check and product research. Or manually:
-1. Extract 3-5 keywords from feature description
-2. `rg "<kw1>|<kw2>|<kw3>" docs/ -t md -l`
-3. Analyze: ROADMAP overlap, workstream scope overlap, docs/drafts/idea-*.md
-4. Present Overlap Report (HIGH/MEDIUM). User resolves: different / extend / supersede / more detail
-5. Gate: proceed only after user resolves
+**Steps:** Run @design directly, produce workstream files, skip roadmap/UX/impact analysis.
+
+**When to use:** Clear feature description, no product research needed, immediate workstreams required.
+
+---
+
+## --default Mode (Full Interactive Pipeline)
+
+Standard mode for new/exploratory features. Full discovery with interactive questions.
+
+### Step 0: Roadmap Pre-Check
+
+Use `@discovery "feature description"` or manually: extract keywords, `rg` docs for overlap, present Overlap Report (HIGH/MEDIUM), gate on user resolution.
 
 ### Step 1: Quick Interview (3-5 questions)
 
-Problem, Users, Success. Gate: if vague (<200 words), ask clarification. If @discovery ran: use its output.
+Problem, Users, Success. Gate: if vague (<200 words), ask clarification. Use @discovery output if available.
 
 ### Step 2: @idea
 
-`@idea "..." --spec docs/drafts/discovery-{slug}.md` (if Step 0 ran) or `@idea "..."` (if --quick)
+`@idea "..." --spec docs/drafts/discovery-{slug}.md` (use @discovery output if Step 0 ran)
 
 ### Step 2.5: @ux — unless --infra
 
@@ -154,34 +143,22 @@ Auto-trigger when @idea output has user-facing keywords (ui, user, interface, da
 
 ### Step 3: @design
 
-`@design {task_id}` — workstream files in docs/workstreams/backlog/
-
-Produces workstream files using the **Workstream file format** above.
+`@design {task_id}` — workstream files in docs/workstreams/backlog/ using **Workstream file format** above.
 
 ### Step 3.5: Impact Analysis
 
-Read scope files. grep/rg for conflicts. Categorize: FILE CONFLICT, DATA BOUNDARY, DEPENDENCY CHAIN, PRIORITY SHIFT. Present report. User acknowledges.
+Read scope files, grep/rg for conflicts. Categorize: FILE CONFLICT, DATA BOUNDARY, DEPENDENCY CHAIN, PRIORITY SHIFT. Present report, user acknowledges.
 
 ### Step 4: Verify Outputs
 
-Check discovery brief, idea spec, ux output, workstreams exist, and that direct
-execution targets are leaf workstreams rather than aggregates.
+Check discovery brief, idea spec, ux output, workstreams exist, direct execution targets are leaf workstreams.
 
 ---
 
 ## Key Principle: Protocol is Invisible
 
-The user sees:
-- Feature description → workstreams created → ready to build
-
-The workstream files, scope declarations, and beads IDs are plumbing.
-The user is only asked to annotate if they want to (not required).
+User sees: feature description → workstreams created → ready to build. Workstream files, scope declarations, beads IDs are plumbing.
 
 ## See Also
 
-- @discovery — Product discovery gate (roadmap pre-check)
-- @idea — Requirements
-- @ux — UX research
-- @design — Workstream planning
-- @build — Execute single executable leaf workstream
-- @oneshot — Execute all ready leaf workstreams for a feature
+@discovery — Product discovery gate | @idea — Requirements | @ux — UX research | @design — Workstream planning | @build — Execute leaf workstream | @oneshot — Execute all ready leaf workstreams
