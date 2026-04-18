@@ -2,6 +2,8 @@
 
 Get from zero to your first feature in 5 minutes.
 
+> **Product Contract:** This quickstart follows the [Local Mode (Default Path)](PRODUCT_CONTRACT.md#path-1-local-mode-default) defined in the SDP Product Contract. For the full product definition, see [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md).
+
 ## 1. Install
 
 **Full project** (prompts + hooks + optional CLI): default install
@@ -119,6 +121,7 @@ bd close <id>          # Close task
 
 ## Next
 
+- [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md) — Product definition (paths, stages, harness support)
 - [PROTOCOL.md](PROTOCOL.md) — Full specification
 - [MANIFESTO.md](MANIFESTO.md) — Vision and evidence
 - [reference/](reference/) — Commands, specs, glossary

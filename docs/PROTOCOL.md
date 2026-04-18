@@ -2,6 +2,8 @@
 
 **Workstream-driven development** for AI agents with an explicit leaf execution boundary.
 
+> **Product Contract:** This protocol implements both [Local Mode (Default Path)](PRODUCT_CONTRACT.md#path-1-local-mode-default) and [Operator Mode (Advanced Path)](PRODUCT_CONTRACT.md#path-2-operator-mode-advanced) as defined in the SDP Product Contract. For the complete product definition (stages, control surfaces, harness support), see [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md).
+
 ---
 
 ## Multi-Level Architecture
@@ -617,6 +619,7 @@ git checkout feature/<feature-id>
 
 ## Documentation
 
+- [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md) — Product definition (paths, stages, harness support)
 - `.claude/agents/README.md` - Agent roles guide
 - `README.md` - Project overview
 
