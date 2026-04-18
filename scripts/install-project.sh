@@ -54,7 +54,7 @@ fi
 init_backup_dir() {
     # Called before cd into $SDP_DIR. At this point cwd is the project root.
     project_root="$(pwd)"
-    SDP_BACKUP_DIR="$project_root/.sdp/backup/$(date +%Y%m%dT%H%M%S)"
+    SDP_BACKUP_DIR="$project_root/.sdp/backup/$(date +%Y%m%dT%H%M%S)-$$_${RANDOM:-0}"
 }
 
 backup_file() {
@@ -111,13 +111,13 @@ preview_file() {
     src="$1"
     dest="$2"
 
-    # Backup before overwrite
-    if [ "$SDP_PREVIEW" = "0" ] && [ -e "$dest" ]; then
-        backup_file "$dest"
-    fi
-
     if preview_note "COPY" "$dest"; then
         return
+    fi
+
+    # Backup before overwrite (after preview check to avoid side effects)
+    if [ -e "$dest" ]; then
+        backup_file "$dest"
     fi
 
     mkdir -p "$(dirname "$dest")"

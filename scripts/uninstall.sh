@@ -16,6 +16,7 @@
 set -eu
 
 SDP_DIR="${SDP_DIR:-sdp}"
+: "${SDP_DIR:?ERROR: SDP_DIR must not be empty}"
 DRY_RUN=0
 PURGE=0
 SKIP_CONFIRM=0
@@ -174,7 +175,7 @@ echo "$UNINSTALL_PLAN" | grep -v '^$'
 if [ "$DRY_RUN" = "1" ]; then
     echo ""
     echo "Run without --dry-run to execute this plan."
-    exit 0
+    exit 2
 fi
 
 # ---------------------------------------------------------------------------
@@ -290,7 +291,7 @@ if [ "$PURGE" = "1" ]; then
     fi
 
     # Remove SDP checkout directory
-    if [ -d "$SDP_DIR" ]; then
+    if [ -n "${SDP_DIR:-}" ] && [ -d "$SDP_DIR" ]; then
         rm -rf "$SDP_DIR"
         echo "  Removed: $SDP_DIR/"
     fi
