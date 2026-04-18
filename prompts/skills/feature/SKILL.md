@@ -159,6 +159,35 @@ Check discovery brief, idea spec, ux output, workstreams exist, direct execution
 
 User sees: feature description → workstreams created → ready to build. Workstream files, scope declarations, beads IDs are plumbing.
 
+## Write Plan (F101)
+
+Before creating workstream files and docs, emit a write plan:
+
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason. Covers workstream files in `docs/workstreams/backlog/`, discovery briefs, idea specs, UX outputs, and beads mappings.
+2. **Flags:**
+   - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
+   - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
+3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+   ```json
+   {"ts":"<ISO-8601>","type":"write_plan","skill":"feature","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   ```
+
+**Output format:**
+```
+WRITE PLAN for @feature <feature-id>:
+  CREATE: path/to/new/file — <reason>
+  MODIFY: path/to/existing/file — <reason>
+  DELETE: path/to/removed/file — <reason>
+
+Proceed? [y/n]
+```
+
+**Modes:**
+- No flag: Show plan → Confirm → Execute
+- `--dry-run`: Show plan → STOP
+- `--yes`: Show plan → Execute immediately (no prompt)
+
 ## See Also
 
 @discovery — Product discovery gate | @idea — Requirements | @ux — UX research | @design — Workstream planning | @build — Execute leaf workstream | @oneshot — Execute all ready leaf workstreams
