@@ -2,6 +2,9 @@
 
 > Use this guide when adding SDP to an existing project. If you are starting a new project, start with [QUICKSTART.md](QUICKSTART.md) instead.
 
+> **Note:** This guide describes the planned SDP CLI experience. Commands and flags are
+> specification-level and will be verified against implementation as features land.
+
 SDP is designed to layer onto existing work without disrupting it. This guide walks through the safe adoption path: assess first, try on a branch, then adopt when ready.
 
 ## Install Method Decision Matrix
@@ -15,6 +18,8 @@ Choose your install method based on your situation:
 | `install.sh` (project mode) | You are ready to install SDP prompts and hooks into your repo | Installs prompts, hooks, config into your project. Backs up existing files. | Low (backup + preview) |
 | `install.sh --binary-only` | You want the CLI without touching project files | Installs `sdp` binary to `~/.local/bin/`. No project changes. | None |
 | `git submodule add` | You want SDP vendored and version-locked inside your repo | Adds `sdp/` as a git submodule. Full control over updates. | Low |
+
+> All methods install the `sdp` command-line binary. Package names differ by registry.
 
 ### Environment Variables
 
@@ -169,6 +174,8 @@ This creates `.sdp/config.yml` with `adoption_mode: true`. In this mode:
 - `@build` and `@oneshot` execute without quality gate failures on legacy code
 - Evidence events are still logged to `.sdp/log/events.jsonl`
 - `sdp doctor` shows the current adoption mode
+
+> **Tip:** For monorepo setups, see [FAQ: Does SDP work with monorepos?](#6-faq)
 
 ### Enable Full Gates
 
