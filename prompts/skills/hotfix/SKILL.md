@@ -22,6 +22,35 @@ Emergency production fixes. Minimal changes, fast testing, merge to master with 
 5. **Tag** — `git tag -a v{VERSION} -m "Hotfix: {description}"`
 6. **Push** — `git push origin master --tags`
 
+## Write Plan (F101)
+
+Before modifying any file, emit a write plan:
+
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason (minimal fix files, tag, merge operations).
+2. **Flags:**
+   - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
+   - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
+3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+   ```json
+   {"ts":"<ISO-8601>","type":"write_plan","skill":"hotfix","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   ```
+
+**Output format:**
+```
+WRITE PLAN for @hotfix <target>:
+  CREATE: path/to/new/file — <reason>
+  MODIFY: path/to/existing/file — <reason>
+  DELETE: path/to/removed/file — <reason>
+
+Proceed? [y/n]
+```
+
+**Modes:**
+- No flag: Show plan → Confirm → Execute
+- `--dry-run`: Show plan → STOP
+- `--yes`: Show plan → Execute immediately (no prompt)
+
 ## Output
 
 Hotfix merged, tagged, pushed. Issue closed.
