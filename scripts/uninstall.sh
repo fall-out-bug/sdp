@@ -49,6 +49,17 @@ PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$PROJECT_ROOT"
 
 # ---------------------------------------------------------------------------
+# Manifest helpers
+# ---------------------------------------------------------------------------
+
+MANIFEST_FILE=".sdp/manifest.jsonl"
+HAS_MANIFEST=0
+
+if [ -f "$MANIFEST_FILE" ]; then
+    HAS_MANIFEST=1
+fi
+
+# ---------------------------------------------------------------------------
 # Plan helpers
 # ---------------------------------------------------------------------------
 
@@ -106,34 +117,46 @@ plan_remove_git_hooks() {
 }
 
 # ---------------------------------------------------------------------------
-# Build plan
+# Build plan — manifest-aware
 # ---------------------------------------------------------------------------
 
-# SDP managed symlinks in .claude
-plan_remove_symlink .claude/skills
-plan_remove_symlink .claude/agents
+if [ "$HAS_MANIFEST" = "1" ]; then
+    echo "Using install manifest: $MANIFEST_FILE"
+    # Plan from manifest
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        action=$(echo "$line" | sed 's/.*"action":"\([^"]*\)".*/\1/')
+        path=$(echo "$line" | sed 's/.*"path":"\([^"]*\)".*/\1/')
+        case "$action" in
+            symlink)
+                plan_remove_symlink "$path"
+                ;;
+            copy|merge)
+                plan_remove_file "$path"
+                ;;
+        esac
+    done < "$MANIFEST_FILE"
+else
+    echo "WARNING: No install manifest found (.sdp/manifest.jsonl)." >&2
+    echo "  Falling back to pattern-based removal (may remove user-created files)." >&2
+    # Legacy fallback: plan by pattern
+    plan_remove_symlink .claude/skills
+    plan_remove_symlink .claude/agents
+    plan_remove_symlink .cursor/skills
+    plan_remove_symlink .cursor/agents
+    plan_remove_symlink .opencode/skills
+    plan_remove_symlink .opencode/agents
+    plan_remove_symlink .codex/skills/sdp
+    plan_remove_symlink .codex/agents
+    plan_remove_file .claude/commands.json
+    plan_remove_file .codex/INSTALL.md
+    plan_remove_file .codex/skills/README.md
+fi
 
-# SDP managed symlinks in .cursor
-plan_remove_symlink .cursor/skills
-plan_remove_symlink .cursor/agents
-
-# SDP managed symlinks in .opencode
-plan_remove_symlink .opencode/skills
-plan_remove_symlink .opencode/agents
-
-# SDP managed symlinks in .codex
-plan_remove_symlink .codex/skills/sdp
-plan_remove_symlink .codex/agents
-
-# SDP managed files (only those we installed)
-plan_remove_file .claude/commands.json
-plan_remove_file .codex/INSTALL.md
-plan_remove_file .codex/skills/README.md
-
-# Hooks installed by SDP
+# Hooks installed by SDP (always checked — not in manifest yet)
 plan_remove_git_hooks
 
-# .gitignore block
+# .gitignore block (always checked)
 plan_remove_gitignore_block
 
 # .sdp/backup directory (only in purge mode)
@@ -210,27 +233,50 @@ fi
 echo ""
 echo "Removing SDP artifacts..."
 
-# Remove symlinks (safe: symlinks are always SDP-managed)
-for link in \
-    .claude/skills .claude/agents \
-    .cursor/skills .cursor/agents \
-    .opencode/skills .opencode/agents \
-    .codex/skills/sdp .codex/agents; do
-    if [ -L "$link" ]; then
-        rm -f "$link"
-        echo "  Removed: $link"
-    fi
-done
+if [ "$HAS_MANIFEST" = "1" ]; then
+    # Manifest-driven removal: only remove files SDP actually created
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        action=$(echo "$line" | sed 's/.*"action":"\([^"]*\)".*/\1/')
+        path=$(echo "$line" | sed 's/.*"path":"\([^"]*\)".*/\1/')
+        case "$action" in
+            symlink)
+                if [ -L "$path" ]; then
+                    rm -f "$path"
+                    echo "  Removed symlink: $path"
+                fi
+                ;;
+            copy|merge)
+                if [ -f "$path" ]; then
+                    rm -f "$path"
+                    echo "  Removed file: $path"
+                fi
+                ;;
+        esac
+    done < "$MANIFEST_FILE"
+else
+    # Legacy fallback: remove by known patterns
+    echo "  (legacy mode — pattern-based removal)" >&2
+    for link in \
+        .claude/skills .claude/agents \
+        .cursor/skills .cursor/agents \
+        .opencode/skills .opencode/agents \
+        .codex/skills/sdp .codex/agents; do
+        if [ -L "$link" ]; then
+            rm -f "$link"
+            echo "  Removed: $link"
+        fi
+    done
 
-# Remove SDP-installed files
-for file in .claude/commands.json .codex/INSTALL.md .codex/skills/README.md; do
-    if [ -f "$file" ]; then
-        rm -f "$file"
-        echo "  Removed: $file"
-    fi
-done
+    for file in .claude/commands.json .codex/INSTALL.md .codex/skills/README.md; do
+        if [ -f "$file" ]; then
+            rm -f "$file"
+            echo "  Removed: $file"
+        fi
+    done
+fi
 
-# Remove git hooks that point to SDP
+# Remove git hooks that point to SDP (always — hooks are outside manifest scope)
 for hook in pre-commit pre-push; do
     hook_path=".git/hooks/$hook"
     if [ -L "$hook_path" ]; then
@@ -260,14 +306,11 @@ if [ -f .gitignore ] && grep -q "# >>> SDP_START >>>" .gitignore; then
 fi
 
 # Remove legacy "# SDP" marker blocks from older installs.
-# Old format: lines starting with "# SDP" up to next blank line or "# >>>" marker.
 if [ -f .gitignore ] && grep -q "^# SDP" .gitignore; then
     if command -v sed >/dev/null 2>&1; then
-        # Remove lines that start with "# SDP" (the old marker comment)
         sed -i.bak '/^# SDP/d' .gitignore 2>/dev/null || \
         sed -i '' '/^# SDP/d' .gitignore 2>/dev/null || true
         rm -f .gitignore.bak
-        # Remove any orphaned SDP-related entries that followed the old marker
         for entry in "$SDP_DIR/.git" ".claude/skills" ".claude/agents" \
                      ".cursor/skills" ".cursor/agents" \
                      ".opencode/skills" ".opencode/agents" \
@@ -276,7 +319,6 @@ if [ -f .gitignore ] && grep -q "^# SDP" .gitignore; then
             sed -i '' "\|^${entry}\$|d" .gitignore 2>/dev/null || true
             rm -f .gitignore.bak
         done
-        # Clean up consecutive blank lines left behind
         sed -i.bak '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || \
         sed -i '' '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || true
         rm -f .gitignore.bak
@@ -298,7 +340,7 @@ if [ "$PURGE" = "1" ]; then
         echo "  Removed: .claude/patterns/"
     fi
 
-    # Remove .sdp directory (config, backups, everything)
+    # Remove .sdp directory (config, backups, manifest, everything)
     if [ -d .sdp ]; then
         rm -rf .sdp
         echo "  Removed: .sdp/"
@@ -317,6 +359,16 @@ for dir in .codex/skills .codex .claude .cursor .opencode; do
         rmdir "$dir" 2>/dev/null && echo "  Cleaned empty dir: $dir/" || true
     fi
 done
+
+# Remove manifest itself in standard mode (if it still exists)
+if [ "$HAS_MANIFEST" = "1" ] && [ "$PURGE" != "1" ] && [ -f "$MANIFEST_FILE" ]; then
+    rm -f "$MANIFEST_FILE"
+    echo "  Removed: $MANIFEST_FILE"
+    # Clean up .sdp dir if empty
+    if [ -d .sdp ] && [ -z "$(ls -A .sdp 2>/dev/null)" ]; then
+        rmdir .sdp 2>/dev/null && echo "  Cleaned empty dir: .sdp/" || true
+    fi
+fi
 
 echo ""
 if [ "$PURGE" = "1" ]; then

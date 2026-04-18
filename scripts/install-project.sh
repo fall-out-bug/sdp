@@ -24,6 +24,7 @@ SDP_CONFIGURED_INTEGRATIONS=""
 SDP_PREVIEW=0
 SDP_BACKUP_DIR=""
 SDP_PREVIEW_CHANGES=""
+SDP_HOME=""  # resolved to project root after cd into SDP_DIR
 
 for arg in "$@"; do
     case "$arg" in
@@ -100,6 +101,7 @@ preview_link() {
     fi
     mkdir -p "$(dirname "$dest")"
     ln -sfn "$target" "$dest"
+    manifest_record "symlink" "$dest" "$target"
 }
 
 preview_tree() {
@@ -129,6 +131,33 @@ preview_file() {
 
     mkdir -p "$(dirname "$dest")"
     cp "$src" "$dest"
+    manifest_record "copy" "$dest"
+}
+
+# ---------------------------------------------------------------------------
+# Manifest helpers — record every file/symlink we create so uninstall is safe
+# ---------------------------------------------------------------------------
+
+# Resolve the project root (parent of SDP_DIR).  Called once after cd into
+# $SDP_DIR so that relative paths like ../.claude/... are stable.
+sdp_resolve_home() {
+    SDP_HOME="$(cd "$SDP_DIR/.." && pwd)"
+}
+
+manifest_record() {
+    local action="$1" path="$2" extra="${3:-}"
+    [ "$SDP_PREVIEW" = "1" ] && return 0
+    [ -z "$SDP_HOME" ] && sdp_resolve_home
+    mkdir -p "$SDP_HOME/.sdp"
+    local entry="{\"action\":\"$action\",\"path\":\"$path\""
+    [ -n "$extra" ] && entry="$entry,\"target\":\"$extra\""
+    entry="$entry,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+    echo "$entry" >> "$SDP_HOME/.sdp/manifest.jsonl"
+}
+
+safe_mkdir() {
+    [ "$SDP_PREVIEW" = "1" ] && return 0
+    mkdir -p "$1"
 }
 
 # ---------------------------------------------------------------------------
@@ -149,6 +178,7 @@ merge_settings_json() {
         fi
         mkdir -p "$(dirname "$dest")"
         cp "$src" "$dest"
+        manifest_record "copy" "$dest"
         return
     fi
 
@@ -183,6 +213,7 @@ merge_settings_json() {
             backup_file "$dest"
             mkdir -p "$(dirname "$dest")"
             cp "$src" "$dest"
+            manifest_record "copy" "$dest"
             return
         fi
     fi
@@ -237,6 +268,7 @@ merge_settings_json() {
 $(echo "$merged" | head -20)"
         else
             echo "$merged" > "$dest"
+            manifest_record "merge" "$dest"
         fi
     else
         # No jq: fall back to preserving existing file entirely.
@@ -443,6 +475,7 @@ if [ "$SDP_PREVIEW" = "1" ] && [ ! -d "$SDP_DIR" ]; then
 fi
 
 cd "$SDP_DIR"
+sdp_resolve_home
 
 # ---------------------------------------------------------------------------
 # Optional CLI install for project mode
@@ -519,7 +552,7 @@ else
 fi
 
 setup_claude() {
-    mkdir -p ../.claude
+    safe_mkdir ../.claude
     sync_link "../$SDP_DIR/prompts/skills" "../.claude/skills"
     sync_link "../$SDP_DIR/prompts/agents" "../.claude/agents"
     sync_file .claude/commands.json ../.claude/commands.json
@@ -539,25 +572,25 @@ setup_claude() {
 }
 
 setup_cursor() {
-    mkdir -p ../.cursor
+    safe_mkdir ../.cursor
     sync_link "../$SDP_DIR/prompts/skills" "../.cursor/skills"
     sync_link "../$SDP_DIR/prompts/agents" "../.cursor/agents"
-    mkdir -p ../.cursor/commands
+    safe_mkdir ../.cursor/commands
     sync_tree_files .cursor/commands ../.cursor/commands
     register_integration "Cursor" ".cursor/"
 }
 
 setup_opencode() {
-    mkdir -p ../.opencode
+    safe_mkdir ../.opencode
     sync_link "../$SDP_DIR/prompts/skills" "../.opencode/skills"
     sync_link "../$SDP_DIR/prompts/agents" "../.opencode/agents"
-    mkdir -p ../.opencode/commands
+    safe_mkdir ../.opencode/commands
     sync_tree_files .opencode/commands ../.opencode/commands
     register_integration "OpenCode" ".opencode/"
 }
 
 setup_codex() {
-    mkdir -p ../.codex/skills
+    safe_mkdir ../.codex/skills
     sync_link "../../$SDP_DIR/prompts/skills" "../.codex/skills/sdp"
     sync_link "../$SDP_DIR/prompts/agents" "../.codex/agents"
     sync_file .codex/INSTALL.md ../.codex/INSTALL.md
