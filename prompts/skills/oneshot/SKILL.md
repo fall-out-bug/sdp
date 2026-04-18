@@ -27,17 +27,18 @@ If context was compacted, read `.sdp/checkpoints/F{XX}.json` and `git checkout $
 
 ## Write Plan (F101)
 
-Before the orchestration loop begins, emit a write plan covering all files touched across phases:
+Before the orchestration loop begins, emit a write plan for orchestrator-owned artifacts. @build and @review emit their own detailed file plans when invoked:
 
-1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason. Covers workstream verdicts, evidence files, checkpoints, and source files modified by @build.
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason. Covers `.sdp/checkpoints`, `.sdp/evidence`, `.sdp/ws-verdicts`, and orchestrator state files. @build and @review handle their own file plans.
 2. **Flags:**
    - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
    - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
 3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
 4. **Log** — Append write plan event to `.sdp/log/events.jsonl` (**sanitize file paths** before logging: strip newlines, ensure valid JSON escaping):
    ```json
-   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"oneshot"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id>","workstream_id":"<ws-id>"}}
+   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"oneshot"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
    ```
+   Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
    > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
