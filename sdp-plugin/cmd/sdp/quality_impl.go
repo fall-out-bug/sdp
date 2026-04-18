@@ -21,7 +21,9 @@ func adoptionModeSkip(gateName string, actualPassed bool) bool {
 
 	// Still log evidence (non-blocking)
 	if evidence.Enabled() {
-		_ = evidence.EmitSync(evidence.VerificationEvent("", actualPassed, gateName, 0))
+		if err := evidence.EmitSync(evidence.VerificationEvent("", actualPassed, gateName, 0)); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "warning: evidence emit: %v\n", err)
+		}
 	}
 	return true
 }

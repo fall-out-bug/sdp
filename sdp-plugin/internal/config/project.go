@@ -271,7 +271,9 @@ func SetAdoptionMode(projectRoot string, enabled bool) error {
 	cfg := DefaultConfig()
 	data, err := os.ReadFile(path)
 	if err == nil {
-		_ = yaml.Unmarshal(data, cfg)
+		if unmarshalErr := yaml.Unmarshal(data, cfg); unmarshalErr != nil {
+			return fmt.Errorf("parse existing config: %w", unmarshalErr)
+		}
 	}
 
 	cfg.AdoptionMode = enabled
