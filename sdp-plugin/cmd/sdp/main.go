@@ -143,6 +143,9 @@ directory (.claude/, .cursor/, .opencode/, or .codex/).`,
 
 	rootCmd.AddCommand(initCmd())
 	rootCmd.AddCommand(doctorCmd())
+	rootCmd.AddCommand(assessCmd());
+	rootCmd.AddCommand(tryCmd());
+	rootCmd.AddCommand(adoptCmd());
 	rootCmd.AddCommand(hooksCmd())
 	rootCmd.AddCommand(guardCmd())
 	rootCmd.AddCommand(collisionCmd())

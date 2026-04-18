@@ -72,6 +72,9 @@ func metricsCollectCmd() *cobra.Command {
   sdp metrics collect --watermark`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Default output path: .sdp/metrics/latest.json
+
+			// Ensure metrics directory exists only when actually collecting
+			initMetricsDir()
 			if outputPath == "" {
 				outputPath = ".sdp/metrics/latest.json"
 			}

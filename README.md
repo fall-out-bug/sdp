@@ -83,6 +83,7 @@ Canonical prompt sources live in `prompts/`. Tool-specific directories such as `
 | [QUICKSTART.md](docs/QUICKSTART.md) | Recommended first-success path |
 | [CLI_REFERENCE.md](docs/CLI_REFERENCE.md) | Current `sdp` command surfaces |
 | [PROTOCOL.md](docs/PROTOCOL.md) | Current protocol overview |
+| [PRODUCT_CONTRACT.md](docs/PRODUCT_CONTRACT.md) | Product definition and mode policy |
 | [reference/README.md](docs/reference/README.md) | Reference index and legacy-doc status |
 | [.codex/INSTALL.md](.codex/INSTALL.md) | Codex-specific install notes |
 | [MANIFESTO.md](docs/MANIFESTO.md) | Vision and rationale |

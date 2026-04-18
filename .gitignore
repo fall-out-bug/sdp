@@ -62,8 +62,15 @@ archive/
 !.sdp/evidence/
 !.sdp/checkpoints/
 .sdp/log/events.jsonl
+.sdp/log/events.jsonl.lock
+.sdp/state.json
+.sdp/review_verdict.json
+.sdp/tier_metrics.json
 sdp-plugin/.sdp/log/events.jsonl
 **/events.jsonl
+**/events.jsonl.lock
+.beads/.jsonl.lock
+sdp-plugin/.beads/.jsonl.lock
 
 # Build output
 bin/

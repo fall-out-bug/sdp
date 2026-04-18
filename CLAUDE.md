@@ -10,7 +10,7 @@ Quick reference for using SDP CLI v0.9.8 with Claude Code.
 @vision "AI-powered task manager"    # Strategic planning
 @reality --quick                     # Codebase analysis
 @feature "Add user authentication"   # Plan feature
-@build 00-001-01                     # Execute workstream
+@build 00-001-01                     # Execute executable leaf workstream
 @review <feature-id>                 # Quality check
 ```
 
@@ -83,9 +83,9 @@ New project?
 
 **@ux** — UX research for user-facing features (standalone or auto-triggered by @feature)
 
-**@oneshot** — Workstreams exist, want autonomous execution with checkpoint/resume
+**@oneshot** — Workstream tree exists, want autonomous execution of ready leaf workstreams with checkpoint/resume
 
-**@build** — Execute a single workstream (use instead of @oneshot for 1-2 WS)
+**@build** — Execute a single executable leaf workstream (use instead of @oneshot for 1-2 leaf WS)
 
 ---
 
@@ -103,7 +103,7 @@ New project?
 | `@ux` | UX research (mental model elicitation) | Planning |
 | `@design` | Workstream design (EnterPlanMode) | Planning |
 | `@oneshot` | Execution orchestrator (autonomous) | Execution |
-| `@build` | Execute single workstream (TDD) | Execution |
+| `@build` | Execute single executable leaf workstream (TDD) | Execution |
 | `@review` | Multi-agent quality review | Execution |
 | `@deploy` | Merge feature branch to main | Execution |
 
@@ -166,14 +166,14 @@ New project?
 # 1. Plan feature
 @feature "Add payment processing"
 
-# 2. Execute all workstreams
+# 2. Execute all ready leaf workstreams
 @oneshot <feature-id>
 ```
 
 ### Manual Flow (learning or debugging)
 
 ```bash
-@build 00-050-01   # Execute one at a time
+@build 00-050-01   # Execute one leaf at a time
 @build 00-050-02
 @review <feature-id>       # Review when done
 @deploy <feature-id>       # Deploy
@@ -188,8 +188,9 @@ New project?
    - [PROTOCOL.md](docs/PROTOCOL.md)
 
 2. **Key concepts:**
-   - **Workstream (WS)**: Atomic task, one-shot execution
-   - **Feature**: 5-30 workstreams
+   - **Aggregate Workstream**: non-executable container or roll-up over 2+ leaf workstreams
+   - **Leaf Workstream**: atomic executable unit
+   - **Feature**: 5-30 workstreams total, but only leaves are directly executable
    - **Release**: 10-30 features
 
 3. **Install Beads CLI** (task tracking):

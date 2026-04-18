@@ -26,11 +26,12 @@ Do not treat adapter directories as the source of truth. Edit `prompts/`.
 | `/feature` | `prompts/commands/feature.md`, `prompts/skills/feature/SKILL.md` | Planning entry point |
 | `/idea` | `prompts/commands/idea.md`, `prompts/skills/idea/SKILL.md` | Requirements capture |
 | `/design` | `prompts/commands/design.md`, `prompts/skills/design/SKILL.md` | Workstream planning |
-| `/build` | `prompts/commands/build.md`, `prompts/skills/build/SKILL.md` | Single-workstream execution |
+| `/build` | `prompts/commands/build.md`, `prompts/skills/build/SKILL.md` | Single leaf-workstream execution |
 | `/review` | `prompts/commands/review.md`, `prompts/skills/review/SKILL.md` | Review and verdict loop |
 | `/oneshot` | `prompts/commands/oneshot.md`, `prompts/skills/oneshot/SKILL.md` | Outer-loop feature execution |
 | `/deploy` | `prompts/commands/deploy.md`, `prompts/skills/deploy/SKILL.md` | Prompt-level release handoff surface |
 | `/beads` | `prompts/commands/beads.md`, `prompts/skills/beads/SKILL.md` | Beads task-tracker integration |
+| `/strataudit` | `prompts/commands/strataudit.md`, `prompts/skills/strataudit/SKILL.md` | Evidence-backed strategy traceability audit |
 | `/debug`, `/hotfix`, `/bugfix`, `/issue` | matching files under `prompts/commands/` and `prompts/skills/` | Investigation and fix flows |
 
 ## Current Operating Reality
@@ -51,4 +52,5 @@ Important distinction:
 
 - [../CLI_REFERENCE.md](../CLI_REFERENCE.md) for current CLI surfaces
 - [../PROTOCOL.md](../PROTOCOL.md) for the current protocol overview
+- [../PRODUCT_CONTRACT.md](../PRODUCT_CONTRACT.md) for product definition and mode policy
 - [../../prompts/README.md](../../prompts/README.md) for prompt layout

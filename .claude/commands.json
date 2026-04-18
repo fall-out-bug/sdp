@@ -92,6 +92,14 @@
       "description": "Codebase analysis",
       "phase": "analysis"
     },
+    "strataudit": {
+      "file": "skills/strataudit.md",
+      "cli": "sdp-strataudit run",
+      "mode": "hybrid",
+      "llm_subagents": ["analyst", "architect"],
+      "description": "Evidence-backed strategy traceability audit",
+      "phase": "analysis"
+    },
     "feature": {
       "file": "skills/feature.md",
       "cli": "sdp plan",

@@ -1,6 +1,6 @@
 ---
 name: build
-description: Execute ONE workstream with TDD, guard enforcement, and ws-verdict output
+description: Execute ONE executable leaf workstream with TDD, guard enforcement, and ws-verdict output
 cli: sdp guard activate
 llm: Spawn subagents for TDD cycle
 version: 8.2.0
@@ -16,18 +16,19 @@ changes:
 # build
 
 > **CLI:** `sdp guard activate <workstream-id>` (scope enforcement)
-> **LLM:** Execute one workstream following TDD discipline
+> **LLM:** Execute one executable leaf workstream following TDD discipline
 
-Execute **this ONE workstream**. After commit, **STOP**. Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
+Execute **this ONE executable leaf workstream**. After commit, **STOP**.
+Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
 
-**Batch syntax:** `/build 00-053-16..25` (or `/build 00-053-16 00-053-17 … 00-053-25`) — run workstreams sequentially. Stop on first failure. Report: N done, M failed.
+**Batch syntax:** `/build 00-053-16..25` (or `/build 00-053-16 00-053-17 … 00-053-25`) — run leaf workstreams sequentially. Stop on first failure. Report: N done, M failed.
 
 ---
 
 ## CRITICAL RULES
 
 1. **CHECK EXISTING CODE FIRST** — Run `@reality --quick` or grep before starting new features. Output `existing_work_summary` in ws-verdict — **required**. Short summary: files/functions/risks found before implementation.
-2. **ONE WORKSTREAM** — Execute this workstream only. After commit, STOP. Do not start the next WS.
+2. **ONE EXECUTABLE LEAF** — Execute this workstream only if it is a leaf. If the target is an aggregate/container workstream, STOP and hand control back to `@oneshot` or target a child leaf explicitly. After commit, STOP. Do not start the next WS.
 3. **USE SPAWN OR DO IT YOURSELF** — If spawn available, use it. If not, implement manually.
 4. **POST-COMPACTION RECOVERY** — After context compaction, run `bd ready` to find your task. Never drift to side tasks.
 5. **MODERN GO FOR GO CODE** — When touched files are Go, load `@go-modern` and prefer safe stdlib modernizations before inventing helpers.
@@ -63,6 +64,10 @@ When user invokes `@build 00-067-01`:
 ```bash
 sdp guard activate 00-067-01
 ```
+
+   Read the workstream frontmatter before doing real work. If `ws_kind` exists and
+   is not `leaf`, STOP with a clear error: aggregate/container workstreams are not
+   direct execution targets.
 
 2. **TDD cycle** (spawn subagents if available, else do yourself):
    - Implementer: RED → GREEN → REFACTOR per AC. **Orchestrator contract:** Emit phase markers so orchestrator can parse: `TDD:RED` (writing failing test), `TDD:GREEN` (test passes), `TDD:REFACTOR` (cleanup). One marker per phase.
@@ -118,7 +123,8 @@ Evidence lifecycle (create/patch `.sdp/evidence/*.json`) is orchestrator or post
 ## Beads Integration
 
 - **Before:** `bd update {beads_id} --status in_progress`
-- **Success:** Run `bd close {beads_id} --reason "WS completed"` for each bead in WS frontmatter (e.g. `Feature: <feature-id> (sdp_dev-hryg)` or `## Beads` list). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from WS body (`Feature: … (beads_id)`, `Bead:`, `Beads:`).
+- **Leaf-only dispatch:** only executable leaf workstreams may carry an open `primary` Beads issue.
+- **Success:** Run `bd close {beads_id} --reason "WS completed"` for each bound leaf issue in WS frontmatter (for example `## Beads` with `primary:` and `finding:` roles). Resolve beads from `.beads-sdp-mapping.jsonl` by `sdp_id`, or from the WS body.
 - **Failure:** `bd update {beads_id} --status blocked`
 
 ---

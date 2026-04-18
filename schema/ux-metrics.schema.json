@@ -1,0 +1,153 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SDP UX Metrics",
+  "description": "User experience metrics for SDP CLI adoption journey (local-first, no cloud dependency)",
+  "type": "object",
+  "required": ["metric_type", "timestamp", "value"],
+  "properties": {
+    "metric_type": {
+      "type": "string",
+      "enum": [
+        "time_to_first_value",
+        "step_abandon_rate",
+        "reset_uninstall_frequency",
+        "brownfield_init_completion",
+        "recovery_success_rate",
+        "second_session_return"
+      ],
+      "description": "Type of UX metric being measured"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the metric was recorded"
+    },
+    "value": {
+      "oneOf": [
+        {"type": "number"},
+        {"type": "boolean"},
+        {"type": "string"}
+      ],
+      "description": "Metric value (duration in ms, percentage, boolean, or enum)"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique session identifier for correlation"
+    },
+    "project_type": {
+      "type": "string",
+      "enum": ["greenfield", "brownfield", "unknown"],
+      "description": "Project type for brownfield-specific metrics"
+    },
+    "step_name": {
+      "type": "string",
+      "description": "Workflow step name (e.g., 'assess', 'try', 'adopt')"
+    },
+    "step_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Step number in the workflow sequence"
+    },
+    "context": {
+      "type": "object",
+      "description": "Additional contextual information",
+      "properties": {
+        "command": {"type": "string"},
+        "error": {"type": "string"},
+        "feature_id": {"type": "string"},
+        "workstream_id": {"type": "string"},
+        "exit_reason": {"type": "string"},
+        "recovery_type": {"type": "string"},
+        "init_phase": {"type": "string"}
+      }
+    }
+  },
+  "definitions": {
+    "time_to_first_value": {
+      "description": "Time from 'sdp init' to first successful feature delivery (milliseconds)",
+      "type": "object",
+      "allOf": [{"$ref": "#/properties/value"}],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "unit": "milliseconds"
+        }
+      }
+    },
+    "step_abandon_rate": {
+      "description": "Percentage of sessions where user stops mid-workflow without completion",
+      "type": "object",
+      "allOf": [{"$ref": "#/properties/value"}],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "unit": "percentage"
+        }
+      }
+    },
+    "reset_uninstall_frequency": {
+      "description": "How often users reset or uninstall (count per time period)",
+      "type": "object",
+      "allOf": [{"$ref": "#/properties/value"}],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "action": {
+          "type": "string",
+          "enum": ["reset", "uninstall", "config_clear"]
+        }
+      }
+    },
+    "brownfield_init_completion": {
+      "description": "Percentage of brownfield projects completing init successfully",
+      "type": "object",
+      "allOf": [{"$ref": "#/properties/value"}],
+      "properties": {
+        "value": {
+          "type": "boolean"
+        },
+        "project_type": {
+          "type": "string",
+          "enum": ["brownfield"]
+        },
+        "init_phase": {
+          "type": "string",
+          "enum": ["discovery", "hook_install", "config_setup", "validation", "complete"]
+        }
+      }
+    },
+    "recovery_success_rate": {
+      "description": "Percentage of successful error recovery attempts",
+      "type": "object",
+      "allOf": [{"$ref": "#/properties/value"}],
+      "properties": {
+        "value": {
+          "type": "boolean"
+        },
+        "recovery_type": {
+          "type": "string",
+          "enum": ["auto_fix", "manual guidance", "docs link", "support_escalation"]
+        }
+      }
+    },
+    "second_session_return": {
+      "description": "Whether user returns for a second session within 7 days",
+      "type": "object",
+      "allOf": [{"$ref": "#/properties/value"}],
+      "properties": {
+        "value": {
+          "type": "boolean"
+        },
+        "days_since_first_session": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

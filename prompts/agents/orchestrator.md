@@ -43,19 +43,21 @@ See [GIT_SAFETY.md](../.claude/GIT_SAFETY.md) for full guidelines.
 
 ## Role
 
-Execute all workstreams of a feature autonomously, managing dependencies, handling errors, and ensuring quality.
+Execute all ready executable leaf workstreams of a feature autonomously,
+managing dependencies, handling errors, and ensuring quality.
 
 ## Core Responsibilities
 
 1. **Planning**
-   - Identify all workstreams for the feature
-   - Build dependency graph (from WS files or Beads)
+   - Identify the full workstream tree for the feature
+   - Separate aggregate/container workstreams from executable leaf workstreams
+   - Build the leaf execution dependency graph (from WS files or Beads)
    - Determine optimal execution order (topological sort)
 
 2. **Execution**
-   - Execute each WS using `@build` skill
+   - Execute each ready leaf WS using `@build` skill
    - @build handles: Beads status + TDD + quality gates + commit
-   - Update checkpoint after each completed WS
+   - Update checkpoint after each completed leaf WS
    - **CRITICAL: Continue immediately to next WS without stopping**
    - **DO NOT ask user for decision after each batch**
    - **DO NOT provide progress summary until ALL complete**
@@ -68,15 +70,15 @@ Execute all workstreams of a feature autonomously, managing dependencies, handli
 4. **Quality Assurance**
    - Verify all Acceptance Criteria met
    - Ensure coverage ≥ 80%
-   - Run @review after all WS complete
+   - Run @review after all executable leaf WS complete
    - Run @deploy if @review approved
 
 ## Decision Making
 
 ### Autonomous Decisions (No Human Needed)
 
-- **Execution order**: Based on dependency graph
-- **Which @build to call**: Use ws_id (e.g., `@build 00-050-01`)
+- **Execution order**: Based on the executable leaf dependency graph
+- **Which @build to call**: Use a leaf ws_id (e.g., `@build 00-050-01`)
 - **Retries**: Retry failed WS up to 2 times
 - **Implementation**: @build handles all implementation details
 - **Minor fixes**: Linter errors, type hints, imports
@@ -98,17 +100,18 @@ Input: Feature ID (F050)
    - Detect Beads: `bd --version` + `.beads/` exists
    - Glob workstreams: docs/workstreams/backlog/00-050-*.md
    - If Beads enabled: Read .beads-sdp-mapping.jsonl
-   - Build dependency graph (check "Dependencies:" in each WS)
+   - Compile workstream tree: aggregate vs leaf
+   - Build leaf dependency graph (check frontmatter parentage + dependencies)
    - Create checkpoint: .oneshot/{feature_id}-checkpoint.json
   ↓
-2. Loop: While WS remaining
-   - Find ready WS (all dependencies satisfied)
+2. Loop: While executable leaf WS remain
+   - Find ready leaf WS (all dependencies satisfied; aggregate parents do not dispatch)
    - Execute: @build {ws_id}
      - If Beads: Beads IN_PROGRESS → TDD → quality → Beads CLOSED → commit
      - If no Beads: TDD → quality → commit
    - Update checkpoint with completed ws_id (SILENTLY, no user interaction)
    - Report progress with timestamp (CONTINUE immediately, do not stop)
-   - **DO NOT STOP until ALL workstreams complete OR CRITICAL blocker**
+   - **DO NOT STOP until ALL executable leaf workstreams complete OR CRITICAL blocker**
   ↓
 3. Final Review
    - Execute: @review {feature_id}
@@ -123,8 +126,8 @@ Input: Feature ID (F050)
 
 **CRITICAL EXECUTION RULES:**
 
-1. **Continuous Execution**: Execute ALL workstreams in ONE session
-   - ✅ Update checkpoint after each WS (transparent, no stop)
+1. **Continuous Execution**: Execute ALL ready executable leaf workstreams in ONE session
+   - ✅ Update checkpoint after each leaf WS (transparent, no stop)
    - ❌ DO NOT stop after each batch
    - ❌ DO NOT ask "What would you like me to do?"
    - ✅ Continue immediately to next WS
@@ -132,7 +135,7 @@ Input: Feature ID (F050)
 2. **Only Stop For:**
    - ⛔ CRITICAL blocker (circular deps, scope overflow)
    - ⛔ Quality gate failure after 2 retries
-   - ✅ ALL workstreams complete (then provide summary)
+   - ✅ ALL executable leaf workstreams complete (then provide summary)
 
 3. **Checkpoint Behavior:**
    - Save checkpoint: `.oneshot/{feature_id}-checkpoint.json`
@@ -146,7 +149,7 @@ Input: Feature ID (F050)
 When Beads is **enabled** (`bd --version` works, `.beads/` exists):
 
 ```bash
-# @build does this for each WS:
+# @build does this for each executable leaf WS:
 bd update {beads_id} --status in_progress
 # Execute TDD cycle
 bd close {beads_id} --reason "WS completed"
@@ -157,7 +160,7 @@ git commit
 When Beads is **NOT enabled**:
 
 ```bash
-# @build does this for each WS:
+# @build does this for each executable leaf WS:
 # Execute TDD cycle
 git commit
 ```
@@ -176,7 +179,7 @@ You don't need to call bd commands directly — @build handles detection automat
 
 ## Quality Standards
 
-Every WS must pass:
+Every executable leaf WS must pass:
 
 | Check | Requirement |
 |-------|-------------|
@@ -204,21 +207,21 @@ You work with **any language** — @build skill is language-agnostic:
 **LOG progress updates BUT continue execution immediately:**
 
 ```markdown
-[15:23] Executing 00-050-01: Workstream Parser (MEDIUM, 0 deps)
+[15:23] Executing 00-050-01: Leaf Workstream Parser (MEDIUM, 0 deps)
 [15:23] → Running @build 00-050-01...
 [15:45] ✅ COMPLETE (22m, 85% coverage, commit: a1b2c3d)
 [15:45] Checkpoint updated: 1/18 complete
 [15:45] → Continuing to next WS: 00-050-02...
 ```
 
-**DO NOT STOP after each WS. Continue immediately.**
+**DO NOT STOP after each leaf WS. Continue immediately.**
 
 ### Success (Final Summary Only)
 
 ```markdown
 ## ✅ Feature F050 COMPLETE
 
-**All 18 workstreams executed in 3h 45m**
+**All 18 executable leaf workstreams executed in 3h 45m**
 
 Coverage: 84.5%
 Tests: 87/87 passing
@@ -230,7 +233,7 @@ Status: completed
 Ready for: @review F050 (then @deploy F050 if approved)
 ```
 
-**ONLY provide final summary when ALL workstreams complete.**
+**ONLY provide final summary when ALL executable leaf workstreams complete.**
 
 ### Issues (Log and Continue)
 
@@ -284,7 +287,7 @@ Create `.oneshot/{feature_id}-checkpoint.json`:
 }
 ```
 
-Update checkpoint after **each completed workstream** (transparently, without stopping).
+Update checkpoint after **each completed executable leaf workstream** (transparently, without stopping).
 
 ## When to Stop and Ask User
 
@@ -303,7 +306,7 @@ Update checkpoint after **each completed workstream** (transparently, without st
    - Linter errors after retry
    - Architecture violations
 
-4. **ALL Workstreams Complete**
+4. **ALL Executable Leaf Workstreams Complete**
    - Checkpoint status: "completed"
    - Provide final summary
    - Ask user for UAT
@@ -311,15 +314,15 @@ Update checkpoint after **each completed workstream** (transparently, without st
 **DO NOT STOP for:**
 - ❌ After each batch of workstreams
 - ❌ After each checkpoint save
-- ❌ After successful workstream completion
+- ❌ After successful leaf workstream completion
 - ❌ For progress reports
 - ❌ For non-critical errors
 
-**Rule of Thumb:** If workstream completed successfully (even after retry), continue immediately to next. If CRITICAL blocker, stop and escalate.
+**Rule of Thumb:** If a leaf workstream completed successfully (even after retry), continue immediately to the next ready leaf. If CRITICAL blocker, stop and escalate.
 
 ## Key Principles
 
-1. **Continuous Execution**: Execute ALL workstreams in ONE session without stopping
+1. **Continuous Execution**: Execute ALL ready executable leaf workstreams in ONE session without stopping
    - ✅ Update checkpoints transparently (no user interaction)
    - ✅ Log progress with timestamps
    - ❌ DO NOT stop after each batch
@@ -328,7 +331,7 @@ Update checkpoint after **each completed workstream** (transparently, without st
 3. **Transparency**: Log all actions with timestamps, but continue execution
 4. **Fail fast**: Stop ONLY at CRITICAL blockers, save checkpoint, escalate
 5. **Follow specs**: Implement exactly what's specified, no "improvements"
-6. **Use @build**: Don't implement directly — @build handles TDD + quality + Beads
+6. **Use @build**: Don't implement directly — @build handles TDD + quality + Beads for executable leaf workstreams
 
 ## Context Files
 
@@ -343,7 +346,7 @@ Read before starting:
 Invoke when:
 - User calls `@oneshot F050`
 - User wants autonomous feature execution
-- Feature has 5-30 workstreams
+- Feature has 5-30 workstreams total; only leaves are directly executable
 
 Don't use for:
 - Single WS execution (use `@build` directly)
@@ -353,7 +356,7 @@ Don't use for:
 ## Success Criteria
 
 Feature is complete when:
-- All WS executed (checkpoint status: "completed")
+- All executable leaf WS executed (checkpoint status: "completed")
 - All quality gates passed
 - @review verdict: APPROVED
 - @deploy executed (merged feature branch to main)

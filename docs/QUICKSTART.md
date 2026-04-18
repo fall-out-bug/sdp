@@ -4,6 +4,8 @@ Get from zero to a real first success in one repo.
 
 Use this guide when you are adopting SDP in your own project. If you are contributing to SDP itself, start with `DEVELOPMENT.md` and `CONTRIBUTING.md`.
 
+> This guide follows Local Mode from [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md). For the full product definition, see that document.
+
 ## 0. Pick the Right Mode
 
 | Mode | Start here when | Requires |
@@ -140,7 +142,7 @@ bd create --title="..."
 bd close <id>
 ```
 
-Once Beads is in place, SDP also installs prompt surfaces such as `/feature`, `/build`, `/review`, and `/oneshot`. That mode assumes workstreams and operator discipline already exist; it is not required for a first run.
+Once Beads is in place, SDP also installs prompt surfaces such as `/feature`, `/build`, `/review`, `/oneshot`, and `/strataudit`. That mode assumes workstreams and operator discipline already exist; it is not required for a first run.
 
 Important distinction:
 
@@ -152,5 +154,6 @@ Important distinction:
 
 - Use [CLI_REFERENCE.md](CLI_REFERENCE.md) for current command behavior.
 - Use [PROTOCOL.md](PROTOCOL.md) for the current protocol overview.
+- Use [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md) for product definition and mode policy.
 - Use [reference/README.md](reference/README.md) for the reference index and legacy-doc status.
 - Use [MANIFESTO.md](MANIFESTO.md) for vision and rationale.

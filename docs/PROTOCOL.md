@@ -2,6 +2,8 @@
 
 This document describes the current public SDP model at a high level. For exact command behavior, use `sdp <command> --help`.
 
+For the product-level definition of Local Mode, Operator Mode, stages, and support policy, see [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md).
+
 ## What Ships Today
 
 SDP currently ships three layers:
@@ -67,9 +69,10 @@ Use these sources in order:
 
 1. `sdp <command> --help` for CLI behavior
 2. [README.md](../README.md) and [QUICKSTART.md](QUICKSTART.md) for onboarding
-3. [CLI_REFERENCE.md](CLI_REFERENCE.md) for the current command map
-4. [reference/skills.md](reference/skills.md) for prompt-surface layout
-5. `prompts/` source files when you need exact prompt definitions
+3. [PRODUCT_CONTRACT.md](PRODUCT_CONTRACT.md) for product definition and mode policy
+4. [CLI_REFERENCE.md](CLI_REFERENCE.md) for the current command map
+5. [reference/skills.md](reference/skills.md) for prompt-surface layout
+6. `prompts/` source files when you need exact prompt definitions
 
 ## Legacy Note
 
