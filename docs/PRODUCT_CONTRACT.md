@@ -1,7 +1,7 @@
 # SDP Product Contract
 
-> **Version:** 1.0.0  
-> **Status:** Stable  
+> **Version:** 1.0.0
+> **Status:** Stable
 > **Last Updated:** 2026-04-18
 
 ## Overview

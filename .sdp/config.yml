@@ -40,3 +40,75 @@ guard:
     error: "block"   # Block workflow execution
     warning: "warn"   # Display warning, continue
     info: "log"       # Log only, no display
+
+# Risk-based reviewer depth allocation (F098)
+review:
+  # All 7 reviewers always spawned; LOC tiers control DEPTH not presence
+  # Low LOC: only qa + techlead do deep review (others rubber-stamp)
+  # Medium LOC: qa + security + techlead do deep review (others rubber-stamp)
+  # High LOC: all 7 reviewers do deep review
+  loc_tiers:
+    - max_loc: 50
+      deep_reviewers: [qa, techlead]
+    - max_loc: 200
+      deep_reviewers: [qa, security, techlead]
+    - max_loc: null  # No upper limit (catch-all)
+      deep_reviewers: [qa, security, devops, sre, techlead, docs, promptops]
+
+  # Risk patterns override LOC tiers - force specific reviewers to deep review
+  # Patterns use glob syntax matching file paths
+  # Each pattern can specify multiple reviewers who must do deep review
+  risk_patterns:
+    # Security-sensitive areas
+    - pattern: "**/auth/**"
+      roles: [security, qa]
+    - pattern: "**/crypto/**"
+      roles: [security, qa]
+    - pattern: "**/*auth*.go"
+      roles: [security, qa]
+    - pattern: "**/*crypto*.go"
+      roles: [security, qa]
+    - pattern: "**/jwt/**"
+      roles: [security, qa]
+
+    # DevOps/CI areas
+    - pattern: "**/.github/workflows/**"
+      roles: [devops, sre]
+    - pattern: "**/ci/**"
+      roles: [devops, sre]
+    - pattern: "**/*deploy*"
+      roles: [devops, sre]
+    - pattern: "**/*pipeline*"
+      roles: [devops, sre]
+    - pattern: "**/docker/**"
+      roles: [devops, sre]
+
+    # SRE/DB areas
+    - pattern: "**/migrations/**"
+      roles: [sre, security]
+    - pattern: "**/db/**"
+      roles: [sre, security]
+    - pattern: "**/*schema*.sql"
+      roles: [sre, security]
+    - pattern: "**/*migration*"
+      roles: [sre, security]
+
+    # Documentation areas
+    - pattern: "**/docs/**"
+      roles: [docs]
+    - pattern: "**/*.md"
+      roles: [docs]
+
+    # PromptOps areas
+    - pattern: "**/prompts/**"
+      roles: [promptops]
+    - pattern: "**/.claude/skills/**"
+      roles: [promptops]
+
+  # Flag overrides for reviewer depth
+  # All 7 reviewers always spawned; flags control DEPTH only
+  flags:
+    full:
+      deep_reviewers: [qa, security, devops, sre, techlead, docs, promptops]
+    quick:
+      deep_reviewers: [qa, techlead]
