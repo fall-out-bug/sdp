@@ -85,6 +85,34 @@ For each finding: `bd create --silent --labels "review-finding,F{XX},round-1,{ro
 
 **PromptOps expert:** Review prompts/skills, prompts/agents, prompts/commands. Check: language-agnostic, no phantom CLI, no handoff lists, skill size ≤200 LOC. Labels: `review-finding,F{XX},round-1,promptops`. Output `checks` array per schema/review-verdict.schema.json.
 
+## Write Plan (F101)
+
+Before writing review output files (verdict, findings), emit a write plan:
+
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason.
+2. **Flags:**
+   - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
+   - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
+3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+   ```json
+   {"ts":"<ISO-8601>","type":"write_plan","skill":"review","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   ```
+
+**Output format:**
+```
+WRITE PLAN for @review <target>:
+  CREATE: .sdp/review_verdict.json — review verdict and synthesis
+  CREATE: .sdp/review/findings-*.json — per-reviewer finding details
+
+Proceed? [y/n]
+```
+
+**Modes:**
+- No flag: Show plan → Confirm → Execute
+- `--dry-run`: Show plan → STOP
+- `--yes`: Show plan → Execute immediately (no prompt)
+
 ---
 
 ## After All Complete — Synthesis Phase

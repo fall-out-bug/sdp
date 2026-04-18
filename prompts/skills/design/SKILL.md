@@ -96,6 +96,35 @@ echo "Backlog:  $(ls docs/workstreams/backlog/*.md | wc -l)"
 
 Add new workstreams to the appropriate phase table in `docs/workstreams/INDEX.md`.
 
+## Write Plan (F101)
+
+Before modifying any file, emit a write plan covering workstream files, design docs, and INDEX.md:
+
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason.
+2. **Flags:**
+   - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
+   - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
+3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl`:
+   ```json
+   {"ts":"<ISO-8601>","type":"write_plan","skill":"design","ws_id":"<ws-id>","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]}
+   ```
+
+**Output format:**
+```
+WRITE PLAN for @design <target>:
+  CREATE: path/to/new/file — <reason>
+  MODIFY: path/to/existing/file — <reason>
+  DELETE: path/to/removed/file — <reason>
+
+Proceed? [y/n]
+```
+
+**Modes:**
+- No flag: Show plan → Confirm → Execute
+- `--dry-run`: Show plan → STOP
+- `--yes`: Show plan → Execute immediately (no prompt)
+
 ## Modes
 
 | Mode | Blocks |
