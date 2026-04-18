@@ -5,7 +5,8 @@ AI-native dev with workstreams, gates, TDD.
 ## Decision Tree
 
 ```
-New? → @vision → @reality → @feature
+New? → @init → @vision → @reality → @feature
+Demo? → sdp demo
 No → State? → @reality --quick
 WS? → @oneshot <id>
 No → @feature "X"
@@ -24,7 +25,10 @@ No → @feature "X"
 ## Try
 
 ```bash
-go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
+sdp demo                    # Guided walkthrough
+# or install manually:
+# go install github.com/fall-out-bug/sdp/sdp-plugin/cmd/sdp@latest
+@init
 @feature "X"
 @build 00-001-01
 ```

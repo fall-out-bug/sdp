@@ -14,13 +14,15 @@ bd sync               # Sync with git
 
 ## Quality Gates
 
-Before pushing code changes:
+Before pushing code changes, run the appropriate gates for your project's language:
 
-```bash
-go build ./...              # must succeed
-go test ./...               # must pass
-go vet ./...                # no issues
-```
+| Language | Build | Test | Lint |
+|----------|-------|------|------|
+| Go | `go build ./...` | `go test ./...` | `go vet ./...` |
+| Python | `pip install .` | `pytest` | `ruff check .` |
+| Node.js | `npm run build` | `npm test` | `npm run lint` |
+| Rust | `cargo build` | `cargo test` | `cargo clippy` |
+| Java | `mvn compile` | `mvn test` | `mvn checkstyle:check` |
 
 For Go changes, follow the canonical `@go-modern` skill in `prompts/skills/go-modern/SKILL.md` and prefer modern stdlib idioms when they preserve behavior.
 

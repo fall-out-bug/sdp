@@ -31,11 +31,27 @@ for arg in "$@"; do
     esac
 done
 
+detect_ide() {
+    if [ "$SDP_IDE" != "auto" ] && [ -n "$SDP_IDE" ]; then
+        echo "$SDP_IDE"
+        return
+    fi
+    # Auto-detect from existing config files
+    if [ -f ".cursorrules" ] || [ -d ".cursor" ]; then echo "cursor"
+    elif [ -d ".codex" ]; then echo "codex"
+    elif [ -d ".claude" ]; then echo "claude"
+    elif [ -d ".opencode" ]; then echo "opencode"
+    else echo "auto"
+    fi
+}
+
 run_remote_script() {
     name="$1"
     shift
     url="https://raw.githubusercontent.com/${SDP_REPO}/${SDP_REF}/scripts/${name}"
-    curl -fsSL "$url" | SDP_REPO="$SDP_REPO" SDP_REF="$SDP_REF" SDP_IDE="${SDP_IDE:-auto}" sh -s -- "$@"
+    DETECTED_IDE=$(detect_ide)
+    echo "Detected IDE: ${DETECTED_IDE}"
+    curl -fsSL "$url" | SDP_REPO="$SDP_REPO" SDP_REF="$SDP_REF" SDP_IDE="${SDP_IDE:-$DETECTED_IDE}" sh -s -- "$@"
 }
 
 if [ "$BINARY_ONLY" = "1" ]; then

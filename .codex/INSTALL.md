@@ -16,7 +16,7 @@ Project skills source of truth lives in `prompts/skills/` (this repo). Tool fold
    ```bash
    sdp init --auto
    ```
-3. Use `@build 00-XXX-YY` or `sdp plan`, `sdp apply`, `sdp log trace` per [CLAUDE.md](../CLAUDE.md).
+3. Use `@build 00-XXX-YY` or `sdp plan`, `sdp apply`, `sdp log trace` per [AGENTS.md](../AGENTS.md).
 
 If you want the CLI only, use:
 
@@ -32,7 +32,7 @@ curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | s
 ├── agents/      # Project-level agent symlink
 └── skills/
     ├── README.md
-    └── sdp/     # Project-level skills sourced from prompts/skills
+    └── {skill}/ # Per-skill symlinks to prompts/skills/{skill}
 
 ~/.codex/
 └── skills/      # User-level skills (persistent)

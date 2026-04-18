@@ -22,6 +22,6 @@ Use `@` prefix to invoke skills:
 
 ## See Also
 
-- [CLAUDE.md](../CLAUDE.md) - Full protocol
+- [AGENTS.md](../AGENTS.md) - Agent instructions and quality gates
 - [prompts/skills/](../prompts/skills/) - Canonical skill definitions
 - [.claude/skills/](../.claude/skills/) - Claude compatibility symlink

@@ -159,6 +159,18 @@ Check discovery brief, idea spec, ux output, workstreams exist, direct execution
 
 User sees: feature description → workstreams created → ready to build. Workstream files, scope declarations, beads IDs are plumbing.
 
+## Completion
+
+When all workstreams are created and verified, output:
+
+```
+@feature complete. Feature {ID}: {count} workstreams created.
+  Aggregate: 00-{FFF}-00
+  Leaves: 00-{FFF}-01 .. 00-{FFF}-{NN}
+
+Next: @build 00-{FFF}-01  or  @oneshot F{XX}
+```
+
 ## See Also
 
 @discovery — Product discovery gate | @idea — Requirements | @ux — UX research | @design — Workstream planning | @build — Execute leaf workstream | @oneshot — Execute all ready leaf workstreams
