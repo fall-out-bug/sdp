@@ -77,9 +77,9 @@ plan_remove_symlink() {
 }
 
 plan_remove_gitignore_block() {
-    if [ -f .gitignore ] && grep -q "# SDP" .gitignore; then
+    if [ -f .gitignore ] && grep -q "# >>> SDP_START >>>" .gitignore; then
         UNINSTALL_PLAN="$UNINSTALL_PLAN
-  REMOVE:      SDP entries from .gitignore"
+  REMOVE:      SDP entries from .gitignore (between explicit markers)"
     fi
 }
 
@@ -237,36 +237,18 @@ for hook in pre-commit pre-push; do
     fi
 done
 
-# Remove .gitignore SDP block
-if [ -f .gitignore ] && grep -q "# SDP" .gitignore; then
-    # Remove the SDP block: from "# SDP" line to the next blank line or EOF
-    # Use a portable approach
+# Remove .gitignore SDP block (between explicit markers)
+if [ -f .gitignore ] && grep -q "# >>> SDP_START >>>" .gitignore; then
     if command -v sed >/dev/null 2>&1; then
-        # Remove lines between "# SDP" marker and next empty line (inclusive)
-        sed -i.bak '/^# SDP$/,/^[[:space:]]*$/{ /^$/!d; }' .gitignore 2>/dev/null || \
-        sed -i '' '/^# SDP$/,/^[[:space:]]*$/{ /^$/!d; }' .gitignore 2>/dev/null || true
-        # Also remove specific SDP-managed entries (in case the block approach missed some)
-        for entry in \
-            "$SDP_DIR/.git" \
-            ".claude/skills" \
-            ".claude/agents" \
-            ".cursor/skills" \
-            ".cursor/agents" \
-            ".opencode/skills" \
-            ".opencode/agents" \
-            ".codex/skills/sdp" \
-            ".codex/agents" \
-            ".prompts"; do
-            # Remove the line (GNU or BSD sed)
-            sed -i.bak "\|^${entry}$|d" .gitignore 2>/dev/null || \
-            sed -i '' "\|^${entry}$|d" .gitignore 2>/dev/null || true
-        done
+        # Remove lines between (and including) the SDP markers
+        sed -i.bak '/^# >>> SDP_START >>>$/,/^# <<< SDP_END <<<$/d' .gitignore 2>/dev/null || \
+        sed -i '' '/^# >>> SDP_START >>>$/,/^# <<< SDP_END <<<$/d' .gitignore 2>/dev/null || true
         rm -f .gitignore.bak
-        # Clean up trailing blank lines
-        sed -i.bak -e :a -e '/^\n*$/{$d;N;ba' -e '}' .gitignore 2>/dev/null || \
-        sed -i '' -e :a -e '/^\n*$/{$d;N;ba' -e '}' .gitignore 2>/dev/null || true
+        # Clean up consecutive blank lines left behind
+        sed -i.bak '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || \
+        sed -i '' '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || true
         rm -f .gitignore.bak
-        echo "  Cleaned: .gitignore SDP entries"
+        echo "  Cleaned: .gitignore SDP entries (between markers)"
     fi
 fi
 

@@ -6,7 +6,7 @@
 #
 # Flags:
 #   --preview             Show what would change without modifying anything.
-#   --no-overwrite-config Preserve existing IDE config files (legacy, default behavior).
+#   --no-overwrite-config Preserve existing IDE config files (default behavior).
 #   --overwrite-config    Overwrite existing config files (not recommended).
 
 set -eu
@@ -17,7 +17,7 @@ SDP_REF="${SDP_REF:-main}"
 REMOTE="${SDP_REMOTE:-https://github.com/fall-out-bug/sdp.git}"
 SDP_INSTALL_CLI="${SDP_INSTALL_CLI:-0}"
 SDP_INSTALL_CLI_FROM_SOURCE="${SDP_INSTALL_CLI_FROM_SOURCE:-0}"
-SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-0}"
+SDP_PRESERVE_CONFIG="${SDP_PRESERVE_CONFIG:-1}"
 DEFAULT_REMOTE="https://github.com/fall-out-bug/sdp.git"
 SDP_AUTO_FALLBACK_ALL=0
 SDP_CONFIGURED_INTEGRATIONS=""
@@ -54,8 +54,8 @@ fi
 init_backup_dir() {
     # Called before cd into $SDP_DIR. At this point cwd is the project root.
     project_root="$(pwd)"
-    _rand=${RANDOM:-$(od -An -N2 -tu2 /dev/urandom 2>/dev/null | tr -d ' ')}
-    SDP_BACKUP_DIR="$project_root/.sdp/backup/$(date +%Y%m%dT%H%M%S)-$$_${_rand:-0}"
+    mkdir -p "$project_root/.sdp/backup"
+    SDP_BACKUP_DIR=$(mktemp -d "$project_root/.sdp/backup/XXXXXX")
 }
 
 backup_file() {
@@ -180,36 +180,38 @@ merge_settings_json() {
         # - For objects, merge recursively
         # - For scalars, take the source value only if missing from dest
 
-        merged=$(printf '%s\n%s\n' "$dest_content" "$src_content" | jq -n '
-            # inputs: [dest, src]
-            # Deep merge: dest as base, overlay src.
+        merged=$(jq -n \
+            --argjson user "$dest_content" \
+            --argjson sdp "$src_content" \
+        '
+            # Deep merge where USER values win on scalar conflicts.
+            # SDP only ADDS keys that the user does not have yet.
             # Arrays: concatenate and deduplicate (by value equality).
-            # Objects: recurse. Scalars: src wins (only when key is new or src differs).
-            [inputs] as $docs |
-            $docs[0] as $dest |
-            $docs[1] as $src |
+            # Objects: recurse. Scalars: user wins.
+            $user as $user |
+            $sdp as $sdp |
 
-            def deepmerge(a; b):
-              if (a | type) == "object" and (b | type) == "object" then
-                (a + b) | to_entries | map(
+            def deepmerge(u; s):
+              if (u | type) == "object" and (s | type) == "object" then
+                (s + u) | to_entries | map(
                   .key as $k |
-                  if ($k | in(a)) == false then .
-                  elif ($k | in(b)) == false then .key as $kk | {key: $kk, value: a[$kk]}
-                  elif (a[$k] | type) == "object" and (b[$k] | type) == "object" then
-                    {key: $k, value: (deepmerge(a[$k]; b[$k]))}
-                  elif (a[$k] | type) == "array" and (b[$k] | type) == "array" then
-                    {key: $k, value: (a[$k] + b[$k] | unique)}
+                  if ($k | in(s)) == false then .
+                  elif ($k | in(u)) == false then .key as $kk | {key: $kk, value: s[$kk]}
+                  elif (u[$k] | type) == "object" and (s[$k] | type) == "object" then
+                    {key: $k, value: (deepmerge(u[$k]; s[$k]))}
+                  elif (u[$k] | type) == "array" and (s[$k] | type) == "array" then
+                    {key: $k, value: (u[$k] + s[$k] | unique)}
                   else
-                    {key: $k, value: b[$k]}
+                    {key: $k, value: u[$k]}
                   end
                 ) | from_entries
-              elif (a | type) == "array" and (b | type) == "array" then
-                a + b | unique
+              elif (u | type) == "array" and (s | type) == "array" then
+                u + s | unique
               else
-                b
+                u
               end;
 
-            deepmerge($dest; $src)
+            deepmerge($user; $sdp)
         ')
 
         if [ "$SDP_PREVIEW" = "1" ]; then
@@ -232,14 +234,14 @@ $(echo "$merged" | head -20)"
                 echo "  Existing file preserved. SDP settings available at: $src"
             fi
         else
-            # Dest has no hooks — safe to append SDP content
-            # Simple append approach: take everything from src that's missing
+            # Dest exists but has no "hooks" key.  Without jq we cannot safely
+            # merge — refuse to overwrite and tell the user what to do.
             if [ "$SDP_PREVIEW" = "1" ]; then
-                preview_note "MERGE (basic, no jq)" "$dest"
+                preview_note "SKIP (jq required to merge safely)" "$dest"
             else
-                # Use the source file (dest had no hooks), but keep user keys
-                # Very basic: just overwrite. User was told to install jq.
-                cp "$src" "$dest"
+                echo "  WARNING: $dest exists but jq is not installed." >&2
+                echo "  jq is required to merge settings.json safely." >&2
+                echo "  Install jq or merge manually. SDP defaults available at: $src" >&2
             fi
         fi
     fi
@@ -413,6 +415,23 @@ else
     fi
 fi
 
+# In preview mode, if SDP checkout doesn't exist we cannot inspect its
+# contents.  Print the plan gathered so far and exit early.
+if [ "$SDP_PREVIEW" = "1" ] && [ ! -d "$SDP_DIR" ]; then
+    echo ""
+    echo "=== PREVIEW: Changes that would be made ==="
+    if [ -n "$SDP_PREVIEW_CHANGES" ]; then
+        echo "$SDP_PREVIEW_CHANGES" | grep -v '^$' | sed 's/^/  /'
+    else
+        echo "  (no changes)"
+    fi
+    echo ""
+    echo "Note: $SDP_DIR/ does not exist locally. A full preview requires the"
+    echo "checkout to be present. Run without --preview to clone and install."
+    echo "Existing configs will be backed up to .sdp/backup/ before modification."
+    exit 0
+fi
+
 cd "$SDP_DIR"
 
 # ---------------------------------------------------------------------------
@@ -559,13 +578,13 @@ done
 # ---------------------------------------------------------------------------
 
 if [ -f ../.gitignore ]; then
-    if ! grep -q "$SDP_DIR/.git" ../.gitignore; then
+    if ! grep -q "# >>> SDP_START >>>" ../.gitignore; then
         if [ "$SDP_PREVIEW" = "1" ]; then
             SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
-  APPEND: .gitignore (SDP entries)"
+  APPEND: .gitignore (SDP entries with explicit markers)"
         else
             echo "" >> ../.gitignore
-            echo "# SDP" >> ../.gitignore
+            echo "# >>> SDP_START >>>" >> ../.gitignore
             echo "$SDP_DIR/.git" >> ../.gitignore
             echo ".claude/skills" >> ../.gitignore
             echo ".claude/agents" >> ../.gitignore
@@ -576,7 +595,8 @@ if [ -f ../.gitignore ]; then
             echo ".codex/skills/sdp" >> ../.gitignore
             echo ".codex/agents" >> ../.gitignore
             echo ".prompts" >> ../.gitignore
-            echo "  Added entries to .gitignore"
+            echo "# <<< SDP_END <<<" >> ../.gitignore
+            echo "  Added entries to .gitignore (with explicit markers)"
         fi
     fi
 fi
