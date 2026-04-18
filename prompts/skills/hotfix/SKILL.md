@@ -26,15 +26,16 @@ Emergency production fixes. Minimal changes, fast testing, merge to master with 
 
 Before modifying any file, emit a write plan:
 
-1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason (minimal fix files, tag, merge operations).
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason (fix files and version file).
 2. **Flags:**
    - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
    - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
 3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
 4. **Log** — Append write plan event to `.sdp/log/events.jsonl` (**sanitize file paths** before logging: strip newlines, ensure valid JSON escaping):
    ```json
-   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"hotfix"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id>","workstream_id":"<ws-id>"}}
+   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"hotfix"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
    ```
+   Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
    > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
