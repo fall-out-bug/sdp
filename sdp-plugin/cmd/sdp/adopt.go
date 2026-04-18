@@ -29,7 +29,7 @@ func adoptCmd() *cobra.Command {
 
 Adoption mode:
   By default, 'sdp adopt' enables adoption_mode which disables quality
-  gates (file size, coverage, TDD) so legacy code passes @build without
+  gates (file size, coverage, complexity, types) so legacy code passes @build without
   enforcement. Evidence logging stays enabled (lightweight, non-blocking).
 
   Use 'sdp adopt --full' when you are ready to enable all quality gates.
