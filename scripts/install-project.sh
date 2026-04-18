@@ -52,8 +52,13 @@ fi
 # ---------------------------------------------------------------------------
 
 init_backup_dir() {
-    # Called before cd into $SDP_DIR. At this point cwd is the project root.
-    project_root="$(pwd)"
+    # Lazily creates the backup directory on first use.
+    # Not called from main flow — invoked by backup_file() so that
+    # preview mode (which never backs up) never creates the dir.
+    if [ -n "$SDP_BACKUP_DIR" ]; then
+        return
+    fi
+    project_root="$(cd "$SDP_DIR/.." && pwd)"
     mkdir -p "$project_root/.sdp/backup"
     SDP_BACKUP_DIR=$(mktemp -d "$project_root/.sdp/backup/XXXXXX")
 }
@@ -63,6 +68,7 @@ backup_file() {
     if [ ! -e "$file" ]; then
         return
     fi
+    init_backup_dir
     mkdir -p "$SDP_BACKUP_DIR"
     # Normalize path: strip leading ../ to get a clean relative path
     clean_path=$(echo "$file" | sed 's|^\.\./||')
@@ -155,26 +161,36 @@ merge_settings_json() {
     # We use a simple approach: for each top-level key in src,
     # if dest has it and it's an object/array, merge; otherwise set from src.
 
+    # Check if jq is available BEFORE attempting any JSON validation.
+    # If jq is absent and dest exists, we cannot safely merge or validate.
+    has_jq=0
+    if command -v jq >/dev/null 2>&1; then
+        has_jq=1
+    fi
+
     # Extract existing dest content
     dest_content=$(cat "$dest")
 
-    # Guard: skip merge if dest is empty or not valid JSON
-    if [ -z "$dest_content" ] || ! printf '%s' "$dest_content" | jq -e . >/dev/null 2>&1; then
-        echo "  Note: $dest is empty or invalid JSON — replacing with SDP defaults."
-        if [ "$SDP_PREVIEW" = "1" ]; then
-            preview_note "REPLACE (invalid JSON)" "$dest"
+    # Guard: skip merge if dest is empty or not valid JSON.
+    # Only runs when jq IS available (needed to validate JSON).
+    if [ "$has_jq" = "1" ]; then
+        if [ -z "$dest_content" ] || ! printf '%s' "$dest_content" | jq -e . >/dev/null 2>&1; then
+            echo "  Note: $dest is empty or invalid JSON — replacing with SDP defaults."
+            if [ "$SDP_PREVIEW" = "1" ]; then
+                preview_note "REPLACE (invalid JSON)" "$dest"
+                return
+            fi
+            backup_file "$dest"
+            mkdir -p "$(dirname "$dest")"
+            cp "$src" "$dest"
             return
         fi
-        backup_file "$dest"
-        mkdir -p "$(dirname "$dest")"
-        cp "$src" "$dest"
-        return
     fi
 
     src_content=$(cat "$src")
 
     # Check if jq is available for proper merge
-    if command -v jq >/dev/null 2>&1; then
+    if [ "$has_jq" = "1" ]; then
         # Proper deep merge with jq:
         # - For arrays under "hooks.*", append new entries (avoiding duplicates)
         # - For objects, merge recursively
@@ -389,12 +405,6 @@ update_existing_checkout() {
 }
 
 # ---------------------------------------------------------------------------
-# Initialize backup directory (before any modifications)
-# ---------------------------------------------------------------------------
-
-init_backup_dir
-
-# ---------------------------------------------------------------------------
 # Clone or update SDP checkout
 # ---------------------------------------------------------------------------
 
@@ -516,7 +526,15 @@ setup_claude() {
     sync_tree_files .claude/hooks ../.claude/hooks
     sync_tree_files .claude/patterns ../.claude/patterns
     # Merge settings.json instead of overwriting
-    merge_settings_json .claude/settings.json ../.claude/settings.json
+    if [ "$SDP_PRESERVE_CONFIG" = "1" ] && [ -f ../.claude/settings.json ]; then
+        if [ "$SDP_PREVIEW" = "1" ]; then
+            preview_note "SKIP (preserving existing)" "../.claude/settings.json"
+        else
+            echo "  Preserving existing .claude/settings.json (use --overwrite-config to replace)"
+        fi
+    else
+        merge_settings_json .claude/settings.json ../.claude/settings.json
+    fi
     register_integration "Claude" ".claude/"
 }
 

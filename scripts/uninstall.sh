@@ -77,9 +77,16 @@ plan_remove_symlink() {
 }
 
 plan_remove_gitignore_block() {
-    if [ -f .gitignore ] && grep -q "# >>> SDP_START >>>" .gitignore; then
-        UNINSTALL_PLAN="$UNINSTALL_PLAN
+    if [ -f .gitignore ]; then
+        if grep -q "# >>> SDP_START >>>" .gitignore; then
+            UNINSTALL_PLAN="$UNINSTALL_PLAN
   REMOVE:      SDP entries from .gitignore (between explicit markers)"
+        fi
+        # Also detect legacy "# SDP" markers from older installs
+        if grep -q "^# SDP" .gitignore; then
+            UNINSTALL_PLAN="$UNINSTALL_PLAN
+  REMOVE:      Legacy SDP entries from .gitignore (# SDP marker)"
+        fi
     fi
 }
 
@@ -249,6 +256,31 @@ if [ -f .gitignore ] && grep -q "# >>> SDP_START >>>" .gitignore; then
         sed -i '' '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || true
         rm -f .gitignore.bak
         echo "  Cleaned: .gitignore SDP entries (between markers)"
+    fi
+fi
+
+# Remove legacy "# SDP" marker blocks from older installs.
+# Old format: lines starting with "# SDP" up to next blank line or "# >>>" marker.
+if [ -f .gitignore ] && grep -q "^# SDP" .gitignore; then
+    if command -v sed >/dev/null 2>&1; then
+        # Remove lines that start with "# SDP" (the old marker comment)
+        sed -i.bak '/^# SDP/d' .gitignore 2>/dev/null || \
+        sed -i '' '/^# SDP/d' .gitignore 2>/dev/null || true
+        rm -f .gitignore.bak
+        # Remove any orphaned SDP-related entries that followed the old marker
+        for entry in "$SDP_DIR/.git" ".claude/skills" ".claude/agents" \
+                     ".cursor/skills" ".cursor/agents" \
+                     ".opencode/skills" ".opencode/agents" \
+                     ".codex/skills/sdp" ".codex/agents" ".prompts"; do
+            sed -i.bak "\|^${entry}\$|d" .gitignore 2>/dev/null || \
+            sed -i '' "\|^${entry}\$|d" .gitignore 2>/dev/null || true
+            rm -f .gitignore.bak
+        done
+        # Clean up consecutive blank lines left behind
+        sed -i.bak '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || \
+        sed -i '' '/^$/{ N; /^\n$/d; }' .gitignore 2>/dev/null || true
+        rm -f .gitignore.bak
+        echo "  Cleaned: .gitignore legacy SDP entries (# SDP marker)"
     fi
 fi
 
