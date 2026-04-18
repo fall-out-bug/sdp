@@ -104,9 +104,14 @@ func checkProjectConfig() CheckResult {
 			Message: fmt.Sprintf("Validation failed: %v", err),
 		}
 	}
+
+	msg := fmt.Sprintf("Valid (version %d)", cfg.Version)
+	if cfg.AdoptionMode {
+		msg += " | Adoption mode: ON (quality gates disabled)"
+	}
 	return CheckResult{
 		Name:    ".sdp/config.yml",
 		Status:  "ok",
-		Message: fmt.Sprintf("Valid (version %d)", cfg.Version),
+		Message: msg,
 	}
 }

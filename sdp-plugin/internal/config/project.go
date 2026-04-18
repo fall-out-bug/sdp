@@ -15,12 +15,13 @@ const configFile = "config.yml"
 
 // Config holds project-level SDP settings.
 type Config struct {
-	Version    int               `yaml:"version"`
-	Acceptance AcceptanceSection `yaml:"acceptance"`
-	Evidence   EvidenceSection   `yaml:"evidence"`
-	Quality    QualitySection    `yaml:"quality"`
-	Guard      GuardSection      `yaml:"guard"`
-	Timeouts   TimeoutsSection   `yaml:"timeouts"`
+	Version      int               `yaml:"version"`
+	AdoptionMode bool              `yaml:"adoption_mode"`
+	Acceptance   AcceptanceSection `yaml:"acceptance"`
+	Evidence     EvidenceSection   `yaml:"evidence"`
+	Quality      QualitySection    `yaml:"quality"`
+	Guard        GuardSection      `yaml:"guard"`
+	Timeouts     TimeoutsSection   `yaml:"timeouts"`
 }
 
 // TimeoutsSection holds configurable timeouts (override via SDP_TIMEOUT_* env).
@@ -245,4 +246,42 @@ func FindProjectRoot() (string, error) {
 		}
 		current = parent
 	}
+}
+
+// IsAdoptionMode returns true if the project is in adoption mode (quality gates disabled).
+// Returns false (normal mode) if config cannot be loaded or adoption_mode is unset.
+func IsAdoptionMode() bool {
+	root, err := FindProjectRoot()
+	if err != nil {
+		return false
+	}
+	cfg, err := Load(root)
+	if err != nil || cfg == nil {
+		return false
+	}
+	return cfg.AdoptionMode
+}
+
+// SetAdoptionMode writes the adoption_mode field in .sdp/config.yml.
+// It preserves all other config fields.
+func SetAdoptionMode(projectRoot string, enabled bool) error {
+	path := filepath.Join(projectRoot, configDir, configFile)
+
+	// Load existing config or use defaults
+	cfg := DefaultConfig()
+	data, err := os.ReadFile(path)
+	if err == nil {
+		_ = yaml.Unmarshal(data, cfg)
+	}
+
+	cfg.AdoptionMode = enabled
+
+	out, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+	if err := os.WriteFile(path, out, 0644); err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+	return nil
 }

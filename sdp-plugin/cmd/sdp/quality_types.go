@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/evidence"
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
@@ -26,11 +27,18 @@ func runQualityTypes(strict bool) error {
 	}
 
 	fmt.Printf("Project Type: %s\n", result.ProjectType)
+
+	// In adoption mode: skip enforcement, still log evidence
+	if adoptionModeSkip("types", result.Passed) {
+		fmt.Printf("Status: SKIP (adoption mode)\n")
+		return nil
+	}
+
 	fmt.Printf("Status: ")
 	if result.Passed {
-		fmt.Println("✓ PASSED")
+		fmt.Println("PASSED")
 	} else {
-		fmt.Println("✗ FAILED")
+		fmt.Println("FAILED")
 	}
 
 	if len(result.Errors) > 0 {
@@ -66,6 +74,7 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	adoptionMode := config.IsAdoptionMode()
 	projectPath, err := os.Getwd()
 	if err != nil {
 		projectPath = "." // Fall back to current directory
@@ -77,7 +86,9 @@ func runQualityAll(ctx context.Context, strict bool) error {
 	checker.SetStrictMode(strict)
 
 	fmt.Println("Running all quality checks...")
-	if strict {
+	if adoptionMode {
+		fmt.Println("Mode: ADOPTION (gates skipped, evidence logged)")
+	} else if strict {
 		fmt.Println("Mode: STRICT (violations = errors)")
 	} else {
 		fmt.Println("Mode: PRAGMATIC (violations = warnings)")
@@ -92,10 +103,15 @@ func runQualityAll(ctx context.Context, strict bool) error {
 		covResult = &quality.CoverageResult{Coverage: 0, Threshold: 80, Passed: false}
 	}
 	fmt.Printf("Coverage: %.1f%% (threshold: %.1f%%) ", covResult.Coverage, covResult.Threshold)
-	if covResult.Passed {
-		fmt.Println("✓")
+	if adoptionMode {
+		fmt.Println("SKIP")
+		if evidence.Enabled() {
+			_ = evidence.EmitSync(evidence.VerificationEvent("", covResult.Passed, "coverage", covResult.Coverage))
+		}
+	} else if covResult.Passed {
+		fmt.Println("PASS")
 	} else {
-		fmt.Println("✗")
+		fmt.Println("FAIL")
 	}
 
 	// Complexity
@@ -106,10 +122,15 @@ func runQualityAll(ctx context.Context, strict bool) error {
 		ccResult = &quality.ComplexityResult{MaxCC: 0, Threshold: 40, Passed: false}
 	}
 	fmt.Printf("Max CC: %d (threshold: %d) ", ccResult.MaxCC, ccResult.Threshold)
-	if ccResult.Passed {
-		fmt.Println("✓")
+	if adoptionMode {
+		fmt.Println("SKIP")
+		if evidence.Enabled() {
+			_ = evidence.EmitSync(evidence.VerificationEvent("", ccResult.Passed, "complexity", 0))
+		}
+	} else if ccResult.Passed {
+		fmt.Println("PASS")
 	} else {
-		fmt.Println("✗")
+		fmt.Println("FAIL")
 	}
 
 	// File Size
@@ -119,14 +140,21 @@ func runQualityAll(ctx context.Context, strict bool) error {
 		fmt.Fprintf(os.Stderr, "warning: file size check failed: %v\n", err)
 		sizeResult = &quality.FileSizeResult{Threshold: 200, Passed: false}
 	}
-	if len(sizeResult.Warnings) > 0 {
-		fmt.Printf("Warnings: %d (threshold: %d LOC) ⚠️\n", len(sizeResult.Warnings), sizeResult.Threshold)
-	}
-	if len(sizeResult.Violators) > 0 {
-		fmt.Printf("Errors: %d (threshold: %d LOC) ✗\n", len(sizeResult.Violators), sizeResult.Threshold)
-	}
-	if len(sizeResult.Warnings) == 0 && len(sizeResult.Violators) == 0 {
-		fmt.Println("No violations ✓")
+	if adoptionMode {
+		fmt.Printf("Threshold: %d LOC -- SKIP\n", sizeResult.Threshold)
+		if evidence.Enabled() {
+			_ = evidence.EmitSync(evidence.VerificationEvent("", sizeResult.Passed, "size", 0))
+		}
+	} else {
+		if len(sizeResult.Warnings) > 0 {
+			fmt.Printf("Warnings: %d (threshold: %d LOC)\n", len(sizeResult.Warnings), sizeResult.Threshold)
+		}
+		if len(sizeResult.Violators) > 0 {
+			fmt.Printf("Errors: %d (threshold: %d LOC)\n", len(sizeResult.Violators), sizeResult.Threshold)
+		}
+		if len(sizeResult.Warnings) == 0 && len(sizeResult.Violators) == 0 {
+			fmt.Println("No violations")
+		}
 	}
 
 	// Types
@@ -137,18 +165,28 @@ func runQualityAll(ctx context.Context, strict bool) error {
 		typeResult = &quality.TypeResult{Passed: false}
 	}
 	fmt.Printf("Errors: %d ", len(typeResult.Errors))
-	if typeResult.Passed {
-		fmt.Println("✓")
+	if adoptionMode {
+		fmt.Println("SKIP")
+		if evidence.Enabled() {
+			_ = evidence.EmitSync(evidence.VerificationEvent("", typeResult.Passed, "types", 0))
+		}
+	} else if typeResult.Passed {
+		fmt.Println("PASS")
 	} else {
-		fmt.Println("✗")
+		fmt.Println("FAIL")
 	}
 
 	fmt.Println()
+	if adoptionMode {
+		fmt.Println("Overall: SKIP (adoption mode active)")
+		return nil
+	}
+
 	allPassed := covResult.Passed && ccResult.Passed && sizeResult.Passed && typeResult.Passed
 	if allPassed {
-		fmt.Println("Overall: ✓ ALL CHECKS PASSED")
+		fmt.Println("Overall: ALL CHECKS PASSED")
 	} else {
-		fmt.Println("Overall: ✗ SOME CHECKS FAILED")
+		fmt.Println("Overall: SOME CHECKS FAILED")
 		return fmt.Errorf("quality checks failed")
 	}
 

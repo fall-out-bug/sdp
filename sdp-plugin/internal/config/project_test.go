@@ -305,3 +305,119 @@ func TestConfigValidate_InvalidTimeout(t *testing.T) {
 		t.Error("expected error for invalid timeout")
 	}
 }
+
+func TestLoad_AdoptionMode_True(t *testing.T) {
+	dir := t.TempDir()
+	cfgDir := filepath.Join(dir, ".sdp")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(cfgDir, "config.yml")
+	content := "version: 1\nadoption_mode: true\n"
+	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(dir)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if !cfg.AdoptionMode {
+		t.Error("expected adoption_mode to be true")
+	}
+}
+
+func TestLoad_AdoptionMode_FalseDefault(t *testing.T) {
+	dir := t.TempDir()
+	cfgDir := filepath.Join(dir, ".sdp")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(cfgDir, "config.yml")
+	content := "version: 1\n"
+	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(dir)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if cfg.AdoptionMode {
+		t.Error("expected adoption_mode to be false by default")
+	}
+}
+
+func TestSetAdoptionMode(t *testing.T) {
+	dir := t.TempDir()
+	cfgDir := filepath.Join(dir, ".sdp")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(cfgDir, "config.yml")
+	if err := os.WriteFile(cfgPath, []byte("version: 1\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Enable adoption mode
+	if err := SetAdoptionMode(dir, true); err != nil {
+		t.Fatalf("SetAdoptionMode(true) failed: %v", err)
+	}
+
+	cfg, err := Load(dir)
+	if err != nil {
+		t.Fatalf("Load after set failed: %v", err)
+	}
+	if !cfg.AdoptionMode {
+		t.Error("expected adoption_mode true after SetAdoptionMode(true)")
+	}
+
+	// Disable adoption mode
+	if err := SetAdoptionMode(dir, false); err != nil {
+		t.Fatalf("SetAdoptionMode(false) failed: %v", err)
+	}
+
+	cfg, err = Load(dir)
+	if err != nil {
+		t.Fatalf("Load after unset failed: %v", err)
+	}
+	if cfg.AdoptionMode {
+		t.Error("expected adoption_mode false after SetAdoptionMode(false)")
+	}
+}
+
+func TestIsAdoptionMode(t *testing.T) {
+	dir := t.TempDir()
+	cfgDir := filepath.Join(dir, ".sdp")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(cfgDir, "config.yml")
+	if err := os.WriteFile(cfgPath, []byte("version: 1\nadoption_mode: true\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	origWd, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(origWd)
+
+	if !IsAdoptionMode() {
+		t.Error("expected IsAdoptionMode() to return true")
+	}
+}
+
+func TestIsAdoptionMode_NoConfig(t *testing.T) {
+	dir := t.TempDir()
+
+	origWd, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(origWd)
+
+	if IsAdoptionMode() {
+		t.Error("expected IsAdoptionMode() to return false with no config")
+	}
+}

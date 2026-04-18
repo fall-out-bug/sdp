@@ -10,6 +10,22 @@ import (
 	"github.com/fall-out-bug/sdp/internal/quality"
 )
 
+// adoptionModeSkip prints a skip message and logs evidence for a gate
+// when adoption mode is active. Returns true if adoption mode is on
+// (caller should return nil to skip enforcement).
+func adoptionModeSkip(gateName string, actualPassed bool) bool {
+	if !config.IsAdoptionMode() {
+		return false
+	}
+	fmt.Printf("Adoption mode: skipping %s gate enforcement\n", gateName)
+
+	// Still log evidence (non-blocking)
+	if evidence.Enabled() {
+		_ = evidence.EmitSync(evidence.VerificationEvent("", actualPassed, gateName, 0))
+	}
+	return true
+}
+
 func runQualityCoverage(strict bool) error {
 	projectPath, err := config.FindProjectRoot()
 	if err != nil {
@@ -36,11 +52,18 @@ func runQualityCoverage(strict bool) error {
 	fmt.Printf("Project Type: %s\n", result.ProjectType)
 	fmt.Printf("Coverage: %.1f%%\n", result.Coverage)
 	fmt.Printf("Threshold: %.1f%%\n", result.Threshold)
+
+	// In adoption mode: skip enforcement, still log evidence
+	if adoptionModeSkip("coverage", result.Passed) {
+		fmt.Printf("Status: SKIP (adoption mode)\n")
+		return nil
+	}
+
 	fmt.Printf("Status: ")
 	if result.Passed {
-		fmt.Println("✓ PASSED")
+		fmt.Println("PASSED")
 	} else {
-		fmt.Println("✗ FAILED")
+		fmt.Println("FAILED")
 	}
 
 	if result.Report != "" {
@@ -91,11 +114,18 @@ func runQualityComplexity(strict bool) error {
 	fmt.Printf("Average CC: %.1f\n", result.AverageCC)
 	fmt.Printf("Max CC: %d\n", result.MaxCC)
 	fmt.Printf("Threshold: %d\n", result.Threshold)
+
+	// In adoption mode: skip enforcement, still log evidence
+	if adoptionModeSkip("complexity", result.Passed) {
+		fmt.Printf("Status: SKIP (adoption mode)\n")
+		return nil
+	}
+
 	fmt.Printf("Status: ")
 	if result.Passed {
-		fmt.Println("✓ PASSED")
+		fmt.Println("PASSED")
 	} else {
-		fmt.Println("✗ FAILED")
+		fmt.Println("FAILED")
 	}
 
 	if evidence.Enabled() {
@@ -143,6 +173,13 @@ func runQualitySize(strict bool) error {
 	fmt.Printf("Total Files: %d\n", result.TotalFiles)
 	fmt.Printf("Average LOC: %d\n", result.AverageLOC)
 	fmt.Printf("Threshold: %d LOC\n", result.Threshold)
+
+	// In adoption mode: skip enforcement, still log evidence
+	if adoptionModeSkip("size", result.Passed) {
+		fmt.Printf("Mode: SKIP (adoption mode)\n")
+		return nil
+	}
+
 	fmt.Printf("Mode: ")
 	if result.Strict {
 		fmt.Println("STRICT (violations = errors)")
@@ -152,7 +189,7 @@ func runQualitySize(strict bool) error {
 
 	// Show warnings (pragmatic mode)
 	if len(result.Warnings) > 0 {
-		fmt.Printf("\n⚠️  WARNINGS (%d):\n", len(result.Warnings))
+		fmt.Printf("\nWARNINGS (%d):\n", len(result.Warnings))
 		for _, f := range result.Warnings {
 			fmt.Printf("  - %s: %d LOC (exceeds %d LOC threshold)\n", f.File, f.LOC, result.Threshold)
 		}
@@ -160,7 +197,7 @@ func runQualitySize(strict bool) error {
 
 	// Show errors (strict mode)
 	if len(result.Violators) > 0 {
-		fmt.Printf("\n✗ ERRORS (%d):\n", len(result.Violators))
+		fmt.Printf("\nERRORS (%d):\n", len(result.Violators))
 		for _, f := range result.Violators {
 			fmt.Printf("  - %s: %d LOC (exceeds %d LOC threshold)\n", f.File, f.LOC, result.Threshold)
 		}
@@ -169,9 +206,9 @@ func runQualitySize(strict bool) error {
 	// Show status
 	fmt.Printf("\nStatus: ")
 	if result.Passed {
-		fmt.Println("✓ PASSED")
+		fmt.Println("PASSED")
 	} else {
-		fmt.Println("✗ FAILED")
+		fmt.Println("FAILED")
 	}
 	if evidence.Enabled() {
 		if err := evidence.EmitSync(evidence.VerificationEvent("", result.Passed, "size", 0)); err != nil {

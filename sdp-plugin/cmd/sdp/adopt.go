@@ -7,13 +7,16 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/fall-out-bug/sdp/internal/config"
 	"github.com/fall-out-bug/sdp/internal/sdpinit"
 	"github.com/fall-out-bug/sdp/internal/telemetry"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 func adoptCmd() *cobra.Command {
 	var force bool
+	var full bool
 
 	cmd := &cobra.Command{
 		Use:   "adopt",
@@ -24,12 +27,22 @@ func adoptCmd() *cobra.Command {
   - Commits both .sdp/ and .claude/ to git
   - Preserves all code changes from the trial
 
+Adoption mode:
+  By default, 'sdp adopt' enables adoption_mode which disables quality
+  gates (file size, coverage, TDD) so legacy code passes @build without
+  enforcement. Evidence logging stays enabled (lightweight, non-blocking).
+
+  Use 'sdp adopt --full' when you are ready to enable all quality gates.
+
 This is the next step after accepting a trial with 'sdp try --keep'.`,
-		Example: `  # Adopt current changes
+		Example: `  # Adopt with quality gates disabled (adoption mode)
   sdp adopt
 
   # Force adopt even if .sdp exists
-  sdp adopt --force`,
+  sdp adopt --force
+
+  # Enable all quality gates (graduation from adoption mode)
+  sdp adopt --full`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			startTime := time.Now()
@@ -39,6 +52,11 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 			absPath, err := filepath.Abs(projectPath)
 			if err != nil {
 				return fmt.Errorf("failed to resolve path: %w", err)
+			}
+
+			// Handle --full: just flip adoption_mode to false and return
+			if full {
+				return setFullMode(absPath)
 			}
 
 			// Check if .sdp already exists and is initialized
@@ -61,7 +79,7 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 			}
 
 			if sdpExists && !force {
-				fmt.Println("⚠ .sdp directory exists but may not be fully initialized")
+				fmt.Println("Warning: .sdp directory exists but may not be fully initialized")
 				fmt.Println("   Use --force to reinitialize completely")
 			}
 
@@ -76,9 +94,10 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 			if err := createSDPDirectory(absPath); err != nil {
 				return fmt.Errorf("failed to create .sdp/ directory: %w", err)
 			}
-			fmt.Println("✓ .sdp/ directory created")
+			fmt.Println("ok .sdp/ directory created")
 
 			// Run SDP init (creates .claude/ with settings, skills, agents)
+			// Note: sdpinit.Run() may overwrite config.yml, so set adoption mode AFTER.
 			fmt.Println("Adopting project into SDP...")
 			cfg := sdpinit.Config{
 				ProjectType: "auto",
@@ -89,22 +108,29 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 				return fmt.Errorf("failed to initialize SDP: %w", err)
 			}
 
-			fmt.Println("✓ SDP structure created")
+			fmt.Println("ok SDP structure created")
+
+			// Set adoption_mode: true in config (after sdpinit.Run which writes default config)
+			if err := config.SetAdoptionMode(absPath, true); err != nil {
+				return fmt.Errorf("failed to set adoption mode: %w", err)
+			}
+			fmt.Println("ok adoption mode enabled (quality gates disabled)")
 
 			// Commit the .sdp/ and .claude/ structure
 			fmt.Println("\nCommitting SDP structure...")
 			commitSuccess := true
 			if err := commitSDPStructure(); err != nil {
 				commitSuccess = false
-				fmt.Printf("⚠ Warning: failed to commit SDP structure: %v\n", err)
+				fmt.Printf("Warning: failed to commit SDP structure: %v\n", err)
 				fmt.Println("  Please commit manually: git add .sdp/ .claude/ && git commit -m 'Initialize SDP'")
 			} else {
-				fmt.Println("✓ SDP structure committed")
+				fmt.Println("ok SDP structure committed")
 			}
 
 			fmt.Println("\nNext steps:")
 			fmt.Println("  1. Review the .sdp/ structure")
 			fmt.Println("  2. Continue with SDP workflow: sdp plan 'your feature'")
+			fmt.Println("  3. When ready for full quality gates: sdp adopt --full")
 
 			// Record telemetry
 			if uxMetrics != nil && commitSuccess {
@@ -119,8 +145,25 @@ This is the next step after accepting a trial with 'sdp try --keep'.`,
 	}
 
 	cmd.Flags().BoolVar(&force, "force", false, "Reinitialize even if .sdp exists")
+	cmd.Flags().BoolVar(&full, "full", false, "Enable all quality gates (disable adoption mode)")
 
 	return cmd
+}
+
+// setFullMode disables adoption mode, enabling all quality gates.
+func setFullMode(projectRoot string) error {
+	sdpDir := filepath.Join(projectRoot, ".sdp")
+	if _, err := os.Stat(sdpDir); os.IsNotExist(err) {
+		return fmt.Errorf(".sdp/ directory not found. Run 'sdp adopt' first")
+	}
+
+	if err := config.SetAdoptionMode(projectRoot, false); err != nil {
+		return fmt.Errorf("failed to disable adoption mode: %w", err)
+	}
+
+	fmt.Println("ok adoption mode disabled -- all quality gates enabled")
+	fmt.Println("  Gates: coverage, complexity, file size, types, TDD")
+	return nil
 }
 
 // createSDPDirectory creates the .sdp/ directory structure with essential config files.
@@ -144,12 +187,13 @@ func createSDPDirectory(projectPath string) error {
 	// Create .sdp/config.yml if it doesn't exist
 	configPath := filepath.Join(sdpDir, "config.yml")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		configContent := `version: "1.0.0"
-evidence:
-  enabled: true
-  log_path: ".sdp/log/events.jsonl"
-`
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		defaultCfg := config.DefaultConfig()
+		defaultCfg.AdoptionMode = true
+		out, marshalErr := yaml.Marshal(defaultCfg)
+		if marshalErr != nil {
+			return fmt.Errorf("marshal default config: %w", marshalErr)
+		}
+		if err := os.WriteFile(configPath, out, 0644); err != nil {
 			return fmt.Errorf("create config.yml: %w", err)
 		}
 	}
