@@ -6,7 +6,7 @@ var defaultSkillsDirCandidates = []string{
 	".claude/skills",
 	".cursor/skills",
 	".opencode/skills",
-	".codex/skills/sdp",
+	".codex/skills",
 }
 
 func resolveDefaultSkillsDir() string {
