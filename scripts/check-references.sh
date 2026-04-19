@@ -28,6 +28,11 @@ else
     SDP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
+if [ ! -d "$SDP_ROOT" ]; then
+    echo "ERROR: SDP root does not exist: $SDP_ROOT" >&2
+    exit 1
+fi
+
 ERRORS=0
 WARNINGS=0
 
