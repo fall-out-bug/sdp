@@ -4,9 +4,11 @@
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh
 #   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --binary-only
+#   curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/install.sh | sh -s -- --preview
 #
 # Default: project assets (prompts/hooks/config)
-# --binary-only: install global CLI binary only
+# --binary-only:  install global CLI binary only
+# --preview:      show what would change without applying it
 
 set -e
 

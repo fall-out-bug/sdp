@@ -140,7 +140,9 @@ assert_contains "Codex (.codex/)" "$TMP_DIR/codex-install.log"
 printf '\n<!-- codex update marker -->\n' >> "$ADMIN_DIR/prompts/skills/build/SKILL.md"
 git -C "$ADMIN_DIR" commit -am "test: update codex skill source" >/dev/null
 git -C "$ADMIN_DIR" push origin HEAD:refs/heads/main >/dev/null
+ln -sfn ../../sdp/prompts/skills "$CODEX_PROJECT_DIR/.codex/skills/sdp"
 run_install "$CODEX_PROJECT_DIR" "$TMP_DIR/codex-update.log" env SDP_IDE=codex
+test ! -e "$CODEX_PROJECT_DIR/.codex/skills/sdp"
 assert_contains "codex update marker" "$CODEX_PROJECT_DIR/.codex/skills/build/SKILL.md"
 
 # Auto-detect fallback should explain that all integrations were installed.
