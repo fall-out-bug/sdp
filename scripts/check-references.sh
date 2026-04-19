@@ -255,7 +255,24 @@ while read -r link; do
 done < "$_SYMLINKS_TMP"
 
 # ============================================================
-# 7. Harness symlink directories resolve to prompts/skills
+# 7. llm_subagents in commands.json — logical names, NOT file refs
+# ============================================================
+printf "\n%s\n" "--- Checking .claude/commands.json llm_subagents references ---"
+
+if [ -f "$COMMANDS_JSON" ]; then
+    # llm_subagents are logical role names used at runtime by the LLM
+    # (e.g. "analyst", "product-manager", "quality-reviewer", "documentation").
+    # They do NOT map to files in prompts/agents/ and are resolved by the
+    # orchestrator at spawn time.  This is intentional — do not validate them
+    # as file paths.
+    llm_names=$(grep -oE '"llm_subagents"[[:space:]]*:[[:space:]]*\[[^]]*\]' "$COMMANDS_JSON" | grep -oE '"[a-z-]+"' | tr -d '"' | sort -u)
+    for name in $llm_names; do
+        printf "  info: llm_subagent '%s' — logical name, not a file reference (intentional)\n" "$name"
+    done
+fi
+
+# ============================================================
+# 8. Harness symlink directories resolve to prompts/skills
 # ============================================================
 printf "\n%s\n" "--- Checking harness skill/agent symlinks ---"
 

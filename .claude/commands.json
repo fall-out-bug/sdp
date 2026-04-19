@@ -160,12 +160,9 @@
   "agents": {
     "orchestrator": "agents/orchestrator.md",
     "reviewer": "agents/reviewer.md",
-    "builder": "agents/builder.md",
     "deployer": "agents/deployer.md",
     "tester": "agents/qa.md",
     "architect": "agents/architect.md",
-    "analyst": "agents/analyst.md",
-    "developer": "agents/developer.md",
     "implementer": "agents/implementer.md",
     "spec-reviewer": "agents/spec-reviewer.md",
     "security": "agents/security.md",
