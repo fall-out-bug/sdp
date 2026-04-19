@@ -39,11 +39,11 @@ func TestResolveDefaultSkillsDir(t *testing.T) {
 		{
 			name: "detects codex skills",
 			setup: func(t *testing.T) {
-				if err := os.MkdirAll(".codex/skills/sdp", 0o755); err != nil {
-					t.Fatalf("mkdir .codex/skills/sdp: %v", err)
+				if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+					t.Fatalf("mkdir .codex/skills: %v", err)
 				}
 			},
-			expected: ".codex/skills/sdp",
+			expected: ".codex/skills",
 		},
 		{
 			name: "uses stable priority when multiple exist",
@@ -51,8 +51,8 @@ func TestResolveDefaultSkillsDir(t *testing.T) {
 				if err := os.MkdirAll(".claude/skills", 0o755); err != nil {
 					t.Fatalf("mkdir .claude/skills: %v", err)
 				}
-				if err := os.MkdirAll(".codex/skills/sdp", 0o755); err != nil {
-					t.Fatalf("mkdir .codex/skills/sdp: %v", err)
+				if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+					t.Fatalf("mkdir .codex/skills: %v", err)
 				}
 			},
 			expected: ".claude/skills",
