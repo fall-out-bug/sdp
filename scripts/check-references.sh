@@ -33,6 +33,11 @@ if [ ! -d "$SDP_ROOT" ]; then
     exit 1
 fi
 
+if [ ! -d "$SDP_ROOT/prompts/skills" ]; then
+    echo "ERROR: $SDP_ROOT does not appear to be an SDP repo (missing prompts/skills/)" >&2
+    exit 1
+fi
+
 ERRORS=0
 WARNINGS=0
 
@@ -219,8 +224,9 @@ check_harness_readme() {
         return
     fi
 
-    # Extract @xxx references from the file
-    for token in $(grep -oE '(^| )@[a-zA-Z0-9_-]+' "$_file" 2>/dev/null | sed 's/^[[:space:]]*//' || true); do
+    # Extract @xxx references from the file.
+    # Match @skill in any context: start-of-line, after space, after [, after (, after `, after *
+    for token in $(grep -oE '(^|[][ ()`*])@[a-zA-Z0-9_-]+' "$_file" 2>/dev/null | sed 's/^[^@]*//' || true); do
         skill_name="${token#@}"
         if is_known_skill "$skill_name"; then
             if skill_file_exists "$skill_name"; then
