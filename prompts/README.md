@@ -14,7 +14,7 @@ Compatibility adapters are provided as symlinks:
 - `.cursor/agents` -> `../prompts/agents`
 - `.opencode/skills` -> `../prompts/skills`
 - `.opencode/agents` -> `../prompts/agents`
-- `.codex/skills/sdp` -> `../../prompts/skills`
+- `.codex/skills` -> per-skill individual symlinks (e.g. `.codex/skills/build` -> `../../prompts/skills/build`)
 - `.codex/agents` -> `../prompts/agents`
 
 Edit only `prompts/*` to avoid prompt drift across tools.

@@ -222,7 +222,7 @@ sh sdp/scripts/uninstall.sh
 
 **What is removed:**
 
-- Symlinks in `.claude/skills`, `.claude/agents`, `.cursor/skills`, `.cursor/agents`, `.opencode/skills`, `.opencode/agents`, `.codex/skills/sdp`, `.codex/agents`
+- Symlinks in `.claude/skills`, `.claude/agents`, `.cursor/skills`, `.cursor/agents`, `.opencode/skills`, `.opencode/agents`, `.codex/skills/*` (legacy `.codex/skills/sdp` also cleaned), `.codex/agents`
 - SDP-installed files: `.claude/commands.json`, `.codex/INSTALL.md`, `.codex/skills/README.md`
 - Git hooks pointing to SDP (`pre-commit`, `pre-push`)
 - SDP entries from `.gitignore`

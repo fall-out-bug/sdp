@@ -1,0 +1,22 @@
+name: Reference Integrity Check
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-references:
+    name: Check References
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run reference integrity check
+        run: sh scripts/check-references.sh

@@ -595,7 +595,19 @@ setup_opencode() {
 
 setup_codex() {
     safe_mkdir ../.codex/skills
-    sync_link "../../$SDP_DIR/prompts/skills" "../.codex/skills/sdp"
+    if [ -L ../.codex/skills/sdp ]; then
+        if [ "$SDP_PREVIEW" = "1" ]; then
+            SDP_PREVIEW_CHANGES="$SDP_PREVIEW_CHANGES
+  REMOVE legacy symlink: ../.codex/skills/sdp"
+        else
+            rm -f ../.codex/skills/sdp
+        fi
+    fi
+    # Individual skill symlinks (language-agnostic, per-skill granularity)
+    for _skill_dir in "$SDP_DIR"/prompts/skills/*/; do
+        _skill_name="$(basename "$_skill_dir")"
+        [ -f "${_skill_dir}SKILL.md" ] && sync_link "../../$SDP_DIR/prompts/skills/$_skill_name" "../.codex/skills/$_skill_name"
+    done
     sync_link "../$SDP_DIR/prompts/agents" "../.codex/agents"
     sync_file .codex/INSTALL.md ../.codex/INSTALL.md
     sync_file .codex/skills/README.md ../.codex/skills/README.md
@@ -647,7 +659,7 @@ if [ -f ../.gitignore ]; then
             echo ".cursor/agents" >> ../.gitignore
             echo ".opencode/skills" >> ../.gitignore
             echo ".opencode/agents" >> ../.gitignore
-            echo ".codex/skills/sdp" >> ../.gitignore
+            echo ".codex/skills" >> ../.gitignore
             echo ".codex/agents" >> ../.gitignore
             echo ".prompts" >> ../.gitignore
             echo "# <<< SDP_END <<<" >> ../.gitignore

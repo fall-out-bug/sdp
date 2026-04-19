@@ -169,6 +169,17 @@ else
     plan_remove_symlink .opencode/skills
     plan_remove_symlink .opencode/agents
     plan_remove_symlink .codex/skills/sdp
+    for link in .codex/skills/*; do
+        [ -e "$link" ] || continue
+        case "$link" in
+            .codex/skills/README.md|.codex/skills/sdp)
+                continue
+                ;;
+        esac
+        if [ -L "$link" ]; then
+            plan_remove_symlink "$link"
+        fi
+    done
     plan_remove_symlink .codex/agents
     plan_remove_file .claude/commands.json
     plan_remove_file .codex/INSTALL.md
@@ -304,6 +315,18 @@ else
             echo "  Removed: $link"
         fi
     done
+    for link in .codex/skills/*; do
+        [ -e "$link" ] || continue
+        case "$link" in
+            .codex/skills/README.md|.codex/skills/sdp)
+                continue
+                ;;
+        esac
+        if [ -L "$link" ]; then
+            rm -f "$link"
+            echo "  Removed: $link"
+        fi
+    done
 
     for file in .claude/commands.json .codex/INSTALL.md .codex/skills/README.md; do
         if [ -f "$file" ]; then
@@ -348,7 +371,7 @@ if [ -f .gitignore ] && grep -q "^# SDP" .gitignore; then
         for entry in "$SDP_DIR/.git" ".claude/skills" ".claude/agents" \
                      ".cursor/skills" ".cursor/agents" \
                      ".opencode/skills" ".opencode/agents" \
-                     ".codex/skills/sdp" ".codex/agents" ".prompts"; do
+                     ".codex/skills" ".codex/skills/sdp" ".codex/agents" ".prompts"; do
             sed -i.bak "\|^${entry}\$|d" .gitignore 2>/dev/null || \
             sed -i '' "\|^${entry}\$|d" .gitignore 2>/dev/null || true
             rm -f .gitignore.bak

@@ -57,6 +57,20 @@ Initial setup, quarterly review, major pivot, new market.
 
 PRODUCT_VISION.md, docs/prd/PRD.md, docs/roadmap/ROADMAP.md, docs/drafts/feature-*.md
 
+## Completion
+
+When all artifacts are generated, output:
+
+```
+@vision complete. Artifacts created:
+  PRODUCT_VISION.md
+  docs/prd/PRD.md
+  docs/roadmap/ROADMAP.md
+  docs/drafts/feature-*.md
+
+Next: @reality --quick  or  @feature "description"
+```
+
 ## See Also
 
 - @idea — Feature-level requirements

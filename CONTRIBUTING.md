@@ -79,7 +79,7 @@ sh scripts/test-install-project.sh
 ## What to Edit
 
 - Edit `prompts/` for prompt or agent behavior.
-- Do not hand-edit `.claude/`, `.cursor/`, `.opencode/`, or `.codex/skills/sdp` as source files.
+- Do not hand-edit `.claude/`, `.cursor/`, `.opencode/`, or `.codex/skills/` as source files.
 - Edit `sdp-plugin/` for CLI behavior.
 - Update docs when public behavior changes.
 
