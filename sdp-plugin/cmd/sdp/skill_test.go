@@ -21,8 +21,11 @@ func TestResolveDefaultSkillsDir(t *testing.T) {
 		{
 			name: "detects cursor skills",
 			setup: func(t *testing.T) {
-				if err := os.MkdirAll(".cursor/skills", 0o755); err != nil {
+				if err := os.MkdirAll(".cursor/skills/build", 0o755); err != nil {
 					t.Fatalf("mkdir .cursor/skills: %v", err)
+				}
+				if err := os.WriteFile(".cursor/skills/build/SKILL.md", []byte("# build"), 0o644); err != nil {
+					t.Fatalf("write SKILL.md: %v", err)
 				}
 			},
 			expected: ".cursor/skills",
@@ -30,29 +33,55 @@ func TestResolveDefaultSkillsDir(t *testing.T) {
 		{
 			name: "detects opencode skills",
 			setup: func(t *testing.T) {
-				if err := os.MkdirAll(".opencode/skills", 0o755); err != nil {
+				if err := os.MkdirAll(".opencode/skills/build", 0o755); err != nil {
 					t.Fatalf("mkdir .opencode/skills: %v", err)
+				}
+				if err := os.WriteFile(".opencode/skills/build/SKILL.md", []byte("# build"), 0o644); err != nil {
+					t.Fatalf("write SKILL.md: %v", err)
 				}
 			},
 			expected: ".opencode/skills",
 		},
 		{
-			name: "detects codex skills",
+			name: "detects codex skills (new per-skill layout)",
 			setup: func(t *testing.T) {
-				if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+				if err := os.MkdirAll(".codex/skills/build", 0o755); err != nil {
 					t.Fatalf("mkdir .codex/skills: %v", err)
+				}
+				if err := os.WriteFile(".codex/skills/build/SKILL.md", []byte("# build"), 0o644); err != nil {
+					t.Fatalf("write SKILL.md: %v", err)
 				}
 			},
 			expected: ".codex/skills",
 		},
 		{
+			name: "falls back to .codex/skills/sdp for old layout",
+			setup: func(t *testing.T) {
+				// Old layout: .codex/skills/sdp/<skill>/SKILL.md
+				// .codex/skills/ exists but has no SKILL.md subdirs (only sdp/)
+				if err := os.MkdirAll(".codex/skills/sdp/build", 0o755); err != nil {
+					t.Fatalf("mkdir .codex/skills/sdp: %v", err)
+				}
+				if err := os.WriteFile(".codex/skills/sdp/build/SKILL.md", []byte("# build"), 0o644); err != nil {
+					t.Fatalf("write SKILL.md: %v", err)
+				}
+			},
+			expected: ".codex/skills/sdp",
+		},
+		{
 			name: "uses stable priority when multiple exist",
 			setup: func(t *testing.T) {
-				if err := os.MkdirAll(".claude/skills", 0o755); err != nil {
+				if err := os.MkdirAll(".claude/skills/build", 0o755); err != nil {
 					t.Fatalf("mkdir .claude/skills: %v", err)
 				}
-				if err := os.MkdirAll(".codex/skills", 0o755); err != nil {
+				if err := os.WriteFile(".claude/skills/build/SKILL.md", []byte("# build"), 0o644); err != nil {
+					t.Fatalf("write SKILL.md: %v", err)
+				}
+				if err := os.MkdirAll(".codex/skills/build", 0o755); err != nil {
 					t.Fatalf("mkdir .codex/skills: %v", err)
+				}
+				if err := os.WriteFile(".codex/skills/build/SKILL.md", []byte("# build"), 0o644); err != nil {
+					t.Fatalf("write SKILL.md: %v", err)
 				}
 			},
 			expected: ".claude/skills",

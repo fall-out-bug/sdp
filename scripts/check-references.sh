@@ -228,12 +228,10 @@ check_harness_readme() {
     # Match @skill in any context: start-of-line, after space, after [, after (, after `, after *
     for token in $(grep -oE '(^|[][ ()`*])@[a-zA-Z0-9_-]+' "$_file" 2>/dev/null | sed 's/^[^@]*//' || true); do
         skill_name="${token#@}"
-        if is_known_skill "$skill_name"; then
-            if skill_file_exists "$skill_name"; then
-                log_ok "${_label} @${skill_name} -> prompts/skills/${skill_name}/SKILL.md"
-            else
-                log_error "${_label} references @${skill_name} but prompts/skills/${skill_name}/SKILL.md not found"
-            fi
+        if skill_file_exists "$skill_name"; then
+            log_ok "${_label} @${skill_name} -> prompts/skills/${skill_name}/SKILL.md"
+        else
+            log_error "${_label} references @${skill_name} but prompts/skills/${skill_name}/SKILL.md not found"
         fi
     done
 }
