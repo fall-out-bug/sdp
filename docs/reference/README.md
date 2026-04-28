@@ -20,6 +20,7 @@ When in doubt, trust runtime help first:
 | Schema families | [schema-registry.md](schema-registry.md) |
 | Hook execution rules | [pipeline-hooks-security.md](pipeline-hooks-security.md) |
 | Hydration guarantees | [context-hydration.md](context-hydration.md) |
+| Working-tree external review gate | [pi-review-spec.md](pi-review-spec.md) |
 
 ## Historical Design Notes
 
