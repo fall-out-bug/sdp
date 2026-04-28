@@ -21,97 +21,9 @@
       "type": "string",
       "enum": [
         "APPROVED",
-        "CHANGES_REQUESTED",
-        "ESCALATED"
+        "CHANGES_REQUESTED"
       ],
-      "description": "Overall verdict. APPROVED only if all reviewers PASS or the external review gate returns no blocking findings."
-    },
-    "reviewer_runtime": {
-      "type": "string",
-      "description": "Runtime that produced the review verdict, e.g. skill, pi."
-    },
-    "context_packet": {
-      "type": "object",
-      "description": "Compact reference to the context packet used by an external review runtime.",
-      "required": ["hash", "files"],
-      "properties": {
-        "hash": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "diff_hash": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "test_evidence_hash": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "files": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "models": {
-      "type": "array",
-      "description": "Models used by an external review runtime.",
-      "items": {
-        "type": "object",
-        "required": ["provider", "model", "role", "status"],
-        "properties": {
-          "provider": {
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["ok", "failed", "skipped"]
-          },
-          "latency_ms": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "usage": {
-            "type": "object",
-            "additionalProperties": true
-          }
-        }
-      }
-    },
-    "raw_artifacts": {
-      "type": "array",
-      "description": "References to raw telemetry artifacts. Raw text is stored outside the compact verdict.",
-      "items": {
-        "type": "object",
-        "required": ["path", "sha256"],
-        "properties": {
-          "model": {
-            "type": "string"
-          },
-          "path": {
-            "type": "string"
-          },
-          "sha256": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{64}$"
-          }
-        }
-      }
-    },
-    "findings_detail": {
-      "type": "array",
-      "description": "Structured findings accepted by the review synthesizer.",
-      "items": {
-        "$ref": "#/$defs/findingDetail"
-      }
+      "description": "Overall verdict. APPROVED only if all reviewers PASS."
     },
     "round": {
       "type": "integer",
@@ -257,51 +169,6 @@
             "$ref": "#/$defs/promptopsCheck"
           },
           "description": "PromptOps: check_id, status, note per check"
-        }
-      }
-    },
-    "findingDetail": {
-      "type": "object",
-      "required": ["severity", "blocking", "title", "evidence", "recommendation"],
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "severity": {
-          "type": "string",
-          "enum": ["P0", "P1", "P2", "P3"]
-        },
-        "blocking": {
-          "type": "boolean"
-        },
-        "file": {
-          "type": "string"
-        },
-        "line": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "title": {
-          "type": "string"
-        },
-        "evidence": {
-          "type": "string"
-        },
-        "recommendation": {
-          "type": "string"
-        },
-        "source_models": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "dedupe_hash": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "beads_id": {
-          "type": "string"
         }
       }
     },

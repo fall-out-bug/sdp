@@ -9,7 +9,6 @@
     { "id": "coding-workflow-predicate", "path": "coding-workflow-predicate.schema.json", "title": "SDP Coding Workflow Predicate (in-toto v1)" },
     { "id": "coding-workflow-statement", "path": "coding-workflow-statement.schema.json", "title": "SDP Coding Workflow in-toto Statement (v1 envelope)" },
     { "id": "review-verdict", "path": "review-verdict.schema.json", "title": "SDP Review Verdict" },
-    { "id": "pi-review-run", "path": "pi-review-run.schema.json", "title": "SDP Pi Review Run" },
     { "id": "ws-verdict", "path": "ws-verdict.schema.json", "title": "SDP Workstream Verdict" },
     { "id": "next-action", "path": "next-action.schema.json", "title": "SDP Next Action" },
     { "id": "instructions", "path": "contracts/instructions.schema.json", "title": "Instruction Payload Contract" },
