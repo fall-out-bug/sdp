@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/beads-queue-view/v1",
+  "title": "BeadsQueueView",
+  "type": "object",
+  "required": ["spec_version", "timestamp", "ready_count", "blocked_count", "items", "next_action"],
+  "properties": {
+    "spec_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "ready_count": { "type": "integer", "minimum": 0 },
+    "blocked_count": { "type": "integer", "minimum": 0 },
+    "in_progress_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "priority"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "status": { "type": "string", "enum": ["ready", "blocked", "in_progress"] },
+          "priority": { "type": "integer" },
+          "blocked_by": { "type": "array", "items": { "type": "string" } },
+          "labels": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "next_action": {
+      "type": "object",
+      "required": ["recommended", "reason"],
+      "properties": {
+        "recommended": { "type": "string" },
+        "reason": { "type": "string" },
+        "command": { "type": "string" },
+        "blocking_issues": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

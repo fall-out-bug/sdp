@@ -1,5 +1,5 @@
 #!/bin/bash
-# sdp/hooks/validators/pre-edit-check.sh
+# scripts/hooks/validators/pre-edit-check.sh
 # Validates file before editing - checks Clean Architecture
 
 set -e

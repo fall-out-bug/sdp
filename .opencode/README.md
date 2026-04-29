@@ -2,33 +2,34 @@
 
 This directory contains SDP integration for OpenCode.
 
-## Setup
+## Prompt Surface
 
-SDP skills and agents are available via symlinks:
-- `skills/` → All SDP skills (@vision, @build, @review, etc.)
-- `agents/` → Agent definitions (orchestrator, reviewer, etc.)
+- Skills: `prompts/skills/`
+- Commands: `prompts/commands/`
+- Agents: `prompts/agents/`
+- Canonical command map: `prompts/commands.yml`
 
-Primary agent cards shown in OpenCode are configured in `.opencode/opencode.json`.
-Agent metadata (name/description/prompt body) comes from files in `prompts/agents/*.md` via the `agents/` symlink.
-Each agent file must have valid closed YAML frontmatter so descriptions render in UI.
+## Hook Surface
+
+OpenCode scope enforcement lives in:
+
+- `.opencode/hooks/pre-tool-use.json`
+- `.opencode/hooks/README.md`
+
+The current hook implementation uses `sdp-omc-guard`, which is a stronger
+wrapper around SDP guard semantics for edit and write operations.
 
 ## Usage
 
-Skills work the same as in Claude Code:
-
+```text
+@vision "product"
+@feature "add feature"
+@build 00-XXX-YY
+@review FXXX
+@operate "deploy task"
 ```
-@vision "your product"     # Strategic planning
-@feature "add feature"     # Plan feature
-@build 00-001-01           # Execute workstream
-@review F01                # Quality check
-```
 
-## Commands
+## Fallback Mode
 
-If your tool supports slash commands, create command files pointing to skills:
-
-```
-/oneshot → skills/oneshot/SKILL.md
-/build   → skills/build/SKILL.md
-/review  → skills/review/SKILL.md
-```
+If your OpenCode runtime cannot spawn subagents, follow the manual checklists in
+[`docs/reference/FALLBACK_MODE.md`](../docs/reference/FALLBACK_MODE.md).

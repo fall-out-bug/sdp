@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/sdp-pr-gate/evidence-event/v1",
+  "title": "ChangePassport Evidence Event",
+  "description": "Event emitted by an evidence provider for ingestion into sdp-pr-gate. Ingestion is idempotent. Dedup key: source + external_ref + commit_sha. 12 required fields match the manifesto core contract; artifact_uri, artifact_hash, and error_state are optional extensions.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source",
+    "external_ref",
+    "repository",
+    "pull_request",
+    "commit_sha",
+    "observed_at",
+    "collected_at",
+    "actor",
+    "event_type",
+    "status",
+    "summary"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1",
+      "description": "Schema version of this evidence event. Must be '1' for v1."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$",
+      "description": "Unique identifier of the evidence provider. Reverse-DNS format recommended (e.g. 'github-actions', 'snyk.sast', 'sonarqube'). Forms part of the dedup key with external_ref and commit_sha.",
+      "examples": [
+        "github-actions",
+        "snyk.sast",
+        "sonarqube",
+        "gerrit.review",
+        "custom.my-scanner"
+      ]
+    },
+    "external_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "External reference ID for this evidence event. Must be unique within the source provider's namespace. Examples: CI run ID, scanner finding ID, review comment ID. Forms part of the dedup key with source and commit_sha.",
+      "examples": [
+        "https://github.com/acme/app/actions/runs/12345",
+        "snyk-finding-abc123",
+        "gerrit-change-12345-patchset-2"
+      ]
+    },
+    "repository": {
+      "$ref": "#/$defs/repository",
+      "description": "Repository identity for the change under evaluation."
+    },
+    "pull_request": {
+      "$ref": "#/$defs/pull_request",
+      "description": "Pull request (or merge request) identity."
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Full 40-character hex SHA of the commit this evidence was observed on. Forms part of the dedup key with source and external_ref."
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the evidence was originally observed by the provider (not when it was collected or submitted)."
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the evidence was collected/submitted to the API. Must be >= observed_at."
+    },
+    "actor": {
+      "$ref": "#/$defs/actor",
+      "description": "The entity that produced or triggered this evidence."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "commit",
+        "ci_run",
+        "test_result",
+        "scan_finding",
+        "review_comment",
+        "approval",
+        "merge",
+        "deployment",
+        "custom"
+      ],
+      "description": "Category of the evidence event."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failure",
+        "warning",
+        "skipped",
+        "degraded",
+        "pending"
+      ],
+      "description": "Outcome status of this evidence. 'degraded' indicates partial or low-confidence data."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "description": "Human-readable summary of the evidence event. Should be self-contained enough to display in a passport without additional context."
+    },
+    "artifact_uri": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri",
+      "maxLength": 2048,
+      "description": "URI to the artifact produced by this event. Omit or use null when no artifact exists."
+    },
+    "artifact_hash": {
+      "$ref": "#/$defs/artifact_hash",
+      "description": "Cryptographic hash of the artifact for integrity verification. Null if artifact_uri is empty."
+    },
+    "error_state": {
+      "$ref": "#/$defs/error_state",
+      "description": "Error details if the evidence collection encountered problems. Null if no error."
+    }
+  },
+  "$defs": {
+    "repository": {
+      "type": "object",
+      "required": [
+        "id",
+        "url"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Canonical repository identifier. Platform-specific format (e.g., 'acme/my-app' for GitHub, 'project/repo' for Gerrit).",
+          "examples": [
+            "acme/my-app",
+            "my-gerrit-project/my-repo"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical web URL of the repository.",
+          "examples": [
+            "https://github.com/acme/my-app",
+            "https://gerrit.example.com/g/project/repo"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Platform identifier for the repository host (e.g., 'github', 'gitlab', 'gerrit', 'bitbucket').",
+          "examples": [
+            "github",
+            "gitlab",
+            "gerrit",
+            "bitbucket"
+          ]
+        },
+        "branch": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Target branch for the pull request (base branch).",
+          "examples": [
+            "main",
+            "master",
+            "release/1.0"
+          ]
+        }
+      }
+    },
+    "pull_request": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Pull request identifier. Numeric ID or platform-specific format.",
+          "examples": [
+            "42",
+            "!123",
+            "MR-456"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical web URL of the pull request.",
+          "examples": [
+            "https://github.com/acme/my-app/pull/42",
+            "https://gerrit.example.com/c/project/repo/+/123"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Title of the pull request at the time of evidence collection."
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "required": [
+        "type",
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "human",
+            "agent",
+            "system",
+            "tool"
+          ],
+          "description": "Category of the actor."
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Unique identifier for the actor within the source system.",
+          "examples": [
+            "user@github.com",
+            "codex-agent-run-abc123",
+            "github-actions",
+            "snyk-cli"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Human-readable display name for the actor.",
+          "examples": [
+            "Jane Doe",
+            "Codex Agent v2",
+            "GitHub Actions",
+            "Snyk CLI 1.1200.0"
+          ]
+        }
+      }
+    },
+    "artifact_hash": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Cryptographic hash of the evidence artifact. Supports multiple algorithms; SHA-256 is required for v1.",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "sha-256",
+            "sha-384",
+            "sha-512",
+            "blake2b-256",
+            "blake2b-512"
+          ],
+          "description": "Hash algorithm used. SHA-256 is the default and required algorithm for v1."
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64,128}$",
+          "description": "Hex-encoded hash digest. Length depends on algorithm: 64 chars for SHA-256/BLAKE2b-256, 96 for SHA-384, 128 for SHA-512/BLAKE2b-512."
+        }
+      }
+    },
+    "error_state": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Error details if evidence collection encountered problems. Null means no error.",
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*)*$",
+          "description": "Machine-readable error code. Dot-separated hierarchical format recommended.",
+          "examples": [
+            "PROVIDER_TIMEOUT",
+            "SCANNER.RATE_LIMITED",
+            "CI_RUN.INCOMPLETE"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "description": "Human-readable error message describing what went wrong."
+        },
+        "retry_possible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether retrying the evidence collection may succeed. Providers should set true for transient failures."
+        }
+      }
+    }
+  }
+}

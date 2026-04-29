@@ -13,7 +13,7 @@ When calling `/deploy {feature} [version_bump]`:
 4. Generate: CHANGELOG, release notes
 5. **EXECUTE** (do NOT propose):
    - `git commit` artifacts
-   - `git merge feature/F{XX} → master` (via PR)
+   - `git merge feature/F{XX} → main` (via PR)
    - `git tag v{X.Y.Z}`
    - `git push origin main v{X.Y.Z}`
 6. Report summary

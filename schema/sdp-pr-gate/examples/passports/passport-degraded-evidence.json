@@ -1,0 +1,132 @@
+{
+  "passport_id": "01912234-5678-7000-8000-000000000003",
+  "schema_version": "v1",
+  "created_at": "2026-05-01T16:00:00Z",
+  "generated_at": "2026-05-01T16:05:00Z",
+  "repository": {
+    "full_name": "acme/webapp",
+    "url": "https://github.com/acme/webapp",
+    "default_branch": "main",
+    "platform": "github"
+  },
+  "pull_request": {
+    "number": 348,
+    "url": "https://github.com/acme/webapp/pull/348",
+    "title": "Update dependency versions",
+    "head_sha": "789abc123def4567890123456789012345678901",
+    "base_branch": "main",
+    "head_branch": "chore/deps-update",
+    "author": {
+      "id": "dependabot",
+      "type": "agent",
+      "name": "Dependabot"
+    }
+  },
+  "intent": {
+    "summary": "Update 3 dependencies to latest patch versions.",
+    "claimed_type": "chore",
+    "source": "commit_message"
+  },
+  "scope": {
+    "items": [
+      {
+        "description": "go.sum and go.mod dependency updates",
+        "classification": "in_scope",
+        "files": [
+          "go.mod",
+          "go.sum"
+        ]
+      }
+    ]
+  },
+  "actors": {
+    "items": [
+      {
+        "actor": {
+          "id": "dependabot",
+          "type": "agent",
+          "name": "Dependabot"
+        },
+        "contribution_type": "agent",
+        "commits": [
+          "789abc123def4567890123456789012345678901"
+        ]
+      }
+    ],
+    "decision_owner": {
+      "id": "bob",
+      "type": "human",
+      "name": "Bob Manager",
+      "role": "decision_owner"
+    }
+  },
+  "evidence": {
+    "providers": [
+      {
+        "source": "github-actions",
+        "status": "accepted",
+        "event_count": 3,
+        "last_collected_at": "2026-05-01T16:02:00Z"
+      },
+      {
+        "source": "sonarqube",
+        "status": "degraded",
+        "event_count": 0,
+        "last_collected_at": "2026-05-01T16:03:00Z",
+        "error": {
+          "code": "TIMEOUT",
+          "message": "Scanner timed out after 300s"
+        }
+      },
+      {
+        "source": "github-review",
+        "status": "unavailable",
+        "event_count": 0,
+        "error": {
+          "code": "NO_REVIEWERS",
+          "message": "No reviewers assigned yet"
+        }
+      }
+    ],
+    "total_events": 3,
+    "collection_status": "degraded",
+    "evidence_snapshot_ref": "sha256:c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5"
+  },
+  "findings": {
+    "items": [],
+    "unresolved_count": 0,
+    "summary": "No findings collected. Scanner was degraded (timeout)."
+  },
+  "risk": {
+    "items": [
+      {
+        "description": "SonarQube scanner timed out \u2014 no SAST coverage for this PR",
+        "category": "missing_evidence",
+        "severity": "medium"
+      },
+      {
+        "description": "No reviewer assigned \u2014 peer review evidence unavailable",
+        "category": "missing_evidence",
+        "severity": "high"
+      }
+    ],
+    "summary": "2 missing evidence risks: SAST scan timed out, no peer review."
+  },
+  "decision": {
+    "result": "hold",
+    "decided_by": {
+      "id": "sdp-pr-gate",
+      "type": "system",
+      "name": "ChangePassport",
+      "role": "system"
+    },
+    "decided_at": "2026-05-01T16:05:00Z",
+    "reason": "Insufficient evidence: SAST degraded, no peer review. Awaiting reviewer assignment and scanner retry.",
+    "check_status": "hold"
+  },
+  "integrity": {
+    "passport_hash": "cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe",
+    "algorithm": "sha256",
+    "evidence_snapshot_hash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4"
+  }
+}

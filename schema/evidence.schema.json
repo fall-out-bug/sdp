@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schema/evidence/v1",
   "title": "SDP Evidence Event",
   "description": "Evidence log event — base + 6 types: plan, generation, verification, approval, decision, lesson",
   "type": "object",

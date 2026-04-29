@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/feature-card/v1",
+  "title": "FeatureCard",
+  "type": "object",
+  "required": [
+    "id",
+    "project_id",
+    "title",
+    "status",
+    "raw_request",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^feature-[a-z0-9_-]+-\\d{4}-\\d{2}-\\d{2}-\\d{3}$"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "inbox",
+        "clarifying",
+        "ready",
+        "executing",
+        "reviewing",
+        "blocked",
+        "done",
+        "parked",
+        "needs_input"
+      ]
+    },
+    "raw_request": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "normalized_intent": {
+      "type": "string"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "feature",
+        "bugfix",
+        "refactor",
+        "review",
+        "research",
+        "process-design",
+        "release",
+        "mixed"
+      ]
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": [
+        "explore",
+        "plan",
+        "build",
+        "review",
+        "debug",
+        "docs",
+        "mixed"
+      ]
+    },
+    "target_repo": {
+      "type": "string"
+    },
+    "target_area": {
+      "type": "string"
+    },
+    "scope_in": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scope_out": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "unknown"
+      ]
+    },
+    "why_now": {
+      "type": "string"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptance_shape": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommended_next_step": {
+      "type": "string"
+    },
+    "intake_artifact": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linked_beads_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linked_workstreams": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_checks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linked_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "active_agents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocking_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "waiting_on": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "human",
+          "dependency",
+          "review",
+          "qa",
+          "external"
+        ]
+      }
+    },
+    "needs_feedback_from": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "author",
+          "admin",
+          "human"
+        ]
+      }
+    },
+    "feedback_request": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "author_update": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "admin_action_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "executor_session_id": {
+      "type": "string"
+    },
+    "executor_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_executor_heartbeat_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "executor_runtime_state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "stale",
+        "lost",
+        "completed"
+      ]
+    },
+    "executor_progress_summary": {
+      "type": "string"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_orchestrator_action": {
+      "type": "string"
+    },
+    "last_orchestrator_reason": {
+      "type": "string"
+    },
+    "last_orchestrator_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recommended_next_action": {
+      "type": "string"
+    },
+    "recommended_next_reason": {
+      "type": "string"
+    },
+    "clarification_cycles": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "blocked_cycles": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "execution_attempt_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "review_fail_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rollback_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "review_state": {
+      "type": "string"
+    },
+    "review_summary": {
+      "type": "string"
+    },
+    "review_ref": {
+      "type": "string"
+    },
+    "delivery_state": {
+      "type": "string"
+    },
+    "delivery_target": {
+      "type": "string"
+    },
+    "delivery_summary": {
+      "type": "string"
+    },
+    "delivery_ref": {
+      "type": "string"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rollback_summary": {
+      "type": "string"
+    },
+    "rollback_ref": {
+      "type": "string"
+    },
+    "followup_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "normalized_intent",
+          "task_type",
+          "target_repo",
+          "risk_level",
+          "recommended_next_step"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

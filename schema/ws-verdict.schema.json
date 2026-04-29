@@ -92,7 +92,13 @@
           },
           "evidence": {
             "type": "string",
-            "description": "File:line reference or test name proving this AC"
+            "description": "File:line reference or test name proving this AC. Format: 'path/to/file.go:123' or 'TestFunctionName'. Must include specific line numbers for code references.",
+            "examples": [
+              "internal/bridge/client.go:45",
+              "cmd/sdp-build/main.go:123-125",
+              "TestBuildExecuteSuccess",
+              "scripts/build.sh:45"
+            ]
           }
         }
       },

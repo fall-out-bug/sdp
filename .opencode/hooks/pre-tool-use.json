@@ -1,0 +1,33 @@
+# OhMyOpenCode PreToolUse Hook Configuration
+# 
+# This hook runs sdp-omc-guard before edit/write operations to enforce scope.
+# The guard reads PreToolUseInput from stdin and returns:
+#   exit 0 = allow
+#   exit 1 = ask (not currently used)
+#   exit 2 = deny (block with error message)
+#
+# Installation:
+#   1. Build sdp-omc-guard: go build ./cmd/sdp-omc-guard
+#   2. Install to PATH or update the command path below
+#   3. Add this configuration to your OhMyOpenCode settings
+
+[
+  {
+    "matcher": "edit*",
+    "hooks": [
+      {
+        "type": "command",
+        "command": "sdp-omc-guard --ws ${SDP_WORKSTREAM:-00-000-00} --emit-evidence"
+      }
+    ]
+  },
+  {
+    "matcher": "write",
+    "hooks": [
+      {
+        "type": "command",
+        "command": "sdp-omc-guard --ws ${SDP_WORKSTREAM:-00-000-00} --emit-evidence"
+      }
+    ]
+  }
+]

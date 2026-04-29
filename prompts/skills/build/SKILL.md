@@ -27,6 +27,7 @@ Continuation is the orchestrator's job (@oneshot / sdp orchestrate).
 
 ## CRITICAL RULES
 
+0. **NO WORKSTREAM, NO BUILD** — `/build {WS-ID}` MUST refuse to start when `docs/workstreams/backlog/{WS-ID}.md` is missing OR declares `status: design-pending`. Run `scripts/hooks/build-precheck.sh {WS-ID}` as the very first step; exit non-zero blocks execution. This is rule F142-07; matches the picker (`scripts/deliver-pick.sh`) and `sdp doctor backlog` gates.
 1. **CHECK EXISTING CODE FIRST** — Run `@reality --quick` or grep before starting new features. Output `existing_work_summary` in ws-verdict — **required**. Short summary: files/functions/risks found before implementation.
 2. **ONE EXECUTABLE LEAF** — Execute this workstream only if it is a leaf. If the target is an aggregate/container workstream, STOP and hand control back to `@oneshot` or target a child leaf explicitly. After commit, STOP. Do not start the next WS.
 3. **USE SPAWN OR DO IT YOURSELF** — If spawn available, use it. If not, implement manually.
@@ -69,7 +70,7 @@ Before the TDD cycle (step 2 of EXECUTE THIS NOW), emit a write plan:
    ```json
    {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"build"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id>","workstream_id":"<ws-id>"}}
    ```
-   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
@@ -189,7 +190,7 @@ Reason: `existing_work_summary` is required. Add one-line summary of pre-existin
 ```
 Reason: Each ac_evidence entry must include `evidence` (file:line or test name).
 
-Schema: `schema/ws-verdict.schema.json` (from sdp root; project: `sdp/schema/`)
+Schema: `schema/ws-verdict.schema.json`
 
 ---
 
@@ -203,6 +204,17 @@ When user invokes `/build 00-053-16..25` (or multiple WS IDs):
 4. **Report:** At end, output `N done, M failed` (e.g. `3 done, 1 failed` if 00-053-18 failed after 00-053-16, 17 succeeded).
 
 ---
+
+## Recovery
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Check working directory is project root with `docs/workstreams/backlog/` |
+| "checkpoint not found" | Run `sdp-orchestrate --feature <ID>` to create initial checkpoint |
+| "workstream files missing" | Run `sdp-orchestrate --index` to verify, then `@feature` to regenerate |
+| Skill hangs / no progress | Check `.sdp/log/events.jsonl` for last event; use `sdp reset --feature <ID>` if stuck |
+| Review loop exceeds 3 rounds | Use `@review --override "reason"`, `@review --partial`, or `@review --escalate` |
+| Build fails quality gates | Run `./scripts/run_go_quality_gates.sh` locally first; fix errors before retry |
 
 ## See Also
 

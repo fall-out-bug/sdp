@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schema/orchestrate-checkpoint.schema.json",
+  "title": "Orchestrate Checkpoint",
+  "description": "Checkpoint schema for sdp-orchestrate state machine",
+  "type": "object",
+  "required": ["schema", "feature_id", "branch", "phase"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "orchestrate.v1",
+      "description": "Schema version identifier"
+    },
+    "feature_id": {
+      "type": "string",
+      "pattern": "^F[0-9]{3}$",
+      "description": "Feature ID (e.g., F016)"
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Git branch name"
+    },
+    "pr_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Pull request number"
+    },
+    "pr_url": {
+      "type": "string",
+      "description": "Pull request URL (empty if no PR)"
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["init", "build", "review", "pr", "ci", "qa", "done"],
+      "description": "Current orchestration phase"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 creation timestamp"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 last update timestamp"
+    },
+    "workstreams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9]{2}-[0-9]{3}-[0-9]{2}$",
+            "description": "Workstream ID (e.g., 00-042-03)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "done"],
+            "description": "Workstream execution status"
+          },
+          "verdict_file": {
+            "type": "string",
+            "description": "Path to verdict file"
+          },
+          "commit": {
+            "type": "string",
+            "description": "Git commit hash"
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of execution attempts"
+          },
+          "dispatch": {
+            "type": "object",
+            "properties": {
+              "harness": {
+                "type": "string",
+                "description": "Harness name (e.g., claude, opencode)"
+              },
+              "provider": {
+                "type": "string",
+                "description": "LLM provider"
+              },
+              "model": {
+                "type": "string",
+                "description": "Model name"
+              },
+              "score": {
+                "type": "number",
+                "description": "Dispatch confidence score"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Reasoning for dispatch choice"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Dispatch timestamp"
+              },
+              "cold_start": {
+                "type": "boolean",
+                "description": "Whether this was a cold start dispatch"
+              }
+            }
+          }
+        }
+      },
+      "description": "List of workstreams and their status"
+    },
+    "review": {
+      "type": "object",
+      "required": ["iteration", "status"],
+      "properties": {
+        "iteration": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Review iteration number"
+        },
+        "verdict_file": {
+          "type": "string",
+          "description": "Path to review verdict file"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved"],
+          "description": "Review status"
+        }
+      },
+      "description": "Review phase status"
+    },
+    "qa": {
+      "type": "object",
+      "required": ["iteration", "status"],
+      "properties": {
+        "iteration": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "QA iteration number"
+        },
+        "verdict_file": {
+          "type": "string",
+          "description": "Path to QA verdict file"
+        },
+        "status": {
+          "type": "string",
+          "description": "QA status"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "description": "Reference to QA evidence"
+        }
+      },
+      "description": "QA phase status"
+    },
+    "integrity": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 hash of checkpoint content for integrity verification"
+    }
+  }
+}

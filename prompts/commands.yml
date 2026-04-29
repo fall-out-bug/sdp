@@ -1,0 +1,293 @@
+# Canonical LLM-agnostic command mapping for SDP.
+# When the command surface changes, update this file and .claude/commands.json
+# in the same PR.
+---
+version: 1.1.0
+description: LLM-agnostic command to skill mapping for SDP
+execution_modes:
+  cli_only: CLI command handles everything
+  llm_only: LLM spawning required (no CLI equivalent)
+  hybrid: CLI for setup/validation, LLM spawning for AI tasks
+commands:
+  build:
+    file: ".agents/skills/build.md"
+    cli: sdp apply --ws
+    mode: hybrid
+    llm_subagents:
+      - implementer
+      - spec-reviewer
+      - quality-reviewer
+    description: Execute workstream with TDD
+    phase: execution
+  review:
+    file: ".agents/skills/review.md"
+    cli:
+    mode: llm_only
+    llm_subagents:
+      - qa
+      - security
+      - devops
+      - sre
+      - tech-lead
+      - documentation
+    description: Multi-agent quality review
+    phase: execution
+  fix:
+    file: ".agents/skills/fix.md"
+    cli: sdp apply --ws
+    mode: hybrid
+    llm_subagents:
+      - implementer
+      - quality-reviewer
+    description: Quality bug fix (P1/P2) - systematic mode
+    phase: debug
+  understand:
+    file: ".agents/skills/understand.md"
+    cli: sdp landscape
+    mode: hybrid
+    llm_subagents:
+      - analyst
+      - architect
+    description: Codebase analysis - standard mode
+    phase: analysis
+  operate:
+    file: ".agents/skills/operate.md"
+    cli: sdp deploy
+    mode: hybrid
+    llm_subagents:
+      - devops
+      - sre
+      - planner
+    description: Deployment and operations
+    phase: execution
+  ship:
+    file: ".agents/skills/ship.md"
+    cli: sdp deploy
+    mode: hybrid
+    llm_subagents:
+      - devops
+      - sre
+      - planner
+    description: Deployment orchestration - creates PR to main or merges for release
+    phase: execution
+  deploy:
+    file: ".agents/skills/deploy.md"
+    cli: sdp deploy
+    mode: cli_only
+    deprecated: true
+    deprecated_in_favor_of: ship
+    deprecation_version: "5.0.0"
+    removal_version: "8.0.0"
+    description: DEPRECATED: Deployment orchestration (legacy alias for @ship)
+    phase: execution
+  bugfix:
+    file: ".agents/skills/bugfix.md"
+    cli: sdp apply --ws
+    mode: hybrid
+    llm_subagents:
+      - implementer
+      - quality-reviewer
+    description: Quality bug fix (P1/P2) - legacy alias for @fix
+    phase: debug
+  hotfix:
+    file: ".agents/skills/hotfix.md"
+    cli: sdp apply --ws
+    mode: hybrid
+    llm_subagents:
+      - implementer
+    description: Emergency P0 fix - legacy alias for @fix
+    phase: debug
+  issue:
+    file: ".agents/skills/issue.md"
+    cli: bd show
+    mode: llm_only
+    llm_subagents:
+      - analyst
+    description: Bug analysis and routing - legacy alias for @fix
+    phase: debug
+  debug:
+    file: ".agents/skills/debug.md"
+    cli:
+    mode: llm_only
+    description: Systematic debugging - legacy alias for @fix
+    phase: debug
+  vision:
+    file: ".agents/skills/vision.md"
+    cli: sdp prd generate
+    mode: hybrid
+    llm_subagents:
+      - analyst
+      - architect
+      - product-manager
+    description: Strategic product planning - legacy alias for @build
+    phase: strategic
+  reality:
+    file: ".agents/skills/reality-check.md"
+    cli: sdp doctor adapters
+    mode: hybrid
+    llm_subagents:
+      - analyst
+      - architect
+    description: Codebase analysis - legacy alias for @review
+    phase: analysis
+  feature:
+    file: ".agents/skills/feature.md"
+    cli: sdp plan
+    mode: hybrid
+    llm_subagents:
+      - analyst
+      - architect
+      - planner
+    description: Feature planning - legacy alias for @build
+    phase: planning
+  idea:
+    file: ".agents/skills/idea.md"
+    cli: sdp idea
+    mode: llm_only
+    description: Requirements gathering - legacy alias for @build
+    phase: planning
+  design:
+    file: ".agents/skills/design.md"
+    cli: sdp design
+    mode: llm_only
+    description: System design - legacy alias for @build
+    phase: planning
+  ux:
+    file: ".agents/skills/ux.md"
+    cli:
+    mode: llm_only
+    description: UX design - legacy alias for @build
+    phase: planning
+  prototype:
+    file: ".agents/skills/prototype.md"
+    cli: sdp prototype
+    mode: hybrid
+    llm_subagents:
+      - implementer
+    description: Prototyping - legacy alias for @build
+    phase: execution
+  oneshot:
+    file: ".agents/skills/oneshot.md"
+    cli: sdp apply --ws
+    mode: hybrid
+    llm_subagents:
+      - implementer
+      - spec-reviewer
+      - quality-reviewer
+    description: Autonomous feature execution (legacy alias for @build)
+    phase: execution
+  landscape:
+    file: ".agents/skills/landscape.md"
+    cli: sdp landscape
+    mode: hybrid
+    llm_subagents:
+      - analyst
+      - architect
+    description: Codebase landscape analysis - legacy alias for @understand
+    phase: analysis
+  scout:
+    file: ".agents/skills/scout.md"
+    cli: sdp scout
+    mode: hybrid
+    llm_subagents:
+      - analyst
+    description: Codebase reconnaissance - legacy alias for @understand
+    phase: analysis
+  architect:
+    file: ".agents/skills/architect.md"
+    cli: sdp architect
+    mode: hybrid
+    llm_subagents:
+      - architect
+      - analyst
+    description: Architecture analysis - legacy alias for @understand
+    phase: analysis
+  metrics:
+    file: ".agents/skills/metrics.md"
+    cli: sdp metrics
+    mode: hybrid
+    llm_subagents:
+      - analyst
+    description: Metrics analysis - legacy alias for @understand
+    phase: analysis
+  ci-triage:
+    file: ".agents/skills/ci-triage.md"
+    cli: sdp ci-triage
+    mode: hybrid
+    llm_subagents:
+      - devops
+      - sre
+    description: CI/CD triage - legacy alias for @operate
+    phase: execution
+  plan:
+    file: ".agents/skills/plan.md"
+    cli: sdp plan
+    mode: hybrid
+    llm_subagents:
+      - planner
+      - analyst
+    description: Planning - legacy alias for @operate
+    phase: planning
+  reality-check:
+    file: ".agents/skills/reality-check.md"
+    cli: sdp reality-check
+    mode: hybrid
+    llm_subagents:
+      - analyst
+      - architect
+    description: Reality checking - legacy alias for @review
+    phase: analysis
+  verify-workstream:
+    file: ".agents/skills/verify-workstream.md"
+    cli: sdp verify
+    mode: hybrid
+    llm_subagents:
+      - qa
+      - quality-reviewer
+    description: Workstream verification - legacy alias for @review
+    phase: execution
+  git-worktree:
+    file: ".agents/skills/git-worktree.md"
+    cli:
+    mode: llm_only
+    description: Safety-first git worktree setup for parallel feature work
+  parallel-dispatch:
+    file: ".agents/skills/parallel-dispatch.md"
+    cli:
+    mode: llm_only
+    description: Delegate independent tasks to parallel subagent sessions
+  llm-council:
+    file: ".agents/skills/llm-council.md"
+    cli:
+    mode: llm_only
+    description: Multi-model synthesis for complex decisions
+  strataudit:
+    file: ".agents/skills/strataudit.md"
+    cli:
+    mode: llm_only
+    description: Document-backed strategy traceability audit
+patterns:
+  tdd: patterns/tdd.md
+  git-safety: patterns/git-safety.md
+  quality-gates: patterns/quality-gates.md
+  session-complete: patterns/session-complete.md
+agents:
+  orchestrator: agents/orchestrator.md
+  reviewer: agents/reviewer.md
+  builder: agents/builder.md
+  deployer: agents/deployer.md
+  tester: agents/qa.md
+  architect: agents/architect.md
+  analyst: agents/analyst.md
+  developer: agents/developer.md
+  implementer: agents/implementer.md
+  spec-reviewer: agents/spec-reviewer.md
+  security: agents/security.md
+  devops: agents/devops.md
+  sre: agents/sre.md
+  tech-lead: agents/tech-lead.md
+notes:
+  llm_agnostic: Skills work with any LLM (Opus, GLM, Codex) in any tool (Claude Code, Cursor, Windsurf)
+  cli_first: CLI is the foundation - LLM spawning is for AI-powered tasks
+  hybrid_mode: CLI handles setup/validation, LLM spawning handles AI tasks
+  subagent_spawning: Use tool's native subagent capability (Task tool, agent panel, etc.)

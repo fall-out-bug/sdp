@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/portfolio-board-snapshot/v1",
+  "title": "PortfolioBoardSnapshot",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "timestamp",
+    "projects",
+    "totals",
+    "queues",
+    "next_action"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "project_id",
+          "name",
+          "counts"
+        ],
+        "properties": {
+          "project_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "inbox": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "clarifying": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "ready": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "executing": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reviewing": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "blocked": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "done": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "parked": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "needs_input": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "next_action": {
+            "type": "object",
+            "properties": {
+              "recommended": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "target_card_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "totals": {
+      "type": "object",
+      "properties": {
+        "inbox": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "clarifying": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ready": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "executing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reviewing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "done": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "parked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "needs_input": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "queues": {
+      "type": "object",
+      "properties": {
+        "waiting_on_human": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/queueItem"
+          }
+        },
+        "ready_to_execute": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/queueItem"
+          }
+        },
+        "blocked": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/queueItem"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "next_action": {
+      "type": "object",
+      "required": [
+        "recommended",
+        "reason"
+      ],
+      "properties": {
+        "recommended": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "target_project_id": {
+          "type": "string"
+        },
+        "target_card_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "queueItem": {
+      "type": "object",
+      "required": [
+        "project_id",
+        "card_id",
+        "title",
+        "status"
+      ],
+      "properties": {
+        "project_id": {
+          "type": "string"
+        },
+        "card_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "recommended_next_step": {
+          "type": "string"
+        },
+        "active_agents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "needs_feedback_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "author_update": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "admin_action_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommended_next_action": {
+          "type": "string"
+        },
+        "recommended_next_reason": {
+          "type": "string"
+        },
+        "last_orchestrator_action": {
+          "type": "string"
+        },
+        "clarification_cycles": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked_cycles": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "execution_attempt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_fail_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rollback_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_state": {
+          "type": "string"
+        },
+        "delivery_state": {
+          "type": "string"
+        },
+        "delivery_target": {
+          "type": "string"
+        },
+        "rollback_ref": {
+          "type": "string"
+        },
+        "followup_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "has_rollback": {
+          "type": "boolean"
+        },
+        "has_followup": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

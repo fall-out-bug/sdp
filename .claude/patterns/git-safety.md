@@ -29,10 +29,9 @@ git stash list
 ## Branch Convention
 
 ```
-feature/<feature-id>-description    # New feature
-bugfix/sdp-xxx-description  # Bug fix (P1/P2)
-hotfix/sdp-xxx-description  # Emergency fix (P0)
-docs/description            # Documentation only
+feature/FXXX-short-name     # New feature (e.g. feature/F004-sequential-reconciler)
+fix/FXXX-description        # Bug fix within a feature
+docs/topic                  # Documentation only
 ```
 
 ## Commit Convention
@@ -47,8 +46,7 @@ refactor: extract common validation logic
 
 ## PR Rules
 
-- Target `dev` branch (NOT `main`) for features
-- Target `main` only for releases
+- Target `main` branch for all PRs
 - Include test plan in PR body
 - Wait for CI before merge
 

@@ -7,7 +7,7 @@ agent: planner
 
 When calling `/design {slug}`:
 
-1. Load full prompt: `@.claude/skills/design.md`
+1. Load full prompt: `@.claude/skills/design/SKILL.md`
 2. Read PROJECT_MAP.md and INDEX.md
 3. Read draft: `docs/drafts/idea-{slug}.md`
 4. Create all WS files in `workstreams/backlog/`

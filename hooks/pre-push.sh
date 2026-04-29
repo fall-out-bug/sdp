@@ -4,7 +4,7 @@
 set -e
 
 # 1. go test -short ./...
-go test -short ./... || { echo "pre-push: go test -short failed" >&2; exit 1; }
+go test -tags "sqlite_fts5" -short ./... || { echo "pre-push: go test -short failed" >&2; exit 1; }
 
 # 2. If feature branch + diff touches internal/ or cmd/: require .sdp/evidence/*.json, validate
 BRANCH=$(git branch --show-current)
