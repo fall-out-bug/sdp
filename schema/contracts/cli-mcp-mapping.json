@@ -1,0 +1,225 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schemas/cli-mcp-mapping.json",
+  "title": "CLI to MCP Mapping Contract",
+  "description": "Defines the explicit contract that maps CLI registry truth and skill catalog truth into MCP tools, resources, and prompts",
+  "type": "object",
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "description": "Contract specification version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "cli_registry_hash": {
+      "type": "string",
+      "description": "Hash of the CLI registry snapshot used to generate this mapping",
+      "pattern": "^[a-f0-9]+$"
+    },
+    "skill_catalog_hash": {
+      "type": "string",
+      "description": "Hash of the skill catalog snapshot used to generate this mapping",
+      "pattern": "^[a-f0-9]+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when this mapping was generated",
+      "format": "date-time"
+    },
+    "tools": {
+      "type": "array",
+      "description": "CLI commands mapped to MCP tools",
+      "items": {
+        "$ref": "#/definitions/tool_mapping"
+      }
+    },
+    "resources": {
+      "type": "array",
+      "description": "CLI outputs mapped to MCP resources",
+      "items": {
+        "$ref": "#/definitions/resource_mapping"
+      }
+    },
+    "prompts": {
+      "type": "array",
+      "description": "Skill intents mapped to MCP prompts",
+      "items": {
+        "$ref": "#/definitions/prompt_mapping"
+      }
+    }
+  },
+  "required": ["spec_version", "cli_registry_hash", "skill_catalog_hash", "generated_at", "tools", "resources", "prompts"],
+  "definitions": {
+    "tool_mapping": {
+      "type": "object",
+      "description": "Maps a CLI command to an MCP tool",
+      "properties": {
+        "mcp_tool_name": {
+          "type": "string",
+          "description": "MCP tool name (e.g., 'sdp_scout')"
+        },
+        "cli_command": {
+          "type": "string",
+          "description": "CLI command path (e.g., 'scout')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Tool description for MCP discovery"
+        },
+        "parameters": {
+          "type": "array",
+          "description": "Tool parameters derived from CLI flags",
+          "items": {
+            "$ref": "#/definitions/parameter_mapping"
+          }
+        },
+        "parity_status": {
+          "type": "string",
+          "enum": ["full", "partial", "deprecated", "forward"],
+          "description": "Parity status with CLI implementation"
+        },
+        "source_location": {
+          "type": "string",
+          "description": "Source file where CLI command is defined (e.g., 'cmd/sdp/cmd_scout.go')"
+        }
+      },
+      "required": ["mcp_tool_name", "cli_command", "description", "parity_status"]
+    },
+    "resource_mapping": {
+      "type": "object",
+      "description": "Maps CLI output to an MCP resource",
+      "properties": {
+        "mcp_resource_uri": {
+          "type": "string",
+          "description": "MCP resource URI (e.g., 'sdp://scout')"
+        },
+        "cli_command": {
+          "type": "string",
+          "description": "CLI command that generates this resource"
+        },
+        "artifact_path": {
+          "type": "string",
+          "description": "Path where CLI persists the artifact (e.g., '.sdp/scout.json')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Resource description for MCP discovery"
+        },
+        "mime_type": {
+          "type": "string",
+          "description": "MIME type of the resource content"
+        },
+        "parity_status": {
+          "type": "string",
+          "enum": ["full", "partial", "deprecated", "forward"],
+          "description": "Parity status with CLI implementation"
+        },
+        "hint_tool": {
+          "type": "string",
+          "description": "MCP tool to suggest when resource is missing"
+        }
+      },
+      "required": ["mcp_resource_uri", "cli_command", "artifact_path", "description", "mime_type", "parity_status"]
+    },
+    "prompt_mapping": {
+      "type": "object",
+      "description": "Maps a skill intent to an MCP prompt",
+      "properties": {
+        "mcp_prompt_name": {
+          "type": "string",
+          "description": "MCP prompt name (e.g., 'understand')"
+        },
+        "intent_model": {
+          "type": "string",
+          "description": "Intent model category (e.g., 'F125:intent:understand')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Prompt description for MCP discovery"
+        },
+        "arguments": {
+          "type": "array",
+          "description": "Prompt arguments",
+          "items": {
+            "$ref": "#/definitions/argument_mapping"
+          }
+        },
+        "resources_used": {
+          "type": "array",
+          "description": "MCP resources this prompt consumes",
+          "items": {
+            "type": "string"
+          }
+        },
+        "parity_status": {
+          "type": "string",
+          "enum": ["full", "partial", "deprecated", "forward"],
+          "description": "Parity status with skill catalog"
+        },
+        "skill_files": {
+          "type": "array",
+          "description": "Skill files that implement this intent",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["mcp_prompt_name", "intent_model", "description", "parity_status"]
+    },
+    "parameter_mapping": {
+      "type": "object",
+      "description": "Maps a CLI flag to an MCP tool parameter",
+      "properties": {
+        "mcp_param_name": {
+          "type": "string",
+          "description": "MCP parameter name"
+        },
+        "cli_flag": {
+          "type": "string",
+          "description": "CLI flag name (e.g., '--format')"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "enum"],
+          "description": "Parameter type"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the parameter is required"
+        },
+        "enum_values": {
+          "type": "array",
+          "description": "Allowed values for enum type",
+          "items": {
+            "type": "string"
+          }
+        },
+        "default": {
+          "description": "Default value if not provided"
+        }
+      },
+      "required": ["mcp_param_name", "cli_flag", "type"]
+    },
+    "argument_mapping": {
+      "type": "object",
+      "description": "Maps a prompt argument to its definition",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Argument name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Argument description"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the argument is required"
+        },
+        "default": {
+          "description": "Default value if not provided"
+        }
+      },
+      "required": ["name", "description"]
+    }
+  }
+}

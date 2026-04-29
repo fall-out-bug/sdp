@@ -29,6 +29,16 @@ Classify bugs and route to fix command.
 
 Issue file, routing recommendation.
 
+## Recovery
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Check working directory is project root with `docs/workstreams/backlog/` |
+| "checkpoint not found" | Run `sdp-orchestrate --feature <ID>` to create initial checkpoint |
+| "workstream files missing" | Run `sdp-orchestrate --index` to verify, then `@feature` to regenerate |
+| Skill hangs / no progress | Check `.sdp/log/events.jsonl` for last event; use `sdp reset --feature <ID>` if stuck |
+| Review loop exceeds 3 rounds | Use `@review --override "reason"`, `@review --partial`, or `@review --escalate` |
+
 ## See Also
 
 - @debug — Root cause analysis

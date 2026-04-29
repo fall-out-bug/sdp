@@ -1,8 +1,8 @@
 #!/bin/bash
-# sdp/hooks/commit-msg.sh
+# scripts/hooks/commit-msg.sh
 # Git commit-msg hook for conventional commits validation
 # and agent metadata trailers for provenance.
-# Install: ln -sf ../../sdp/hooks/commit-msg.sh .git/hooks/commit-msg
+# Install via scripts/hooks/install-git-hooks.sh.
 
 COMMIT_MSG_FILE=$1
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")

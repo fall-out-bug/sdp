@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schema/harness-config-manifest/v1",
+  "title": "Harness Config Manifest",
+  "description": "Describes which AI coding harnesses are active for a project, their config file paths, the project lifecycle stage, and the rules document to generate. Used for drift detection and onboarding automation.",
+  "type": "object",
+  "required": ["version", "lifecycle_stage", "harnesses"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Semver version of this manifest schema. Increment on breaking changes to enable drift detection.",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "examples": ["1.0.0", "1.2.3-alpha.1"]
+    },
+    "lifecycle_stage": {
+      "type": "string",
+      "description": "Project maturity stage. Controls which generation rules and defaults are applied.",
+      "enum": ["greenfield", "brownfield-new", "brownfield-mature"]
+    },
+    "harnesses": {
+      "type": "array",
+      "description": "List of AI coding harnesses configured for this project.",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/harness" }
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary programming language of the project.",
+      "examples": ["go", "typescript", "python", "rust"]
+    },
+    "rules_file": {
+      "type": "string",
+      "description": "Path (relative to project root) to the generated harness-agnostic patterns document.",
+      "examples": ["docs/reference/go-patterns.md"]
+    }
+  },
+  "definitions": {
+    "harness": {
+      "type": "object",
+      "title": "Harness",
+      "required": ["name", "config_file"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["claude-code", "codex-cli", "cursor", "opencode", "copilot", "zed", "warp"]
+        },
+        "config_file": {
+          "type": "string",
+          "examples": ["CLAUDE.md", "AGENTS.md", ".cursor/rules/project.mdc"]
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}

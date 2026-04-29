@@ -1,147 +1,117 @@
-#!/bin/sh
-# SDP Install Script (WS-067-06: AC7)
-# Usage: curl -sSL https://raw.githubusercontent.com/fall-out-bug/sdp/main/scripts/install.sh | sh
-# Or: ./install.sh [version]
-# Optional env for testing/custom mirrors:
-#   SDP_REPO=owner/repo
-#   SDP_RELEASE_BASE_URL=https://host/path/to/release/<version>
+#!/usr/bin/env bash
+# F141-03: one-shot SDP installer for downstream repos.
+# Usage: curl -fsSL https://raw.githubusercontent.com/fall-out-bug/sdp_lab/main/scripts/install.sh | bash
+#
+# Environment overrides:
+#   SDP_REPO    GitHub repo slug (default: fall-out-bug/sdp_lab)
+#   SDP_BRANCH  Branch/tag to clone (default: main)
+#   SDP_SOURCE_DIR Local sdp_lab checkout to use instead of cloning
+#   SDP_HARNESS Harness selection: auto|all|claude-code,opencode,... (default: auto)
+#   SDP_TARGET  Target directory (default: .)
+#   SDP_BIN_DIR Directory for the repo-local sdp binary (default: $SDP_TARGET/.sdp/bin)
+set -euo pipefail
 
-set -eu
+REPO="${SDP_REPO:-fall-out-bug/sdp_lab}"
+BRANCH="${SDP_BRANCH:-main}"
+SOURCE_DIR="${SDP_SOURCE_DIR:-}"
+HARNESS="${SDP_HARNESS:-auto}"
+TARGET="${SDP_TARGET:-.}"
+TARGET_ABS="$(cd "$TARGET" 2>/dev/null && pwd -P || true)"
+if [[ -z "$TARGET_ABS" ]]; then
+  mkdir -p "$TARGET"
+  TARGET_ABS="$(cd "$TARGET" && pwd -P)"
+fi
+BIN_DIR="${SDP_BIN_DIR:-$TARGET_ABS/.sdp/bin}"
+LOCAL_SDP="$BIN_DIR/sdp"
 
-VERSION="${1:-latest}"
-REPO="${SDP_REPO:-fall-out-bug/sdp}"
-BINARY_NAME="sdp"
-INSTALL_DIR="${HOME}/.local/bin"
+echo "→ SDP installer: harness=$HARNESS target=$TARGET_ABS"
 
-# Detect OS and architecture
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m)
-
+# Detect platform
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
 case "$ARCH" in
-    x86_64|amd64) ARCH="x86_64" ;;
-    arm64|aarch64) ARCH="arm64" ;;
-    *)
-        echo "ERROR: Unsupported architecture: $ARCH"
-        exit 1
-        ;;
+  x86_64)       ARCH="amd64" ;;
+  arm64|aarch64) ARCH="arm64" ;;
 esac
 
-# Map OS names for archive
-case "$OS" in
-    darwin) ARCHIVE_OS="Darwin" ;;
-    linux) ARCHIVE_OS="Linux" ;;
-    *)
-        echo "ERROR: Unsupported OS: $OS"
-        exit 1
-        ;;
-esac
+echo "→ platform: $OS/$ARCH"
 
-# Resolve version
-if [ "$VERSION" = "latest" ]; then
-    latest_json=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest")
-    VERSION=$(printf "%s" "$latest_json" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
-    if [ -z "$VERSION" ]; then
-        latest_url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest" || true)
-        VERSION=$(printf "%s" "$latest_url" | sed -n 's#.*/tag/\([^/]*\)$#\1#p')
-    fi
-    if [ -z "$VERSION" ]; then
-        echo "ERROR: Could not determine latest version"
-        exit 1
-    fi
-fi
+supports_current_init() {
+  "$1" init --help 2>&1 | grep -q -- "--harness"
+}
 
-echo "Installing SDP ${VERSION} for ${OS}/${ARCH}..."
+SDP_BIN=""
 
-# Construct archive name (matches goreleaser naming)
-ARCHIVE_NAME="${BINARY_NAME}_${ARCHIVE_OS}_${ARCH}.tar.gz"
-BASE_URL="${SDP_RELEASE_BASE_URL:-https://github.com/${REPO}/releases/download/${VERSION}}"
-DOWNLOAD_URL="${BASE_URL}/${ARCHIVE_NAME}"
-
-# Create temp directory
-TMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TMP_DIR"' EXIT
-
-# Download archive
-echo "Downloading ${ARCHIVE_NAME}..."
-if ! curl -sSLf "$DOWNLOAD_URL" -o "${TMP_DIR}/${ARCHIVE_NAME}"; then
-    echo "ERROR: Failed to download ${DOWNLOAD_URL}"
-    echo ""
-    echo "Available releases: https://github.com/${REPO}/releases"
-    exit 1
-fi
-
-# Download and verify checksum (FATAL on failure - security)
-CHECKSUM_URL="${BASE_URL}/checksums.txt"
-echo "Verifying checksum..."
-if ! curl -sSLf "$CHECKSUM_URL" -o "${TMP_DIR}/checksums.txt"; then
-    echo "ERROR: Could not download checksums from $CHECKSUM_URL"
-    echo "This could indicate a network issue or tampered release."
-    exit 1
-fi
-
-cd "$TMP_DIR"
-if grep -Fq "${ARCHIVE_NAME}" checksums.txt; then
-    grep -F "${ARCHIVE_NAME}" checksums.txt > checksums.single.txt
-    if command -v sha256sum >/dev/null 2>&1; then
-        if ! sha256sum -c checksums.single.txt; then
-            echo "ERROR: Checksum verification FAILED!"
-            echo "The downloaded archive may have been tampered with."
-            exit 1
-        fi
-    elif command -v shasum >/dev/null 2>&1; then
-        if ! shasum -a 256 -c checksums.single.txt 2>/dev/null; then
-            echo "ERROR: Checksum verification FAILED!"
-            echo "The downloaded archive may have been tampered with."
-            exit 1
-        fi
-    else
-        echo "ERROR: No sha256 tool found (sha256sum or shasum required for checksum verification)"
-        echo "Install one of: coreutils (sha256sum), perl (shasum)"
-        exit 1
-    fi
-    echo "✅ Checksum verified"
+if [[ -n "$SOURCE_DIR" ]]; then
+  SOURCE_ROOT="$(cd "$SOURCE_DIR" && pwd -P)"
+  SOURCE_LABEL="$SOURCE_ROOT"
+  echo "→ using local source: $SOURCE_ROOT"
 else
-    echo "ERROR: Archive ${ARCHIVE_NAME} not found in checksums file"
+  if ! command -v git >/dev/null 2>&1; then
+    echo "error: required tool 'git' not found on PATH" >&2
+    echo "       Please install git and re-run this script." >&2
     exit 1
+  fi
+
+  TMPDIR_SDP="$(mktemp -d)"
+  trap 'rm -rf "$TMPDIR_SDP"' EXIT
+  SOURCE_ROOT="$TMPDIR_SDP/sdp_lab"
+  SOURCE_LABEL="$REPO@$BRANCH"
+
+  echo "→ cloning $REPO@$BRANCH into $SOURCE_ROOT"
+  git clone --depth=1 --branch "$BRANCH" "https://github.com/$REPO.git" "$SOURCE_ROOT" 2>&1
 fi
-cd - > /dev/null
 
-# Extract binary
-echo "Extracting..."
-tar -xzf "${TMP_DIR}/${ARCHIVE_NAME}" -C "${TMP_DIR}"
+# Strategy 1: if a compatible `sdp` binary is already on PATH, use it directly.
+if command -v sdp >/dev/null 2>&1; then
+  FOUND_SDP="$(command -v sdp)"
+  if supports_current_init "$FOUND_SDP"; then
+    echo "→ found compatible sdp binary on PATH: $FOUND_SDP"
+    SDP_BIN="$FOUND_SDP"
+  else
+    echo "warning: found incompatible sdp binary on PATH: $FOUND_SDP" >&2
+    echo "warning: it does not support 'sdp init --harness'; building $SOURCE_LABEL instead" >&2
+  fi
+fi
 
-# Find the binary (might be in a subdirectory)
-BINARY_PATH=$(find "${TMP_DIR}" -name "${BINARY_NAME}" -type f | head -1)
-if [ -z "$BINARY_PATH" ]; then
-    echo "ERROR: Binary not found in archive"
+# Strategy 2: clone-and-build (offline-friendly, no GitHub Releases needed in v1).
+# Requires: go (1.21+)
+if [[ -z "$SDP_BIN" ]]; then
+  if ! command -v go >/dev/null 2>&1; then
+    echo "error: required tool 'go' not found on PATH" >&2
+    echo "       Please install go and re-run this script." >&2
     exit 1
+  fi
+
+  echo "→ building sdp binary"
+  mkdir -p "$BIN_DIR"
+  (cd "$SOURCE_ROOT" && go build -tags "sqlite_fts5" -o "$LOCAL_SDP" ./cmd/sdp 2>&1)
+  SDP_BIN="$LOCAL_SDP"
 fi
 
-# Install (remove old binary first to ensure update works)
-mkdir -p "${INSTALL_DIR}"
-rm -f "${INSTALL_DIR}/${BINARY_NAME}"
-chmod +x "${BINARY_PATH}"
-mv "${BINARY_PATH}" "${INSTALL_DIR}/${BINARY_NAME}"
-
-echo ""
-echo "✅ SDP ${VERSION} installed to ${INSTALL_DIR}/${BINARY_NAME}"
-echo ""
-
-# Check if in PATH
-case ":$PATH:" in
-*":${INSTALL_DIR}:"*)
-    ;;
-*)
-    echo "⚠️  ${INSTALL_DIR} is not in your PATH"
-    echo ""
-    echo "Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
-    echo "    export PATH=\"\${HOME}/.local/bin:\${PATH}\""
-    echo ""
-    echo "Then reload: source ~/.bashrc  # or ~/.zshrc"
-    ;;
-esac
-
-# Verify installation
-if ! "${INSTALL_DIR}/${BINARY_NAME}" version >/dev/null 2>&1; then
-        echo "WARNING: Installation verification failed. Run '${BINARY_NAME} version' to check."
+if [[ ! -f "$TARGET_ABS/sdp.manifest.yaml" ]]; then
+  cp "$SOURCE_ROOT/sdp.manifest.yaml" "$TARGET_ABS/sdp.manifest.yaml"
+  echo "→ installed canonical sdp.manifest.yaml"
+else
+  echo "→ keeping existing sdp.manifest.yaml"
 fi
+
+if [[ ! -d "$TARGET_ABS/prompts" ]]; then
+  cp -R "$SOURCE_ROOT/prompts" "$TARGET_ABS/prompts"
+  echo "→ installed canonical prompts/"
+else
+  echo "→ keeping existing prompts/"
+fi
+
+echo "→ running sdp init"
+"$SDP_BIN" init --harness "$HARNESS" --target "$TARGET_ABS"
+
+mkdir -p "$BIN_DIR"
+if [[ "$SDP_BIN" != "$LOCAL_SDP" ]]; then
+  cp "$SDP_BIN" "$LOCAL_SDP"
+  chmod 755 "$LOCAL_SDP"
+fi
+
+echo "✓ SDP installed in $TARGET_ABS"
+echo "✓ repo-local binary: $LOCAL_SDP"
+echo "→ for this shell: export PATH=\"$BIN_DIR:\$PATH\""

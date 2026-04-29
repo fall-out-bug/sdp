@@ -61,4 +61,4 @@ go tool cover -func=coverage.out | grep total
 
 - `@build` - Executes workstream with TDD enforcement
 - `@bugfix` - Bug fixes follow TDD
-- `.claude/skills/tdd.md` - Full skill definition
+- `prompts/skills/tdd/SKILL.md` - Full skill definition

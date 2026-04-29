@@ -1,0 +1,44 @@
+{
+  "spec_version": "v1.0",
+  "decision_id": "c0000002-0000-4000-8000-000000000002",
+  "timestamp": "2026-04-25T10:35:00Z",
+  "decision_type": "security.approval",
+  "decision": "deny",
+  "reason": {
+    "code": "SECRET_DETECTED",
+    "message": "Secret scan found 1 credential leak in changed files",
+    "details": {
+      "findings": [
+        {
+          "file": "internal/config/defaults.go",
+          "line": 42,
+          "rule": "hardcoded-api-key",
+          "severity": "critical"
+        }
+      ],
+      "total_findings": 1,
+      "critical_count": 1
+    }
+  },
+  "context": {
+    "request": {
+      "action": "deploy",
+      "resource": "sdp:prod",
+      "parameters": {"image_tag": "sdp:staging-abc123def456"}
+    },
+    "actor": {"type": "system", "id": "ci-pipeline"},
+    "environment": "production",
+    "workstream_id": "00-001-01",
+    "feature_id": "F001"
+  },
+  "evidence": [
+    {
+      "type": "security_scan",
+      "reference": ".sdp/secretscan/report.json",
+      "summary": "1 critical finding: hardcoded API key in defaults.go:42"
+    }
+  ],
+  "overrides": {
+    "overridden": false
+  }
+}

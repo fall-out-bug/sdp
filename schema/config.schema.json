@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schema/config/v1",
   "title": "SDP Project Config",
   "description": "Project-level SDP settings (.sdp/config.yml)",
   "type": "object",

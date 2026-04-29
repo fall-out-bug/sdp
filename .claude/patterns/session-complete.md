@@ -39,7 +39,7 @@ git commit -m "type: description"
 bd close <issue-id>
 
 # Sync with remote
-bd sync
+scripts/beads_transport.sh export
 ```
 
 ### 4. Push
@@ -71,7 +71,7 @@ git fetch --prune
 | Mistake | Consequence | Fix |
 |---------|-------------|-----|
 | Forgot `bd close` | Issue stays open | Run `bd close` |
-| Forgot `bd sync` | Remote out of sync | Run `bd sync` |
+| Forgot `scripts/beads_transport.sh export` | Remote out of sync | Run `scripts/beads_transport.sh export` |
 | Forgot `git push` | Work not saved | Run `git push` |
 | Forgot `git status` check | Unknown state | Always verify |
 

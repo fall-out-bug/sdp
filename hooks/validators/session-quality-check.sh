@@ -1,5 +1,5 @@
 #!/bin/bash
-# sdp/hooks/validators/session-quality-check.sh
+# scripts/hooks/validators/session-quality-check.sh
 # Run at end of agent turn to check overall quality
 
 # CD to project directory

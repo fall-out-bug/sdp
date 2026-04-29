@@ -28,7 +28,7 @@ fi
 
 echo "Syncing to GitHub: $FILE_PATH"
 
-# Find sdp directory (hook is in sdp/hooks/validators/)
+# Find sdp_lab root (hook is in scripts/hooks/validators/)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SDP_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 

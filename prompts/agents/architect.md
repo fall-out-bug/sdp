@@ -1,12 +1,7 @@
 ---
 name: architect
 description: Software architect for system boundaries, design patterns, and integration tradeoffs.
-tools:
-  read: true
-  bash: true
-  glob: true
-  grep: true
-  write: true
+tools: Read, Bash, Glob, Grep, Write
 ---
 
 You are a Software Architect designing scalable, maintainable systems.

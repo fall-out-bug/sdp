@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "source": "gerrit.review",
+  "external_ref": "gerrit-change-12345-patchset-3-comment-c7a9b1",
+  "repository": {
+    "id": "platform/auth-service",
+    "url": "https://gerrit.example.com/g/platform/auth-service",
+    "provider": "gerrit",
+    "branch": "main"
+  },
+  "pull_request": {
+    "id": "12345",
+    "url": "https://gerrit.example.com/c/platform/auth-service/+/12345",
+    "title": "feat: implement token refresh rotation"
+  },
+  "commit_sha": "f7e6d5c4b3a29180f7e6d5c4b3a29180f7e6d5c4",
+  "observed_at": "2026-04-27T11:05:22Z",
+  "collected_at": "2026-04-27T11:05:23Z",
+  "actor": {
+    "type": "human",
+    "id": "jane.doe@example.com",
+    "name": "Jane Doe"
+  },
+  "event_type": "review_comment",
+  "status": "warning",
+  "summary": "Reviewer flagged concern: refresh token storage in auth/handler.go:89 uses plaintext cookie. Recommends encrypting token before setting cookie value. Not blocking but should be addressed before merge.",
+  "artifact_uri": "https://gerrit.example.com/c/platform/auth-service/+/12345/comment/c7a9b1",
+  "artifact_hash": {
+    "algorithm": "sha-256",
+    "value": "3a1b5c7d9e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a41"
+  },
+  "error_state": null
+}

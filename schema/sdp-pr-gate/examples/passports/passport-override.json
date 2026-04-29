@@ -1,0 +1,101 @@
+{
+  "passport_id": "01912234-5678-7000-8000-000000000002",
+  "schema_version": "v1",
+  "created_at": "2026-05-01T14:00:00Z",
+  "generated_at": "2026-05-01T14:05:00Z",
+  "repository": {
+    "full_name": "acme/webapp",
+    "url": "https://github.com/acme/webapp",
+    "default_branch": "main",
+    "platform": "github"
+  },
+  "pull_request": {
+    "number": 345,
+    "url": "https://github.com/acme/webapp/pull/345",
+    "title": "Hotfix: fix auth token expiry check",
+    "head_sha": "def789abc012def789abc012def789abc012def7",
+    "base_branch": "main",
+    "head_branch": "hotfix/auth-expiry",
+    "author": { "id": "carol", "type": "human", "name": "Carol Dev", "role": "author" },
+    "labels": ["bugfix", "hotfix"]
+  },
+  "intent": {
+    "summary": "Fix auth token expiry check causing 401 errors for active users.",
+    "claimed_type": "bugfix",
+    "source": "labels"
+  },
+  "scope": {
+    "items": [
+      {
+        "description": "Auth token validation logic",
+        "classification": "in_scope",
+        "files": ["internal/auth/token.go", "internal/auth/token_test.go"]
+      }
+    ]
+  },
+  "actors": {
+    "items": [
+      {
+        "actor": { "id": "carol", "type": "human", "name": "Carol Dev" },
+        "contribution_type": "author",
+        "commits": ["def789abc012def789abc012def789abc012def7"]
+      }
+    ],
+    "decision_owner": { "id": "bob", "type": "human", "name": "Bob Manager", "role": "decision_owner" }
+  },
+  "evidence": {
+    "providers": [
+      { "source": "github-actions", "status": "accepted", "event_count": 3, "last_collected_at": "2026-05-01T14:02:00Z" },
+      { "source": "sonarqube", "status": "accepted", "event_count": 1, "last_collected_at": "2026-05-01T14:03:00Z" },
+      { "source": "github-review", "status": "accepted", "event_count": 1, "last_collected_at": "2026-05-01T14:04:00Z" }
+    ],
+    "total_events": 5,
+    "collection_status": "complete",
+    "evidence_snapshot_ref": "sha256:f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2"
+  },
+  "findings": {
+    "items": [
+      {
+        "id": "SQ-042",
+        "source": "sonarqube",
+        "severity": "medium",
+        "status": "open",
+        "summary": "Potential timing attack on token comparison",
+        "file": "internal/auth/token.go",
+        "line": 45,
+        "external_ref": "https://sonarqube.acme.dev/issues/SQ-042"
+      }
+    ],
+    "unresolved_count": 1,
+    "summary": "1 medium finding (SQ-042) unresolved: potential timing attack. Non-blocking."
+  },
+  "risk": {
+    "items": [
+      {
+        "description": "Timing attack finding (SQ-042) deferred to follow-up PR",
+        "category": "unresolved_finding",
+        "severity": "medium",
+        "mitigation": "Tracked in issue #350 for next sprint"
+      }
+    ],
+    "summary": "1 medium risk accepted: timing attack deferred to follow-up."
+  },
+  "decision": {
+    "result": "override",
+    "decided_by": { "id": "bob", "type": "human", "name": "Bob Manager", "role": "decision_owner" },
+    "decided_at": "2026-05-01T14:10:00Z",
+    "reason": "Client deadline accepted; non-blocking scanner finding tracked in #350",
+    "override": {
+      "reason": "Client deadline accepted; non-blocking scanner finding tracked in #350",
+      "evidence_snapshot_ref": "sha256:f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2",
+      "audit_ref": "audit:override:01912234-5678-7000-8000-000000000002",
+      "trigger": "comment"
+    },
+    "check_status": "ready"
+  },
+  "integrity": {
+    "passport_hash": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
+    "algorithm": "sha256",
+    "evidence_snapshot_hash": "f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2"
+  }
+}

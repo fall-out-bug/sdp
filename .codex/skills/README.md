@@ -1,9 +1,17 @@
-# Project-level skills (Codex)
+# Project-Level Skills (Codex)
 
-SDP project skills are defined in `prompts/skills/` (source of truth). This folder contains symlinks for Codex compatibility.
+SDP project skills are defined in `prompts/skills/`.
 
-- **@build** — Execute workstream (TDD, guard). See `prompts/skills/build/SKILL.md`.
-- **@design** — Plan workstreams. See `prompts/skills/design/SKILL.md`.
-- **@review** — Multi-agent quality review. See `prompts/skills/review/SKILL.md`.
+This directory exists only for Codex-facing compatibility and discovery.
+The source of truth is still:
 
-Full list: `prompts/skills/` (build, design, feature, guard, oneshot, review, tdd, etc.).
+- `prompts/skills/`
+- `prompts/commands.yml`
+- `prompts/agents/`
+
+Start with:
+
+- `@feature`
+- `@build`
+- `@review`
+- `@fix`

@@ -8,7 +8,7 @@ agent: builder
 When calling `/bugfix issue NNN`:
 
 1. **Read issue** — Load `docs/issues/{NNN}-*.md`
-2. **Create branch** — `git checkout -b bugfix/{NNN}-{slug}` from master
+2. **Create branch** — `git checkout -b bugfix/{NNN}-{slug}` from main
 3. **TDD cycle** — Write failing test → implement fix → refactor
 4. **Quality gates** — run quality gates (see AGENTS.md)
 5. **Commit** — `fix(scope): description (issue NNN)`
@@ -18,7 +18,7 @@ When calling `/bugfix issue NNN`:
 ## CRITICAL: You MUST Complete
 
 ```bash
-git checkout master
+git checkout main
 git merge bugfix/{branch} --no-edit
 git push
 git status  # MUST show "up to date with origin"
@@ -34,5 +34,5 @@ git status  # MUST show "up to date with origin"
 | Aspect | Hotfix | Bugfix |
 |--------|--------|--------|
 | Severity | P0 | P1/P2 |
-| Branch from | master | master |
+| Branch from | main | main |
 | Testing | Fast | Full |

@@ -1,15 +1,17 @@
 ---
 name: feature
 description: Feature planning orchestrator (discovery -> idea -> ux -> design -> workstream tree)
-version: 8.0.0
+version: 9.0.0
 depends_on: "@discovery v1"
 changes:
+  - v9: Added --design-only (alias for --quick, explicit naming)
   - v8: Full product discovery flow with @discovery, @ux, impact analysis
   - Added --quick (skip @discovery), --infra (skip @ux)
   - Step 3.5: Impact analysis after @design
 examples:
   - "@feature 'Add user authentication' --default # Full interactive pipeline"
   - "@feature 'Add user authentication' --quick # Skip to @design only, 0 questions"
+  - "@feature 'Add user authentication' --design-only # Same as --quick, explicit name"
   - "@feature 'Add payment processing' --auto # Non-interactive, from roadmap/plan docs"
 ---
 
@@ -26,7 +28,7 @@ Orchestrate product discovery, requirements, UX research, and workstream design.
 | Mode | When to use | Steps | Questions |
 |------|-------------|-------|-----------|
 | `--default` (or no flag) | New/exploratory feature. Full interactive discovery. | 0, 1, 2, 2.5, 3, 3.5, 4 | Interactive (3-5 questions) |
-| `--quick` | User knows what they want, just needs workstreams. | 3 only | **0 questions** - goes directly to @design |
+| `--quick` / `--design-only` | User knows what they want, just needs workstreams. | 3 only | **0 questions** - goes directly to @design |
 | `--auto` | Feature already described in roadmap/plan. Non-interactive. | 0, 3, 4 only | **0 questions** - reads from docs/ROADMAP.md |
 
 ### Mode Behavior Guarantee
@@ -34,7 +36,7 @@ Orchestrate product discovery, requirements, UX research, and workstream design.
 **Deterministic:** Each mode produces identical behavior given identical input. No context sniffing, no heuristics, no "smart defaults."
 
 - `--default`: Always asks the same questions in the same order
-- `--quick`: Always skips to @design with zero questions
+- `--quick` / `--design-only`: Always skips to @design with zero questions
 - `--auto`: Always reads from roadmap/plan docs, never asks questions
 
 ---
@@ -111,7 +113,7 @@ Output: feature ID, workstream count, file names, Beads IDs, ready-to-run comman
 
 ---
 
-## --quick Mode (@design Only, Zero Questions)
+## --quick / --design-only Mode (@design Only, Zero Questions)
 
 For users who know what they want and just need workstreams. Zero questions, deterministic.
 
@@ -173,7 +175,7 @@ Before creating workstream files and docs, emit a write plan:
    {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"feature"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
    ```
    Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
-   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
@@ -191,6 +193,29 @@ Proceed? [y/n]
 - `--yes`: Show plan → Execute immediately (no prompt)
 
 > **Note:** `--dry-run` and `--yes` are orthogonal to skill mode flags (`--default`, `--quick`, `--auto`). They can be combined with any mode (e.g. `@feature "X" --quick --dry-run`).
+
+## Completion
+
+When all workstreams are created and verified, output:
+
+```
+@feature complete. Feature {ID}: {count} workstreams created.
+  Aggregate: 00-{FFF}-00
+  Leaves: 00-{FFF}-01 .. 00-{FFF}-{NN}
+
+Next: @build 00-{FFF}-01  or  @oneshot F{XX}
+```
+
+## Recovery
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Run `@init` first to scaffold project structure; then re-run `@feature` |
+| "checkpoint not found" | Run `sdp-orchestrate --feature <ID>` to create initial checkpoint |
+| "workstream files missing" | Run `sdp-orchestrate --index` to verify, then `@feature` to regenerate |
+| Skill hangs / no progress | Check `.sdp/log/events.jsonl` for last event; use `sdp reset --feature <ID>` if stuck |
+| Review loop exceeds 3 rounds | Use `@review --override "reason"`, `@review --partial`, or `@review --escalate` |
+| --design-only produces no workstreams | Run `@init` to scaffold project structure, then re-run with `--design-only` |
 
 ## See Also
 

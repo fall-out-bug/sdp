@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "source": "snyk.sast",
+  "external_ref": "snyk-sast-finding-e3b0c442-98fc-1c14-9afb-f4c8996fb924",
+  "repository": {
+    "id": "acme/my-app",
+    "url": "https://github.com/acme/my-app",
+    "provider": "github",
+    "branch": "main"
+  },
+  "pull_request": {
+    "id": "42",
+    "url": "https://github.com/acme/my-app/pull/42",
+    "title": "feat: add user authentication middleware"
+  },
+  "commit_sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+  "observed_at": "2026-04-27T10:29:45Z",
+  "collected_at": "2026-04-27T10:29:47Z",
+  "actor": {
+    "type": "tool",
+    "id": "snyk-cli",
+    "name": "Snyk CLI 1.1200.0"
+  },
+  "event_type": "scan_finding",
+  "status": "failure",
+  "summary": "SAST scan found 1 high-severity issue: SQL injection in auth/middleware.go:47 (function authenticateToken). Unsanitized user input passed directly to database query string. Severity: high. CVSS 7.5.",
+  "artifact_uri": "https://app.snyk.io/org/acme/project/my-app/issue/snyk-finding-e3b0c442",
+  "artifact_hash": {
+    "algorithm": "sha-256",
+    "value": "7d1a3b5c9e2f4a6d8b0c3e5f7a9d1b3c5e7f9a2d4b6c8e0f2a4d6b8c0e2f4a71"
+  },
+  "error_state": null
+}

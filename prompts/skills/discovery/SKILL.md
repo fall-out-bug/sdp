@@ -23,8 +23,8 @@ When user invokes `@discovery "feature description"` or when `@feature` invokes 
 2. If memory search returns > 10 results, reduce to 2 most specific terms.
 
 ```bash
-sdp memory stats   # warn if index > 24h old
-sdp memory search "<keyword1> <keyword2> <keyword3>"
+sdp index stats <repo-path>   # warn if index > 24h old
+sdp index query <repo-path> "<keyword1> <keyword2> <keyword3>"
 ```
 
 3. Analyze results for:
@@ -183,6 +183,46 @@ When [situation], [user segment] want to [motivation], so they can [outcome].
 - **COMPETITIVE / NOVEL:** @feature passes discovery brief to @idea with `--spec docs/drafts/discovery-{slug}.md`
 
 ---
+
+## Write Plan (F101)
+
+Before creating the discovery brief, emit a write plan:
+
+1. **Enumerate** — List every file the skill will CREATE / MODIFY / DELETE with a one-line reason (discovery brief, event log).
+2. **Flags:**
+   - `--dry-run` — Emit write plan only. Do NOT create, modify, or delete any file.
+   - `--yes` — Skip confirmation prompt. Execute immediately. Intended for CI/non-interactive.
+3. **Confirm** — Present the plan to the user and wait for explicit approval (unless `--yes`).
+4. **Log** — Append write plan event to `.sdp/log/events.jsonl` (**sanitize file paths** before logging: strip newlines, ensure valid JSON escaping):
+   ```json
+   {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"discovery"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
+   ```
+   Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
+
+**Output format:**
+```
+WRITE PLAN for @discovery <feature>:
+  CREATE: docs/drafts/discovery-{slug}.md — Discovery brief (COMPETITIVE / NOVEL tracks only)
+  MODIFY: .sdp/log/events.jsonl — Write plan event log
+
+Proceed? [y/n]
+```
+
+**Modes:**
+- No flag: Show plan → Confirm → Execute
+- `--dry-run`: Show plan → STOP
+- `--yes`: Show plan → Execute immediately (no prompt)
+
+---
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Check working directory is project root with `docs/workstreams/backlog/` |
+| "checkpoint not found" | Run `sdp-orchestrate --feature <ID>` to create initial checkpoint |
+| "workstream files missing" | Run `sdp-orchestrate --index` to verify, then `@feature` to regenerate |
+| Skill hangs / no progress | Check `.sdp/log/events.jsonl` for last event; use `sdp reset --feature <ID>` if stuck |
+| Review loop exceeds 3 rounds | Use `@review --override "reason"`, `@review --partial`, or `@review --escalate` |
 
 ## See Also
 

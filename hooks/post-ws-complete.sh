@@ -10,5 +10,5 @@ if [ -z "$WS_ID" ]; then
     exit 1
 fi
 
-echo "WS $WS_ID complete. Run: bd close <beads_id> --reason 'WS completed'; bd sync"
+echo "WS $WS_ID complete. Run: bd close <beads_id> --reason 'WS completed'; scripts/beads_transport.sh export"
 exit 0

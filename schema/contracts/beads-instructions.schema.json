@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/beads-instructions/v1",
+  "title": "BeadsInstructions",
+  "type": "object",
+  "required": ["spec_version", "instructions"],
+  "properties": {
+    "spec_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "context": { "type": "string" },
+    "instructions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "action", "reason"],
+        "properties": {
+          "step": { "type": "integer" },
+          "action": { "type": "string" },
+          "reason": { "type": "string" },
+          "command": { "type": "string" },
+          "expected_outcome": { "type": "string" },
+          "troubleshooting": { "type": "string" }
+        }
+      }
+    }
+  }
+}

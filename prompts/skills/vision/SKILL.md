@@ -28,7 +28,7 @@ Before modifying any file, emit a write plan covering PRODUCT_VISION.md, PRD.md,
    {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"vision"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
    ```
    Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
-   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
@@ -56,6 +56,29 @@ Initial setup, quarterly review, major pivot, new market.
 ## Output
 
 PRODUCT_VISION.md, docs/prd/PRD.md, docs/roadmap/ROADMAP.md, docs/drafts/feature-*.md
+
+## Completion
+
+When all artifacts are generated, output:
+
+```
+@vision complete. Artifacts created:
+  PRODUCT_VISION.md
+  docs/prd/PRD.md
+  docs/roadmap/ROADMAP.md
+  docs/drafts/feature-*.md
+
+Next: @reality --quick  or  @feature "description"
+```
+
+## Recovery
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Ensure `@init` was run first; verify `docs/` directory exists and is writable |
+| Artifacts not generated | Check disk space and write permissions; re-run with `--yes` to skip prompts |
+| PRD sections missing | Project type not detected — specify manually via interview answers |
+| Roadmap empty | No features extracted from vision — re-run interview with more specific answers |
 
 ## See Also
 

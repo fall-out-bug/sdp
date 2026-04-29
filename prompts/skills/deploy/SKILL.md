@@ -1,14 +1,27 @@
 ---
 name: deploy
-description: Deployment orchestration. Creates PR to master (after @oneshot) or merges for release.
-version: 4.0.0
+description: DEPRECATED: Use @ship instead. Deployment orchestration. Creates PR to main (after @oneshot) or merges for release.
+version: 5.0.0
+deprecated: true
+deprecated_in_favor_of: ship
+deprecation_version: "5.0.0"
+removal_version: "8.0.0"
 changes:
+  - "5.0.0: DEPRECATED - Renamed to @ship"
   - "4.0.0: Compress to ~150 lines (P2 remediation)"
 ---
 
-# @deploy - Deployment Orchestration
+# @deploy - DEPRECATED
 
-Create PR to master (after @oneshot) or merge for release.
+⚠️ **DEPRECATED** — Use `@ship` instead.
+
+This skill will be removed in version 8.0.0. Both `@deploy` and `@ship` will work for 3 minor versions.
+
+---
+
+## Deployment Orchestration (Legacy)
+
+Create PR to main (after @oneshot) or merge for release.
 
 ---
 
@@ -48,7 +61,7 @@ Before modifying any file, emit a write plan:
    {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"deploy"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
    ```
    Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
-   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
@@ -69,8 +82,8 @@ Proceed? [y/n]
 
 | Mode | Action |
 |------|--------|
-| PR | feature -> master via gh pr create |
-| Release | Version bump + tag on master |
+| PR | feature -> main via gh pr create |
+| Release | Version bump + tag on main |
 
 ---
 
@@ -96,6 +109,16 @@ Before ANY git: verify `pwd`, `git branch --show-current`.
 | Push rejected | Pull and retry |
 
 ---
+
+## Recovery
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Check working directory is project root with `docs/workstreams/backlog/` |
+| "checkpoint not found" | Run `sdp-orchestrate --feature <ID>` to create initial checkpoint |
+| "workstream files missing" | Run `sdp-orchestrate --index` to verify, then `@feature` to regenerate |
+| Skill hangs / no progress | Check `.sdp/log/events.jsonl` for last event; use `sdp reset --feature <ID>` if stuck |
+| Review loop exceeds 3 rounds | Use `@review --override "reason"`, `@review --partial`, or `@review --escalate` |
 
 ## See Also
 

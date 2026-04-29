@@ -11,22 +11,41 @@ echo "WARNING: This install method is deprecated."
 echo "Please use: sdp hooks install"
 echo ""
 
-# Try to use the Go implementation if available
-if command -v sdp >/dev/null 2>&1; then
-    echo "Using sdp CLI to install hooks..."
-    exec sdp hooks install
+# Try to use the Go implementation if available.
+# Resolve the CLI relative to the script/project, never from PATH
+# (on macOS /usr/bin/sdp is an Xcode tool, not this project's CLI).
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+sdp_cli=""
+# 1. Local build inside optional sdp/ checkout
+if [ -x "${PROJECT_ROOT}/sdp/sdp-plugin/sdp" ]; then
+    sdp_cli="${PROJECT_ROOT}/sdp/sdp-plugin/sdp"
+fi
+# 2. Project's own binary (if built at project root)
+if [ -z "${sdp_cli}" ] && [ -x "${PROJECT_ROOT}/sdp" ]; then
+    case "$(file "${PROJECT_ROOT}/sdp" 2>/dev/null)" in
+        *"ELF"*|*"Mach-O"*|*"PE32"*)
+            sdp_cli="${PROJECT_ROOT}/sdp"
+            ;;
+    esac
+fi
+
+if [ -n "${sdp_cli}" ]; then
+    echo "Using sdp CLI (${sdp_cli}) to install hooks..."
+    exec "${sdp_cli}" hooks install
 fi
 
 # Fallback to manual installation if sdp is not available
 echo "SDP CLI not found. Using manual installation..."
 
-HOOKS_DIR=".git/hooks"
-
-# Check if in git repo
-if [ ! -d ".git" ]; then
-    echo "Error: Not in git repository root" >&2
+# Resolve hooks dir via git (works in both regular repos and worktrees
+# where .git is a file, not a directory).
+if ! GIT_DIR="$(git rev-parse --git-dir 2>/dev/null)"; then
+    echo "Error: Not in a git repository" >&2
     exit 1
 fi
+HOOKS_DIR="${GIT_DIR}/hooks"
 
 # Create hooks directory if needed
 mkdir -p "${HOOKS_DIR}"

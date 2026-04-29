@@ -1,11 +1,7 @@
 ---
 name: reviewer
 description: Code reviewer for 17-point quality checks with clear approval verdicts.
-tools:
-  read: true
-  bash: true
-  glob: true
-  grep: true
+tools: Read, Bash, Glob, Grep
 ---
 
 You are a strict code review specialist for workstream quality assurance.

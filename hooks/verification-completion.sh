@@ -1,5 +1,5 @@
 #!/bin/bash
-# sdp/hooks/verification-completion.sh
+# scripts/hooks/verification-completion.sh
 # Verification hook for /build completion
 # Enforces evidence-based claims and detects red flag phrases
 # Usage: ./verification-completion.sh <ws-file-path>
