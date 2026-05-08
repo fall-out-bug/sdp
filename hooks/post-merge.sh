@@ -1,17 +1,20 @@
 #!/bin/sh
-# Post-merge hook: clear Go caches after merge operations
+# Post-merge hook: clear Go caches and run doc-sync for architectural changes
 # Part of F063 follow-up - keep local build state aligned
+# Part of sdplab-665 - auto-fix documentation on merge
 
 set -e
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
-if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" = "1" ]; then
+# Skip if requested
+if [ "${SDP_SKIP_POST_MERGE:-0}" = "1" ]; then
     exit 0
 fi
 
-if command -v go >/dev/null 2>&1; then
+# Clear Go caches if requested
+if [ "${SDP_SKIP_GO_CACHE_CLEAN:-0}" != "1" ] && command -v go >/dev/null 2>&1; then
     if go clean -cache -testcache >/dev/null 2>&1; then
         echo "Go build/test caches cleared"
     else
@@ -25,6 +28,19 @@ if command -v go >/dev/null 2>&1; then
             rm -rf "$dir" >/dev/null 2>&1 || true
         done
     ) >/dev/null 2>&1 &
+fi
+
+# Run doc-sync fix for architectural changes
+# This automatically fixes documentation inconsistencies when merging changes
+if command -v sdp-doc-sync >/dev/null 2>&1; then
+    if [ "${SDP_SKIP_DOC_SYNC:-0}" != "1" ]; then
+        echo "Running sdp-doc-sync fix for architectural changes..."
+        if sdp-doc-sync --mode fix 2>&1 | grep -q "nothing to fix"; then
+            echo "Documentation is consistent"
+        else
+            echo "Documentation inconsistencies fixed automatically"
+        fi
+    fi
 fi
 
 exit 0

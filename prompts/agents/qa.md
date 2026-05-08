@@ -1,11 +1,7 @@
 ---
 name: qa
 description: QA specialist for test strategy, quality metrics, and release quality gates.
-tools:
-  read: true
-  bash: true
-  glob: true
-  grep: true
+tools: Read, Bash, Glob, Grep
 ---
 
 # QA Agent

@@ -1,5 +1,5 @@
 #!/bin/bash
-# sdp/hooks/post-codereview.sh
+# scripts/hooks/post-codereview.sh
 # Post-codereview checks for /codereview command
 # Usage: ./post-codereview.sh F{XX}
 
@@ -102,7 +102,7 @@ else
     echo "❌ UAT Guide NOT found"
     echo "   Expected: $UAT_FILE or $ALT_UAT_FILE"
     echo ""
-    echo "   Create UAT Guide using template: sdp/templates/uat-guide.md"
+    echo "   Create UAT Guide using template: templates/uat-guide.md"
     echo ""
     echo "   To skip: SKIP_UAT_CHECK=1 ./post-codereview.sh $FEATURE"
     exit 1

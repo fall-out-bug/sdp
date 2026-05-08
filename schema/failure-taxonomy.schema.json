@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://sdp.dev/schemas/failure-taxonomy.schema.json",
+  "$id": "https://sdp.dev/schema/failure-taxonomy/v1",
   "title": "AI Failure Taxonomy Schema",
   "description": "Schema for classifying AI code generation failures by type, severity, and context (AC1, AC2)",
   "type": "array",

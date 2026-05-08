@@ -19,4 +19,4 @@ Calls `POST /api/v1/intake` on the Intake Gateway with:
 
 Set INTAKE_GATEWAY_URL (default http://localhost:8081) for the gateway base URL.
 
-Example: `/swarm sdp_dev "Add user authentication"`
+Example: `/swarm sdp_lab "Add user authentication"`

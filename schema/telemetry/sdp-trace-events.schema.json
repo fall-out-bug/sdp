@@ -1,0 +1,396 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schema/telemetry/sdp-trace-events.schema.json",
+  "title": "SDP Trace Events",
+  "description": "Allowlist schema for SDP telemetry trace events. All attributes must be explicitly declared - unknown attributes are rejected at emit-time.",
+  "type": "object",
+  "definitions": {
+    "span_kind": {
+      "type": "string",
+      "enum": ["execute_tool", "invoke_agent", "delivery_loop_phase", "sdp_bead_event"]
+    },
+    "attribute_definition": {
+      "type": "object",
+      "required": ["type", "description"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["string", "int", "float", "boolean", "string[]"]
+        },
+        "description": {"type": "string"},
+        "required": {"type": "boolean", "default": false},
+        "consent_level": {
+          "type": "string",
+          "enum": ["none", "metadata", "findings", "content"],
+          "description": "Minimum consent level required to emit this attribute. 'none' disables all telemetry."
+        }
+      }
+    }
+  },
+  "properties": {
+    "span_kinds": {
+      "type": "object",
+      "description": "Allowed attributes per span kind",
+      "properties": {
+        "execute_tool": {
+          "type": "object",
+          "description": "Span emitted for each tool invocation (Bash, Read, Edit, etc.)",
+          "properties": {
+            "allowed_attributes": {
+              "type": "object",
+              "properties": {
+                "gen_ai.operation.name": {
+                  "type": "string",
+                  "const": "execute_tool",
+                  "description": "OTel GenAI semantic convention - operation name"
+                },
+                "gen_ai.tool.name": {
+                  "type": "string",
+                  "description": "Tool name (Bash, Read, Edit, Grep, etc.)"
+                },
+                "gen_ai.tool.call.id": {
+                  "type": "string",
+                  "description": "Unique identifier for this tool call instance"
+                },
+                "gen_ai.tool.type": {
+                  "type": "string",
+                  "enum": ["host", "mcp"],
+                  "description": "Tool type: host (native) or mcp (Model Context Protocol)"
+                },
+                "sdp.session.id": {
+                  "type": "string",
+                  "description": "SDP session identifier"
+                },
+                "sdp.epic.bead_id": {
+                  "type": "string",
+                  "description": "Parent epic bead ID (resolved from .sdp/state/current-feature)"
+                },
+                "sdp.harness": {
+                  "type": "string",
+                  "enum": ["claude-code", "codex", "opencode", "cursor"],
+                  "description": "Harness type"
+                },
+                "sdp.phase.name": {
+                  "type": "string",
+                  "enum": ["phase_0_bootstrap", "phase_1_build", "phase_2_pr", "phase_3_codex", "phase_4_closeout"],
+                  "description": "Delivery loop phase name"
+                },
+                "sdp.phase.cycle_number": {
+                  "type": "int",
+                  "description": "Cycle number within phase"
+                },
+                "sdp.tool.exit_code": {
+                  "type": "int",
+                  "description": "Tool exit code (0 for success, non-zero for failure)"
+                },
+                "sdp.tool.duration_ms": {
+                  "type": "int",
+                  "description": "Tool execution duration in milliseconds"
+                },
+                "sdp.tool.error": {
+                  "type": "string",
+                  "consent_level": "findings",
+                  "description": "Error message if tool failed"
+                },
+                "sdp.tool.input_hash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{8}$",
+                  "consent_level": "metadata",
+                  "description": "SHA-1 hash (first 8 chars) of tool input"
+                },
+                "sdp.tool.output_hash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{8}$",
+                  "consent_level": "metadata",
+                  "description": "SHA-1 hash (first 8 chars) of tool output"
+                }
+              },
+              "required": ["gen_ai.operation.name", "gen_ai.tool.name", "gen_ai.tool.call.id", "sdp.session.id", "sdp.epic.bead_id", "sdp.harness"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "invoke_agent": {
+          "type": "object",
+          "description": "Span emitted for skill/subagent invocation",
+          "properties": {
+            "allowed_attributes": {
+              "type": "object",
+              "properties": {
+                "gen_ai.operation.name": {
+                  "type": "string",
+                  "const": "invoke_agent",
+                  "description": "OTel GenAI semantic convention - operation name"
+                },
+                "gen_ai.agent.name": {
+                  "type": "string",
+                  "description": "Agent/skill name (review, build, codex, etc.)"
+                },
+                "gen_ai.conversation.id": {
+                  "type": "string",
+                  "description": "Conversation identifier for correlation"
+                },
+                "sdp.session.id": {
+                  "type": "string",
+                  "description": "SDP session identifier"
+                },
+                "sdp.epic.bead_id": {
+                  "type": "string",
+                  "description": "Parent epic bead ID"
+                },
+                "sdp.skill.name": {
+                  "type": "string",
+                  "description": "Skill name"
+                },
+                "sdp.phase.name": {
+                  "type": "string",
+                  "enum": ["phase_0_bootstrap", "phase_1_build", "phase_2_pr", "phase_3_codex", "phase_4_closeout"],
+                  "description": "Delivery loop phase name"
+                },
+                "sdp.phase.cycle_number": {
+                  "type": "int",
+                  "description": "Cycle number within phase"
+                },
+                "sdp.agent.duration_ms": {
+                  "type": "int",
+                  "description": "Agent execution duration in milliseconds"
+                },
+                "sdp.review.verdict": {
+                  "type": "string",
+                  "enum": ["APPROVED", "APPROVED_WITH_SUGGESTIONS", "NEEDS_WORK", "BLOCKED"],
+                  "consent_level": "findings",
+                  "description": "Review verdict"
+                },
+                "sdp.review.findings_count": {
+                  "type": "int",
+                  "consent_level": "findings",
+                  "description": "Total number of findings"
+                },
+                "sdp.review.findings_by_severity": {
+                  "type": "string",
+                  "consent_level": "findings",
+                  "description": "JSON string mapping severity to count"
+                },
+                "sdp.codex.consecutive_clean": {
+                  "type": "int",
+                  "description": "Number of consecutive clean codex cycles"
+                },
+                "sdp.codex.tests_passed": {
+                  "type": "boolean",
+                  "description": "Whether all tests passed"
+                },
+                "sdp.council.round": {
+                  "type": "int",
+                  "description": "Council round number"
+                },
+                "sdp.council.roles": {
+                  "type": "array",
+                  "items": {"type": "string"},
+                  "description": "Council roles participating in this round"
+                }
+              },
+              "required": ["gen_ai.operation.name", "gen_ai.agent.name", "sdp.session.id", "sdp.epic.bead_id"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "delivery_loop_phase": {
+          "type": "object",
+          "description": "Span emitted for delivery loop phase transitions",
+          "properties": {
+            "allowed_attributes": {
+              "type": "object",
+              "properties": {
+                "sdp.phase.name": {
+                  "type": "string",
+                  "enum": ["phase_0_bootstrap", "phase_1_build", "phase_2_pr", "phase_3_codex", "phase_4_closeout"],
+                  "description": "Phase name"
+                },
+                "sdp.phase.cycle_number": {
+                  "type": "int",
+                  "description": "Cycle number within phase"
+                },
+                "sdp.session.id": {
+                  "type": "string",
+                  "description": "SDP session identifier"
+                },
+                "sdp.epic.bead_id": {
+                  "type": "string",
+                  "description": "Parent epic bead ID"
+                },
+                "sdp.feature_id": {
+                  "type": "string",
+                  "description": "Feature identifier"
+                },
+                "sdp.workstream_count": {
+                  "type": "int",
+                  "description": "Number of workstreams in this feature"
+                },
+                "sdp.phase.duration_ms": {
+                  "type": "int",
+                  "description": "Phase duration in milliseconds"
+                },
+                "sdp.pr.number": {
+                  "type": "int",
+                  "description": "Pull request number"
+                },
+                "sdp.quality_gate.result": {
+                  "type": "string",
+                  "enum": ["PASSED", "FAILED", "SKIPPED"],
+                  "description": "Quality gate result"
+                },
+                "sdp.closeout.children_closed": {
+                  "type": "int",
+                  "description": "Number of child beads closed"
+                },
+                "sdp.closeout.duration_ms": {
+                  "type": "int",
+                  "description": "Closeout duration in milliseconds"
+                }
+              },
+              "required": ["sdp.phase.name", "sdp.session.id", "sdp.epic.bead_id"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "sdp_bead_event": {
+          "type": "object",
+          "description": "Span emitted for bead state transitions",
+          "properties": {
+            "allowed_attributes": {
+              "type": "object",
+              "properties": {
+                "sdp.bead.id": {
+                  "type": "string",
+                  "description": "Bead identifier (e.g., sdplab-xxxx)"
+                },
+                "sdp.bead.event": {
+                  "type": "string",
+                  "enum": ["claimed", "started", "completed", "blocked", "unblocked", "closed", "reopened"],
+                  "description": "Bead event type"
+                },
+                "sdp.bead.previous_status": {
+                  "type": "string",
+                  "enum": ["OPEN", "IN_PROGRESS", "BLOCKED", "CLOSED"],
+                  "description": "Previous bead status"
+                },
+                "sdp.bead.new_status": {
+                  "type": "string",
+                  "enum": ["OPEN", "IN_PROGRESS", "BLOCKED", "CLOSED"],
+                  "description": "New bead status"
+                },
+                "sdp.session.id": {
+                  "type": "string",
+                  "description": "SDP session identifier"
+                },
+                "sdp.epic.bead_id": {
+                  "type": "string",
+                  "description": "Parent epic bead ID"
+                },
+                "trace.id": {
+                  "type": "string",
+                  "description": "Associated trace ID"
+                }
+              },
+              "required": ["sdp.bead.id", "sdp.bead.event"],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    },
+    "consent_levels": {
+      "type": "object",
+      "description": "Consent level definitions. 'none' disables all telemetry including local storage.",
+      "properties": {
+        "none": {
+          "type": "object",
+          "description": "Telemetry completely disabled - no local storage, no export",
+          "properties": {
+            "description": {"type": "string"},
+            "example_attributes": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Default level - only structural metadata, no content",
+          "properties": {
+            "description": {"type": "string"},
+            "example_attributes": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "findings": {
+          "type": "object",
+          "description": "Includes finding messages without code content",
+          "properties": {
+            "description": {"type": "string"},
+            "example_attributes": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "content": {
+          "type": "object",
+          "description": "Full content including code snippets and prompts (opt-in)",
+          "properties": {
+            "description": {"type": "string"},
+            "example_attributes": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "sampling_policy": {
+      "type": "object",
+      "description": "Sampling policy configuration",
+      "properties": {
+        "head_based": {
+          "type": "object",
+          "properties": {
+            "default_rate": {"type": "number", "description": "Default sampling rate (0.0 to 1.0)"}
+          }
+        },
+        "tail_based": {
+          "type": "object",
+          "properties": {
+            "drop_rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "tool_name": {"type": "string"},
+                  "max_duration_ms": {"type": "int"},
+                  "require_error": {"type": "boolean"}
+                }
+              }
+            }
+          }
+        },
+        "hash_based": {
+          "type": "object",
+          "properties": {
+            "threshold_spans": {
+              "type": "int",
+              "description": "Span count threshold to trigger hash-based sampling"
+            },
+            "sample_rate": {
+              "type": "number",
+              "description": "1/N sampling rate when threshold exceeded"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["span_kinds", "consent_levels", "sampling_policy"],
+  "additionalProperties": false
+}

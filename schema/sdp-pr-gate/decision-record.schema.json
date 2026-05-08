@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/sdp-pr-gate/decision-record/v1",
+  "title": "Decision Record v1",
+  "description": "Append-only decision record for a ChangePassport passport. Each entry is immutable once written.",
+  "type": "object",
+  "required": [
+    "decision_id",
+    "passport_id",
+    "schema_version",
+    "decision",
+    "decided_by",
+    "decided_at",
+    "evidence_snapshot_ref",
+    "audit_ref",
+    "reason",
+    "signed_by"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique ID for this decision record entry."
+    },
+    "passport_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the passport this decision belongs to."
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "merge",
+        "hold",
+        "rework",
+        "escalate",
+        "override"
+      ],
+      "description": "The readiness decision."
+    },
+    "decided_by": {
+      "$ref": "#/$defs/actor"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for the decision."
+    },
+    "evidence_snapshot_ref": {
+      "type": "string",
+      "description": "Content-addressable reference to the evidence snapshot at decision time."
+    },
+    "audit_ref": {
+      "type": "string",
+      "description": "Reference to the append-only audit log entry."
+    },
+    "override_detail": {
+      "type": "object",
+      "description": "REQUIRED when decision is \"override\". Contains override trigger, original decision, and linkage.",
+      "required": [
+        "trigger",
+        "original_decision",
+        "previous_decision_id"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "comment",
+            "api",
+            "manual"
+          ],
+          "description": "How the override was triggered."
+        },
+        "original_decision": {
+          "type": "string",
+          "enum": [
+            "hold",
+            "rework",
+            "escalate"
+          ],
+          "description": "What the system recommendation was before override."
+        },
+        "previous_decision_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Reference to the previous decision being overridden."
+        }
+      }
+    },
+    "signed_by": {
+      "type": "object",
+      "description": "Cryptographic signature for the decision.",
+      "required": [
+        "signer",
+        "algorithm",
+        "signature"
+      ],
+      "properties": {
+        "signer": {
+          "type": "string"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "ed25519",
+            "rsa-pss-256"
+          ]
+        },
+        "signature": {
+          "type": "string"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "human",
+            "system"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "override"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "required": [
+          "override_detail"
+        ]
+      }
+    }
+  ]
+}

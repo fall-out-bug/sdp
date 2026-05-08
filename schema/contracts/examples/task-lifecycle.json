@@ -1,0 +1,48 @@
+[
+  {
+    "spec_version": "v1.0",
+    "event_id": "a0000001-0000-4000-8000-000000000001",
+    "timestamp": "2026-04-25T10:00:00Z",
+    "source": {"system": "sdp-lab", "component": "coder-agent"},
+    "event_type": "task.started",
+    "payload": {"ws_id": "00-001-01", "action": "implement"},
+    "context": {"workstream_id": "00-001-01", "feature_id": "F001"},
+    "metadata": {"correlation_id": "task-001"}
+  },
+  {
+    "spec_version": "v1.0",
+    "event_id": "a0000001-0000-4000-8000-000000000002",
+    "timestamp": "2026-04-25T10:05:00Z",
+    "source": {"system": "sdp-lab", "component": "coder-agent"},
+    "event_type": "phase.transition",
+    "payload": {"from": "building", "to": "testing"},
+    "metadata": {"correlation_id": "task-001"}
+  },
+  {
+    "spec_version": "v1.0",
+    "event_id": "a0000001-0000-4000-8000-000000000003",
+    "timestamp": "2026-04-25T10:08:00Z",
+    "source": {"system": "sdp-lab", "component": "coder-agent"},
+    "event_type": "evidence.generated",
+    "payload": {"type": "generation", "files_changed": ["internal/x/foo.go", "internal/x/foo_test.go"]},
+    "metadata": {"correlation_id": "task-001"}
+  },
+  {
+    "spec_version": "v1.0",
+    "event_id": "a0000001-0000-4000-8000-000000000004",
+    "timestamp": "2026-04-25T10:10:00Z",
+    "source": {"system": "sdp-lab", "component": "reviewer-agent"},
+    "event_type": "quality.gate.passed",
+    "payload": {"gate": "evidence-gate", "findings_count": 0},
+    "metadata": {"correlation_id": "task-001"}
+  },
+  {
+    "spec_version": "v1.0",
+    "event_id": "a0000001-0000-4000-8000-000000000005",
+    "timestamp": "2026-04-25T10:12:00Z",
+    "source": {"system": "sdp-lab", "component": "coder-agent"},
+    "event_type": "task.completed",
+    "payload": {"ws_id": "00-001-01", "duration_sec": 720},
+    "metadata": {"correlation_id": "task-001"}
+  }
+]

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Pre-push hook: validate tests pass before pushing to main.
+# Only runs full validation when pushing to main/master.
+
+set -euo pipefail
+
+while read local_ref local_sha remote_ref remote_sha; do
+  if echo "$remote_ref" | grep -qE 'refs/heads/(main|master)$'; then
+    echo "Pushing to main — running quality gates..."
+
+    # Build check
+    if ! go build ./... 2>/dev/null; then
+      echo "ERROR: build failed — fix before pushing to main"
+      exit 1
+    fi
+
+    # Test check
+    if ! go test ./... -count=1 -short 2>/dev/null; then
+      echo "ERROR: tests failed — fix before pushing to main"
+      exit 1
+    fi
+
+    echo "Quality gates passed."
+  fi
+done
+
+exit 0

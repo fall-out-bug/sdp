@@ -7,7 +7,7 @@ agent: analyst
 
 When calling `/idea {description}`:
 
-1. Load full prompt: `@.claude/skills/idea.md`
+1. Load full prompt: `@.claude/skills/idea/SKILL.md`
 2. Execute Mandatory Initial Dialogue
 3. Create draft in `docs/drafts/idea-{slug}.md`
 4. Output summary for user

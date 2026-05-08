@@ -1,0 +1,751 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/sdp-pr-gate/passport/v1",
+  "title": "ChangePassport v1",
+  "description": "Evidence-backed merge-readiness record for one pull request. Internal namespace: sdp-pr-gate. Display name: ChangePassport.",
+  "type": "object",
+  "required": [
+    "passport_id",
+    "schema_version",
+    "created_at",
+    "generated_at",
+    "repository",
+    "pull_request",
+    "intent",
+    "scope",
+    "actors",
+    "evidence",
+    "findings",
+    "risk",
+    "decision",
+    "integrity"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "passport_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "repository": {
+      "$ref": "#/$defs/repository_ref"
+    },
+    "pull_request": {
+      "$ref": "#/$defs/pull_request_ref"
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/annotation"
+      },
+      "description": "Human-authored annotations. CANNOT overwrite observed facts."
+    },
+    "intent": {
+      "$ref": "#/$defs/intent"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "actors": {
+      "$ref": "#/$defs/actors"
+    },
+    "evidence": {
+      "$ref": "#/$defs/evidence_summary"
+    },
+    "findings": {
+      "$ref": "#/$defs/findings"
+    },
+    "risk": {
+      "$ref": "#/$defs/risk"
+    },
+    "decision": {
+      "$ref": "#/$defs/decision"
+    },
+    "integrity": {
+      "$ref": "#/$defs/integrity"
+    }
+  },
+  "$defs": {
+    "repository_ref": {
+      "type": "object",
+      "required": [
+        "full_name",
+        "url"
+      ],
+      "properties": {
+        "full_name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "default_branch": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "github",
+            "gitlab",
+            "bitbucket",
+            "other"
+          ]
+        }
+      }
+    },
+    "pull_request_ref": {
+      "type": "object",
+      "required": [
+        "number",
+        "url",
+        "head_sha",
+        "base_branch",
+        "head_branch"
+      ],
+      "properties": {
+        "number": {
+          "type": "integer"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "type": "string"
+        },
+        "head_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "base_branch": {
+          "type": "string"
+        },
+        "head_branch": {
+          "type": "string"
+        },
+        "author": {
+          "$ref": "#/$defs/actor_ref"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "linked_issues": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "actor_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "human",
+            "agent",
+            "system",
+            "tool"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      }
+    },
+    "annotation": {
+      "type": "object",
+      "required": [
+        "author",
+        "content",
+        "created_at"
+      ],
+      "properties": {
+        "author": {
+          "$ref": "#/$defs/actor_ref"
+        },
+        "content": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "section": {
+          "type": "string"
+        }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "required": [
+        "summary"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "linked_issue": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "claimed_type": {
+          "type": "string",
+          "enum": [
+            "feature",
+            "bugfix",
+            "refactor",
+            "security",
+            "performance",
+            "docs",
+            "test",
+            "chore",
+            "other"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "pr_template",
+            "commit_message",
+            "linked_issue",
+            "labels",
+            "manual"
+          ]
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "description",
+              "classification"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "classification": {
+                "type": "string",
+                "enum": [
+                  "in_scope",
+                  "out_of_scope",
+                  "unknown"
+                ]
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "confirmed_by": {
+                "$ref": "#/$defs/actor_ref"
+              },
+              "confirmed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "scope_delta": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "description",
+              "direction"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "added",
+                  "removed",
+                  "changed"
+                ]
+              },
+              "detected_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "actors": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "actor",
+              "contribution_type"
+            ],
+            "properties": {
+              "actor": {
+                "$ref": "#/$defs/actor_ref"
+              },
+              "contribution_type": {
+                "type": "string",
+                "enum": [
+                  "author",
+                  "committer",
+                  "reviewer",
+                  "agent",
+                  "ci_system",
+                  "scanner",
+                  "tool"
+                ]
+              },
+              "commits": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{40}$"
+                }
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "decision_owner": {
+          "$ref": "#/$defs/actor_ref"
+        }
+      }
+    },
+    "evidence_summary": {
+      "type": "object",
+      "required": [
+        "providers",
+        "total_events",
+        "collection_status",
+        "evidence_snapshot_ref"
+      ],
+      "properties": {
+        "providers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "source",
+              "status",
+              "event_count"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "accepted",
+                  "degraded",
+                  "rejected",
+                  "pending",
+                  "unavailable"
+                ]
+              },
+              "event_count": {
+                "type": "integer"
+              },
+              "last_collected_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "total_events": {
+          "type": "integer"
+        },
+        "collection_status": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "degraded",
+            "pending"
+          ]
+        },
+        "evidence_snapshot_ref": {
+          "type": "string"
+        },
+        "commits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "sha",
+              "author",
+              "message",
+              "timestamp"
+            ],
+            "properties": {
+              "sha": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "author": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "is_ai_assisted": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "source",
+              "severity",
+              "status",
+              "summary"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low",
+                  "info"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "resolved",
+                  "accepted_risk",
+                  "deferred",
+                  "false_positive"
+                ]
+              },
+              "summary": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer"
+              },
+              "external_ref": {
+                "type": "string",
+                "description": "External reference ID (provider-specific). May be a URI or a provider-native ID."
+              },
+              "resolution": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "fixed",
+                      "accepted_risk",
+                      "deferred",
+                      "false_positive"
+                    ]
+                  },
+                  "by": {
+                    "$ref": "#/$defs/actor_ref"
+                  },
+                  "at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "unresolved_count": {
+          "type": "integer"
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "description",
+              "category"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "scope_violation",
+                  "missing_evidence",
+                  "unresolved_finding",
+                  "actor_unknown",
+                  "test_gap",
+                  "dependency_risk",
+                  "other"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "mitigation": {
+                "type": "string"
+              },
+              "accepted_by": {
+                "$ref": "#/$defs/actor_ref"
+              },
+              "accepted_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "result",
+        "decided_by",
+        "decided_at"
+      ],
+      "properties": {
+        "result": {
+          "type": "string",
+          "enum": [
+            "merge",
+            "hold",
+            "rework",
+            "escalate",
+            "override"
+          ]
+        },
+        "decided_by": {
+          "$ref": "#/$defs/actor_ref"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "override": {
+          "type": "object",
+          "required": [
+            "reason",
+            "evidence_snapshot_ref",
+            "audit_ref",
+            "trigger",
+            "original_decision",
+            "previous_decision_id"
+          ],
+          "properties": {
+            "reason": {
+              "type": "string"
+            },
+            "evidence_snapshot_ref": {
+              "type": "string"
+            },
+            "audit_ref": {
+              "type": "string"
+            },
+            "trigger": {
+              "type": "string",
+              "enum": [
+                "comment",
+                "api",
+                "manual"
+              ]
+            },
+            "original_decision": {
+              "type": "string",
+              "enum": [
+                "hold",
+                "rework",
+                "escalate"
+              ],
+              "description": "What the system recommendation was before override."
+            },
+            "previous_decision_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Reference to the previous decision being overridden."
+            }
+          }
+        },
+        "check_status": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "hold",
+            "rework",
+            "escalate"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "override"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "required": [
+              "override"
+            ]
+          }
+        }
+      ]
+    },
+    "integrity": {
+      "type": "object",
+      "required": [
+        "passport_hash",
+        "algorithm",
+        "evidence_snapshot_hash"
+      ],
+      "properties": {
+        "passport_hash": {
+          "type": "string"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "sha256",
+            "sha512"
+          ]
+        },
+        "evidence_snapshot_hash": {
+          "type": "string"
+        },
+        "previous_passport_hash": {
+          "type": "string"
+        },
+        "drift_detected": {
+          "type": "boolean"
+        },
+        "drift_reason": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,58 +1,60 @@
-# SDP Project Rules
+# SDP Cursor Rules
 
-This project uses **Spec-Driven Protocol (SDP)** v0.9.0.
+You are working in a repository that uses Spec-Driven Protocol (SDP).
+SDP is a structured AI-assisted development workflow: explicit scope,
+workstreams, quality gates, evidence, and review before ship.
 
-## Beads (SDP Development)
+## Decision Tree
 
-**This repo develops SDP.** Beads is ENABLED and MANDATORY here:
+- New product or unclear scope:
+  use `@vision`, `@feature`, `@idea`, `@design`
+- Existing codebase analysis:
+  use `@understand`, `@scout`, `@architect`, `@reality`, `@metrics`
+- Execute scoped work:
+  use `@build` for one workstream, `@oneshot` for end-to-end execution
+- Bugs and regressions:
+  use `@fix`, `@bugfix`, `@hotfix`, `@issue`, `@debug`
+- Review and verification:
+  use `@review`, `@verify-workstream`, `@ci-triage`
+- Release and operations:
+  use `@operate`, `@deploy`
+- Complex decisions:
+  use `@llm-council`
+- Parallel work:
+  use `@git-worktree`, `@parallel-dispatch`
 
-- Before `@build`: `bd update {beads_id} --status in_progress`
-- After `@build`: `bd sync` before commit
-- After `@design`: `sdp beads migrate docs/workstreams/backlog/ --real`
+## Working Rules
 
-For other projects using SDP: Beads is optional (skills check `bd` + `.beads/`).
+- Do not change code without an explicit scope: feature, workstream, or bounded bug.
+- Prefer TDD for behavior changes: Red -> Green -> Refactor.
+- Before claiming success, run the relevant build, test, and lint gates.
+- If your harness cannot spawn subagents, follow `docs/reference/FALLBACK_MODE.md`.
+- Canonical command mapping lives in `prompts/commands.yml`.
+- Canonical prompt sources live in:
+  - `prompts/commands/`
+  - `prompts/skills/`
+  - `prompts/agents/`
 
-## Commands
+## Quality Gates
 
-Use skills for all work:
-- `@vision` — Strategic product planning
-- `@reality` — Codebase analysis
-- `@feature` — Plan feature (idea + design)
-- `@idea` — Gather requirements
-- `@design` — Plan workstreams
-- `@build` — Execute workstream (guard enforced)
-- `@oneshot` — Autonomous feature execution
-- `@review` — Quality review
-- `@deploy` — Production deployment
+| Language | Build | Test | Lint |
+|---|---|---|---|
+| Go | `go build ./...` | `go test ./...` | `go vet ./...` |
+| Python | `pip install .` | `pytest` | `ruff check .` |
+| Node.js | `npm run build` | `npm test` | `npm run lint` |
+| Rust | `cargo build` | `cargo test` | `cargo clippy` |
+| Java | `mvn compile` | `mvn test` | `mvn checkstyle:check` |
 
-## Guard Enforcement
+## Start Here
 
-All edits require active workstream:
+1. Read `AGENTS.md`
+2. Read `docs/reference/project-map.md`
+3. If you are working without subagents, read `docs/reference/FALLBACK_MODE.md`
+4. Use `prompts/commands.yml` when you need the command-to-skill map
 
-```bash
-sdp guard activate {PP-FFF-SS}  # Before editing
-sdp guard check {file}          # Verify allowed
-```
+## Critical Constraints
 
-## Critical Rules
-
-**Forbidden:**
-- Files > 200 LOC
-- TODO without WS
-- Edit without active WS
-
-**Required:**
-- TDD (Red -> Green -> Refactor)
-- Coverage >= 80%
-- Type hints / strict typing
-- Conventional commits
-
-## Documentation
-
-- [PROTOCOL.md](docs/PROTOCOL.md) — Full specification
-- [Skills](.claude/skills/) — Command details
-- [Quality Gates](docs/reference/quality-gates.md)
-
----
-
-**Version:** 0.9.0
+- No hidden technical debt
+- No silent workaround when root cause is fixable
+- No “done” without verification evidence
+- No stale prompt drift: edit canonical files in `prompts/`
