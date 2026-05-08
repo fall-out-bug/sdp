@@ -11,6 +11,42 @@
     "round",
     "timestamp"
   ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "PARTIALLY_APPROVED"
+          }
+        },
+        "required": [
+          "verdict"
+        ]
+      },
+      "then": {
+        "required": [
+          "partial_failing_roles"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "ESCALATED"
+          }
+        },
+        "required": [
+          "verdict"
+        ]
+      },
+      "then": {
+        "required": [
+          "escalation_issue"
+        ]
+      }
+    }
+  ],
   "properties": {
     "feature": {
       "type": "string",
@@ -21,9 +57,11 @@
       "type": "string",
       "enum": [
         "APPROVED",
-        "CHANGES_REQUESTED"
+        "CHANGES_REQUESTED",
+        "PARTIALLY_APPROVED",
+        "ESCALATED"
       ],
-      "description": "Overall verdict. APPROVED only if all reviewers PASS."
+      "description": "Overall verdict. APPROVED only if all reviewers PASS. PARTIALLY_APPROVED: some reviewers passed, issues filed for failing. ESCALATED: deferred to human review."
     },
     "round": {
       "type": "integer",
@@ -135,9 +173,205 @@
     "summary": {
       "type": "string",
       "description": "Brief human-readable summary of the review"
+    },
+    "reviewer_runtime": {
+      "type": "string",
+      "description": "Runtime that produced the verdict, e.g. native @review or pi."
+    },
+    "context_packet": {
+      "type": "object",
+      "description": "Optional context packet metadata for external review runtimes.",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "diff_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "test_evidence_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "reviewed_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "omitted_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "model_panel": {
+      "type": "array",
+      "description": "Optional model run summary for verdicts produced by an external model panel.",
+      "items": {
+        "$ref": "#/$defs/modelRun"
+      }
+    },
+    "raw_artifacts": {
+      "type": "array",
+      "description": "Raw review artifacts referenced by relative path and hash.",
+      "items": {
+        "$ref": "#/$defs/rawArtifact"
+      }
+    },
+    "findings_detail": {
+      "type": "array",
+      "description": "Optional structured finding details in addition to beads finding IDs.",
+      "items": {
+        "$ref": "#/$defs/findingDetail"
+      }
+    },
+    "override_reason": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Justification when verdict overridden via --override"
+    },
+    "partial_failing_roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "qa",
+          "security",
+          "devops",
+          "sre",
+          "techlead",
+          "docs",
+          "promptops"
+        ]
+      },
+      "description": "Roles that failed in PARTIALLY_APPROVED verdict"
+    },
+    "escalation_issue": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Beads issue ID for human escalation"
     }
   },
   "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "modelRun": {
+      "type": "object",
+      "required": [
+        "provider",
+        "model",
+        "role",
+        "status"
+      ],
+      "properties": {
+        "slot": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "reviewer",
+            "synthesizer",
+            "fallback"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "failed",
+            "skipped"
+          ]
+        },
+        "artifact_path": {
+          "type": "string"
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "rawArtifact": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "model": {
+          "type": "string"
+        }
+      }
+    },
+    "findingDetail": {
+      "type": "object",
+      "required": [
+        "priority",
+        "title"
+      ],
+      "properties": {
+        "priority": {
+          "type": "string",
+          "enum": [
+            "P0",
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reviewer": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "suggested_fix": {
+          "type": "string"
+        },
+        "dedupe_key": {
+          "type": "string"
+        },
+        "bead_id": {
+          "type": "string"
+        }
+      }
+    },
     "reviewerResult": {
       "type": "object",
       "required": [
@@ -149,7 +383,8 @@
           "type": "string",
           "enum": [
             "PASS",
-            "FAIL"
+            "FAIL",
+            "BLOCKED"
           ]
         },
         "findings": {

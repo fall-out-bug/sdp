@@ -7,7 +7,7 @@ agent: reviewer
 
 When calling `/review {feature}`:
 
-1. Load full prompt: `@.claude/skills/review.md`
+1. Load full prompt: `@.claude/skills/review/SKILL.md`
 2. Find all feature WS in INDEX.md
 3. Check each WS against checklist (Check 0-11)
 4. Perform cross-WS checks

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Validate commit message follows conventional commit format with optional beads reference.
+# Format: <type>(<scope>): <description>
+# Types: feat, fix, refactor, test, docs, chore, ci, perf, style
+# Beads reference (recommended): sdplab-xxxx in message body
+
+set -euo pipefail
+
+MSG_FILE="$1"
+MSG=$(cat "$MSG_FILE")
+
+# Skip merge commits
+if echo "$MSG" | head -1 | grep -qE '^(Merge|merge:)'; then
+  exit 0
+fi
+
+# Skip Co-Authored-By only messages (amend artifacts)
+FIRST_LINE=$(echo "$MSG" | head -1)
+
+# Validate first line format: type(scope): description or type: description
+if ! echo "$FIRST_LINE" | grep -qE '^(feat|fix|refactor|test|docs|chore|ci|perf|style)(\([a-zA-Z0-9_/-]+\))?: .{3,}'; then
+  echo "ERROR: commit message must follow conventional format:"
+  echo "  <type>(<scope>): <description>"
+  echo ""
+  echo "  Types: feat, fix, refactor, test, docs, chore, ci, perf, style"
+  echo "  Example: feat(dispatch): add cold start routing strategy"
+  echo ""
+  echo "  Got: $FIRST_LINE"
+  exit 1
+fi
+
+# Warn (not block) if no beads reference for feat/fix commits
+TYPE=$(echo "$FIRST_LINE" | grep -oE '^(feat|fix)' || true)
+if [ -n "$TYPE" ] && ! echo "$MSG" | grep -qiE 'sdplab-[a-z0-9]+'; then
+  echo "WARNING: feat/fix commit without beads issue reference (sdplab-xxxx)"
+  echo "  Consider adding issue ID to commit body"
+  # Don't exit 1 — this is advisory
+fi
+
+exit 0

@@ -7,15 +7,9 @@ changes:
   - Added @deploy step after @review (automated deployment)
   - Clarified continuous execution requirement
   - Added explicit "When to Stop" section
-tools:
-  read: true
-  bash: true
-  glob: true
-  grep: true
-  edit: true
-  write: true
   - Emphasized checkpoint updates are transparent
   - Removed ambiguity about progress reports
+tools: Read, Bash, Glob, Grep, Edit, Write
 ---
 
 # Orchestrator Subagent
@@ -153,7 +147,7 @@ When Beads is **enabled** (`bd --version` works, `.beads/` exists):
 bd update {beads_id} --status in_progress
 # Execute TDD cycle
 bd close {beads_id} --reason "WS completed"
-bd sync
+scripts/beads_transport.sh export
 git commit
 ```
 

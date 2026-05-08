@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/prompt-injection-corpus/v1",
+  "title": "Prompt Injection Corpus Case",
+  "description": "Machine-readable prompt-injection corpus contract for F164 static validation. Captures case id, class, surface, trust source, allowed/forbidden tools, expected behavior, forbidden behavior, authoritative layer, and evidence expectation.",
+  "type": "object",
+  "required": ["id", "class", "surface", "untrusted_source", "allowed_tools", "expected_behavior", "evidence_expectation", "authoritative_layer", "risk"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique case identifier (e.g. PI-001)"
+    },
+    "class": {
+      "type": "string",
+      "enum": ["direct_override", "role_play_jailbreak", "prompt_extraction", "repo_indirect", "pr_diff_indirect", "ci_log_indirect", "beads_poisoning", "workstream_poisoning", "evidence_forgery", "cross_agent_handoff", "mcp_resource_injection", "context_poisoning", "supply_chain", "external_doc_injection", "qa_uat_override", "mcp_tool_description_poisoning", "multi_vector_pr_handoff", "benign_control"],
+      "description": "Attack or control class. Note: keyword_block_only is not a valid class — it is a failure fixture only."
+    },
+    "surface": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Target SDP surface (e.g. review_skill, prompts/agents/security.md)"
+    },
+    "untrusted_source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Source of untrusted content (e.g. user_message, repo_text, ci_log, prompt_bundle)"
+    },
+    "trusted_instruction": {
+      "type": "string",
+      "description": "Summary of the trusted instruction being protected"
+    },
+    "attack_summary": {
+      "type": "string",
+      "description": "Brief description of the attack scenario"
+    },
+    "payload_safety": {
+      "type": "string",
+      "enum": ["sanitized", "mock", "not_applicable"],
+      "description": "Whether the test payload is safe for storage"
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Allowlist of tools permitted for this case. Any tool not listed is denied."
+    },
+    "forbidden_tools": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicit list of tools denied for this case"
+    },
+    "expected_behavior": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "List of expected safe behaviors"
+    },
+    "forbidden_behavior": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of forbidden behaviors"
+    },
+    "evidence_expectation": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Description of what evidence the case requires"
+    },
+    "authoritative_layer": {
+      "type": "string",
+      "enum": ["static", "mock_trace", "live_provider", "human_review"],
+      "description": "Which evaluation layer is authoritative for pass/fail"
+    },
+    "risk": {
+      "type": "string",
+      "enum": ["critical", "major", "minor"],
+      "description": "Risk severity level"
+    }
+  }
+}

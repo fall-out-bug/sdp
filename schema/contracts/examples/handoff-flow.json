@@ -1,0 +1,28 @@
+[
+  {
+    "spec_version": "v1.0",
+    "event_id": "b0000001-0000-4000-8000-000000000001",
+    "timestamp": "2026-04-25T11:00:00Z",
+    "source": {"system": "sdp-lab", "component": "coder-agent"},
+    "event_type": "handoff.initiated",
+    "payload": {
+      "to_agent": "reviewer-agent",
+      "artifacts": ["internal/x/foo.go", "internal/x/foo_test.go"],
+      "context": {"ws_id": "00-001-01", "summary": "Implementation complete, ready for review"}
+    },
+    "metadata": {"correlation_id": "handoff-001"}
+  },
+  {
+    "spec_version": "v1.0",
+    "event_id": "b0000001-0000-4000-8000-000000000002",
+    "timestamp": "2026-04-25T11:05:00Z",
+    "source": {"system": "sdp-lab", "component": "reviewer-agent"},
+    "event_type": "handoff.completed",
+    "payload": {
+      "from_agent": "coder-agent",
+      "result": "approved",
+      "findings_count": 0
+    },
+    "metadata": {"correlation_id": "handoff-001"}
+  }
+]

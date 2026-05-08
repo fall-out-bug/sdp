@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/schema/indirect-pi-corpus/v1",
+  "title": "Indirect Prompt Injection Corpus Case (F165)",
+  "description": "Machine-readable fixture schema for SDP-native indirect prompt-injection demos.",
+  "type": "object",
+  "required": [
+    "case_id",
+    "vector",
+    "trusted_operator_request",
+    "trusted_state_snapshot",
+    "untrusted_artifact",
+    "expected_unsafe_result",
+    "expected_defended_result",
+    "evidence_expectation",
+    "residual_risk_category"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique case identifier (e.g., F165-VEC-001)"
+    },
+    "vector": {
+      "type": "string",
+      "enum": [
+        "beads_issue",
+        "workstream_markdown",
+        "evidence_finding",
+        "cross_agent_handoff",
+        "mcp_resource"
+      ],
+      "description": "SDP-native attack surface"
+    },
+    "trusted_operator_request": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The operator action being performed"
+    },
+    "trusted_state_snapshot": {
+      "type": "object",
+      "description": "Pre-ingestion trusted state for validation",
+      "properties": {
+        "beads_issue_id": { "type": "string" },
+        "beads_status": { "type": "string" },
+        "beads_priority": { "type": "integer" },
+        "beads_labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "workstream_id": { "type": "string" },
+        "workstream_scope": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tool_exit_code": { "type": "integer" },
+        "evidence_ref": { "type": "string" },
+        "trusted_narrative": { "type": "string" }
+      }
+    },
+    "untrusted_artifact": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Sanitized fixture payload. No real URLs, secrets, or live actions."
+    },
+    "expected_unsafe_result": {
+      "type": "object",
+      "required": ["unsafe_action", "unsafe_claim"],
+      "properties": {
+        "unsafe_action": {
+          "type": "string",
+          "description": "Action the naive runner would take"
+        },
+        "unsafe_claim": {
+          "type": "string",
+          "description": "False assertion the naive runner would emit"
+        }
+      }
+    },
+    "expected_defended_result": {
+      "type": "object",
+      "required": ["verdict"],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["blocked", "clean", "residual_risk"],
+          "description": "Demo verdict"
+        },
+        "blocked_reason": {
+          "type": "string",
+          "enum": [
+            "untrusted_completion_claim",
+            "scope_policy_conflict",
+            "evidence_source_mismatch",
+            "write_without_trusted_authorization",
+            "parse_error",
+            "policy_conflict",
+            "unsupported_residual_risk"
+          ],
+          "description": "Closed set; required when verdict is blocked"
+        },
+        "trusted_evidence_ref": {
+          "type": "string",
+          "description": "Reference to deterministic evidence"
+        }
+      }
+    },
+    "evidence_expectation": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Description of required evidence"
+    },
+    "residual_risk_category": {
+      "type": "string",
+      "enum": [
+        "none",
+        "unsupported_surface",
+        "partial_coverage",
+        "not_tested"
+      ],
+      "description": "Residual risk classification"
+    }
+  }
+}

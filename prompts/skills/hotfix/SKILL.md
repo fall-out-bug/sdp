@@ -1,11 +1,11 @@
 ---
 name: hotfix
-description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from master, immediate deploy.
+description: Emergency P0 fixes. Fast-track production deployment with minimal changes. Branch from main, immediate deploy.
 ---
 
 # @hotfix
 
-Emergency production fixes. Minimal changes, fast testing, merge to master with tag.
+Emergency production fixes. Minimal changes, fast testing, merge to main with tag.
 
 ## When to Use
 
@@ -15,12 +15,12 @@ Emergency production fixes. Minimal changes, fast testing, merge to master with 
 
 ## Workflow
 
-1. **Branch** — `git checkout master && git pull && git checkout -b hotfix/{id}-{slug}`
+1. **Branch** — `git checkout main && git pull && git checkout -b hotfix/{id}-{slug}`
 2. **Minimal fix** — No refactoring, fix bug only
 3. **Smoke test** — Critical path verification
-4. **Merge** — `git checkout master && git merge hotfix/{branch} --no-edit`
+4. **Merge** — `git checkout main && git merge hotfix/{branch} --no-edit`
 5. **Tag** — `git tag -a v{VERSION} -m "Hotfix: {description}"`
-6. **Push** — `git push origin master --tags`
+6. **Push** — `git push origin main --tags`
 
 ## Write Plan (F101)
 
@@ -36,7 +36,7 @@ Before modifying any file, emit a write plan:
    {"spec_version":"v1.0","event_id":"<uuid>","timestamp":"<ISO-8601>","source":{"system":"sdp-lab","component":"hotfix"},"event_type":"decision.made","payload":{"decision_type":"write_plan","plan":[{"path":"...","action":"CREATE|MODIFY|DELETE","reason":"..."}]},"context":{"feature_id":"<F-id if known>","workstream_id":"<ws-id if applicable>"}}
    ```
    Include context fields only when the ID is known at plan time. Omit unavailable fields rather than inventing placeholders.
-   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `sdp/schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
+   > **Note:** Phase 1 uses prompt-level write boundaries (CLI out of scope). Aligns with `schema/contracts/orchestration-event.schema.json` via `event_type: "decision.made"`. Phase 2 CLI will emit natively.
 
 **Output format:**
 ```
@@ -56,6 +56,16 @@ Proceed? [y/n]
 ## Output
 
 Hotfix merged, tagged, pushed. Issue closed.
+
+## Recovery
+
+| Symptom | Fix |
+|---------|-----|
+| Skill produces no output | Check working directory is project root with `docs/workstreams/backlog/` |
+| "checkpoint not found" | Run `sdp-orchestrate --feature <ID>` to create initial checkpoint |
+| "workstream files missing" | Run `sdp-orchestrate --index` to verify, then `@feature` to regenerate |
+| Skill hangs / no progress | Check `.sdp/log/events.jsonl` for last event; use `sdp reset --feature <ID>` if stuck |
+| Review loop exceeds 3 rounds | Use `@review --override "reason"`, `@review --partial`, or `@review --escalate` |
 
 ## See Also
 

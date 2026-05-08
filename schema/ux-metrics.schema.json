@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sdp.dev/schema/ux-metrics/v1",
   "title": "SDP UX Metrics",
   "description": "User experience metrics for SDP CLI adoption journey (local-first, no cloud dependency)",
   "type": "object",
@@ -63,6 +64,72 @@
     }
   },
   "definitions": {
+    "ai_sdlc_metrics": {
+      "description": "AI SDLC metrics M1-M7 for measuring delivery quality and efficiency",
+      "type": "object",
+      "properties": {
+        "M1_review_pass_rate": {
+          "description": "Review pass rate - % of @review calls that return APPROVED on first try",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "M2_build_rework_rate": {
+          "description": "Build rework rate - avg cycles in Phase 1 before APPROVED",
+          "type": "number",
+          "minimum": 0
+        },
+        "M3_codex_stability_index": {
+          "description": "Codex stability index - avg consecutive clean codex cycles needed before exit (target >= 2)",
+          "type": "number",
+          "minimum": 0
+        },
+        "M4_p3_deferral_rate": {
+          "description": "P3 deferral rate - % features that spin out P3 at cycle-5 cap",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "M5_delivery_velocity": {
+          "description": "Delivery velocity - time-to-merge decomposition by phase",
+          "type": "object",
+          "properties": {
+            "phase_0_bootstrap_ms": {"type": "number", "minimum": 0},
+            "phase_1_build_ms": {"type": "number", "minimum": 0},
+            "phase_2_pr_ms": {"type": "number", "minimum": 0},
+            "phase_3_codex_ms": {"type": "number", "minimum": 0},
+            "phase_4_closeout_ms": {"type": "number", "minimum": 0},
+            "total_ms": {"type": "number", "minimum": 0}
+          }
+        },
+        "M6_cost_per_merged_feature": {
+          "description": "Cost per merged feature - sum of tokens * model price",
+          "type": "object",
+          "properties": {
+            "total_cost_usd": {"type": "number", "minimum": 0},
+            "input_tokens": {"type": "number", "minimum": 0},
+            "output_tokens": {"type": "number", "minimum": 0},
+            "cost_by_model": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "input_tokens": {"type": "number"},
+                  "output_tokens": {"type": "number"},
+                  "cost_usd": {"type": "number"}
+                }
+              }
+            }
+          }
+        },
+        "M7_post_merge_rework_rate": {
+          "description": "Post-merge rework rate (DORA 5th) - % merged PRs whose files are touched again within 14 days",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
     "time_to_first_value": {
       "description": "Time from 'sdp init' to first successful feature delivery (milliseconds)",
       "type": "object",

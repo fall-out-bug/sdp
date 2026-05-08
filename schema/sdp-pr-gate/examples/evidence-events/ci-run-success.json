@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "source": "github-actions",
+  "external_ref": "https://github.com/acme/my-app/actions/runs/9876543210",
+  "repository": {
+    "id": "acme/my-app",
+    "url": "https://github.com/acme/my-app",
+    "provider": "github",
+    "branch": "main"
+  },
+  "pull_request": {
+    "id": "42",
+    "url": "https://github.com/acme/my-app/pull/42",
+    "title": "feat: add user authentication middleware"
+  },
+  "commit_sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+  "observed_at": "2026-04-27T10:28:12Z",
+  "collected_at": "2026-04-27T10:28:15Z",
+  "actor": {
+    "type": "system",
+    "id": "github-actions",
+    "name": "GitHub Actions"
+  },
+  "event_type": "ci_run",
+  "status": "success",
+  "summary": "CI pipeline passed: build (go1.23), test (342/342 passed, 0 skipped), lint (0 issues), coverage 78.3% (threshold 60%). Total duration: 4m 12s.",
+  "artifact_uri": "https://github.com/acme/my-app/actions/runs/9876543210",
+  "artifact_hash": {
+    "algorithm": "sha-256",
+    "value": "b5a2c96f507121b1f7f1c88e6c5b3d1a7e4f8c2d6b0a9e3c5f7d1b3a5c7e9f21"
+  },
+  "error_state": null
+}

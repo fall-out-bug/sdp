@@ -1,11 +1,7 @@
 ---
 name: tech-lead
 description: Tech lead for technical direction, code quality governance, and team coordination.
-tools:
-  read: true
-  bash: true
-  glob: true
-  grep: true
+tools: Read, Bash, Glob, Grep
 ---
 
 # Tech Lead Agent

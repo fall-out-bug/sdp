@@ -1,27 +1,43 @@
 # Cursor Integration
 
-**Canonical skill source:** `../prompts/skills/`
+**Primary context source:** [`.cursorrules`](../.cursorrules)
 
-All SDP command prompts are unified in `prompts/skills/` with symlink adapters in tool folders.
+Cursor reads `.cursorrules` automatically at the project root. Keep that file
+small and operational: role, decision tree, quality gates, and where to find
+canonical prompts.
+
+## Canonical Prompt Source
+
+- Commands: `../prompts/commands/`
+- Skills: `../prompts/skills/`
+- Agents: `../prompts/agents/`
+- Command mapping: `../prompts/commands.yml`
+
+Edit canonical prompt sources only. Do not fork Cursor-only copies of prompt
+logic unless the harness format itself requires it.
 
 ## Usage
 
-Use `@` prefix to invoke skills:
+Use `@` commands for the main SDP flows:
 
-```bash
-@feature "description"  # Unified entry point
-@idea "description"     # Requirements gathering
-@design {id}            # Plan workstreams
-@build {ws-id}          # Execute workstream
-@review {feature}       # Quality review
-@deploy {feature}       # Production deployment
-@debug "issue"          # Systematic debugging
-@hotfix "critical"      # Emergency fix
-@bugfix "issue"         # Quality fix
+```text
+@feature "description"
+@idea "description"
+@design 00-XXX-YY
+@build 00-XXX-YY
+@review FXXX
+@fix "regression description"
+@operate "deploy or release task"
 ```
+
+## Fallback Mode
+
+If your Cursor runtime cannot spawn subagents, use the manual checklists in
+[`docs/reference/FALLBACK_MODE.md`](../docs/reference/FALLBACK_MODE.md).
 
 ## See Also
 
-- [CLAUDE.md](../CLAUDE.md) - Full protocol
-- [prompts/skills/](../prompts/skills/) - Canonical skill definitions
-- [.claude/skills/](../.claude/skills/) - Claude compatibility symlink
+- [`AGENTS.md`](../AGENTS.md)
+- [`docs/reference/project-map.md`](../docs/reference/project-map.md)
+- [`docs/reference/FALLBACK_MODE.md`](../docs/reference/FALLBACK_MODE.md)
+- [`prompts/commands.yml`](../prompts/commands.yml)

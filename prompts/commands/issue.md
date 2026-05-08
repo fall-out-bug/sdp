@@ -7,7 +7,7 @@ agent: debugger
 
 When calling `/issue "description"`:
 
-1. Load full prompt: `@.claude/skills/issue.md`
+1. Load full prompt: `@.claude/skills/issue/SKILL.md`
 2. Systematic debugging (5 phases):
    - Symptom analysis
    - Hypothesis formation

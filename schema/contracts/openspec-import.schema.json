@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/contracts/openspec-import/v1",
+  "title": "OpenSpecImportPayload",
+  "description": "Normalized contract for importing OpenSpec proposal, spec, design, and task artifacts into SDP planning surfaces",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "import_id",
+    "timestamp",
+    "source_metadata",
+    "artifacts"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$",
+      "description": "Schema version (e.g., v1.0). Must follow semver format for compatibility tracking",
+      "examples": ["v1.0", "v1.1"]
+    },
+    "import_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this import operation"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the import was initiated"
+    },
+    "source_metadata": {
+      "type": "object",
+      "required": ["source_type", "source_location", "source_hash"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["openspec", "openspec-enterprise"],
+          "description": "Type of OpenSpec source"
+        },
+        "source_location": {
+          "type": "string",
+          "description": "URI or path to the OpenSpec source (e.g., git repo URL, file path, API endpoint)"
+        },
+        "source_hash": {
+          "type": "string",
+          "description": "Cryptographic hash of the source content for change detection (SHA-256 recommended)",
+          "examples": ["a3d5e9f4b2c1d8a6e7f4b3c2d1a9e8f7c6b5d4a3e2f1a9b8c7d6e5f4a3b2c1d"]
+        },
+        "source_version": {
+          "type": "string",
+          "description": "Version identifier if source is versioned (e.g., git commit SHA, semver tag)",
+          "examples": ["a1b2c3d4e5f6", "v1.2.3"]
+        },
+        "fetch_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the source was fetched"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mapping_confidence": {
+      "type": "object",
+      "required": ["overall_score", "confidence_level"],
+      "properties": {
+        "overall_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Overall confidence score for the mapping (0-1)"
+        },
+        "confidence_level": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "Confidence level classification"
+        },
+        "field_scores": {
+          "type": "object",
+          "description": "Per-field confidence scores",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "reasoning": {
+          "type": "string",
+          "description": "Human-readable explanation of the confidence assessment"
+        }
+      },
+      "additionalProperties": false
+    },
+    "unresolved_ambiguities": {
+      "type": "array",
+      "description": "List of ambiguities that could not be resolved during mapping",
+      "items": {
+        "type": "object",
+        "required": ["ambiguity_type", "description"],
+        "properties": {
+          "ambiguity_type": {
+            "type": "string",
+            "enum": ["field_mapping", "semantic_interpretation", "structural_mismatch", "missing_context", "conflicting_data"],
+            "description": "Type of ambiguity"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the ambiguity"
+          },
+          "affected_fields": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Fields affected by this ambiguity"
+          },
+          "resolution_hint": {
+            "type": "string",
+            "description": "Suggested approach for resolving this ambiguity"
+          },
+          "requires_human_review": {
+            "type": "boolean",
+            "description": "Whether this ambiguity requires human review"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["proposal", "spec", "design", "tasks"],
+      "properties": {
+        "proposal": {
+          "type": "object",
+          "description": "OpenSpec proposal artifact",
+          "required": ["content", "format"],
+          "properties": {
+            "content": {
+              "type": "object",
+              "description": "Normalized proposal content",
+              "additionalProperties": true
+            },
+            "format": {
+              "type": "string",
+              "enum": ["markdown", "json", "yaml", "openspec-v1"],
+              "description": "Format of the original proposal"
+            },
+            "source_path": {
+              "type": "string",
+              "description": "Path or reference to the original proposal in the source"
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Additional proposal metadata",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "spec": {
+          "type": "object",
+          "description": "OpenSpec specification delta artifact",
+          "required": ["content", "format"],
+          "properties": {
+            "content": {
+              "type": "object",
+              "description": "Normalized spec content",
+              "additionalProperties": true
+            },
+            "format": {
+              "type": "string",
+              "enum": ["openspec-spec-delta", "openspec-spec-full", "json"],
+              "description": "Format of the spec"
+            },
+            "source_path": {
+              "type": "string",
+              "description": "Path or reference to the original spec in the source"
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Additional spec metadata",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "design": {
+          "type": "object",
+          "description": "OpenSpec design artifact",
+          "required": ["content", "format"],
+          "properties": {
+            "content": {
+              "type": "object",
+              "description": "Normalized design content",
+              "additionalProperties": true
+            },
+            "format": {
+              "type": "string",
+              "enum": ["mermaid", "plantuml", "ascii", "json", "openspec-design-v1"],
+              "description": "Format of the design"
+            },
+            "source_path": {
+              "type": "string",
+              "description": "Path or reference to the original design in the source"
+            },
+            "diagram_type": {
+              "type": "string",
+              "description": "Type of diagram if applicable",
+              "examples": ["sequence", "flowchart", "architecture", "state-machine", "erd"]
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Additional design metadata",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "tasks": {
+          "type": "array",
+          "description": "OpenSpec task artifacts",
+          "items": {
+            "type": "object",
+            "required": ["task_id", "content", "format"],
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Unique identifier for the task"
+              },
+              "content": {
+                "type": "object",
+                "description": "Normalized task content",
+                "additionalProperties": true
+              },
+              "format": {
+                "type": "string",
+                "enum": ["openspec-task-v1", "json", "markdown"],
+                "description": "Format of the task"
+              },
+              "source_path": {
+                "type": "string",
+                "description": "Path or reference to the original task in the source"
+              },
+              "dependencies": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "List of task IDs this task depends on"
+              },
+              "metadata": {
+                "type": "object",
+                "description": "Additional task metadata",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "import_options": {
+      "type": "object",
+      "description": "Options controlling the import behavior",
+      "properties": {
+        "create_workstreams": {
+          "type": "boolean",
+          "description": "Whether to create new workstreams for imported artifacts",
+          "default": false
+        },
+        "update_existing": {
+          "type": "boolean",
+          "description": "Whether to update existing workstreams if they already exist",
+          "default": true
+        },
+        "validate_contracts": {
+          "type": "boolean",
+          "description": "Whether to validate imported artifacts against SDP contracts",
+          "default": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "If true, validate and plan without making changes",
+          "default": false
+        },
+        "target_feature": {
+          "type": "string",
+          "pattern": "^F\\d{3}$",
+          "description": "Target feature ID for the import (if applicable)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "validation_results": {
+      "type": "object",
+      "description": "Results of validating the import payload",
+      "properties": {
+        "is_valid": {
+          "type": "boolean",
+          "description": "Whether the payload passed validation"
+        },
+        "validation_errors": {
+          "type": "array",
+          "description": "List of validation errors if any",
+          "items": {
+            "type": "object",
+            "required": ["severity", "message"],
+            "properties": {
+              "severity": {
+                "type": "string",
+                "enum": ["error", "warning", "info"],
+                "description": "Severity of the validation issue"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable validation message"
+              },
+              "field": {
+                "type": "string",
+                "description": "Field path that caused the validation issue"
+              },
+              "code": {
+                "type": "string",
+                "description": "Machine-readable error code"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "validated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When validation was performed"
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "description": "Additional context for the import",
+      "properties": {
+        "workstream_id": {
+          "type": "string",
+          "pattern": "^00-\\d{3}-\\d{2}$",
+          "description": "SDP workstream ID if import is associated with one"
+        },
+        "feature_id": {
+          "type": "string",
+          "pattern": "^F\\d{3}$",
+          "description": "SDP feature ID if import is associated with one"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session ID that initiated the import"
+        },
+        "import_chain_id": {
+          "type": "string",
+          "description": "ID for chaining related imports"
+        },
+        "git_context": {
+          "type": "object",
+          "description": "Git repository context",
+          "properties": {
+            "branch": {"type": "string"},
+            "commit_sha": {"type": "string"},
+            "repo_url": {"type": "string", "format": "uri"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

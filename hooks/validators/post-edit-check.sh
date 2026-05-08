@@ -1,5 +1,5 @@
 #!/bin/bash
-# sdp/hooks/validators/post-edit-check.sh
+# scripts/hooks/validators/post-edit-check.sh
 # Validates file after editing - checks TODO/FIXME and file size
 
 FILE_PATH="${1:-}"

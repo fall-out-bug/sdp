@@ -4,7 +4,7 @@
 set -e
 
 # 1. go test -short ./...
-go test -short ./... || { echo "pre-push: go test -short failed" >&2; exit 1; }
+go test -tags "sqlite_fts5" -short ./... || { echo "pre-push: go test -short failed" >&2; exit 1; }
 
 # 2. If feature branch + diff touches internal/ or cmd/: require .sdp/evidence/*.json, validate
 BRANCH=$(git branch --show-current)
@@ -18,9 +18,19 @@ CHANGED=""
 while read local_ref local_sha remote_ref remote_sha; do
   [ -z "$local_sha" ] && continue
   if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
-    CHANGED="$CHANGED $(git diff --name-only 4b825dc642cb6eb9a060e54bf8d69288fbee4904 $local_sha 2>/dev/null || true)"
+    BASE=""
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+      BASE=$(git merge-base "$local_sha" origin/main 2>/dev/null || true)
+    fi
+    if [ -z "$BASE" ] && git rev-parse --verify origin/master >/dev/null 2>&1; then
+      BASE=$(git merge-base "$local_sha" origin/master 2>/dev/null || true)
+    fi
+    if [ -z "$BASE" ]; then
+      BASE=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+    fi
+    CHANGED="$CHANGED $(git diff --name-only "$BASE" "$local_sha" 2>/dev/null || true)"
   else
-    CHANGED="$CHANGED $(git diff --name-only $remote_sha $local_sha 2>/dev/null || true)"
+    CHANGED="$CHANGED $(git diff --name-only "$remote_sha" "$local_sha" 2>/dev/null || true)"
   fi
 done
 
