@@ -116,6 +116,7 @@ func TestCommandsCoverage(t *testing.T) {
 		"parse",
 		"prd",
 		"quality",
+		"reality",
 		"skill",
 		"status",
 		"tdd",

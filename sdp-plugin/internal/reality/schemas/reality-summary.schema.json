@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/reality/reality-summary/v1",
+  "title": "RealitySummary",
+  "description": "Top-level summary artifact for a reality run.",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "run_id",
+    "generated_at",
+    "scope",
+    "readiness_verdict",
+    "top_finding_claim_ids",
+    "artifacts"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "repos"
+      ],
+      "properties": {
+        "repos": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "mode": {
+          "type": "string"
+        },
+        "focus": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "readiness_verdict": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "ready_with_constraints",
+        "not_ready"
+      ]
+    },
+    "top_finding_claim_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "review_strategy": {
+      "type": "object",
+      "required": [
+        "primary",
+        "secondary",
+        "scope"
+      ],
+      "properties": {
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "claim.schema.json"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "source.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

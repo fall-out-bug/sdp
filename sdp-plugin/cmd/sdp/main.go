@@ -54,6 +54,7 @@ func main() {
 	  plan       Decompose a feature into workstreams
 	  apply      Execute ready workstreams from the terminal
 	  status     Show current project state
+	  reality    Emit and validate OSS reality baseline artifacts
 	  next       Recommend the next action to take
 	  log        Inspect the evidence log
 	  demo       Run a guided first-success walkthrough
@@ -166,6 +167,7 @@ directory (.claude/, .cursor/, .opencode/, or .codex/).`,
 	rootCmd.AddCommand(tddCmd())
 	rootCmd.AddCommand(driftCmd())
 	rootCmd.AddCommand(qualityCmd())
+	rootCmd.AddCommand(realityCmd())
 	rootCmd.AddCommand(watchCmd())
 	rootCmd.AddCommand(telemetryCmd)
 	rootCmd.AddCommand(checkpointCmd)

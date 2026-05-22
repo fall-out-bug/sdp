@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdp.dev/reality/drift-report/v1",
+  "title": "DriftReport",
+  "description": "Documentation and intent drift report from a reality run.",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "generated_at",
+    "contradictions"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "contradictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "contradiction_id",
+          "summary",
+          "left_claim_id",
+          "right_claim_id"
+        ],
+        "properties": {
+          "contradiction_id": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "left_claim_id": {
+            "type": "string"
+          },
+          "right_claim_id": {
+            "type": "string"
+          },
+          "resolution_state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "triaged",
+              "resolved"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "unresolved_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "claim.schema.json"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "source.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}
