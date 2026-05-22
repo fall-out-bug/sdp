@@ -531,9 +531,20 @@ fi
 func TestSyncWithFakeBeads(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary
 	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
 
 	bdScript := `#!/bin/bash
 if [ "$1" = "sync" ]; then
+	echo 'unknown command "sync"' >&2
+	exit 1
+fi
+if [ "$1" = "export" ] && [ "$2" = "-o" ]; then
+	mkdir -p "$(dirname "$3")"
+	printf '{"id":"sdp-1"}\n' > "$3"
 	exit 0
 fi
 `
@@ -555,16 +566,28 @@ fi
 	if err != nil {
 		t.Errorf("Sync() failed: %v", err)
 	}
+	if _, err := os.Stat(filepath.Join(".beads", "issues.jsonl")); err != nil {
+		t.Fatalf("expected export fallback to create .beads/issues.jsonl: %v", err)
+	}
 }
 
 // TestSyncWithError tests Sync when beads command fails
 func TestSyncWithError(t *testing.T) {
 	// Create a temporary directory with a fake "bd" binary
 	tmpDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(oldWd) })
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
 
 	bdScript := `#!/bin/bash
 if [ "$1" = "sync" ]; then
-	echo "Sync failed" >&2
+	echo 'unknown command "sync"' >&2
+	exit 1
+fi
+if [ "$1" = "export" ]; then
+	echo "Export failed" >&2
 	exit 1
 fi
 `
@@ -585,5 +608,8 @@ fi
 	err = client.Sync()
 	if err == nil {
 		t.Error("Expected error when sync fails")
+	}
+	if err != nil && !strings.Contains(err.Error(), "export fallback failed") {
+		t.Fatalf("expected export fallback error, got: %v", err)
 	}
 }

@@ -18,7 +18,7 @@ Commands:
   ready     List available tasks
   show      Show task details
   update    Update task status
-  sync      Synchronize Beads state
+  sync      Export Beads state back to repo snapshot
 
 Examples:
   sdp beads ready
@@ -135,7 +135,7 @@ Valid statuses:
 func beadsSyncCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "sync",
-		Short: "Synchronize Beads state",
+		Short: "Export Beads state back to repo snapshot",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := beads.NewClient()
 			if err != nil {
@@ -146,7 +146,7 @@ func beadsSyncCmd() *cobra.Command {
 				return fmt.Errorf("failed to synchronize: %w", err)
 			}
 
-			ui.SuccessLine("Beads synchronized")
+			ui.SuccessLine("Beads snapshot exported")
 
 			return nil
 		},
