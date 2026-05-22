@@ -3,6 +3,7 @@ package hooks
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -42,12 +43,10 @@ func Install() error {
 
 // InstallWithOptions installs SDP-managed git hooks from the hooks/ directory.
 func InstallWithOptions(opts InstallOptions) error {
-	gitDir := ".git/hooks"
 	hookNames := hooksForOptions(opts)
-
-	// Check if .git exists
-	if _, err := os.Stat(".git"); os.IsNotExist(err) {
-		return fmt.Errorf(".git directory not found. Run 'git init' first")
+	repoRoot, gitDir, err := gitPaths()
+	if err != nil {
+		return err
 	}
 
 	// Create hooks directory if missing
@@ -57,7 +56,7 @@ func InstallWithOptions(opts InstallOptions) error {
 
 	// Try to find hooks source directory
 	// First check for local hooks/ directory (development)
-	hooksSourceDir := "hooks"
+	hooksSourceDir := filepath.Join(repoRoot, "hooks")
 	if _, err := os.Stat(hooksSourceDir); os.IsNotExist(err) {
 		// Fall back to embedded hooks
 		return installEmbeddedHooks(gitDir, hookNames)
@@ -178,7 +177,10 @@ func installEmbeddedHooks(gitDir string, hookNames []string) error {
 }
 
 func Uninstall() error {
-	gitDir := ".git/hooks"
+	_, gitDir, err := gitPaths()
+	if err != nil {
+		return err
+	}
 
 	for _, name := range allManagedHooks() {
 		path := filepath.Join(gitDir, name)
@@ -207,4 +209,35 @@ func Uninstall() error {
 	}
 
 	return nil
+}
+
+func gitPaths() (string, string, error) {
+	repoRootOut, err := exec.Command("git", "rev-parse", "--show-toplevel").CombinedOutput()
+	if err != nil {
+		if _, statErr := os.Stat(".git"); statErr == nil {
+			return ".", filepath.Join(".git", "hooks"), nil
+		}
+		return "", "", fmt.Errorf(".git directory not found. Run 'git init' first")
+	}
+	repoRoot := strings.TrimSpace(string(repoRootOut))
+	if repoRoot == "" {
+		if _, statErr := os.Stat(".git"); statErr == nil {
+			return ".", filepath.Join(".git", "hooks"), nil
+		}
+		return "", "", fmt.Errorf(".git directory not found. Run 'git init' first")
+	}
+
+	hooksPathOut, err := exec.Command("git", "rev-parse", "--git-path", "hooks").CombinedOutput()
+	if err != nil {
+		return "", "", fmt.Errorf("resolve hooks path: %w", err)
+	}
+	hooksPath := strings.TrimSpace(string(hooksPathOut))
+	if hooksPath == "" {
+		return "", "", fmt.Errorf("resolve hooks path: empty result")
+	}
+	if !filepath.IsAbs(hooksPath) {
+		hooksPath = filepath.Join(repoRoot, hooksPath)
+	}
+
+	return repoRoot, hooksPath, nil
 }

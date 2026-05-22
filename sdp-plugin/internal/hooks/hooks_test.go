@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -78,6 +79,37 @@ func TestInstallWithOptions_WithProvenance(t *testing.T) {
 		if !strings.Contains(string(content), sdpManagedMarker) {
 			t.Errorf("Hook %s missing marker", hookName)
 		}
+	}
+}
+
+func TestInstall_UsesConfiguredHooksPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	repoRoot := filepath.Join(tmpDir, "repo")
+	if err := os.MkdirAll(repoRoot, 0o755); err != nil {
+		t.Fatalf("mkdir repo: %v", err)
+	}
+	runGit(t, repoRoot, "init")
+	runGit(t, repoRoot, "config", "core.hooksPath", ".beads/hooks")
+
+	originalWd, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(originalWd) })
+	if err := os.Chdir(repoRoot); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := Install(); err != nil {
+		t.Fatalf("Install() failed: %v", err)
+	}
+
+	for _, hookName := range []string{"pre-commit", "pre-push", "post-checkout", "post-merge"} {
+		hookPath := filepath.Join(repoRoot, ".beads", "hooks", hookName)
+		if _, err := os.Stat(hookPath); err != nil {
+			t.Fatalf("expected hook in configured hooksPath: %s (%v)", hookPath, err)
+		}
+	}
+
+	if _, err := os.Stat(filepath.Join(repoRoot, ".git", "hooks", "pre-commit")); !os.IsNotExist(err) {
+		t.Fatalf("expected .git/hooks/pre-commit to stay untouched when core.hooksPath is set")
 	}
 }
 
@@ -689,6 +721,15 @@ func TestEnsureManagedMarker_InsertsAfterShebang(t *testing.T) {
 	}
 	if lines[1] != sdpManagedMarker {
 		t.Fatalf("marker not inserted after shebang: %q", out)
+	}
+}
+
+func runGit(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git %v failed: %v\n%s", args, err, out)
 	}
 }
 
